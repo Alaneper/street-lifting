@@ -55,6 +55,7 @@ with sync_playwright() as p:
     pg.evaluate("ACT.closeSheet && ACT.closeSheet()")
     pg.evaluate("localStorage.setItem('sl-tok', JSON.stringify({t:'OLD', exp:Date.now()-1000}))")
     pg.click("[data-act=liveNav][data-d='1']"); pg.wait_for_timeout(3500)
+    pg.click("[data-act=doneSet][data-j='0']"); pg.wait_for_timeout(900); pg.screenshot(path=str(OUT/"5b-rest.png"))
     print("après reconnexion : live ouvert ?", pg.locator(".live").count(), "| url:", pg.url)
     pg.screenshot(path=str(OUT/"5-resume.png"))
     pg.click("[data-act=finishLive]"); pg.wait_for_timeout(2000); pg.screenshot(path=str(OUT/"6-summary.png")); pg.click("[data-act=closeSummary]"); pg.wait_for_timeout(1500)
@@ -62,6 +63,9 @@ with sync_playwright() as p:
     print("coach RPE row:", pg.evaluate(f"(()=>{{const g=window.__sheets['{COACH}']['BLOC 7']; return g.map((r,i)=>[i+1,r.slice(22,38).join('|')]).filter(x=>/SQUAT/.test(x[1])).slice(0,3)}})()"))
     for t in ["prog","corps","agenda"]:
         pg.evaluate("ACT.closeSheet && ACT.closeSheet()"); pg.click(f"[data-tab={t}]"); pg.wait_for_timeout(1200); pg.screenshot(path=str(OUT/f"7-{t}.png"), full_page=True)
+    pg.evaluate("ACT.closeSheet && ACT.closeSheet()"); pg.click("[data-tab=prog]"); pg.wait_for_timeout(800)
+    pg.click("#v-prog [data-act=openLift][data-l=PULL]"); pg.wait_for_timeout(1500)
+    pg.locator(".page").evaluate("e=>e.style.position='static'"); pg.screenshot(path=str(OUT/"8b-lift.png"), full_page=True)
     c.close()
     # --- B : nouveau carnet (le frère)
     c = ctx(); pg = c.new_page(); watch(pg)
