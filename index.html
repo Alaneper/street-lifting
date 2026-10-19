@@ -542,19 +542,16 @@ const coachId = () => idOf(D.profil.coach_sheet_id);
 let progOrder = [];
 const CARNET_TABS = new Set(["PROFIL","PR","POIDS","OBJECTIFS","RECORDS","COMPETITIONS","SERIES","BLOCS","TENTATIVES","CHECKLIST","BILAN"]);
 const BLOC_RE = /^\s*BLOC\s*(\d+)\s*$/i;
+/* Un onglet est un bloc s'il contient un tableau de séances : une ligne avec « MOUVEMENT » et « SÉRIES » ou « RÉPÉTITIONS ». */
 function progInfo(v){
-  let prog = false, n = null;
-  for (let r = 0; r < v.length; r++) for (let c = 0; c < (v[r] || []).length; c++) {
-    const t = norm(String(v[r][c] ?? ""));
-    if (t === "MOUVEMENT") prog = true;
-    if (n === null && r < 30) { const m = t.match(/^BLOC\s*(\d+)$/); if (m) n = +m[1];
-      else if (t === "BLOC") for (let k = c + 1; k <= c + 6; k++) { const x = num(v[r][k]); if (x !== null && x > 0 && x < 100 && Number.isInteger(x)) { n = x; break; } } }
-  }
-  return {prog, n};
+  for (const row of v) { const t = (row || []).map(x => norm(String(x ?? ""))); if (t.includes("MOUVEMENT") && (t.includes("SÉRIES") || t.includes("RÉPÉTITIONS"))) return {prog:true}; }
+  return {prog:false};
 }
+/* Numéro lu dans le nom : « BLOC 8 », « B8 force 3 semaines », « Bloc 8 post-compét »… */
+const NUM_RE = /^\s*B(?:LOC)?\s*[-_.]?\s*(\d{1,2})(?!\d)/i;
 function hashId(t){ let h = 5381; for (const ch of t) h = (h * 33 + ch.charCodeAt(0)) >>> 0; return 100 + h % 900; }
 async function progTabs(id){
-  const titles = await getTitles(id), sig = titles.join("|"), ck = "sl-prog:" + id, c = store.get(ck);
+  const titles = await getTitles(id), sig = "v2|" + titles.join("|"), ck = "sl-prog:" + id, c = store.get(ck);
   let info = c && c.sig === sig ? c.info : null;
   if (!info) {
     info = {};
@@ -566,7 +563,7 @@ async function progTabs(id){
   for (const t of titles) {
     const m = t.match(BLOC_RE); let n = null;
     if (m) n = +m[1];
-    else if (info[t] && info[t].prog) { n = info[t].n && !used.has(info[t].n) ? info[t].n : hashId(t); while (used.has(n)) n++; used.add(n); }
+    else if (info[t] && info[t].prog) { const k = (t.match(NUM_RE) || [])[1]; n = k && !used.has(+k) ? +k : hashId(t); while (used.has(n)) n++; used.add(n); }
     if (n !== null && !names[n]) { names[n] = t; order.push(n); }
   }
   return {names, order};
@@ -579,7 +576,7 @@ const blocLabel = b => isNamed(b) ? blocNames[b].trim() : "Bloc " + b;
 const blocLow = b => isNamed(b) ? "« " + blocNames[b].trim() + " »" : "bloc " + b;
 const blocShort = b => isNamed(b) ? blocNames[b].trim().split(/\s+/)[0].slice(0, 6) : "B" + b;
 async function loadBloc(n){
-  const v = await getVals(coachId(), q(blocNames[n]) + "!A1:CZ240");
+  const v = await getVals(coachId(), q(blocNames[n]) + "!A1:CZ1000");
   const {seances, weeks} = parseBloc(v, blocNames[n], n);
   fixJours(seances);
   S = S.filter(s => s.bloc !== n).concat(seances);
@@ -605,6 +602,13 @@ function fixJours(ss){
 function parseBloc(v, sheet, bloc){
   const cell = (r, c) => String((v[r] && v[r][c]) ?? "");
   const seances = [], weeks = {};
+  /* Certains coachs recopient « Semaine 1 » dans chaque colonne : on numérote alors les semaines de gauche à droite. */
+  const weekOf = (r, c) => { for (let up = r - 1; up >= Math.max(0, r - 200); up--) if (norm(cell(up, c)) === "SEMAINE") return cell(up, c + 1).trim(); return ""; };
+  const byLab = {}, byCol = {};
+  for (let r = 0; r < v.length; r++) for (let c = 0; c < (v[r] || []).length; c++) if (norm(cell(r, c)) === "MOUVEMENT") {
+    const l = weekOf(r, c); (byLab[l] = byLab[l] || new Set()).add(c); (byCol[c] = byCol[c] || new Set()).add(l); }
+  const colsSorted = Object.keys(byCol).map(Number).sort((a, b) => a - b);
+  const renum = colsSorted.length > 1 && Object.values(byLab).some(x => x.size > 1) && Object.values(byCol).every(x => x.size === 1);
   for (let r = 0; r < v.length; r++){
     const width = (v[r] || []).length;
     for (let c = 0; c < width; c++){
@@ -620,6 +624,7 @@ function parseBloc(v, sheet, bloc){
         if (x === "SEMAINE") { semaine = cell(up, c + 1).trim(); break; }
       }
       if (!seance) seance = "Séance " + (nb + 1);
+      if (renum) semaine = String(colsSorted.indexOf(c) + 1);
       const ex = []; let blanks = 0, last = r;
       for (let rr = r + 1; rr < v.length; rr++){
         const m = norm(cell(rr, c));

@@ -2,8 +2,14 @@
 import pathlib
 H = pathlib.Path(__file__).resolve().parent
 src = (H / "e2e.py").read_text(); exec(src[:src.index("with sync_playwright()")])
-RENAME = """<script>(()=>{const s=window.__sheets['%s'],o={};for(const[k,v]of Object.entries(s)){
- if(k==='BLOC 6')o['Intensif 3 sem']=v; else if(k==='BLOC 7'){o['Peaking BSLC']=v;o['BIBLIOTHÈQUE']=[['Exercice','Lien']];} else o[k]=v;}
+RENAME = """<script>(()=>{const s=window.__sheets['%s'],o={};
+ const same = g => { g.forEach(r => r.forEach((x,i) => { if (/^Semaine/.test(x)) r[i+1] = "1"; })); return g; };
+ for(const[k,v]of Object.entries(s)){
+  if(k==='BLOC 5'){o['BLOC 5']=v;o['B6 ACC 4semaines ']=same(JSON.parse(JSON.stringify(s['BLOC 6'])));}
+  else if(k==='BLOC 6')o['B7 Intensif 3 semaines ']=same(v);
+  else if(k==='BLOC 7'){o['Peaking BSLC ']=same(v);o['BIBLIOTHÈQUE MOBILITÉ ']=[['Exercice','Lien']];o['FEUILLE DE MATCH ']=[['MOUVEMENT','Tentative 1']];}
+  else if(k==='BLOC 2'){o['BLOC 1 POST COMP ']=JSON.parse(JSON.stringify(v));o['BLOC 2']=v;}
+  else o[k]=v;}
  window.__sheets['%s']=o;})()</script>""" % (COACH, COACH)
 def route2(r):
     if r.request.url.rstrip("/").endswith("/sl") or r.request.url.endswith("/sl/") or r.request.url.endswith("index.html"):
@@ -21,6 +27,7 @@ with sync_playwright() as p:
     print("actif :", pg.evaluate("blocLabel(activeBloc())"))
     pg.click("[data-act=settings]"); pg.wait_for_timeout(500)
     print("options :", pg.locator("#sbl option").all_inner_texts())
+    print("semaines peaking :", pg.evaluate("[...new Set(S.filter(x=>x.bloc===activeBloc()).map(x=>x.semaine))]"), "| prochaine :", pg.evaluate("(nextSeance()||{}).key"))
     pg.select_option("#sbl", label="Bloc 5"); pg.wait_for_timeout(2500)
     print("après choix :", pg.evaluate("blocLabel(activeBloc())"), "| profil :", pg.evaluate("D.profil.bloc_actif"))
     pg.screenshot(path=str(OUT / "named-settings.png"))
