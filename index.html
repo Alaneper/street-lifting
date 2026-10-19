@@ -1780,7 +1780,9 @@ Object.assign(ACT, {
   obLogin:() => auth.login("select_account"),
   obStep:d => onboard(d.s),
   obLink:async () => { const id = idOf($("#oblink").value); if (!id) return onboard("carnet", "Ce lien ne ressemble pas à un lien de Google Sheet.");
-    try { await ensureTabs(id); } catch(e){ return onboard("carnet", errMsg(e)); }
+    try { const t = await getTitles(id);
+      if (t.some(x => /^\s*BLOC\s*\d+/i.test(x)) && !t.includes("PROFIL")) return onboard("carnet", "Ce lien est celui d'une prog de coach, pas d'un carnet. Colle-le plus haut, dans « Nouveau ici, avec une prog de coach ».");
+      await ensureTabs(id); } catch(e){ return onboard("carnet", errMsg(e)); }
     setCfg({appId:id}); APP_ID = id; startApp(); },
   obFromCoach:async () => {
     const id = idOf($("#obcoach").value); if (!id) return toast("Ce lien de Google Sheet n'est pas reconnu", true);
