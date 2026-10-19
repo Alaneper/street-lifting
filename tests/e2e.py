@@ -5,7 +5,7 @@ H = pathlib.Path(__file__).resolve().parent; P = H.parent
 B = pathlib.Path(os.environ.get("BENCH_DEPS", "/tmp/claude-0/-home-claude/a112c60f-9639-549a-a0f9-bbd91e82e76a/scratchpad/bench"))  # node_modules : chart.js, @fontsource
 OUT = H / "shots"; OUT.mkdir(exist_ok=True)
 css = ""
-for fam, slug, ws in [("Big Shoulders Display","big-shoulders-display",[600,800,900]),("Archivo","archivo",[400,500,600,700])]:
+for fam, slug, ws in [("Barlow","barlow",[400,500,600,700]),("Barlow Condensed","barlow-condensed",[600,700,800])]:
     for w in ws: css += f"@font-face{{font-family:'{fam}';font-weight:{w};src:url(http://app.local/fonts/{slug}-latin-{w}-normal.woff2) format('woff2');}}\n"
 def route(r):
     u = r.request.url
@@ -24,7 +24,7 @@ def route(r):
     if u.endswith("/shim.js"): return r.fulfill(path=str(H / "shim.js"), content_type="text/javascript")
     if "chart.umd" in u: return r.fulfill(path=str(B / "node_modules/chart.js/dist/chart.umd.js"), content_type="text/javascript")
     if "fonts.googleapis.com" in u: return r.fulfill(body=css, content_type="text/css")
-    m = re.search(r"/fonts/((big-shoulders-display|archivo)-latin-\d+-normal\.woff2)", u)
+    m = re.search(r"/fonts/((barlow-condensed|barlow)-latin-\d+-normal\.woff2)", u)
     if m: return r.fulfill(path=str(B / f"node_modules/@fontsource/{m.group(2)}/files/{m.group(1)}"), content_type="font/woff2")
     return r.abort()
 APP = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA"; COACH = "1PLTt-6Qb7kdPXTornMlyJfiH-Pxo3V-2FPD-BkRW2LU"

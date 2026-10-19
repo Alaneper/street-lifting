@@ -26,7 +26,7 @@ def cut(start, end, new):
 head = """<!doctype html>
 <html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#17181B">
+<meta name="theme-color" content="#0A0B0D">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
@@ -48,7 +48,6 @@ body.ob .tabs,body.ob .avatar{display:none}
 
 <main""")
 rep('<p class="muted small" style="margin-top:14px">La première fois, Claude te demande d\'autoriser l\'accès à Google Sheets. Touche « Autoriser ».</p>', "")
-rep("Street Lifting<small>Connexion à tes Google Sheets…</small>", "Street Lifting<small>Chargement…</small>")
 
 # 2. Couche de données : l'ancienne (connecteur Claude) est retirée, la nouvelle est injectée avant la synchro
 cut("/* =====================================================================\n   ACCÈS AUX DONNÉES", "/* =====================================================================\n   DONNÉES PERSO", "")

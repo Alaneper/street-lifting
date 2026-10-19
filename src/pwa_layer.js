@@ -108,14 +108,11 @@ let obStep = "login", obErr = "";
 function onboard(step, why){
   obStep = step; obErr = why || ""; document.body.classList.add("ob");
   document.querySelectorAll(".view").forEach(v => v.hidden = v.id !== "v-home");
-  $("#topdate").innerHTML = `Street Lifting<small>${step === "login" ? "Bienvenue" : "Ton carnet"}</small>`;
-  const plates = `<svg viewBox="0 0 390 150" width="100%" aria-hidden="true" class="obbar"><rect x="20" y="71" width="350" height="8" rx="4" fill="var(--steel)"/>
-    ${[["squat",60,130],["pull",86,112],["dip",108,96],["mu",126,80]].map(([c, x, h], i) => `<rect class="plate" style="animation-delay:${i * 90}ms" x="${x}" y="${75 - h / 2}" width="${i === 0 ? 24 : 18}" height="${h}" rx="4" fill="var(--${c})"/><rect class="plate" style="animation-delay:${i * 90}ms" x="${390 - x - (i === 0 ? 24 : 18)}" y="${75 - h / 2}" width="${i === 0 ? 24 : 18}" height="${h}" rx="4" fill="var(--${c})"/>`).join("")}
-    <rect x="150" y="64" width="10" height="22" rx="3" fill="var(--steel-hi)"/><rect x="230" y="64" width="10" height="22" rx="3" fill="var(--steel-hi)"/></svg>`;
+  const plates = `<div class="hero" style="margin-top:18px;min-height:150px">${DECO}<svg width="64" height="64" viewBox="0 0 40 40" aria-hidden="true" style="position:relative"><path d="M20 4v8" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/><circle cx="20" cy="24" r="11" fill="none" stroke="#fff" stroke-width="4"/><circle cx="20" cy="24" r="3" fill="#fff"/></svg><p class="hu" style="margin-top:14px">Ta prog, tes records, ta prochaine compét.</p></div>`;
   const err = obErr ? `<p class="small" style="color:var(--bad);margin-top:12px">${esc(obErr)}</p>` : "";
   let h = "";
   if (step === "config") h = `<div class="empty"><p>L'identifiant Google de l'app n'est pas encore configuré.</p></div>`;
-  else if (step === "login") h = `${plates}<p class="show t-l" style="margin-top:6px">Tes 4 mouvements.<br>Ta prog. Tes records.</p>
+  else if (step === "login") h = `${plates}<p class="show" style="font-size:44px;font-weight:800;margin-top:22px;line-height:1">Street Lifting</p>
     <p class="muted" style="margin-top:12px">Connecte ton compte Google. Tes données restent dans ton propre Google Sheet : personne d'autre n'y a accès.</p>
     <button class="btn" style="margin-top:22px" data-act="obLogin">Continuer avec Google</button>${err}
     <p class="muted tiny" style="margin-top:14px">Google peut afficher « application non validée » : c'est normal pour une app en test. Touche « Continuer ».</p>`;
