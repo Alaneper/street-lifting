@@ -148,7 +148,7 @@ function onboard(step, why){
       <button class="btn ghost" style="margin-top:12px" data-act="obLink">Utiliser ce carnet</button></div>${err}`;
   else if (step === "create") { const P = obPre || {}, v = x => x === undefined || x === null ? "" : esc(String(x).replace(".", ","));
     h = `<p class="show t-m" style="margin-top:18px">Ton profil</p>
-    ${obPre ? `<p class="muted small" style="margin-top:6px">Rempli depuis ta prog${P.bloc ? " (bloc " + P.bloc + ")" : ""}. Vérifie et corrige si besoin.</p>` : ""}
+    ${obPre ? `<p class="muted small" style="margin-top:6px">Rempli depuis ta prog${P.bloc ? " (onglet « " + esc(P.blocTitles[P.bloc].trim()) + " »)" : ""}. Vérifie et corrige si besoin.</p>` : ""}
     <label for="obp">Prénom</label><input id="obp" autocomplete="given-name" value="${v(P.prenom)}">
     <div class="grid2"><div><label for="obs">Sexe (pour le RIS)</label><select id="obs"><option value="H">Homme</option><option value="F">Femme</option></select></div>
       <div><label for="obc">Catégorie</label><select id="obc">${CATS.map(c => `<option value="${c}" ${c === (P.categorie || -80) ? "selected" : ""}>${c > 0 ? "+" + c : c} kg</option>`).join("")}</select></div></div>
@@ -156,7 +156,7 @@ function onboard(step, why){
     <label>Tes PR actuels (kg de lest, laisse vide si tu ne sais pas)</label>
     <div class="grid2">${LIFTS.map(l => `<div><label for="obpr${l}" style="margin-top:0">${LNAME[l]}</label><input id="obpr${l}" inputmode="decimal" value="${v(P["pr_" + l])}"></div>`).join("")}</div>
     <label for="obk">Lien de la prog de ton coach (facultatif)</label><input id="obk" type="url" placeholder="https://docs.google.com/spreadsheets/d/…" value="${P.coach ? sheetUrl(P.coach) : ""}">
-    ${P.blocs && P.blocs.length ? `<label for="obbl">Ton bloc en cours</label><select id="obbl">${P.blocs.map(n => `<option value="${n}" ${n === P.bloc ? "selected" : ""}>Bloc ${n}</option>`).join("")}</select><p class="muted tiny" style="margin-top:6px">Choisis le bloc que tu fais en ce moment. Tu pourras le changer dans les réglages.</p>` : ""}
+    ${P.blocs && P.blocs.length ? `<label for="obbl">Ton bloc en cours</label><select id="obbl">${P.blocs.map(n => `<option value="${n}" ${n === P.bloc ? "selected" : ""}>${esc(/^\s*BLOC\s*\d+\s*$/i.test(P.blocTitles[n]) ? "Bloc " + n : P.blocTitles[n].trim())}</option>`).join("")}</select><p class="muted tiny" style="margin-top:6px">Choisis le bloc que tu fais en ce moment. Tu pourras le changer dans les réglages.</p>` : ""}
     ${P.bloc ? `<label for="obb">Lundi de la semaine 1 de ce bloc</label><input id="obb" type="date"><p class="muted tiny" style="margin-top:6px">Pour dater tes séances. Tu pourras le changer plus tard.</p>` : ""}
     <p class="muted tiny" style="margin-top:6px">La prog doit être partagée avec le compte Google avec lequel tu es connecté.</p>
     <button class="btn" style="margin-top:20px" data-act="obCreate" id="obgo">Créer mon carnet</button>
@@ -168,7 +168,7 @@ Object.assign(ACT, {
   obStep:d => onboard(d.s),
   obLink:async () => { const id = idOf($("#oblink").value); if (!id) return onboard("carnet", "Ce lien ne ressemble pas à un lien de Google Sheet.");
     try { const t = await getTitles(id);
-      if (t.some(x => /^\s*BLOC\s*\d+/i.test(x)) && !t.includes("PROFIL")) return onboard("carnet", "Ce lien est celui d'une prog de coach, pas d'un carnet. Colle-le plus haut, dans « Nouveau ici, avec une prog de coach ».");
+      if (!t.includes("PROFIL") && (t.some(x => /^\s*BLOC\s*\d+/i.test(x)) || (await progTabs(id)).order.length)) return onboard("carnet", "Ce lien est celui d'une prog de coach, pas d'un carnet. Colle-le plus haut, dans « Nouveau ici, avec une prog de coach ».");
       await ensureTabs(id); } catch(e){ return onboard("carnet", errMsg(e)); }
     setCfg({appId:id}); APP_ID = id; startApp(); },
   obFromCoach:async () => {
@@ -176,10 +176,11 @@ Object.assign(ACT, {
     const b = $("#obfc"); b.disabled = true; b.textContent = "Lecture de ta prog…";
     try {
       const meta = await gapi(API + id + "?fields=" + enc("properties.title,sheets.properties.title"), {}, true);
-      const tabs = (meta.sheets || []).map(x => x.properties.title), blocs = tabs.map(t => { const m = t.match(/^\s*BLOC\s*(\d+)/i); return m ? {n:+m[1], t} : null; }).filter(Boolean).sort((a, c) => c.n - a.n);
+      const pt = await progTabs(id), last = pt.order.at(-1);
       const pre = {coach:id, prenom:prenomOf(meta.properties && meta.properties.title)};
-      if (blocs.length) { Object.assign(pre, parseCoachProfile(await getVals(id, "'" + blocs[0].t.replace(/'/g, "''") + "'!A1:CZ24")), {bloc:blocs[0].n, blocs:blocs.map(x => x.n).sort((a, c) => a - c)}); }
-      obPre = pre; onboard("create", blocs.length ? "" : "Aucun onglet « BLOC » trouvé : remplis ton profil à la main.");
+      if (pt.order.length) { Object.assign(pre, parseCoachProfile(await getVals(id, q(pt.names[last]) + "!A1:CZ24")), {bloc:last, blocs:pt.order.slice(), blocTitles:pt.names}); }
+      const blocs = pt.order;
+      obPre = pre; onboard("create", blocs.length ? "" : "Aucun onglet de séances trouvé dans cette prog : remplis ton profil à la main.");
     } catch(e){ b.disabled = false; b.textContent = "Tout remplir depuis ma prog"; toast("Prog inaccessible : " + errMsg(e), true); }
   },
   obCreate:async () => {

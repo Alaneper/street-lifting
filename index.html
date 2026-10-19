@@ -537,17 +537,53 @@ async function loadApp(){
    PROG DU COACH (template ATS, onglets « BLOC n »)
    ===================================================================== */
 const coachId = () => idOf(D.profil.coach_sheet_id);
-async function loadBlocList(){
-  const names = {};
-  (await getTitles(coachId())).forEach(t => { const m = t.match(/^\s*BLOC\s*(\d+)/i); if (m) names[+m[1]] = t; });
-  blocNames = names;
+/* Les blocs de la prog : onglets « BLOC n », et aussi tout onglet nommé autrement (« Peaking BSLC »…)
+   qui contient un tableau de séances (en-tête « MOUVEMENT »). Ordre chronologique = ordre des onglets. */
+let progOrder = [];
+const CARNET_TABS = new Set(["PROFIL","PR","POIDS","OBJECTIFS","RECORDS","COMPETITIONS","SERIES","BLOCS","TENTATIVES","CHECKLIST","BILAN"]);
+const BLOC_RE = /^\s*BLOC\s*(\d+)\s*$/i;
+function progInfo(v){
+  let prog = false, n = null;
+  for (let r = 0; r < v.length; r++) for (let c = 0; c < (v[r] || []).length; c++) {
+    const t = norm(String(v[r][c] ?? ""));
+    if (t === "MOUVEMENT") prog = true;
+    if (n === null && r < 30) { const m = t.match(/^BLOC\s*(\d+)$/); if (m) n = +m[1];
+      else if (t === "BLOC") for (let k = c + 1; k <= c + 6; k++) { const x = num(v[r][k]); if (x !== null && x > 0 && x < 100 && Number.isInteger(x)) { n = x; break; } } }
+  }
+  return {prog, n};
 }
+function hashId(t){ let h = 5381; for (const ch of t) h = (h * 33 + ch.charCodeAt(0)) >>> 0; return 100 + h % 900; }
+async function progTabs(id){
+  const titles = await getTitles(id), sig = titles.join("|"), ck = "sl-prog:" + id, c = store.get(ck);
+  let info = c && c.sig === sig ? c.info : null;
+  if (!info) {
+    info = {};
+    const others = titles.filter(t => !BLOC_RE.test(t) && !CARNET_TABS.has(t.trim()));
+    for (let i = 0; i < others.length; i += 8) { const part = others.slice(i, i + 8), vals = await getMany(id, part.map(t => q(t) + "!A1:CZ120")); part.forEach((t, j) => info[t] = progInfo(vals[j] || [])); }
+    store.set(ck, {sig, info});
+  }
+  const used = new Set(titles.map(t => (t.match(BLOC_RE) || [])[1]).filter(Boolean).map(Number)), names = {}, order = [];
+  for (const t of titles) {
+    const m = t.match(BLOC_RE); let n = null;
+    if (m) n = +m[1];
+    else if (info[t] && info[t].prog) { n = info[t].n && !used.has(info[t].n) ? info[t].n : hashId(t); while (used.has(n)) n++; used.add(n); }
+    if (n !== null && !names[n]) { names[n] = t; order.push(n); }
+  }
+  return {names, order};
+}
+async function loadBlocList(){ const r = await progTabs(coachId()); blocNames = r.names; progOrder = r.order; }
+const rank = b => { const i = progOrder.indexOf(b); return i < 0 ? 0 : i + 1; };
+const byRank = (a, b) => rank(a) - rank(b);
+const isNamed = b => blocNames[b] && !BLOC_RE.test(blocNames[b]);
+const blocLabel = b => isNamed(b) ? blocNames[b].trim() : "Bloc " + b;
+const blocLow = b => isNamed(b) ? "« " + blocNames[b].trim() + " »" : "bloc " + b;
+const blocShort = b => isNamed(b) ? blocNames[b].trim().split(/\s+/)[0].slice(0, 6) : "B" + b;
 async function loadBloc(n){
   const v = await getVals(coachId(), q(blocNames[n]) + "!A1:CZ240");
   const {seances, weeks} = parseBloc(v, blocNames[n], n);
   fixJours(seances);
   S = S.filter(s => s.bloc !== n).concat(seances);
-  S.sort((a, b) => a.bloc - b.bloc || (num(a.semaine) || 0) - (num(b.semaine) || 0) || a.idx - b.idx);
+  S.sort((a, b) => byRank(a.bloc, b.bloc) || (num(a.semaine) || 0) - (num(b.semaine) || 0) || a.idx - b.idx);
   Object.keys(weekMeta).forEach(k => { if (weekMeta[k].bloc === n) delete weekMeta[k]; });
   Object.assign(weekMeta, weeks);
   loadedBlocs.add(n);
@@ -620,11 +656,11 @@ function parseBloc(v, sheet, bloc){
   return {seances, weeks};
 }
 const chosenBloc = () => { const n = num(D && D.profil.bloc_actif); return n && blocNames[n] ? n : null; };
-const activeBloc = () => { const c = chosenBloc(); if (c !== null && S.some(s => s.bloc === c)) return c; const b = S.map(s => s.bloc); return b.length ? Math.max(...b) : null; };
+const activeBloc = () => { const c = chosenBloc(); if (c !== null && S.some(s => s.bloc === c)) return c; const b = [...new Set(S.map(s => s.bloc))].sort(byRank); return b.length ? b.at(-1) : null; };
 const nextSeance = () => { const b = activeBloc(); return b === null ? null : (S.find(s => s.bloc === b && !s.faite) || null); };
 async function loadCoach(){
   await loadBlocList();
-  const nums = Object.keys(blocNames).map(Number).sort((a, b) => b - a);
+  const nums = progOrder.slice().reverse();
   if (!nums.length) { seanceErr = "Aucun onglet « BLOC » trouvé dans la prog de ton coach."; return; }
   const keep = new Set(loadedBlocs); loadedBlocs.clear(); S = []; weekMeta = {};
   const c = chosenBloc();
@@ -637,7 +673,7 @@ function ensureAllBlocs(){
   if (allLoaded) return Promise.resolve();
   if (loadingAll) return loadingAll;
   loadingAll = (async () => {
-    for (const n of Object.keys(blocNames).map(Number).sort((a, b) => a - b)) if (!loadedBlocs.has(n)) await loadBloc(n);
+    for (const n of progOrder) if (!loadedBlocs.has(n)) await loadBloc(n);
     allLoaded = true; loadingAll = null; saveCache();
   })().catch(e => { loadingAll = null; throw e; });
   return loadingAll;
@@ -727,11 +763,11 @@ function exercisePoints(){
     let sets = setsFromComment(e, c);
     if (!sets && s.faite && lift && num(e.series) && isNumTxt(e.reps)) sets = Array(num(e.series)).fill(0).map(() => ({r:num(e.reps), c}));
     if (!sets) continue;
-    rows.push({sk:s.key, ex:key, lift, date:dateOf(s), order:s.bloc * 1000 + (num(s.semaine) || 0) * 10 + s.idx, label:"B" + s.bloc + " S" + s.semaine, sets, src:"prog"});
+    rows.push({sk:s.key, ex:key, lift, date:dateOf(s), order:rank(s.bloc) * 1000 + (num(s.semaine) || 0) * 10 + s.idx, label:blocShort(s.bloc) + " S" + s.semaine, sets, src:"prog"});
   }
   for (const x of D.series) {
     const s = S.find(z => z.bloc === x.bloc && z.semaine === x.semaine && z.seance === x.seance);
-    rows.push({sk: s ? s.key : "d" + x.date, ex:x.ex, lift:liftOf(x.ex.split(" · ")[0]), date:x.date || (s && dateOf(s)), order:x.bloc ? x.bloc * 1000 + (num(x.semaine) || 0) * 10 + (s ? s.idx : 0) : 0, label:x.date ? dfr(x.date) : "B" + x.bloc + " S" + x.semaine, sets:x.sets, src:"carnet"});
+    rows.push({sk: s ? s.key : "d" + x.date, ex:x.ex, lift:liftOf(x.ex.split(" · ")[0]), date:x.date || (s && dateOf(s)), order:x.bloc ? rank(x.bloc) * 1000 + (num(x.semaine) || 0) * 10 + (s ? s.idx : 0) : 0, label:x.date ? dfr(x.date) : blocShort(x.bloc) + " S" + x.semaine, sets:x.sets, src:"carnet"});
   }
   const map = {};
   for (const r of rows) { const o = map[r.ex] = map[r.ex] || {key:r.ex, lift:r.lift, pts:{}}; const p = o.pts[r.sk] = o.pts[r.sk] || {sk:r.sk, date:r.date, order:r.order, label:r.label, rows:[], src:r.src}; p.rows.push(r.sets); if (r.src === "carnet") p.src = "carnet"; }
@@ -750,10 +786,10 @@ const fmtSets = sets => { const c0 = sets[0].c; return sets.every(x => x.c === c
 /* =====================================================================
    CACHE LOCAL (affichage immédiat à l'ouverture, puis synchro)
    ===================================================================== */
-function saveCache(){ if (D) store.set(ck("sl4-cache"), {D, S, blocNames, weekMeta, at:Date.now(), all:allLoaded}); }
+function saveCache(){ if (D) store.set(ck("sl4-cache"), {D, S, blocNames, progOrder, weekMeta, at:Date.now(), all:allLoaded}); }
 function loadCache(){
   const c = store.get(ck("sl4-cache")); if (!c || !c.D) return false;
-  D = c.D; D.today = isoOf(new Date()); S = c.S || []; blocNames = c.blocNames || {}; weekMeta = c.weekMeta || {};
+  D = c.D; D.today = isoOf(new Date()); S = c.S || []; blocNames = c.blocNames || {}; progOrder = c.progOrder || Object.keys(blocNames).map(Number).sort((x, y) => x - y); weekMeta = c.weekMeta || {};
   S.forEach(s => loadedBlocs.add(s.bloc)); allLoaded = !!c.all; return true;
 }
 
@@ -861,10 +897,10 @@ function rHome(){
   const weekRef = sessDate && sessDate > addDays(D.today, 6 - (dObj(D.today).getDay() + 6) % 7) ? sessDate : D.today, wr = S.length ? weekRows(weekRef) : "";
   const jourBtn = sessDate ? (sessDate === D.today ? "d'aujourd'hui" : "de " + JOURS[dObj(sessDate).getDay()]) : "";
   const tgt = LIFTS.reduce((a, l) => a + ((l === "MU" && !muOn()) ? 0 : (D.objectifs[l] || best(l) || 0)), 0);
-  const heroH = nc ? heroCard({small:`${esc(nc.nom)}, ${dlong(nc.date)}`, big:days(D.today, nc.date) === 0 ? "Jour J" : "J−" + days(D.today, nc.date), sub:[nc.tbc ? "date à confirmer" : "", rem ? `encore ${rem} séance${rem > 1 ? "s" : ""} dans le bloc ${activeBloc()}` : ""].filter(Boolean).join(" · "), act:`data-act="tab" data-t="agenda" role="button" tabindex="0"`})
+  const heroH = nc ? heroCard({small:`${esc(nc.nom)}, ${dlong(nc.date)}`, big:days(D.today, nc.date) === 0 ? "Jour J" : "J−" + days(D.today, nc.date), sub:[nc.tbc ? "date à confirmer" : "", rem ? `encore ${rem} séance${rem > 1 ? "s" : ""} dans le ${blocLow(activeBloc())}` : ""].filter(Boolean).join(" · "), act:`data-act="tab" data-t="agenda" role="button" tabindex="0"`})
     : heroCard({small:"Mon total", big:`${fmt(t)}<small>kg</small>`, sub:`RIS ${fmt(r, 1)} · objectif ${fmt(tgt)} kg`, act:`data-act="tab" data-t="prog" role="button" tabindex="0"`});
   const left = `${heroH}
-    <h2 class="h2">Cette semaine <span class="muted">${sess ? "Bloc " + sess.bloc + ", semaine " + esc(sess.semaine) : ""}</span></h2>
+    <h2 class="h2">Cette semaine <span class="muted">${sess ? esc(blocLabel(sess.bloc)) + (sess.semaine ? ", semaine " + esc(sess.semaine) : "") : ""}</span></h2>
     ${S.length ? (wr || `<p class="muted small">Aucune séance datée cette semaine.</p>`) : `<div class="row" style="padding:14px 0"><span class="muted">${esc(seanceErr) || "Chargement de ta prog…"}</span>${seanceErr ? "" : `<div class="spin"></div>`}</div>`}
     ${sess ? `<button class="btn" style="margin-top:16px" data-act="startLive" data-k="${esc(sess.key)}">${lv && lv.key === sess.key ? "Reprendre la séance" : "Commencer la séance " + jourBtn}</button>` : ""}`;
   const right = `${nc ? `<div class="desk-only">${heroCard({plain:true, small:"Mon total", big:`${fmt(t)}<small>kg</small>`, sub:`RIS ${fmt(r, 1)} · objectif ${fmt(tgt)} kg`})}</div>` : ""}
@@ -886,12 +922,12 @@ function rSeance(){
   if (seanceErr && !S.length) { el.innerHTML = `<div class="empty"><p>${esc(seanceErr)}</p><button class="btn ghost sm" data-act="sync">Réessayer</button></div>`; return; }
   if (!S.length) { el.innerHTML = `<div class="skel" style="height:220px;margin-top:14px"></div><div class="skel" style="height:300px;margin-top:12px"></div>`; return; }
   let s = seanceByKey(sel); if (!s) { s = todaySeance() && !todaySeance().faite ? todaySeance() : (nextSeance() || S.at(-1)); sel = s.key; }
-  const blocs = Object.keys(blocNames).map(Number).sort((a, b) => a - b), inB = S.filter(x => x.bloc === s.bloc);
+  const blocs = progOrder.slice(), inB = S.filter(x => x.bloc === s.bloc);
   const weeks = [...new Set(inB.map(x => x.semaine))], maxIdx = Math.max(...inB.map(x => x.idx)) + 1, ns = nextSeance(), st = blocStart(s.bloc), d = dateOf(s);
   const pts = exercisePoints(), wk = weekMeta[s.sheet + "|" + s.semaine], lv = store.get(ck("sl4-live"));
   el.innerHTML = `
-    <div class="chips" style="margin-top:6px">${blocs.map(b => `<button class="chip" aria-pressed="${b === s.bloc}" data-act="pickBloc" data-b="${b}">Bloc ${b}</button>`).join("")}</div>
-    <h2 class="h2">Bloc ${s.bloc} <span class="muted">${inB.filter(x => x.faite).length} sur ${inB.length} séances faites</span></h2>
+    <div class="chips" style="margin-top:6px">${blocs.map(b => `<button class="chip" aria-pressed="${b === s.bloc}" data-act="pickBloc" data-b="${b}">${esc(blocLabel(b))}</button>`).join("")}</div>
+    <h2 class="h2">${esc(blocLabel(s.bloc))} <span class="muted">${inB.filter(x => x.faite).length} sur ${inB.length} séances faites</span></h2>
     <div>
       <div class="grid-bloc" style="grid-template-columns:30px repeat(${maxIdx}, minmax(46px,1fr))">
         <span></span>${Array.from({length:maxIdx}, (_, k) => { const x0 = inB.find(y => y.idx === k); return `<span class="h">${esc(x0 && x0.jour ? x0.jour.slice(0, 3) : "Séance " + (k + 1))}</span>`; }).join("")}
@@ -902,12 +938,12 @@ function rSeance(){
         }).join("")).join("")}
       </div>
       <details style="margin-top:12px"><summary class="small muted">${st ? (st.est ? "Dates estimées, bloc commencé le " : "Bloc commencé le ") + dfr(st.d) + ". Modifier" : "Ajouter la date de début du bloc"}</summary>
-        <label for="bd">Lundi de la semaine 1 du bloc ${s.bloc}</label><input id="bd" type="date" value="${st ? st.d : ""}" data-chg="blocDate" data-b="${s.bloc}"></details>
+        <label for="bd">Lundi de la semaine 1 du ${esc(blocLow(s.bloc))}</label><input id="bd" type="date" value="${st ? st.d : ""}" data-chg="blocDate" data-b="${s.bloc}"></details>
     </div>
 
-    ${heroCard({color:liftsOf(s)[0] ? LCOL[liftsOf(s)[0]] : "var(--brand)", small:`${d ? cap(dlong(d)) : esc(s.jour || "")} · bloc ${s.bloc}, semaine ${esc(s.semaine)}`, big:esc(s.seance), sub:s.faite ? "Faite" : s === ns ? "Prochaine séance" : "À venir"})}
+    ${heroCard({color:liftsOf(s)[0] ? LCOL[liftsOf(s)[0]] : "var(--brand)", small:`${d ? cap(dlong(d)) : esc(s.jour || "")} · ${esc(blocLow(s.bloc))}${s.semaine ? ", semaine " + esc(s.semaine) : ""}`, big:esc(s.seance), sub:s.faite ? "Faite" : s === ns ? "Prochaine séance" : "À venir"})}
     <div class="list" style="margin-top:8px">${s.exercices.map((e, k) => {
-      const l = liftOf(e.mouvement), key = exKey(e), o = pts.find(z => z.key === key), p = o && o.pts.find(z => z.label === "B" + s.bloc + " S" + s.semaine || (z.date && z.date === d));
+      const l = liftOf(e.mouvement), key = exKey(e), o = pts.find(z => z.key === key), p = o && o.pts.find(z => z.label === blocShort(s.bloc) + " S" + s.semaine || (z.date && z.date === d));
       const done = D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
       const logged = done ? fmtSets(done.sets) : (repsOnly(e.commentaire) ? fmt(num(e.charge)) + " kg × " + repsOnly(e.commentaire).join(" · ") : "");
       return `<button class="exo" style="--c:${l ? LCOL[l] : "var(--seam)"}" data-act="startLive" data-k="${esc(s.key)}" data-i="${k}"><span class="bar-v"></span><span class="grow">
@@ -1002,7 +1038,7 @@ function rLive(){
 }
 function prevRowSets(s, k){
   const e = s.exercices[k], key = exKey(e);
-  const cands = S.filter(z => z.bloc * 100 + (num(z.semaine) || 0) < s.bloc * 100 + (num(s.semaine) || 0) && z.idx === s.idx).sort((a, b) => (b.bloc * 100 + (num(b.semaine) || 0)) - (a.bloc * 100 + (num(a.semaine) || 0)));
+  const cands = S.filter(z => rank(z.bloc) * 100 + (num(z.semaine) || 0) < rank(s.bloc) * 100 + (num(s.semaine) || 0) && z.idx === s.idx).sort((a, b) => (rank(b.bloc) * 100 + (num(b.semaine) || 0)) - (rank(a.bloc) * 100 + (num(a.semaine) || 0)));
   for (const z of cands) {
     const same = z.exercices.filter(x => exKey(x) === key); if (!same.length) continue;
     const pos = s.exercices.filter((x, j) => j < k && exKey(x) === key).length, ez = same[Math.min(pos, same.length - 1)];
@@ -1101,7 +1137,7 @@ function rProg(){
     const rowEx = o => { const v = o.pts.map(p => p.e1rm), d = trend4w(o.pts), col = o.lift ? LCOL[o.lift] : "var(--chalk)";
       return `<button class="item" data-act="openEx" data-k="${esc(o.key)}"><span class="grow"><span class="ttl" style="display:block">${esc(exName(o.key))}</span><span class="muted small">${esc(fmtSets(o.last.sets))}</span></span>
         ${sparkSVG(v.slice(-10), o.lift ? getCss(col) : getCss("var(--chalk)"))}<span class="small" style="width:52px;text-align:right;color:${d > 0 ? "var(--ok)" : d < 0 ? "var(--bad)" : "var(--dust)"}">${d === null ? "" : (d > 0 ? "+" : "") + fmt(d, 0) + " %"}</span></button>`; };
-    exHtml = `${now.length ? `<div class="list">${now.map(rowEx).join("")}</div>` : `<p class="muted small">Aucune performance notée pour les exercices du bloc ${ab}. Lance une séance pour commencer.</p>`}
+    exHtml = `${now.length ? `<div class="list">${now.map(rowEx).join("")}</div>` : `<p class="muted small">Aucune performance notée pour les exercices du ${esc(blocLow(ab))}. Lance une séance pour commencer.</p>`}
       ${old.length ? `<details style="margin-top:14px"><summary class="small muted">Anciens exercices (${old.length})</summary><div class="list" style="margin-top:6px">${old.map(rowEx).join("")}</div></details>` : ""}`;
   } else ensureAllBlocs().then(() => { if (tab === "prog") rProg(); }).catch(() => {});
   const seg = `<div class="seg3">${["SQUAT","DIP","PULL","MU"].filter(l => best(l)).map((l, i) => `<i style="width:${(best(l) / (oT || 1) * 100).toFixed(1)}%;background:rgba(255,255,255,${[1, .75, .55, .4][i]})"></i>`).join("")}</div>`;
@@ -1115,7 +1151,7 @@ function rProg(){
         <span class="bar" style="display:block;--c:${LCOL[l]}"><i style="width:${o && b ? pct(b, o) : 0}%"></i></span>
         <span class="meta"><span>${o ? "objectif " + kg(o) : "pas encore d'objectif"}</span><span>${v ? v.txt.toLowerCase() : ""}</span></span></button>`; }).join("")}</div>
     ${dpHtml()}
-    <h2 class="h2">Tous les exercices du bloc ${activeBloc() ?? ""}</h2>
+    <h2 class="h2">Tous les exercices du ${activeBloc() !== null ? esc(blocLow(activeBloc())) : "bloc"}</h2>
     <p class="muted small" style="margin:-6px 0 8px">Le pourcentage compare ton 1RM estimé à celui d'il y a environ 4 semaines.</p>
     ${exHtml}
     <h2 class="h2">Volume par semaine</h2>
@@ -1153,7 +1189,7 @@ function dpHtml(){
 function volumeWeeks(){
   const W = {}, order = [];
   for (const s of S) { if (!s.faite) continue; const k = s.bloc + "|" + s.semaine;
-    if (!W[k]) { W[k] = {label:"B" + s.bloc + " S" + s.semaine, t:{MU:0, PULL:0, DIP:0, SQUAT:0}, r:{MU:0, PULL:0, DIP:0, SQUAT:0}}; order.push(k); }
+    if (!W[k]) { W[k] = {label:blocShort(s.bloc) + " S" + s.semaine, t:{MU:0, PULL:0, DIP:0, SQUAT:0}, r:{MU:0, PULL:0, DIP:0, SQUAT:0}}; order.push(k); }
     for (const e of s.exercices) { const l = liftOf(e.mouvement); if (!l) continue;
       const lg = D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === exKey(e));
       const sets = lg ? lg.sets : (setsFromComment(e, num(e.charge) || 0) || (num(e.series) && isNumTxt(e.reps) ? Array(num(e.series)).fill(0).map(() => ({r:num(e.reps), c:isNumTxt(e.charge) ? num(e.charge) : 0})) : null));
@@ -1415,13 +1451,21 @@ function rSheet(){
       ${m.recs.length ? `<div style="margin-top:14px"><p style="font-weight:600">Records battus</p>${m.recs.map(r => `<p class="small" style="margin-top:4px">${esc(r)}</p>`).join("")}</div>` : ""}
       <button class="btn" style="margin-top:18px" data-act="closeSummary">Fermer</button>`; }
   if (sheet && sheet.startsWith("bilan|")) { const wk = weekMeta[sheet.slice(6)]; if (!wk) return `<p>Bilan introuvable.</p>`; const v = Object.assign({}, wk.vals, wk.draft || {});
-    return `<p class="show t-m">Bilan de la semaine ${esc(wk.semaine)}</p><p class="muted small" style="margin-top:4px">Bloc ${wk.bloc}. Note chaque critère de 1 à 10, comme dans le template de ton coach.</p>
+    return `<p class="show t-m">Bilan de la semaine ${esc(wk.semaine)}</p><p class="muted small" style="margin-top:4px">${esc(blocLabel(wk.bloc))}. Note chaque critère de 1 à 10, comme dans le template de ton coach.</p>
       ${BILAN_CRIT.map(k => `<label>${k}</label><div class="score">${Array.from({length:10}, (_, i) => `<button aria-pressed="${v[k] === i + 1}" data-act="score" data-k="${k}" data-v="${i + 1}">${i + 1}</button>`).join("")}</div>`).join("")}
       <button class="btn" style="margin-top:18px" data-act="saveBilan">Envoyer à mon coach</button>`; }
   if (sheet === "settings") return settingsHtml();
   if (sheet && sheet.startsWith("share|")) return `<p class="show t-m">Carte de ton record</p><canvas id="sharecv" width="1080" height="1350" style="width:100%;height:auto;max-height:none;border-radius:16px;margin-top:12px"></canvas><button class="btn" style="margin-top:14px" data-act="saveShare">Enregistrer l'image</button>`;
   return "";
 }
+/* Glisser la feuille vers le bas pour la fermer (comme les feuilles iOS) */
+(() => { let y0 = null, dy = 0, el = null;
+  document.addEventListener("touchstart", e => { el = e.target.closest(".sheet"); if (!el || el.scrollTop > 0 || e.target.closest("input,select,textarea")) { el = null; return; } y0 = e.touches[0].clientY; dy = 0; el.style.transition = "none"; }, {passive:true});
+  document.addEventListener("touchmove", e => { if (!el) return; dy = e.touches[0].clientY - y0; if (dy < 0 || el.scrollTop > 0) { if (dy < 0) { el.style.transform = ""; el = null; } return; } el.style.transform = `translateY(${dy}px)`; const sc = document.querySelector(".scrim"); if (sc) sc.style.opacity = Math.max(0, 1 - dy / 400); }, {passive:true});
+  document.addEventListener("touchend", () => { if (!el) return; const s = el; el = null; s.style.transition = "transform .22s ease";
+    if (dy > 90) { s.style.transform = "translateY(100%)"; setTimeout(() => { if (sheet && sheet !== "rest") closeSheet(); }, 200); }
+    else { s.style.transform = ""; const sc = document.querySelector(".scrim"); if (sc) sc.style.opacity = ""; } });
+})();
 function openSheet(s){ sheet = s; renderLayer(); if (s.startsWith("share|")) drawShare(s.slice(6)); }
 function closeSheet(){ sheet = null; renderLayer(); }
 function settingsHtml(){
@@ -1430,7 +1474,7 @@ function settingsHtml(){
     <p class="muted small" style="margin-top:4px">${t ? "Synchronisé à " + String(t.getHours()).padStart(2, "0") + ":" + String(t.getMinutes()).padStart(2, "0") : "Pas encore synchronisé"}. L'app relit tes Sheets à chaque ouverture.</p>
     <div class="grid2"><div><label for="smu">Muscle-up acquis</label><select id="smu" data-chg="prof" data-k="mu_acquis"><option ${muOn() ? "" : "selected"}>NON</option><option ${muOn() ? "selected" : ""}>OUI</option></select></div>
       <div><label for="ssx">Sexe (pour le RIS)</label><select id="ssx" data-chg="prof" data-k="sexe"><option value="H" ${sexe() === "H" ? "selected" : ""}>Homme</option><option value="F" ${sexe() === "F" ? "selected" : ""}>Femme</option></select></div></div>
-    ${Object.keys(blocNames).length ? `<label for="sbl">Bloc en cours</label><select id="sbl" data-chg="blocActif"><option value="">Le plus récent de la prog</option>${Object.keys(blocNames).map(Number).sort((a, b) => a - b).map(n => `<option value="${n}" ${n === chosenBloc() ? "selected" : ""}>Bloc ${n}</option>`).join("")}</select>` : ""}
+    ${Object.keys(blocNames).length ? `<label for="sbl">Bloc en cours</label><select id="sbl" data-chg="blocActif"><option value="">Le dernier onglet de la prog</option>${progOrder.map(n => `<option value="${n}" ${n === chosenBloc() ? "selected" : ""}>${esc(blocLabel(n))}</option>`).join("")}</select>` : ""}
     <label for="scat">Catégorie de poids</label><select id="scat" data-chg="prof" data-k="categorie">${CATS.map(c => `<option value="${c}" ${c === cat() ? "selected" : ""}>${c > 0 ? "+" + c : c} kg</option>`).join("")}</select>
     <div class="grid2"><div><label for="sdo">Date des objectifs</label><input id="sdo" type="date" value="${objDate()}" data-chg="prof" data-k="date_objectif"></div>
       <div><label for="sdc">Début de la prog</label><input id="sdc" type="date" value="${D.profil.debut_coaching || ""}" data-chg="prof" data-k="debut_coaching"></div></div>
@@ -1509,7 +1553,7 @@ const ACT = {
   sync:() => syncAll(false),
   closeSheet:() => { if (sheet === "rest") rest = null; closeSheet(); },
   sel:d => { sel = d.k; rSeance(); },
-  pickBloc:async d => { const b = +d.b; try { if (!loadedBlocs.has(b)) { toast("Chargement du bloc " + b + "…"); await loadBloc(b); } const x = S.find(y => y.bloc === b && !y.faite) || S.find(y => y.bloc === b); if (!x) return toast("Le bloc " + b + " ne contient pas encore de séance.", true); sel = x.key; rSeance(); } catch(e){ toast(errMsg(e), true); } },
+  pickBloc:async d => { const b = +d.b; try { if (!loadedBlocs.has(b)) { toast("Chargement : " + blocLabel(b) + "…"); await loadBloc(b); } const x = S.find(y => y.bloc === b && !y.faite) || S.find(y => y.bloc === b); if (!x) return toast(blocLabel(b) + " ne contient pas encore de séance.", true); sel = x.key; rSeance(); } catch(e){ toast(errMsg(e), true); } },
   startLive:d => startLive(d.k, d.i),
   closeLive:async () => { if (live) await saveRow(live.i); live = null; try { wakeLock && wakeLock.release(); } catch(e){} renderLayer(); render(); toast("Séance enregistrée, tu peux la reprendre plus tard"); },
   liveNav:async d => { const ok = await saveRow(live.i); if (!ok) return; const s = seanceByKey(live.key); live.i = Math.max(0, Math.min(s.exercices.length - 1, live.i + +d.d)); persistLive(); renderLayer(); document.querySelector(".live").scrollTop = 0; },
@@ -1562,7 +1606,7 @@ const CHG = {
   setC:(d, el) => { const st = live.rows[live.i]; st.sets[+d.j].c = el.value === "" ? null : num(el.value); st.dirty = true; persistLive(); },
   setR:(d, el) => { const st = live.rows[live.i]; st.sets[+d.j].r = el.value === "" ? null : Math.round(num(el.value)); st.dirty = true; persistLive(); },
   blocDate:async (d, el) => { const b = +d.b, v = toIso(el.value); if (!v) return; const i = raw.BL.findIndex((r, k) => k > 0 && num(r[0]) === b);
-    try { if (i > 0) await putVals(APP_ID, `BLOCS!B${i + 1}`, [[v]]); else { await appendVals(APP_ID, "BLOCS!A1:C1", [[b, v, ""]]); raw.BL.push([b, v]); } D.blocs[b] = v; toast("Dates du bloc " + b + " enregistrées"); saveCache(); render(); } catch(e){ toast(errMsg(e), true); } },
+    try { if (i > 0) await putVals(APP_ID, `BLOCS!B${i + 1}`, [[v]]); else { await appendVals(APP_ID, "BLOCS!A1:C1", [[b, v, ""]]); raw.BL.push([b, v]); } D.blocs[b] = v; toast("Dates enregistrées : " + blocLabel(b)); saveCache(); render(); } catch(e){ toast(errMsg(e), true); } },
   setObj:async (d, el) => { const l = d.l, v = num(el.value), i = raw.OB.findIndex((r, k) => k > 0 && norm(r[0]) === l);
     try { if (i > 0) await putVals(APP_ID, `OBJECTIFS!B${i + 1}:C${i + 1}`, [[v ?? "", "Défini dans l'app le " + dfr(D.today)]]); else { await appendVals(APP_ID, "OBJECTIFS!A1:C1", [[l, v ?? "", ""]]); raw.OB.push([l, v]); }
       D.objectifs[l] = v; toast("Objectif enregistré"); saveCache(); renderLayer(); } catch(e){ toast(errMsg(e), true); } },
@@ -1570,7 +1614,7 @@ const CHG = {
     try { if (i > 0) await putVals(APP_ID, `PROFIL!B${i + 1}`, [[val]]); else { await appendVals(APP_ID, "PROFIL!A1:C1", [[k, val, ""]]); raw.P.push([k, val]); }
       D.profil[k] = /^(date_|debut_)/.test(k) ? toIso(val) : val; toast("Réglage enregistré"); saveCache(); render(); } catch(e){ toast(errMsg(e), true); } },
   blocActif:async (d, el) => { const n = num(el.value);
-    try { if (n && !loadedBlocs.has(n)) { toast("Chargement du bloc " + n + "…"); await loadBloc(n); } } catch(e){ return toast(errMsg(e), true); }
+    try { if (n && !loadedBlocs.has(n)) { toast("Chargement : " + blocLabel(n) + "…"); await loadBloc(n); } } catch(e){ return toast(errMsg(e), true); }
     sel = null; await CHG.prof({k:"bloc_actif"}, {value:n ? String(n) : ""}); },
   att:async (d, el) => { await saveAtt(d.d, d.l, +d.i, el.value === "" ? "" : num(el.value), null); },
   import:(d, el) => readImport(el.files[0])
@@ -1769,7 +1813,7 @@ function onboard(step, why){
       <button class="btn ghost" style="margin-top:12px" data-act="obLink">Utiliser ce carnet</button></div>${err}`;
   else if (step === "create") { const P = obPre || {}, v = x => x === undefined || x === null ? "" : esc(String(x).replace(".", ","));
     h = `<p class="show t-m" style="margin-top:18px">Ton profil</p>
-    ${obPre ? `<p class="muted small" style="margin-top:6px">Rempli depuis ta prog${P.bloc ? " (bloc " + P.bloc + ")" : ""}. Vérifie et corrige si besoin.</p>` : ""}
+    ${obPre ? `<p class="muted small" style="margin-top:6px">Rempli depuis ta prog${P.bloc ? " (onglet « " + esc(P.blocTitles[P.bloc].trim()) + " »)" : ""}. Vérifie et corrige si besoin.</p>` : ""}
     <label for="obp">Prénom</label><input id="obp" autocomplete="given-name" value="${v(P.prenom)}">
     <div class="grid2"><div><label for="obs">Sexe (pour le RIS)</label><select id="obs"><option value="H">Homme</option><option value="F">Femme</option></select></div>
       <div><label for="obc">Catégorie</label><select id="obc">${CATS.map(c => `<option value="${c}" ${c === (P.categorie || -80) ? "selected" : ""}>${c > 0 ? "+" + c : c} kg</option>`).join("")}</select></div></div>
@@ -1777,7 +1821,7 @@ function onboard(step, why){
     <label>Tes PR actuels (kg de lest, laisse vide si tu ne sais pas)</label>
     <div class="grid2">${LIFTS.map(l => `<div><label for="obpr${l}" style="margin-top:0">${LNAME[l]}</label><input id="obpr${l}" inputmode="decimal" value="${v(P["pr_" + l])}"></div>`).join("")}</div>
     <label for="obk">Lien de la prog de ton coach (facultatif)</label><input id="obk" type="url" placeholder="https://docs.google.com/spreadsheets/d/…" value="${P.coach ? sheetUrl(P.coach) : ""}">
-    ${P.blocs && P.blocs.length ? `<label for="obbl">Ton bloc en cours</label><select id="obbl">${P.blocs.map(n => `<option value="${n}" ${n === P.bloc ? "selected" : ""}>Bloc ${n}</option>`).join("")}</select><p class="muted tiny" style="margin-top:6px">Choisis le bloc que tu fais en ce moment. Tu pourras le changer dans les réglages.</p>` : ""}
+    ${P.blocs && P.blocs.length ? `<label for="obbl">Ton bloc en cours</label><select id="obbl">${P.blocs.map(n => `<option value="${n}" ${n === P.bloc ? "selected" : ""}>${esc(/^\s*BLOC\s*\d+\s*$/i.test(P.blocTitles[n]) ? "Bloc " + n : P.blocTitles[n].trim())}</option>`).join("")}</select><p class="muted tiny" style="margin-top:6px">Choisis le bloc que tu fais en ce moment. Tu pourras le changer dans les réglages.</p>` : ""}
     ${P.bloc ? `<label for="obb">Lundi de la semaine 1 de ce bloc</label><input id="obb" type="date"><p class="muted tiny" style="margin-top:6px">Pour dater tes séances. Tu pourras le changer plus tard.</p>` : ""}
     <p class="muted tiny" style="margin-top:6px">La prog doit être partagée avec le compte Google avec lequel tu es connecté.</p>
     <button class="btn" style="margin-top:20px" data-act="obCreate" id="obgo">Créer mon carnet</button>
@@ -1789,7 +1833,7 @@ Object.assign(ACT, {
   obStep:d => onboard(d.s),
   obLink:async () => { const id = idOf($("#oblink").value); if (!id) return onboard("carnet", "Ce lien ne ressemble pas à un lien de Google Sheet.");
     try { const t = await getTitles(id);
-      if (t.some(x => /^\s*BLOC\s*\d+/i.test(x)) && !t.includes("PROFIL")) return onboard("carnet", "Ce lien est celui d'une prog de coach, pas d'un carnet. Colle-le plus haut, dans « Nouveau ici, avec une prog de coach ».");
+      if (!t.includes("PROFIL") && (t.some(x => /^\s*BLOC\s*\d+/i.test(x)) || (await progTabs(id)).order.length)) return onboard("carnet", "Ce lien est celui d'une prog de coach, pas d'un carnet. Colle-le plus haut, dans « Nouveau ici, avec une prog de coach ».");
       await ensureTabs(id); } catch(e){ return onboard("carnet", errMsg(e)); }
     setCfg({appId:id}); APP_ID = id; startApp(); },
   obFromCoach:async () => {
@@ -1797,10 +1841,11 @@ Object.assign(ACT, {
     const b = $("#obfc"); b.disabled = true; b.textContent = "Lecture de ta prog…";
     try {
       const meta = await gapi(API + id + "?fields=" + enc("properties.title,sheets.properties.title"), {}, true);
-      const tabs = (meta.sheets || []).map(x => x.properties.title), blocs = tabs.map(t => { const m = t.match(/^\s*BLOC\s*(\d+)/i); return m ? {n:+m[1], t} : null; }).filter(Boolean).sort((a, c) => c.n - a.n);
+      const pt = await progTabs(id), last = pt.order.at(-1);
       const pre = {coach:id, prenom:prenomOf(meta.properties && meta.properties.title)};
-      if (blocs.length) { Object.assign(pre, parseCoachProfile(await getVals(id, "'" + blocs[0].t.replace(/'/g, "''") + "'!A1:CZ24")), {bloc:blocs[0].n, blocs:blocs.map(x => x.n).sort((a, c) => a - c)}); }
-      obPre = pre; onboard("create", blocs.length ? "" : "Aucun onglet « BLOC » trouvé : remplis ton profil à la main.");
+      if (pt.order.length) { Object.assign(pre, parseCoachProfile(await getVals(id, q(pt.names[last]) + "!A1:CZ24")), {bloc:last, blocs:pt.order.slice(), blocTitles:pt.names}); }
+      const blocs = pt.order;
+      obPre = pre; onboard("create", blocs.length ? "" : "Aucun onglet de séances trouvé dans cette prog : remplis ton profil à la main.");
     } catch(e){ b.disabled = false; b.textContent = "Tout remplir depuis ma prog"; toast("Prog inaccessible : " + errMsg(e), true); }
   },
   obCreate:async () => {
