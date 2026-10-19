@@ -1705,20 +1705,42 @@ async function createBook(p){
   const r = await gapi(API, {method:"POST", body:JSON.stringify({properties:{title:"Street Lifting – " + (p.prenom || "carnet"), locale:"fr_BE"},
     sheets:Object.keys(TABS).map(t => ({properties:{title:t, gridProperties:{frozenRowCount:1}}}))})});
   const id = r.spreadsheetId;
-  const prof = [["prenom",p.prenom],["sexe",p.sexe],["naissance",""],["taille_cm",""],["categorie",p.categorie],["coach_sheet_id",p.coach || ""],["mu_acquis",p.mu || "NON"],
+  const prof = [["prenom",p.prenom],["sexe",p.sexe],["naissance",""],["taille_cm",p.taille || ""],["categorie",p.categorie],["coach_sheet_id",p.coach || ""],["mu_acquis",p.mu || "NON"],
     ["date_objectif",addMonths(isoOf(new Date()), 12)],["debut_street",p.debut || ""],["debut_coaching",p.debutCoach || ""]];
   const data = Object.keys(TABS).map(t => ({range:t + "!A1", values:[TABS[t]]}));
   data.push({range:"PROFIL!A2", values:prof});
   data.push({range:"RECORDS!A2", values:RECORDS_DEFAULT});
-  const prs = LIFTS.filter(l => num(p["pr_" + l])).map(l => [isoOf(new Date()), l, num(p["pr_" + l]), 1, "Saisi à l'inscription"]);
+  const prs = LIFTS.filter(l => num(p["pr_" + l])).map(l => [isoOf(new Date()), l, num(p["pr_" + l]), 1, p.coach && obPre ? "Max de la prog du coach" : "Saisi à l'inscription"]);
   if (prs.length) data.push({range:"PR!A2", values:prs});
   if (num(p.poids)) data.push({range:"POIDS!A2", values:[[isoOf(new Date()), num(p.poids), ""]]});
+  if (p.bloc && p.blocDate) data.push({range:"BLOCS!A2", values:[[p.bloc, p.blocDate, "saisi à l'inscription"]]});
   await writeMany(id, data);
   return id;
 }
 
 /* ---------- Accueil, connexion et choix du carnet ---------- */
-let obStep = "login", obErr = "";
+let obStep = "login", obErr = "", obPre = null;
+/* Lit, dans le dernier onglet BLOC de la prog (modèle du coach), les cases MAX ACTUELS et PROFIL. */
+function parseCoachProfile(v){
+  const out = {}, cell = (r, c) => String((v[r] && v[r][c]) ?? "").trim();
+  const numRight = (r, c) => { for (let k = c + 1; k <= c + 3; k++) { const t = cell(r, k); if (t !== "" && num(t) !== null) return num(t); } return null; };
+  const MAP = {MU:"MU", "MUSCLE UP":"MU", PU:"PULL", "PULL UP":"PULL", TRACTIONS:"PULL", DIPS:"DIP", DIP:"DIP", SQUAT:"SQUAT"};
+  for (let r = 0; r < v.length; r++) for (let c = 0; c < (v[r] || []).length; c++) {
+    const t = norm(cell(r, c));
+    if (t === "MAX ACTUELS" && out.max === undefined) { out.max = true;
+      for (let rr = r + 1; rr < Math.min(v.length, r + 8); rr++) { const k = MAP[norm(cell(rr, c))]; if (k) { const n = numRight(rr, c); if (n) out["pr_" + k] = n; } } }
+    if (t === "POIDS" && out.poids === undefined) out.poids = numRight(r, c) ?? undefined;
+    if (t === "TAILLE" && out.taille === undefined) { const n = numRight(r, c); if (n) out.taille = n < 3 ? Math.round(n * 100) : n; }
+  }
+  delete out.max;
+  if (out.poids) { const c = CATS.find(x => x < 0 && out.poids <= -x); out.categorie = c ?? CATS.at(-1); }
+  return out;
+}
+function prenomOf(title){
+  const w = String(title || "").trim().split(/\s+/).filter(Boolean); if (!w.length) return "";
+  const p = w.filter(x => x !== x.toUpperCase()); const n = (p.length ? p : [w.at(-1)]).join(" ");
+  return n.charAt(0).toUpperCase() + n.slice(1).toLowerCase();
+}
 function onboard(step, why){
   obStep = step; obErr = why || ""; document.body.classList.add("ob");
   document.querySelectorAll(".view").forEach(v => v.hidden = v.id !== "v-home");
@@ -1732,21 +1754,26 @@ function onboard(step, why){
     <p class="muted tiny" style="margin-top:14px">Google peut afficher « application non validée » : c'est normal pour une app en test. Touche « Continuer ».</p>`;
   else if (step === "carnet") h = `<p class="show t-m" style="margin-top:18px">Ton carnet de données</p>
     <p class="muted small" style="margin-top:6px">L'app range tes PR, pesées et séances dans un Google Sheet à toi.</p>
-    <div class="panel" style="margin-top:16px"><p style="font-weight:600">Nouveau ici</p><p class="muted small" style="margin-top:4px">L'app crée ton carnet dans ton Google Drive.</p>
-      <button class="btn" style="margin-top:12px" data-act="obStep" data-s="create">Créer mon carnet</button></div>
+    <div class="panel" style="margin-top:16px"><p style="font-weight:600">Nouveau ici, avec une prog de coach</p><p class="muted small" style="margin-top:4px">Colle le lien de ta prog : l'app y lit ton prénom, ton poids et tes max, et crée ton carnet.</p>
+      <label for="obcoach">Lien de la prog de ton coach</label><input id="obcoach" type="url" placeholder="https://docs.google.com/spreadsheets/d/…">
+      <button class="btn" style="margin-top:12px" data-act="obFromCoach" id="obfc">Tout remplir depuis ma prog</button>
+      <button class="link small" style="margin-top:12px" data-act="obStep" data-s="create">Je n'ai pas de prog, je remplis moi-même</button></div>
     <div class="panel"><p style="font-weight:600">J'ai déjà un carnet</p><label for="oblink">Lien du Google Sheet</label><input id="oblink" type="url" placeholder="https://docs.google.com/spreadsheets/d/…">
       <button class="btn ghost" style="margin-top:12px" data-act="obLink">Utiliser ce carnet</button></div>${err}`;
-  else if (step === "create") h = `<p class="show t-m" style="margin-top:18px">Ton profil</p>
-    <label for="obp">Prénom</label><input id="obp" autocomplete="given-name">
+  else if (step === "create") { const P = obPre || {}, v = x => x === undefined || x === null ? "" : esc(String(x).replace(".", ","));
+    h = `<p class="show t-m" style="margin-top:18px">Ton profil</p>
+    ${obPre ? `<p class="muted small" style="margin-top:6px">Rempli depuis ta prog${P.bloc ? " (bloc " + P.bloc + ")" : ""}. Vérifie et corrige si besoin.</p>` : ""}
+    <label for="obp">Prénom</label><input id="obp" autocomplete="given-name" value="${v(P.prenom)}">
     <div class="grid2"><div><label for="obs">Sexe (pour le RIS)</label><select id="obs"><option value="H">Homme</option><option value="F">Femme</option></select></div>
-      <div><label for="obc">Catégorie</label><select id="obc">${CATS.map(c => `<option value="${c}" ${c === -80 ? "selected" : ""}>${c > 0 ? "+" + c : c} kg</option>`).join("")}</select></div></div>
-    <div class="grid2"><div><label for="obd">Début du street lifting</label><input id="obd" type="date"></div><div><label for="obw">Poids de corps (kg)</label><input id="obw" inputmode="decimal" placeholder="73,2"></div></div>
+      <div><label for="obc">Catégorie</label><select id="obc">${CATS.map(c => `<option value="${c}" ${c === (P.categorie || -80) ? "selected" : ""}>${c > 0 ? "+" + c : c} kg</option>`).join("")}</select></div></div>
+    <div class="grid2"><div><label for="obd">Début du street lifting</label><input id="obd" type="date"></div><div><label for="obw">Poids de corps (kg)</label><input id="obw" inputmode="decimal" placeholder="73,2" value="${v(P.poids)}"></div></div>
     <label>Tes PR actuels (kg de lest, laisse vide si tu ne sais pas)</label>
-    <div class="grid2">${LIFTS.map(l => `<div><label for="obpr${l}" style="margin-top:0">${LNAME[l]}</label><input id="obpr${l}" inputmode="decimal"></div>`).join("")}</div>
-    <label for="obk">Lien de la prog de ton coach (facultatif)</label><input id="obk" type="url" placeholder="https://docs.google.com/spreadsheets/d/…">
+    <div class="grid2">${LIFTS.map(l => `<div><label for="obpr${l}" style="margin-top:0">${LNAME[l]}</label><input id="obpr${l}" inputmode="decimal" value="${v(P["pr_" + l])}"></div>`).join("")}</div>
+    <label for="obk">Lien de la prog de ton coach (facultatif)</label><input id="obk" type="url" placeholder="https://docs.google.com/spreadsheets/d/…" value="${P.coach ? sheetUrl(P.coach) : ""}">
+    ${P.bloc ? `<label for="obb">Lundi de la semaine 1 du bloc ${P.bloc}</label><input id="obb" type="date"><p class="muted tiny" style="margin-top:6px">Pour dater tes séances. Tu pourras le changer plus tard.</p>` : ""}
     <p class="muted tiny" style="margin-top:6px">La prog doit être partagée avec le compte Google avec lequel tu es connecté.</p>
     <button class="btn" style="margin-top:20px" data-act="obCreate" id="obgo">Créer mon carnet</button>
-    <button class="btn ghost" style="margin-top:10px" data-act="obStep" data-s="carnet">Retour</button>${err}`;
+    <button class="btn ghost" style="margin-top:10px" data-act="obStep" data-s="carnet">Retour</button>${err}`; }
   $("#v-home").innerHTML = `<div class="ob">${h}</div>`;
 }
 Object.assign(ACT, {
@@ -1755,8 +1782,20 @@ Object.assign(ACT, {
   obLink:async () => { const id = idOf($("#oblink").value); if (!id) return onboard("carnet", "Ce lien ne ressemble pas à un lien de Google Sheet.");
     try { await ensureTabs(id); } catch(e){ return onboard("carnet", errMsg(e)); }
     setCfg({appId:id}); APP_ID = id; startApp(); },
+  obFromCoach:async () => {
+    const id = idOf($("#obcoach").value); if (!id) return toast("Ce lien de Google Sheet n'est pas reconnu", true);
+    const b = $("#obfc"); b.disabled = true; b.textContent = "Lecture de ta prog…";
+    try {
+      const meta = await gapi(API + id + "?fields=" + enc("properties.title,sheets.properties.title"), {}, true);
+      const tabs = (meta.sheets || []).map(x => x.properties.title), blocs = tabs.map(t => { const m = t.match(/^\s*BLOC\s*(\d+)/i); return m ? {n:+m[1], t} : null; }).filter(Boolean).sort((a, c) => c.n - a.n);
+      const pre = {coach:id, prenom:prenomOf(meta.properties && meta.properties.title)};
+      if (blocs.length) { Object.assign(pre, parseCoachProfile(await getVals(id, "'" + blocs[0].t.replace(/'/g, "''") + "'!A1:CZ24")), {bloc:blocs[0].n}); }
+      obPre = pre; onboard("create", blocs.length ? "" : "Aucun onglet « BLOC » trouvé : remplis ton profil à la main.");
+    } catch(e){ b.disabled = false; b.textContent = "Tout remplir depuis ma prog"; toast("Prog inaccessible : " + errMsg(e), true); }
+  },
   obCreate:async () => {
-    const p = {prenom:$("#obp").value.trim(), sexe:$("#obs").value, categorie:Number($("#obc").value), debut:$("#obd").value, poids:$("#obw").value, coach:idOf($("#obk").value)};
+    const p = {prenom:$("#obp").value.trim(), sexe:$("#obs").value, categorie:Number($("#obc").value), debut:$("#obd").value, poids:$("#obw").value, coach:idOf($("#obk").value),
+      taille:obPre && obPre.taille, bloc:obPre && obPre.bloc, blocDate:$("#obb") ? $("#obb").value : ""};
     LIFTS.forEach(l => p["pr_" + l] = $("#obpr" + l).value);
     if (!p.prenom) return toast("Indique ton prénom", true);
     if ($("#obk").value.trim() && !p.coach) return toast("Le lien de la prog n'est pas reconnu", true);
