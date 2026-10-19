@@ -41,4 +41,10 @@ with sync_playwright() as p:
       el.dispatchEvent(new TouchEvent('touchstart',{bubbles:true,touches:T(100)}));el.dispatchEvent(new TouchEvent('touchmove',{bubbles:true,touches:T(300)}));
       el.dispatchEvent(new TouchEvent('touchend',{bubbles:true,touches:[]}));})()""")
     pg.wait_for_timeout(500); print("feuille encore ouverte après glissé :", pg.locator(".sheet").count())
+    pg.evaluate("ACT.closeSheet && ACT.closeSheet()")
+    for l in ["SQUAT","PULL","DIP"]:
+        pg.evaluate(f"ACT.openLift({{l:'{l}'}})"); pg.wait_for_timeout(2500)
+        print(l, "RM :", [t.replace("\n"," / ") for t in pg.locator(".rm").all_inner_texts()[:6]])
+        print(l, "e1RM :", pg.locator(".page .panel").first.inner_text().replace("\n"," | ")[:220])
+        pg.screenshot(path=str(OUT / f"rm-{l}.png"), full_page=False); pg.evaluate("ACT.closePage()")
     print("ERRORS:", errs[:10])

@@ -331,6 +331,8 @@ details>summary::-webkit-details-marker{display:none}
 .segc{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--deck);border-radius:12px;padding:3px;margin-top:6px}
 .segc button{padding:8px 0;border-radius:9px;font:600 13px var(--f-text);color:var(--dust)}
 .segc button[aria-pressed="true"]{background:var(--deck2);color:#fff}
+.rmgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rm{background:var(--deck);border-radius:14px;padding:10px 12px;min-width:0}.rm .show{font-size:24px;margin:2px 0}.rm.off .show{color:var(--faint)}.rm .tiny{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tiles2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .tiles2>*{background:var(--deck);border-radius:16px;padding:14px;min-width:0;text-align:left}
 .tiles2 .show{font-size:30px;font-weight:800;margin-top:4px;line-height:1}
@@ -782,6 +784,7 @@ function exercisePoints(){
     let sets = setsFromComment(e, c);
     if (!sets && s.faite && lift && num(e.series) && isNumTxt(e.reps)) sets = Array(num(e.series)).fill(0).map(() => ({r:num(e.reps), c}));
     if (!sets) continue;
+    const rp = num(e.rpeLast); if (rp && rp >= 5 && rp <= 10 && sets.length) sets = sets.map((x, i) => i === sets.length - 1 ? {...x, rpe:rp} : x);
     rows.push({sk:s.key, ex:key, lift, date:dateOf(s), order:rank(s.bloc) * 1000 + (num(s.semaine) || 0) * 10 + s.idx, label:blocShort(s.bloc) + " S" + s.semaine, sets, src:"prog"});
   }
   for (const x of D.series) {
@@ -799,6 +802,41 @@ function exercisePoints(){
     }).sort((a, b) => (a.date && b.date) ? (a.date < b.date ? -1 : a.date > b.date ? 1 : a.order - b.order) : a.order - b.order);
     return {key:o.key, lift:o.lift, pts, last:pts.at(-1)};
   }).filter(o => o.pts.length);
+}
+/* ---------- Records par répétitions et 1RM estimé (mouvement de compétition, variation « COMP ») ---------- */
+function compSets(l){
+  const ok = x => x.c !== null && x.c !== undefined && x.c >= 0 && Number.isInteger(x.r) && x.r >= 1 && x.r <= 12;
+  const out = D.prs.filter(p => p.lift === l).map(p => ({c:p.charge, r:p.reps, date:p.date, src:"PR"})).filter(ok);
+  for (const o of exercisePoints()) { if (o.lift !== l || !/ · COMP$/.test(o.key)) continue;
+    for (const p of o.pts) for (const x of p.sets) if (ok(x)) out.push({c:x.c, r:x.r, rpe:x.rpe, date:p.date, label:p.label, src:p.src}); }
+  return out;
+}
+/* nRM = charge la plus lourde soulevée pour au moins n reps. Rien n'est extrapolé. */
+function repMaxes(l, sets){
+  return Array.from({length:12}, (_, i) => { const n = i + 1; let b = null;
+    for (const x of sets) if (x.r >= n && (!b || x.c > b.c || (x.c === b.c && x.r === n && b.r !== n) || (x.c === b.c && x.r === b.r && (x.date || "") > (b.date || "")))) b = x;
+    return {n, b}; });
+}
+/* 1RM estimé : Epley sur la charge réelle (corps + lest), reps + reps en réserve (RIR = 10 − RPE) quand le RPE est noté.
+   Séries de 10 reps au plus (estimation fiable sous ~10 reps, Mayhew et al., 2008). */
+function e1rmOf(l, x){
+  const rir = x.rpe ? Math.min(4, Math.max(0, 10 - x.rpe)) : 0, re = x.r + rir; if (x.r > 10 || re > 12) return null;
+  const w = BW_LIFTS.includes(l) ? bwAt(x.date || D.today) : null; if (BW_LIFTS.includes(l) && !w) return null;
+  return {v:re === 1 ? x.c : e1rm(x.c, re, l, w), rir};
+}
+function e1rmBestOf(l, sets){ let b = null; for (const x of sets) { const e = e1rmOf(l, x); if (e && (!b || e.v > b.v)) b = {...x, ...e}; } return b; }
+function e1rmNow(l){ const sets = compSets(l), lim = addDays(D.today, -84), rec = e1rmBestOf(l, sets.filter(x => x.date && x.date >= lim && x.date <= D.today)); return {rec, all:e1rmBestOf(l, sets)}; }
+const srcTxt = x => (x.date ? dfr(x.date) : x.label || "") + (x.src === "PR" ? " · PR" : x.src === "carnet" ? " · noté" : " · prog");
+function repTableHtml(l){
+  const sets = compSets(l), rm = repMaxes(l, sets), est = e1rmNow(l), b = best(l), e = est.rec || est.all;
+  const tiles = rm.map(({n, b:x}) => `<div class="rm${x ? "" : " off"}"><p class="muted tiny">${n}RM</p><p class="show">${x ? fmt(x.c) : "—"}</p><p class="muted tiny">${x ? srcTxt(x) + (x.r > n ? ` · ×${x.r}` : "") : "pas de donnée"}</p></div>`).join("");
+  const eh = e ? `<div class="panel" style="margin-top:0"><p class="muted small">1RM estimé${est.rec ? " · 12 dernières semaines" : " · meilleur jamais estimé"}</p>
+      <p class="show t-m" style="margin-top:4px;color:${LCOL[l]}">${fmt(e.v, 1)}<small> kg</small></p>
+      <p class="muted small" style="margin-top:4px">D'après ${fmt(e.c)} kg × ${e.r}${e.rpe ? " à RPE " + fmt(e.rpe) : ""}, ${srcTxt(e).replace(" · ", ", ")}.${b !== null && e.v > b + .05 ? ` Au-dessus de ton PR réel (${fmt(b)} kg) : un max à tenter, pas un acquis.` : ""}</p>
+      ${est.rec && est.all && est.all.v > est.rec.v + .05 ? `<p class="muted tiny" style="margin-top:6px">Meilleure estimation jamais faite : ${fmt(est.all.v, 1)} kg (${srcTxt(est.all).replace(" · ", ", ")}).</p>` : ""}</div>` : "";
+  return `<h2 class="h2">Records par répétitions <span class="muted">${LNAME[l].toLowerCase()} compét</span></h2>
+    ${eh}<div class="rmgrid" style="margin-top:10px">${tiles}</div>
+    <p class="muted tiny" style="margin-top:8px">${BW_LIFTS.includes(l) ? "Lest en kg. " : ""}Charge la plus lourde faite pour au moins n reps, tirée de tes PR, de tes séances notées et des séances « Comp » faites de toutes tes progs (charge prévue par le coach si tu n'as rien noté). Aucune valeur n'est inventée : « — » veut dire pas encore fait.</p>`;
 }
 const fmtSets = sets => { const c0 = sets[0].c; return sets.every(x => x.c === c0) ? fmt(c0) + " kg × " + sets.map(x => x.r).join(" · ") : sets.map(x => x.r + "@" + fmt(x.c)).join(" · "); };
 
@@ -1242,6 +1280,7 @@ function rLiftPage(l){
     <div class="pagebar"><button class="iconbtn" data-act="closePage" aria-label="Retour"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button>
       <span class="disc" style="--c:${LCOL[l]};width:20px;height:20px"></span></div>
     ${heroCard({color:LCOL[l], small:`${LNAME[l]} · record perso${!lock && hist.length ? " · " + dlong(D.prs.filter(p => p.lift === l && p.reps === 1).sort((a, c) => c.charge - a.charge)[0]?.date || hist[0].date) : ""}`, big:lock ? "—" : `${fmt(b)}<small>kg</small>`, sub:!lock && BW_LIFTS.includes(l) && bw() ? fmt(b + bw(), 1) + " kg avec ton poids de corps" : (lock ? "à débloquer" : "")})}
+    ${lock ? "" : repTableHtml(l)}
     ${lock ? `<div class="panel" style="margin-top:16px"><p>Ton muscle-up n'est pas encore acquis. Active-le dans les réglages dès que tu l'as, il entrera dans ton total.</p><button class="btn ghost" style="margin-top:12px" data-act="settings">Ouvrir les réglages</button></div>` : `
     ${tr ? `<p class="muted small" style="margin-top:6px">Rythme mesuré : ${tr.parMois >= 0 ? "+" : ""}${fmt(tr.parMois, 1)} kg par mois, d'après ${tr.n} ${liftSeries(l)[0] && liftSeries(l)[0].src === "prog" ? "e1RM calculés par ta prog" : "PR"}.</p>` : ""}
 
@@ -1501,7 +1540,7 @@ function settingsHtml(){
     <h2 class="h2" style="font-size:20px">Méthodes et sources</h2>
     <p class="src"><b style="color:var(--chalk)">RIS</b> : formule de Waris Radji et Mathieu Ardoin, édition 2026 (constantes publiées dans le code d'<a href="https://openstreetlifting.org" target="_blank" rel="noopener">OpenStreetlifting</a>). <a href="https://warisradji.com/ris/" target="_blank" rel="noopener">Calculateur officiel</a>.</p>
     <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Zone réaliste</b> : Latella et al. (2023), <a href="https://doi.org/10.1007/s40279-023-01962-6" target="_blank" rel="noopener">Sports Medicine</a> : +7,5 à 12,5 % de force la 1re année de compétition, jusqu'à ~20 % après 10 ans. L'étude porte sur le powerlifting. L'app ajoute ton rythme mesuré, souvent plus parlant au début.</p>
-    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">1RM estimé</b> : formule d'Epley, charge × (1 + reps/30), calculée sur la charge réelle pour les mouvements au poids du corps.</p>
+    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">1RM estimé</b> : formule d'Epley, charge × (1 + reps/30), calculée sur la charge réelle (poids de corps + lest) pour muscle-up, tractions et dips. Quand le RPE de la dernière série est noté, l'app ajoute les reps en réserve (RIR = 10 − RPE, échelle de <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al., 2016</a>). Seules les séries de 10 reps au plus comptent : au-delà, les estimations perdent en précision (<a href="https://researchconnect.suny.edu/en/publications/accuracy-of-prediction-equations-for-determining-one-repetition-m/" target="_blank" rel="noopener">Mayhew et al., 2008</a>).</p>
     <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Records</b> : <a href="https://rankings.officialstreetlifting.com/records/male/classes/-80kg" target="_blank" rel="noopener">Official Streetlifting</a>.</p>
     <button class="btn" style="margin-top:18px" data-act="closeSheet">Fermer</button>`;
 }
@@ -1585,7 +1624,7 @@ const ACT = {
   saveW:async d => { const v = num($("#" + d.src).value), dt = (d.src === "cw" && $("#cwd").value) || D.today; if (!v || v < 30 || v > 250) return toast("Indique un poids valide", true); await saveWeight(v, dt, false); },
   pwRange:d => { pwRange = d.k; rCorps(); },
   doImport:() => doImport(),
-  openLift:d => { page = {type:"lift", l:d.l}; liftMetric = "1rm"; renderLayer(); },
+  openLift:d => { page = {type:"lift", l:d.l}; liftMetric = "1rm"; renderLayer(); if (!allLoaded) ensureAllBlocs().then(() => { if (page && page.type === "lift") renderLayer(); }).catch(() => {}); },
   openEx:d => { page = {type:"ex", k:d.k}; exMetric = "e1rm"; renderLayer(); },
   closePage:() => { page = null; renderLayer(); },
   liftMetric:d => { liftMetric = d.k; renderLayer(); },
