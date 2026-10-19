@@ -72,7 +72,8 @@ const TABS = {
   OBJECTIFS:["Mouvement","Objectif (kg)","Note"], RECORDS:["Type","Catégorie","Mouvement","Record (kg)","Détenteur","Source","Vérifié le"],
   COMPETITIONS:["Date","Nom","Lieu","Note","Statut"], SERIES:["Date","Bloc","Semaine","Séance","Exercice","Charge (kg)","Reps par série","Source","Note"],
   BLOCS:["Bloc","Lundi de la semaine 1","Note"], TENTATIVES:["Date compét","Mouvement","Tentative 1","Tentative 2","Tentative 3","Résultat 1","Résultat 2","Résultat 3","Note"],
-  CHECKLIST:["Date compét","Élément","Fait"], BILAN:["Date","Bloc","Semaine","Sommeil","Plaisir","Motivation","Fatigue","Hydratation","Alimentation"]
+  CHECKLIST:["Date compét","Élément","Fait"], BILAN:["Date","Bloc","Semaine","Sommeil","Plaisir","Motivation","Fatigue","Hydratation","Alimentation"],
+  HISTORIQUE:["Prog","Onglet","Bloc","Début du bloc","Semaine","Séance","Jour","Ligne","Mouvement","Variation","Séries","Reps","Charge","RPE S1","RPE dernière","Commentaire athlète","Cycle"]
 };
 /* Records vérifiés le 19/10/2026 sur rankings.officialstreetlifting.com (catégorie -80 kg hommes). Les autres catégories s'ajoutent dans l'onglet RECORDS. */
 const OSL = "https://rankings.officialstreetlifting.com/records/male/classes/-80kg";
@@ -202,7 +203,7 @@ CHG.coachLink = async (d, el) => {
   const id = idOf(el.value); if (el.value.trim() && !id) return toast("Ce lien de Google Sheet n'est pas reconnu", true);
   if (id) { try { await getTitles(id); } catch(e){ return toast("Prog inaccessible : " + errMsg(e), true); } }
   await CHG.prof({k:"coach_sheet_id"}, {value:id});
-  S = []; loadedBlocs.clear(); allLoaded = false; weekMeta = {}; blocNames = {}; syncAll(false);
+  S = []; loadedBlocs.clear(); allLoaded = false; weekMeta = {}; blocNames = {}; progOrder = []; liveIds = new Set(); archMeta = {}; liveCycle = {}; syncAll(false);
 };
 async function fetchEmail(){
   if (cfg().email) return;

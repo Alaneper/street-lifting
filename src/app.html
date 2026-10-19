@@ -212,6 +212,9 @@ canvas{display:block;width:100%}
 .src{font-size:12.5px;color:var(--dust);line-height:1.55}
 .src a{color:var(--chalk)}
 details>summary{cursor:pointer;list-style:none;font-weight:600}
+.h3{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--dust);margin:20px 0 8px}
+details.more>summary::after{content:"";display:inline-block;width:8px;height:8px;border-right:2px solid var(--dust);border-bottom:2px solid var(--dust);transform:rotate(45deg);margin-left:10px;vertical-align:4px;transition:transform .2s}
+details.more[open]>summary::after{transform:rotate(225deg);vertical-align:0}
 details>summary::-webkit-details-marker{display:none}
 
 /* ---------- v5 : composants ---------- */
@@ -402,7 +405,7 @@ const G1 = [0.075, 0.125], G10 = [0.125, 0.20];
    ===================================================================== */
 let mcp = null, D = null, S = [], blocNames = {}, weekMeta = {}, raw = {};
 let tab = "home", sel = null, page = null, sheet = null, live = null, rest = null;
-let prRange = "all", pwRange = "3m", exMetric = "e1rm", calMonth = null, armed = null, importRows = null, liftMetric = "1rm";
+let progSel = null, prRange = "all", pwRange = "3m", exMetric = "e1rm", calMonth = null, armed = null, importRows = null, liftMetric = "1rm";
 let lastSync = 0, syncing = false, seanceErr = "", allLoaded = false, loadingAll = null, firstPaint = true, wakeLock = null;
 const loadedBlocs = new Set(), charts = {};
 
@@ -513,6 +516,7 @@ async function loadApp(){
   const R = ["PROFIL!A1:C60","PR!A1:E3000","POIDS!A1:C10000","OBJECTIFS!A1:C60","RECORDS!A1:G200","COMPETITIONS!A1:E200","SERIES!A1:I10000","BLOCS!A1:C200","TENTATIVES!A1:I500","CHECKLIST!A1:C500","BILAN!A1:I1000"];
   const [P, PR, PO, OB, RE, CO, SE, BL, TE, CH, BI] = await Promise.all(R.map(r => getVals(APP_ID, r)));
   raw = {P, OB, BL, TE, CH};
+  try { ARCH = (await getVals(APP_ID, "HISTORIQUE!A1:Q30000")).map((r, i) => ({_row:i + 1, r})).slice(1).filter(x => x.r[0] && x.r[1]); archTab = true; } catch(e){ ARCH = []; archTab = false; }
   const profil = {};
   P.slice(1).forEach(r => { if (r[0]) profil[String(r[0]).trim()] = r[1] ?? ""; });
   ["date_objectif","debut_street","debut_coaching"].forEach(k => profil[k] = toIso(profil[k]));
@@ -540,7 +544,7 @@ const coachId = () => D.profil.coach_sheet_id;
 /* Les blocs de la prog : onglets « BLOC n », et aussi tout onglet nommé autrement (« Peaking BSLC »…)
    qui contient un tableau de séances (en-tête « MOUVEMENT »). Ordre chronologique = ordre des onglets. */
 let progOrder = [];
-const CARNET_TABS = new Set(["PROFIL","PR","POIDS","OBJECTIFS","RECORDS","COMPETITIONS","SERIES","BLOCS","TENTATIVES","CHECKLIST","BILAN"]);
+const CARNET_TABS = new Set(["PROFIL","PR","POIDS","OBJECTIFS","RECORDS","COMPETITIONS","SERIES","BLOCS","TENTATIVES","CHECKLIST","BILAN","HISTORIQUE"]);
 const BLOC_RE = /^\s*BLOC\s*(\d+)\s*$/i;
 /* Un onglet est un bloc s'il contient un tableau de séances : une ligne avec « MOUVEMENT » et « SÉRIES » ou « RÉPÉTITIONS ». */
 function progInfo(v){
@@ -583,13 +587,89 @@ async function progTabs(id){
   }
   return {names, order};
 }
-async function loadBlocList(){ const r = await progTabs(coachId()); blocNames = r.names; progOrder = r.order; }
+async function loadBlocList(){ const r = await progTabs(coachId()); blocNames = r.names; progOrder = r.order; liveIds = new Set(r.order); archMeta = {}; }
+
+/* =====================================================================
+   HISTORIQUE : chaque exercice fait est recopié dans le carnet (onglet HISTORIQUE).
+   Si le coach supprime un onglet ou repart d'un nouveau sheet, les anciens blocs restent ; deux « Bloc 1 »
+   coexistent car un bloc archivé est identifié par sa prog, son onglet et sa date de début.
+   ===================================================================== */
+let ARCH = [], archTab = false, archMeta = {}, liveIds = new Set(), archBusy = false, liveCycle = {};
+const archStart = b => archMeta[b] ? archMeta[b].start : null;
+const AS = r => r.map(v => String(v ?? "").trim());
+/* Cycles archivés : regroupés par prog + onglet + identifiant de cycle (colonne Q). */
+function archCycles(){
+  const cyc = {};
+  for (const x of ARCH) { const r = AS(x.r), k = r[0] + "|" + r[1] + "|" + (r[16] || toIso(r[3]) || "");
+    (cyc[k] = cyc[k] || {k, prog:r[0], tab:r[1], label:r[2], start:toIso(r[3]) || "", cycle:r[16] || "", rows:[]}).rows.push(x); }
+  return Object.values(cyc);
+}
+/* Un cycle archivé et un bloc de la prog sont le même bloc si leur contenu concorde (mouvement, variation, charge à la même ligne). */
+function similarity(c, lid){
+  const live = {}; for (const s of S) if (s.bloc === lid && !s.archived) for (const e of s.exercices) live[s.semaine + "|" + e.row] = norm(e.mouvement) + "|" + norm(e.variation) + "|" + norm(e.charge);
+  let n = 0, ok = 0; for (const x of c.rows) { const r = AS(x.r), k = r[4] + "|" + r[7]; if (!(k in live)) { n++; continue; } n++; if (live[k] === norm(r[8]) + "|" + norm(r[9]) + "|" + norm(r[12])) ok++; }
+  return n ? ok / n : 0;
+}
+function matchCycles(){
+  liveCycle = {}; const cs = archCycles(), byTab = {};
+  for (const c of cs) if (c.prog === coachId()) (byTab[c.tab] = byTab[c.tab] || []).push(c);
+  for (const id of liveIds) { const t = String(blocNames[id] || "").trim(), L = byTab[t]; if (!L || !loadedBlocs.has(id)) continue;
+    let best = null, bs = 0; for (const c of L) { const v = similarity(c, id); if (v > bs) { bs = v; best = c; } }
+    if (best && bs >= .6) liveCycle[id] = best; }
+  return cs;
+}
+function mergeArchive(){
+  S = S.filter(s => !s.archived); for (const id of Object.keys(archMeta)) { delete blocNames[id]; loadedBlocs.delete(+id); }
+  progOrder = progOrder.filter(id => liveIds.has(id)); archMeta = {};
+  const cs = matchCycles(), used = new Set(Object.values(liveCycle).map(c => c.k)), add = [];
+  for (const c of cs) {
+    if (used.has(c.k)) continue;
+    if (c.prog === coachId() && !allLoaded && Object.values(blocNames).some(t => String(t).trim() === c.tab)) continue; /* prog pas encore lue en entier */
+    let id = 1000 + hashId(c.k) * 7 % 8000; while (blocNames[id]) id++;
+    blocNames[id] = c.tab; archMeta[id] = {start:c.start, prog:c.prog, label:c.label}; loadedBlocs.add(id);
+    const ses = {};
+    for (const x of c.rows) { const [, , , , sem, seance, jour, row, mv, va, se, re, ch, r1, rl, com] = AS(x.r);
+      const k = sem + "|" + seance; const s = ses[k] = ses[k] || {key:"A" + id + "|" + k, sheet:c.tab, bloc:id, semaine:sem, jour, seance, headerRow:0, idx:0, recapRow:0, pdc:"", pdcCol:0, cols:{}, exercices:[], faite:true, archived:true};
+      s.exercices.push({row:+row || 0, mouvement:mv, variation:va, tempo:"", coach:"", series:se, reps:re, repos:"", charge:ch, e1rm:"", intensite:"", rpe1:r1, rpeLast:rl, angle:"", commentaire:com}); }
+    const list = Object.values(ses), names = [...new Set(list.map(s => s.seance))];
+    list.forEach(s => { s.idx = names.indexOf(s.seance); s.exercices.sort((a, b) => a.row - b.row); });
+    S = S.concat(list); add.push(id);
+  }
+  add.sort((a, b) => (archMeta[a].start || "") < (archMeta[b].start || "") ? -1 : 1);
+  progOrder = add.concat(progOrder);
+  S.sort((a, b) => byRank(a.bloc, b.bloc) || (num(a.semaine) || 0) - (num(b.semaine) || 0) || a.idx - b.idx);
+}
+/* Recopie dans HISTORIQUE les exercices faits (RPE ou commentaire) des blocs encore présents dans la prog. */
+async function archiveSync(){
+  if (archBusy || !allLoaded || typeof writeMany !== "function" || !coachId()) return; archBusy = true;
+  try {
+    const prog = coachId(), news = [], upd = []; matchCycles();
+    for (const b of progOrder) { if (!liveIds.has(b)) continue;
+      const tab = String(blocNames[b]).trim(), st = blocStart(b), cyc = liveCycle[b], cid = cyc ? (cyc.cycle || "c" + hashId(cyc.k)) : "c" + Date.now().toString(36) + b;
+      const L = cyc && cyc.start && !D.blocs[b] ? cyc.start : st ? st.d : "", byKey = {};
+      if (cyc) for (const x of cyc.rows) { const r = AS(x.r); byKey[r[4] + "|" + r[7]] = x; }
+      for (const s of S) { if (s.bloc !== b || s.archived) continue;
+        for (const e of s.exercices) { if (num(e.rpe1) === null && num(e.rpeLast) === null && !String(e.commentaire || "").trim()) continue;
+          const row = [prog, tab, blocBase(b), L, s.semaine, s.seance, s.jour || "", String(e.row), e.mouvement, e.variation, e.series, e.reps, e.charge, e.rpe1, e.rpeLast, e.commentaire, cid].map(v => String(v ?? ""));
+          const old = byKey[s.semaine + "|" + e.row];
+          if (!old) news.push(row); else if (AS(old.r).join("\u0001") !== AS(row).join("\u0001")) { if (old._row) upd.push({range:"HISTORIQUE!A" + old._row + ":Q" + old._row, values:[row]}); old.r = row; } } } }
+    if (!news.length && !upd.length) return;
+    if (!archTab) { await ensureTabs(APP_ID); archTab = true; }
+    for (let i = 0; i < upd.length; i += 200) await writeMany(APP_ID, upd.slice(i, i + 200));
+    if (news.length) { const res = await appendVals(APP_ID, "HISTORIQUE!A1:Q1", news), m = JSON.stringify(res || {}).match(/HISTORIQUE!A(\d+)/); let r0 = m ? +m[1] : 0;
+      news.forEach(r => ARCH.push({_row:r0 ? r0++ : 0, r})); }
+    saveCache();
+  } catch(e){ console.warn("historique", e); } finally { archBusy = false; }
+}
+
 const rank = b => { const i = progOrder.indexOf(b); return i < 0 ? 0 : i + 1; };
 const byRank = (a, b) => rank(a) - rank(b);
-const isNamed = b => blocNames[b] && !BLOC_RE.test(blocNames[b]);
-const blocLabel = b => isNamed(b) ? blocNames[b].trim() : "Bloc " + b;
+const isNamed = b => blocNames[b] && !BLOC_RE.test(blocNames[b]) && !archMeta[b];
+const blocBase = b => { const t = String(blocNames[b] || "").trim(), m = t.match(BLOC_RE); return m ? "Bloc " + m[1] : t || "Bloc " + b; };
+const blocLabel = b => archMeta[b] ? blocBase(b) + (archMeta[b].start ? " · " + dmon(archMeta[b].start) : " · archivé") : isNamed(b) ? blocNames[b].trim() : "Bloc " + b;
 const blocLow = b => isNamed(b) ? "« " + blocNames[b].trim() + " »" : "bloc " + b;
-const blocShort = b => isNamed(b) ? blocNames[b].trim().split(/\s+/)[0].slice(0, 6) : "B" + b;
+const blocShort = b => { const t = String(blocNames[b] || "").trim(), m = t.match(NUM_RE), base = m ? "B" + m[1] : t ? t.split(/\s+/)[0].slice(0, 10) : "B" + b;
+  return archMeta[b] && archMeta[b].start ? base + "·" + archMeta[b].start.slice(5, 7) + "/" + archMeta[b].start.slice(2, 4) : base; };
 async function loadBloc(n){
   const v = await getVals(coachId(), q(blocNames[n]) + "!A1:CZ1000");
   const {seances, weeks} = parseBloc(v, blocNames[n], n);
@@ -688,14 +768,15 @@ async function loadCoach(){
   if (c !== null) await loadBloc(c);
   else for (const n of nums.slice(0, 3)) { await loadBloc(n); if (S.some(s => s.bloc === n)) break; }
   for (const n of keep) if (blocNames[n] && !loadedBlocs.has(n)) await loadBloc(n);
-  allLoaded = Object.keys(blocNames).every(n => loadedBlocs.has(+n));
+  allLoaded = [...liveIds].every(n => loadedBlocs.has(n));
+  mergeArchive(); if (allLoaded) archiveSync();
 }
 function ensureAllBlocs(){
   if (allLoaded) return Promise.resolve();
   if (loadingAll) return loadingAll;
   loadingAll = (async () => {
-    for (const n of progOrder) if (!loadedBlocs.has(n)) await loadBloc(n);
-    allLoaded = true; loadingAll = null; saveCache();
+    for (const n of progOrder) if (liveIds.has(n) && !loadedBlocs.has(n)) await loadBloc(n);
+    allLoaded = true; loadingAll = null; mergeArchive(); saveCache(); archiveSync();
   })().catch(e => { loadingAll = null; throw e; });
   return loadingAll;
 }
@@ -703,11 +784,14 @@ function ensureAllBlocs(){
 function weeksIn(b){ const w = S.filter(s => s.bloc === b).map(s => num(s.semaine) || 0); return w.length ? Math.max(...w) : 4; }
 function blocStart(b){
   if (D.blocs[b]) return {d:D.blocs[b], est:false};
-  const known = Object.keys(D.blocs).map(Number).filter(n => n < b).sort((x, y) => y - x)[0];
-  let base, from;
-  if (known) { base = D.blocs[known]; from = known; } else if (D.profil.debut_coaching) { base = D.profil.debut_coaching; from = 1; } else return null;
-  let w = 0; for (let n = from; n < b; n++) w += weeksIn(n);
-  return {d:addDays(base, w * 7), est:true};
+  const A = archStart(b); if (A) return {d:A, est:false};
+  if (liveCycle[b] && liveCycle[b].start) return {d:liveCycle[b].start, est:true};
+  const O = progOrder, i = O.indexOf(b); if (i < 0) return null;
+  const wk = (a, z) => { let w = 0; for (let t = a; t < z; t++) w += weeksIn(O[t]); return w; };
+  for (let j = i - 1; j >= 0; j--) { const k = D.blocs[O[j]] || archStart(O[j]); if (k) return {d:addDays(k, wk(j, i) * 7), est:true}; }
+  for (let j = i + 1; j < O.length; j++) { const k = D.blocs[O[j]] || archStart(O[j]); if (k) return {d:addDays(k, -wk(i, j) * 7), est:true}; }
+  if (D.profil.debut_coaching) return {d:addDays(D.profil.debut_coaching, wk(0, i) * 7), est:true};
+  return null;
 }
 function dateOf(s){ const st = blocStart(s.bloc); if (!st) return null; return addDays(st.d, ((num(s.semaine) || 1) - 1) * 7 + (JOUR_IDX[norm(s.jour)] ?? 0)); }
 function liftOf(m){ const x = norm(m); if (x.includes("MUSCLE")) return "MU"; if (x.includes("PULL") || x.includes("TRACTION")) return "PULL"; if (x.includes("DIP")) return "DIP"; if (x.includes("SQUAT")) return "SQUAT"; return null; }
@@ -733,8 +817,9 @@ function bestSeries(l){ let m = -Infinity; const out = []; D.prs.filter(p => p.l
 const record = (type, l) => { const r = D.records.find(r => r.type === type && r.categorie === cat() && r.lift === l); return r && r.valeur ? r : null; };
 const nextComp = () => D.comps.find(c => c.date >= D.today) || null;
 const firstComp = () => D.comps.length ? D.comps[0].date : null;
-/* 1RM estimé (Epley) ; pour MU/tractions/dips, sur la charge réelle (corps + lest) puis ramené au lest */
-function e1rm(c, r, lift, w){ if (!r) return null; if (BW_LIFTS.includes(lift) && w) return (w + c) * (1 + r / 30) - w; return c * (1 + r / 30); }
+/* 1RM estimé : table RPE de RTS (série à fond) jusqu'à 10 reps, Epley au-delà ; pour MU/tractions/dips, sur la charge réelle (corps + lest) puis ramené au lest */
+function e1rm(c, r, lift, w){ if (!r) return null; const W = BW_LIFTS.includes(lift) && w ? w : 0, pc = r <= 10 ? rtsPct(r) : null;
+  return pc ? (c + W) / pc - W : (c + W) * (1 + r / 30) - W; }
 const Gcum = (t, i) => t <= 0 ? 0 : t < 1 ? G1[i] * t : G1[i] + (G10[i] - G1[i]) * Math.log10(t);
 function gainFrac(m, i){ const fc = firstComp() || D.today, t0 = Math.max(0, days(fc, D.today) / 365.25); return (1 + Gcum(t0 + m / 12, i)) / (1 + Gcum(t0, i)) - 1; }
 function sysLoad(l){ const b = best(l); if (b === null) return null; return BW_LIFTS.includes(l) ? (bw() ? b + bw() : null) : b; }
@@ -781,18 +866,20 @@ function exercisePoints(){
     const key = exKey(e), lift = liftOf(e.mouvement), lg = logged[[s.bloc, s.semaine, s.seance, key].join("|")];
     if (lg && (lg.includes("L" + e.row) || lg.includes(""))) continue;
     const c = chargeGuess(e); if (c === null) continue;
-    let sets = setsFromComment(e, c);
-    if (!sets && s.faite && lift && num(e.series) && isNumTxt(e.reps)) sets = Array(num(e.series)).fill(0).map(() => ({r:num(e.reps), c}));
+    const own = num(e.rpe1) !== null || num(e.rpeLast) !== null;
+    let sets = lift && !own ? null : setsFromComment(e, c);
+    if (sets && lift && num(e.series) && sets.length > num(e.series) + 2) sets = null;
+    if (!sets && own && lift && num(e.series) && isNumTxt(e.reps)) sets = Array(num(e.series)).fill(0).map(() => ({r:num(e.reps), c}));
     if (!sets) continue;
     const rp = num(e.rpeLast); if (rp && rp >= 5 && rp <= 10 && sets.length) sets = sets.map((x, i) => i === sets.length - 1 ? {...x, rpe:rp} : x);
-    rows.push({sk:s.key, ex:key, lift, date:dateOf(s), order:rank(s.bloc) * 1000 + (num(s.semaine) || 0) * 10 + s.idx, label:blocShort(s.bloc) + " S" + s.semaine, sets, src:"prog"});
+    rows.push({sk:s.key, ex:key, lift, bloc:s.bloc, sem:s.semaine, date:dateOf(s), order:rank(s.bloc) * 1000 + (num(s.semaine) || 0) * 10 + s.idx, label:blocShort(s.bloc) + " S" + s.semaine, sets, src:"prog"});
   }
   for (const x of D.series) {
-    const s = S.find(z => z.bloc === x.bloc && z.semaine === x.semaine && z.seance === x.seance);
-    rows.push({sk: s ? s.key : "d" + x.date, ex:x.ex, lift:liftOf(x.ex.split(" · ")[0]), date:x.date || (s && dateOf(s)), order:x.bloc ? rank(x.bloc) * 1000 + (num(x.semaine) || 0) * 10 + (s ? s.idx : 0) : 0, label:x.date ? dfr(x.date) : blocShort(x.bloc) + " S" + x.semaine, sets:x.sets, src:"carnet"});
+    const s = S.find(z => z.bloc === x.bloc && z.semaine === x.semaine && z.seance === x.seance && (!x.date || !dateOf(z) || Math.abs(days(x.date, dateOf(z))) <= 14));
+    rows.push({sk: s ? s.key : "d" + x.date, bloc:x.bloc, sem:x.semaine, ex:x.ex, lift:liftOf(x.ex.split(" · ")[0]), date:x.date || (s && dateOf(s)), order:x.bloc ? rank(x.bloc) * 1000 + (num(x.semaine) || 0) * 10 + (s ? s.idx : 0) : 0, label:x.date ? dfr(x.date) : blocShort(x.bloc) + " S" + x.semaine, sets:x.sets, src:"carnet"});
   }
   const map = {};
-  for (const r of rows) { const o = map[r.ex] = map[r.ex] || {key:r.ex, lift:r.lift, pts:{}}; const p = o.pts[r.sk] = o.pts[r.sk] || {sk:r.sk, date:r.date, order:r.order, label:r.label, rows:[], src:r.src}; p.rows.push(r.sets); if (r.src === "carnet") p.src = "carnet"; }
+  for (const r of rows) { const o = map[r.ex] = map[r.ex] || {key:r.ex, lift:r.lift, pts:{}}; const p = o.pts[r.sk] = o.pts[r.sk] || {sk:r.sk, date:r.date, order:r.order, label:r.label, bloc:r.bloc, sem:r.sem, rows:[], src:r.src}; p.rows.push(r.sets); if (r.src === "carnet") p.src = "carnet"; }
   return Object.values(map).map(o => {
     const pts = Object.values(o.pts).map(p => {
       const w = bwAt(p.date || D.today), all = p.rows.flat();
@@ -806,47 +893,56 @@ function exercisePoints(){
 /* ---------- Records par répétitions et 1RM estimé (mouvement de compétition, variation « COMP ») ---------- */
 function compSets(l){
   const ok = x => x.c !== null && x.c !== undefined && x.c >= 0 && Number.isInteger(x.r) && x.r >= 1 && x.r <= 12;
-  const out = D.prs.filter(p => p.lift === l).map(p => ({c:p.charge, r:p.reps, date:p.date, src:"PR"})).filter(ok);
+  const out = D.prs.filter(p => p.lift === l).map(p => ({c:p.charge, r:p.reps, date:p.date, src:"PR", coach:/prog du coach/i.test(p.note)})).filter(ok);
   for (const o of exercisePoints()) { if (o.lift !== l || !/ · COMP$/.test(o.key)) continue;
-    for (const p of o.pts) for (const x of p.sets) if (ok(x)) out.push({c:x.c, r:x.r, rpe:x.rpe, date:p.date, label:p.label, src:p.src}); }
+    for (const p of o.pts) for (const x of p.sets) if (ok(x)) out.push({c:x.c, r:x.r, rpe:x.rpe, date:p.date, bloc:p.bloc, sem:p.sem, src:p.src}); }
   return out;
 }
-/* nRM = charge la plus lourde soulevée pour au moins n reps. Rien n'est extrapolé. */
-function repMaxes(l, sets){
+/* nRM = charge la plus lourde faite pour exactement n reps, sur tout l'historique. Rien n'est extrapolé. */
+function repMaxes(sets){
   return Array.from({length:12}, (_, i) => { const n = i + 1; let b = null;
-    for (const x of sets) if (x.r >= n && (!b || x.c > b.c || (x.c === b.c && x.r === n && b.r !== n) || (x.c === b.c && x.r === b.r && (x.date || "") > (b.date || "")))) b = x;
+    for (const x of sets) if (x.r === n && (!b || x.c > b.c || (x.c === b.c && (x.date || "") < (b.date || "")))) b = x;
     return {n, b}; });
 }
-/* 1RM estimé : Epley sur la charge réelle (corps + lest), reps + reps en réserve (RIR = 10 − RPE) quand le RPE est noté.
-   Séries de 10 reps au plus (estimation fiable sous ~10 reps, Mayhew et al., 2008). */
+/* Table RPE de Reactive Training Systems (Tuchscherer) : % du 1RM selon reps + reps en réserve, par pas de 0,5.
+   C'est la table qu'utilise la colonne E1RM du coach (ex. 100 kg × 3 à RPE 6,5 → 121,25). */
+const RTS = [100, 97.8, 95.5, 93.9, 92.2, 90.7, 89.2, 87.8, 86.3, 85, 83.7, 82.4, 81.1, 79.9, 78.6, 77.4, 76.2, 75.1, 73.9];
+const rtsPct = x => { const i = Math.round((x - 1) * 2); return i >= 0 && i < RTS.length ? RTS[i] / 100 : null; };
+/* 1RM estimé d'une série : charge réelle (poids de corps + lest pour MU, tractions, dips) ÷ % de la table.
+   Reps en réserve prises au plus à 2 (RPE 8) : les estimations d'effort loin de l'échec sont peu fiables. Sans RPE : série supposée à fond. */
 function e1rmOf(l, x){
-  const rir = x.rpe ? Math.min(4, Math.max(0, 10 - x.rpe)) : 0, re = x.r + rir; if (x.r > 10 || re > 12) return null;
-  const w = BW_LIFTS.includes(l) ? bwAt(x.date || D.today) : null; if (BW_LIFTS.includes(l) && !w) return null;
-  return {v:re === 1 ? x.c : e1rm(x.c, re, l, w), rir};
+  const rir = x.rpe ? Math.min(2, Math.max(0, 10 - x.rpe)) : 0, xe = x.r + rir, pc = rtsPct(xe); if (!pc) return null;
+  const w = BW_LIFTS.includes(l) ? bwAt(x.date || D.today) : 0; if (BW_LIFTS.includes(l) && !w) return null;
+  return {v:x.r === 1 && !rir ? x.c : (x.c + w) / pc - w, xe};
 }
-function e1rmBestOf(l, sets){ let b = null; for (const x of sets) { const e = e1rmOf(l, x); if (e && (!b || e.v > b.v)) b = {...x, ...e}; } return b; }
-function e1rmNow(l){ const sets = compSets(l), lim = addDays(D.today, -84), rec = e1rmBestOf(l, sets.filter(x => x.date && x.date >= lim && x.date <= D.today)); return {rec, all:e1rmBestOf(l, sets)}; }
-const srcTxt = x => (x.date ? dfr(x.date) : x.label || "") + (x.src === "PR" ? " · PR" : x.src === "carnet" ? " · noté" : " · prog");
+function e1rmBest(l, sets){
+  const all = sets.map(x => { const e = e1rmOf(l, x); return e ? {...x, ...e} : null; }).filter(Boolean);
+  const low = all.filter(x => x.xe <= 6), pool = low.length ? low : all; /* séries proches de 5 reps : les plus fiables (Reynolds et al., 2006) */
+  return pool.reduce((a, x) => !a || x.v > a.v ? x : a, null);
+}
+const srcTxt = x => x.src === "PR" ? (x.coach ? "max de la prog" : (x.date ? dfr(x.date) : "") + " · PR") : x.src === "carnet" && !x.bloc ? (x.date ? dfr(x.date) : "") + " · noté"
+  : (x.bloc !== undefined && x.bloc !== null ? blocShort(x.bloc) + " S" + x.sem : "") + (x.date ? " · " + dfr(x.date) : "");
 function repTableHtml(l){
-  const sets = compSets(l), rm = repMaxes(l, sets), est = e1rmNow(l), b = best(l), e = est.rec || est.all;
-  const tiles = rm.map(({n, b:x}) => `<div class="rm${x ? "" : " off"}"><p class="muted tiny">${n}RM</p><p class="show">${x ? fmt(x.c) : "—"}</p><p class="muted tiny">${x ? srcTxt(x) + (x.r > n ? ` · ×${x.r}` : "") : "pas de donnée"}</p></div>`).join("");
-  const eh = e ? `<div class="panel" style="margin-top:0"><p class="muted small">1RM estimé${est.rec ? " · 12 dernières semaines" : " · meilleur jamais estimé"}</p>
-      <p class="show t-m" style="margin-top:4px;color:${LCOL[l]}">${fmt(e.v, 1)}<small> kg</small></p>
-      <p class="muted small" style="margin-top:4px">D'après ${fmt(e.c)} kg × ${e.r}${e.rpe ? " à RPE " + fmt(e.rpe) : ""}, ${srcTxt(e).replace(" · ", ", ")}.${b !== null && e.v > b + .05 ? ` Au-dessus de ton PR réel (${fmt(b)} kg) : un max à tenter, pas un acquis.` : ""}</p>
-      ${est.rec && est.all && est.all.v > est.rec.v + .05 ? `<p class="muted tiny" style="margin-top:6px">Meilleure estimation jamais faite : ${fmt(est.all.v, 1)} kg (${srcTxt(est.all).replace(" · ", ", ")}).</p>` : ""}</div>` : "";
+  if (!allLoaded) return `<h2 class="h2">Records par répétitions</h2><div class="empty"><div class="spin"></div><p class="small">Lecture de tous tes blocs…</p></div>`;
+  const sets = compSets(l), rm = repMaxes(sets), e = e1rmBest(l, sets), b = best(l), u = BW_LIFTS.includes(l) ? " de lest" : "";
+  const tiles = rm.map(({n, b:x}) => `<div class="rm${x ? "" : " off"}"><p class="muted tiny">${n} rep${n > 1 ? "s" : ""}</p><p class="show">${x ? fmt(x.c) : "—"}</p><p class="muted tiny">${x ? esc(srcTxt(x)) : "pas encore fait"}</p></div>`).join("");
+  const eh = e ? `<div class="panel" style="margin-top:0"><p class="muted small">1RM estimé</p>
+      <p class="show t-m" style="margin-top:4px;color:${LCOL[l]}">${fmt(Math.floor(e.v * 4) / 4)}<small> kg${u}</small></p>
+      <p class="muted small" style="margin-top:4px">D'après ${fmt(e.c)} kg × ${e.r}${e.rpe ? " à RPE " + fmt(e.rpe) : ""} (${esc(srcTxt(e))}).
+      ${b !== null ? (e.v > b + .2 ? ` C'est ${fmt(e.v - b, 1)} kg au-dessus de ton PR (${fmt(b)}) : un potentiel, pas un acquis.` : ` Ton PR (${fmt(b)}) est déjà à ce niveau.`) : ""}</p></div>` : "";
   return `<h2 class="h2">Records par répétitions <span class="muted">${LNAME[l].toLowerCase()} compét</span></h2>
     ${eh}<div class="rmgrid" style="margin-top:10px">${tiles}</div>
-    <p class="muted tiny" style="margin-top:8px">${BW_LIFTS.includes(l) ? "Lest en kg. " : ""}Charge la plus lourde faite pour au moins n reps, tirée de tes PR, de tes séances notées et des séances « Comp » faites de toutes tes progs (charge prévue par le coach si tu n'as rien noté). Aucune valeur n'est inventée : « — » veut dire pas encore fait.</p>`;
+    <p class="muted tiny" style="margin-top:8px">${BW_LIFTS.includes(l) ? "Lest en kg. " : ""}Charge la plus lourde faite pour exactement ce nombre de reps, sur tous tes blocs : séances « Comp » où tu as noté un RPE, séances notées dans l'app et PR. « — » : jamais fait, rien n'est extrapolé.</p>`;
 }
 const fmtSets = sets => { const c0 = sets[0].c; return sets.every(x => x.c === c0) ? fmt(c0) + " kg × " + sets.map(x => x.r).join(" · ") : sets.map(x => x.r + "@" + fmt(x.c)).join(" · "); };
 
 /* =====================================================================
    CACHE LOCAL (affichage immédiat à l'ouverture, puis synchro)
    ===================================================================== */
-function saveCache(){ if (D) store.set("sl4-cache", {D, S, blocNames, progOrder, weekMeta, at:Date.now(), all:allLoaded}); }
+function saveCache(){ if (D) store.set("sl4-cache", {D, S, blocNames, progOrder, liveIds:[...liveIds], archMeta, ARCH:ARCH.slice(-6000), weekMeta, at:Date.now(), all:allLoaded}); }
 function loadCache(){
   const c = store.get("sl4-cache"); if (!c || !c.D) return false;
-  D = c.D; D.today = isoOf(new Date()); S = c.S || []; blocNames = c.blocNames || {}; progOrder = c.progOrder || Object.keys(blocNames).map(Number).sort((x, y) => x - y); weekMeta = c.weekMeta || {};
+  D = c.D; D.today = isoOf(new Date()); S = c.S || []; blocNames = c.blocNames || {}; progOrder = c.progOrder || Object.keys(blocNames).map(Number).sort((x, y) => x - y); liveIds = new Set(c.liveIds || progOrder); archMeta = c.archMeta || {}; ARCH = c.ARCH || []; weekMeta = c.weekMeta || {};
   S.forEach(s => loadedBlocs.add(s.bloc)); allLoaded = !!c.all; return true;
 }
 
@@ -1007,7 +1103,7 @@ function rSeance(){
         <span class="row"><b class="ttl">${esc(norm(e.mouvement) === "RENFO" ? title(e.variation) : title(e.mouvement) + " " + title(e.variation).toLowerCase())}</b>${e.rpe1 || e.rpeLast ? `<span class="pill">RPE ${esc(e.rpeLast || e.rpe1)}</span>` : ""}</span>
         <span class="muted small" style="display:block;margin-top:2px">${presc(e)}</span>
         ${logged ? `<span class="done-sets" style="display:block">Fait : ${esc(logged)}</span>` : ""}</span></button>`; }).join("")}</div>
-    <button class="btn" style="margin-top:14px" data-act="startLive" data-k="${esc(s.key)}">${lv && lv.key === s.key ? "Reprendre" : s.faite ? "Revoir et modifier" : "Commencer"} la séance</button>
+    ${s.archived ? `<p class="muted small" style="margin-top:14px">Bloc conservé dans ton historique (onglet HISTORIQUE de ton carnet) : il se consulte, il ne se modifie plus.</p>` : `<button class="btn" style="margin-top:14px" data-act="startLive" data-k="${esc(s.key)}">${lv && lv.key === s.key ? "Reprendre" : s.faite ? "Revoir et modifier" : "Commencer"} la séance</button>`}
     ${wk ? `<button class="btn line" style="margin-top:10px" data-act="bilan" data-w="${esc(wk.sheet + "|" + wk.semaine)}">${BILAN_CRIT.every(k => wk.vals[k]) ? "Bilan de la semaine " + esc(wk.semaine) + " : fait, modifier" : "Bilan de la semaine " + esc(wk.semaine)}</button>` : ""}`;
 }
 function presc(e){
@@ -1045,6 +1141,7 @@ function initSets(s, e){
 }
 async function startLive(key, i){
   const s = seanceByKey(key); if (!s) return;
+  if (s.archived) return toast("Ce bloc vient de ton historique : il se consulte, il ne se modifie plus.", true);
   let st = store.get("sl4-live");
   if (!st || st.key !== key) st = {key, start:Date.now(), i:0, rows:{}, pdc:false};
   if (i !== undefined) st.i = +i;
@@ -1184,6 +1281,53 @@ function sparkSVG(vals, col){
   const pts = vals.map((v, i) => [i / (vals.length - 1) * (W - 6) + 3, H - 4 - (v - mn) / sp * (H - 8)]);
   return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true"><polyline points="${pts.map(p => p.join(",")).join(" ")}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${pts.at(-1)[0]}" cy="${pts.at(-1)[1]}" r="3" fill="${col}"/></svg>`;
 }
+/* ---------- Progrès de la semaine ---------- */
+function weeksOfBloc(b){ return [...new Set(S.filter(s => s.bloc === b).map(s => s.semaine))].sort((x, y) => (num(x) || 0) - (num(y) || 0)); }
+function defaultWeek(){
+  const ns = nextSeance(), ab = activeBloc(); if (ab === null) return null;
+  const done = S.filter(s => s.bloc === ab && s.faite);
+  if (ns && S.some(s => s.bloc === ab && s.semaine === ns.semaine && s.faite)) return {b:ab, w:ns.semaine};
+  if (done.length) return {b:ab, w:done.at(-1).semaine};
+  return ns ? {b:ab, w:ns.semaine} : {b:ab, w:weeksOfBloc(ab)[0]};
+}
+const wOrd = (b, w) => rank(b) * 100 + (num(w) || 0);
+function weekView(sel){
+  const {b, w} = sel, ss = S.filter(s => s.bloc === b && s.semaine === w), keys = new Set(ss.map(s => s.key)), me = wOrd(b, w);
+  const all = exercisePoints(), items = [];
+  for (const o of all) {
+    const cur = o.pts.filter(p => keys.has(p.sk)); if (!cur.length) continue;
+    const before = o.pts.filter(p => !keys.has(p.sk) && (p.bloc !== undefined && p.bloc !== null ? wOrd(p.bloc, p.sem) < me : p.order < Math.min(...cur.map(c => c.order))));
+    const top = cur.reduce((a, p) => p.e1rmBest > a.e1rmBest ? p : a, cur[0]), prev = before.at(-1);
+    const bestSet = top.sets.reduce((a, x) => e1rm(x.c, x.r, o.lift, bwAt(top.date || D.today)) > e1rm(a.c, a.r, o.lift, bwAt(top.date || D.today)) ? x : a, top.sets[0]);
+    items.push({o, top, bestSet, prev, d:prev ? top.e1rmBest - prev.e1rmBest : null, comp:!!o.lift && / · COMP$/.test(o.key)});
+  }
+  /* records de reps battus cette semaine (mouvements de compét, nombre de reps exact) */
+  const recs = [];
+  for (const l of LIFTS) { const sets = compSets(l), inW = sets.filter(x => x.bloc === b && x.sem === w);
+    const prior = sets.filter(x => !(x.bloc === b && x.sem === w) && (x.bloc !== undefined && x.bloc !== null ? wOrd(x.bloc, x.sem) < me : (x.date && ss.length && dateOf(ss[0]) ? x.date < dateOf(ss[0]) : false)));
+    for (const x of inW) { const pb = Math.max(-1, ...prior.filter(y => y.r === x.r).map(y => y.c)); if (x.c > pb && !recs.some(r => r.l === l && r.r === x.r && r.c >= x.c)) recs.push({l, r:x.r, c:x.c, first:pb < 0}); } }
+  return {ss, items, recs};
+}
+function weekHtml(){
+  if (!allLoaded) return `<div class="empty"><div class="spin"></div><p class="small">Lecture de tes semaines…</p></div>`;
+  const sel = progSel && S.some(s => s.bloc === progSel.b && s.semaine === progSel.w) ? progSel : defaultWeek(); if (!sel) return `<p class="muted small">Pas encore de séance dans ta prog.</p>`;
+  const blocs = progOrder.filter(b => S.some(s => s.bloc === b && s.faite)).concat(progOrder.filter(b => b === activeBloc())).filter((b, i, a) => a.indexOf(b) === i).sort(byRank).reverse();
+  const ws = weeksOfBloc(sel.b), {ss, items, recs} = weekView(sel), done = ss.filter(s => s.faite).length, st = dateOf(ss[0] || {});
+  const wk = weekMeta[(ss[0] || {}).sheet + "|" + sel.w], bil = wk && BILAN_CRIT.filter(k => wk.vals[k]).map(k => [k, wk.vals[k]]);
+  const comp = LIFTS.map(l => { const L = items.filter(x => x.o.lift === l && x.comp); if (!L.length) return null; const t = L.reduce((a, x) => x.top.e1rmBest > a.top.e1rmBest ? x : a, L[0]); return {l, t}; }).filter(Boolean);
+  const others = items.filter(x => !x.comp).sort((a, b) => (b.o.lift ? 1 : 0) - (a.o.lift ? 1 : 0));
+  const delta = (d, u) => d === null ? `<span class="muted small">1re fois</span>` : `<span class="small" style="color:${d > .05 ? "var(--ok)" : d < -.05 ? "var(--bad)" : "var(--dust)"}">${d > .05 ? "+" : ""}${fmt(d, 1)}${u}</span>`;
+  const setTxt = (x, l) => `${fmt(x.c)} kg × ${x.r}${x.rpe ? " @" + fmt(x.rpe) : ""}`;
+  return `<div class="chips" style="margin-top:2px">${blocs.map(b => `<button class="chip" aria-pressed="${b === sel.b}" data-act="pickWeek" data-b="${b}">${esc(blocLabel(b))}</button>`).join("")}</div>
+    <div class="chips" style="margin-top:8px">${ws.map(w => `<button class="chip" aria-pressed="${w === sel.w}" data-act="pickWeek" data-b="${sel.b}" data-w="${esc(w)}">S${esc(w)}</button>`).join("")}</div>
+    ${heroCard({small:`${esc(blocLabel(sel.b))} · semaine ${esc(sel.w)}${st ? " · " + dfr(st).slice(0, 5) + "–" + dfr(addDays(st, 6)).slice(0, 5) : ""}`, big:`${done}<small>/${ss.length}</small>`, sub:`séance${ss.length > 1 ? "s" : ""} faite${done > 1 ? "s" : ""}${recs.length ? " · " + recs.length + " record" + (recs.length > 1 ? "s" : "") + " de reps" : ""}`, deco:false})}
+    ${recs.length ? `<div class="list" style="margin-top:12px">${recs.map(r => vrow(`${LNAME[r.l]} · ${r.r} rep${r.r > 1 ? "s" : ""}`, r.first ? "première fois" : "nouveau record", kg(r.c), LCOL[r.l], `data-act="openLift" data-l="${r.l}"`)).join("")}</div>` : ""}
+    ${comp.length ? `<h3 class="h3">Mouvements de compét</h3><div class="list">${comp.map(({l, t}) => `<button class="item" data-act="openEx" data-k="${esc(t.o.key)}"><span class="d10" style="--c:${LCOL[l]}"></span><span class="grow"><span class="ttl" style="display:block">${LNAME[l]}</span><span class="muted small">${esc(setTxt(t.bestSet, l))} · 1RM est. ${fmt(t.top.e1rmBest, 1)}</span></span>${delta(t.d, " kg")}</button>`).join("")}</div>` : ""}
+    ${others.length ? `<h3 class="h3">Variantes et renfo</h3><div class="list">${others.map(x => `<button class="item" data-act="openEx" data-k="${esc(x.o.key)}"><span class="grow"><span class="ttl" style="display:block">${esc(exName(x.o.key))}</span><span class="muted small">${esc(fmtSets(x.top.sets))}</span></span>${delta(x.d === null ? null : x.d / (x.prev.e1rmBest || 1) * 100, " %")}</button>`).join("")}</div>` : ""}
+    ${!items.length ? `<p class="muted small" style="margin-top:12px">Rien de noté cette semaine pour l'instant.</p>` : ""}
+    ${bil && bil.length ? `<h3 class="h3">Ton bilan</h3><div class="chips">${bil.map(([k, v]) => `<span class="chip" aria-pressed="false">${k} ${fmt(v)}</span>`).join("")}</div>` : ""}
+    <p class="muted tiny" style="margin-top:8px">Écart comparé à la dernière fois que tu as fait le même exercice avant cette semaine.</p>`;
+}
 function rProg(){
   const t = total(), r = risOf(t, bw()), mo = Math.max(0, days(D.today, objDate()) / 30.44);
   const bands = LIFTS.map(l => band(l, mo)).filter(Boolean), oT = LIFTS.reduce((s, l) => s + ((l === "MU" && !muOn()) ? 0 : (D.objectifs[l] || best(l) || 0)), 0);
@@ -1207,10 +1351,12 @@ function rProg(){
       return `<button class="liftrow" data-act="openLift" data-l="${l}"><span class="top"><span class="d10" style="--c:${LCOL[l]}"></span><b>${LNAME[l]}</b><span class="val">${kg(b)}</span></span>
         <span class="bar" style="display:block;--c:${LCOL[l]}"><i style="width:${o && b ? pct(b, o) : 0}%"></i></span>
         <span class="meta"><span>${o ? "objectif " + kg(o) : "pas encore d'objectif"}</span><span>${v ? v.txt.toLowerCase() : ""}</span></span></button>`; }).join("")}</div>
+    <h2 class="h2">Semaine par semaine</h2>
+    ${weekHtml()}
     ${dpHtml()}
-    <h2 class="h2">Tous les exercices du ${activeBloc() !== null ? esc(blocLow(activeBloc())) : "bloc"}</h2>
-    <p class="muted small" style="margin:-6px 0 8px">Le pourcentage compare ton 1RM estimé à celui d'il y a environ 4 semaines.</p>
-    ${exHtml}
+    <details class="more" style="margin-top:22px"><summary class="h2" style="margin:0">Tous les exercices <span class="muted">${activeBloc() !== null ? esc(blocLow(activeBloc())) : ""}</span></summary>
+    <p class="muted small" style="margin:6px 0 8px">Le pourcentage compare ton 1RM estimé à celui d'il y a environ 4 semaines.</p>
+    ${exHtml}</details>
     <h2 class="h2">Volume par semaine</h2>
     ${allLoaded ? volumeHtml() : `<p class="muted small">Calcul en cours…</p>`}`;
   if (allLoaded) drawVolume();
@@ -1355,7 +1501,7 @@ function rExPage(key){
     </div>
     <div class="chips" style="margin-top:20px">${EXM.map(([k, t]) => `<button class="chip" aria-pressed="${exMetric === k}" data-act="exMetric" data-k="${k}" data-x="${esc(key)}">${t}</button>`).join("")}</div>
     <div class="panel" style="margin-top:10px">${P.length > 1 ? `<canvas id="c-ex" aria-label="Progression"></canvas>` : `<p class="muted small" style="text-align:center;padding:18px 0">La courbe apparaît dès la 2e séance notée.</p>`}
-      <p class="muted tiny" style="margin-top:8px">${exMetric === "e1rm" ? "Le 1RM estimé (formule d'Epley, moyenne des séries) met charge et reps sur un seul axe : passer de 3×8 à 3×9 à charge égale le fait monter, comme une hausse de charge. C'est une estimation." : exMetric === "tonnage" ? "Tonnage = charge × reps de la séance." : exMetric === "totalReps" ? "Total des reps de la séance." : "Charge la plus lourde de la séance."}</p></div>
+      <p class="muted tiny" style="margin-top:8px">${exMetric === "e1rm" ? "Le 1RM estimé (table RPE de RTS, moyenne des séries) met charge et reps sur un seul axe : passer de 3×8 à 3×9 à charge égale le fait monter, comme une hausse de charge. C'est une estimation." : exMetric === "tonnage" ? "Tonnage = charge × reps de la séance." : exMetric === "totalReps" ? "Total des reps de la séance." : "Charge la plus lourde de la séance."}</p></div>
     <div class="panel"><table>${P.slice().reverse().slice(0, 12).map(p => `<tr><td>${p.date ? cap(dlong(p.date)) : p.label}<div class="muted tiny">${p.src === "carnet" ? "Noté dans l'app" : "Prog du coach"}</div></td><td><b>${esc(fmtSets(p.sets))}</b><div class="muted tiny">1RM est. ${fmt(p.e1rm, 1)}</div></td></tr>`).join("")}</table></div>
   </div></div>`;
 }
@@ -1540,7 +1686,7 @@ function settingsHtml(){
     <h2 class="h2" style="font-size:20px">Méthodes et sources</h2>
     <p class="src"><b style="color:var(--chalk)">RIS</b> : formule de Waris Radji et Mathieu Ardoin, édition 2026 (constantes publiées dans le code d'<a href="https://openstreetlifting.org" target="_blank" rel="noopener">OpenStreetlifting</a>). <a href="https://warisradji.com/ris/" target="_blank" rel="noopener">Calculateur officiel</a>.</p>
     <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Zone réaliste</b> : Latella et al. (2023), <a href="https://doi.org/10.1007/s40279-023-01962-6" target="_blank" rel="noopener">Sports Medicine</a> : +7,5 à 12,5 % de force la 1re année de compétition, jusqu'à ~20 % après 10 ans. L'étude porte sur le powerlifting. L'app ajoute ton rythme mesuré, souvent plus parlant au début.</p>
-    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">1RM estimé</b> : formule d'Epley, charge × (1 + reps/30), calculée sur la charge réelle (poids de corps + lest) pour muscle-up, tractions et dips. Quand le RPE de la dernière série est noté, l'app ajoute les reps en réserve (RIR = 10 − RPE, échelle de <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al., 2016</a>). Seules les séries de 10 reps au plus comptent : au-delà, les estimations perdent en précision (<a href="https://researchconnect.suny.edu/en/publications/accuracy-of-prediction-equations-for-determining-one-repetition-m/" target="_blank" rel="noopener">Mayhew et al., 2008</a>).</p>
+    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">1RM estimé</b> : table RPE de Reactive Training Systems (Tuchscherer), la même que la colonne E1RM de ta prog : % du 1RM selon les reps et les reps en réserve (RIR = 10 − RPE, <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al., 2016</a>). Calcul sur la charge réelle (poids de corps + lest) pour muscle-up, tractions et dips. Prudence : RIR compté au plus à 2, car l'effort se juge mal loin de l'échec (<a href="https://www.strongerbyscience.com/reps-in-reserve" target="_blank" rel="noopener">synthèse Stronger by Science</a>) ; les séries de 6 reps ou moins sont préférées, la prédiction étant la plus fiable autour de 5 reps (<a href="https://www.unm.edu/~rrobergs/478RMStrengthPrediction.pdf" target="_blank" rel="noopener">Reynolds et al., 2006</a>) et se dégradant au-delà de 10 (<a href="https://researchconnect.suny.edu/en/publications/accuracy-of-prediction-equations-for-determining-one-repetition-m/" target="_blank" rel="noopener">Mayhew et al., 2008</a>).</p>
     <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Records</b> : <a href="https://rankings.officialstreetlifting.com/records/male/classes/-80kg" target="_blank" rel="noopener">Official Streetlifting</a>.</p>
     <button class="btn" style="margin-top:18px" data-act="closeSheet">Fermer</button>`;
 }
@@ -1608,6 +1754,7 @@ const ACT = {
   sel:d => { sel = d.k; rSeance(); },
   pickBloc:async d => { const b = +d.b; try { if (!loadedBlocs.has(b)) { toast("Chargement : " + blocLabel(b) + "…"); await loadBloc(b); } const x = S.find(y => y.bloc === b && !y.faite) || S.find(y => y.bloc === b); if (!x) return toast(blocLabel(b) + " ne contient pas encore de séance.", true); sel = x.key; rSeance(); } catch(e){ toast(errMsg(e), true); } },
   startLive:d => startLive(d.k, d.i),
+  pickWeek:d => { const b = +d.b; progSel = {b, w:d.w !== undefined ? d.w : (weeksOfBloc(b).filter(w => S.some(s => s.bloc === b && s.semaine === w && s.faite)).at(-1) || weeksOfBloc(b)[0])}; rProg(); },
   closeLive:async () => { if (live) await saveRow(live.i); live = null; try { wakeLock && wakeLock.release(); } catch(e){} renderLayer(); render(); toast("Séance enregistrée, tu peux la reprendre plus tard"); },
   liveNav:async d => { const ok = await saveRow(live.i); if (!ok) return; const s = seanceByKey(live.key); live.i = Math.max(0, Math.min(s.exercices.length - 1, live.i + +d.d)); persistLive(); renderLayer(); document.querySelector(".live").scrollTop = 0; },
   doneSet:d => onSetDone(+d.j),
