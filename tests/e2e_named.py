@@ -7,7 +7,10 @@ RENAME = """<script>(()=>{const s=window.__sheets['%s'],o={};
  for(const[k,v]of Object.entries(s)){
   if(k==='BLOC 5'){o['BLOC 5']=v;o['B6 ACC 4semaines ']=same(JSON.parse(JSON.stringify(s['BLOC 6'])));}
   else if(k==='BLOC 6')o['B7 Intensif 3 semaines ']=same(v);
-  else if(k==='BLOC 7'){o['Peaking BSLC ']=same(v);o['BIBLIOTHÈQUE MOBILITÉ ']=[['Exercice','Lien']];o['FEUILLE DE MATCH ']=[['MOUVEMENT','Tentative 1']];}
+  else if(k==='BLOC 7'){ const top=same(JSON.parse(JSON.stringify(s['BLOC 1  ']))); top.forEach(r=>r.forEach((x,i)=>{ if(/^BLOC/.test(x)) r[i+1]='1'; }));
+    while(top.length<150) top.push([]);
+    v.forEach(r=>r.forEach((x,i)=>{ if(/^BLOC/.test(x)) r[i+1]='9'; if(/^Semaine/.test(x)) r[i+1]=r[i+1]+'/4'; }));
+    o['Peaking BSLC ']=top.concat(v);o['BIBLIOTHÈQUE MOBILITÉ ']=[['Exercice','Lien']];o['FEUILLE DE MATCH ']=[['MOUVEMENT','Tentative 1']];}
   else if(k==='BLOC 2'){o['BLOC 1 POST COMP ']=JSON.parse(JSON.stringify(v));o['BLOC 2']=v;}
   else o[k]=v;}
  window.__sheets['%s']=o;})()</script>""" % (COACH, COACH)
@@ -27,6 +30,7 @@ with sync_playwright() as p:
     print("actif :", pg.evaluate("blocLabel(activeBloc())"))
     pg.click("[data-act=settings]"); pg.wait_for_timeout(500)
     print("options :", pg.locator("#sbl option").all_inner_texts())
+    print("id peaking :", pg.evaluate("activeBloc()"), "| 1re séance ligne :", pg.evaluate("S.filter(x=>x.bloc===activeBloc())[0].headerRow"), "| dates :", pg.evaluate("S.filter(x=>x.bloc===activeBloc()).slice(0,3).map(x=>x.semaine+'-'+x.jour)"))
     print("semaines peaking :", pg.evaluate("[...new Set(S.filter(x=>x.bloc===activeBloc()).map(x=>x.semaine))]"), "| prochaine :", pg.evaluate("(nextSeance()||{}).key"))
     pg.select_option("#sbl", label="Bloc 5"); pg.wait_for_timeout(2500)
     print("après choix :", pg.evaluate("blocLabel(activeBloc())"), "| profil :", pg.evaluate("D.profil.bloc_actif"))
