@@ -619,14 +619,17 @@ function parseBloc(v, sheet, bloc){
   }
   return {seances, weeks};
 }
-const activeBloc = () => { const b = S.map(s => s.bloc); return b.length ? Math.max(...b) : null; };
+const chosenBloc = () => { const n = num(D && D.profil.bloc_actif); return n && blocNames[n] ? n : null; };
+const activeBloc = () => { const c = chosenBloc(); if (c !== null && S.some(s => s.bloc === c)) return c; const b = S.map(s => s.bloc); return b.length ? Math.max(...b) : null; };
 const nextSeance = () => { const b = activeBloc(); return b === null ? null : (S.find(s => s.bloc === b && !s.faite) || null); };
 async function loadCoach(){
   await loadBlocList();
   const nums = Object.keys(blocNames).map(Number).sort((a, b) => b - a);
   if (!nums.length) { seanceErr = "Aucun onglet « BLOC » trouvé dans la prog de ton coach."; return; }
   const keep = new Set(loadedBlocs); loadedBlocs.clear(); S = []; weekMeta = {};
-  for (const n of nums.slice(0, 3)) { await loadBloc(n); if (S.some(s => s.bloc === n)) break; }
+  const c = chosenBloc();
+  if (c !== null) await loadBloc(c);
+  else for (const n of nums.slice(0, 3)) { await loadBloc(n); if (S.some(s => s.bloc === n)) break; }
   for (const n of keep) if (blocNames[n] && !loadedBlocs.has(n)) await loadBloc(n);
   allLoaded = Object.keys(blocNames).every(n => loadedBlocs.has(+n));
 }
@@ -1427,6 +1430,7 @@ function settingsHtml(){
     <p class="muted small" style="margin-top:4px">${t ? "Synchronisé à " + String(t.getHours()).padStart(2, "0") + ":" + String(t.getMinutes()).padStart(2, "0") : "Pas encore synchronisé"}. L'app relit tes Sheets à chaque ouverture.</p>
     <div class="grid2"><div><label for="smu">Muscle-up acquis</label><select id="smu" data-chg="prof" data-k="mu_acquis"><option ${muOn() ? "" : "selected"}>NON</option><option ${muOn() ? "selected" : ""}>OUI</option></select></div>
       <div><label for="ssx">Sexe (pour le RIS)</label><select id="ssx" data-chg="prof" data-k="sexe"><option value="H" ${sexe() === "H" ? "selected" : ""}>Homme</option><option value="F" ${sexe() === "F" ? "selected" : ""}>Femme</option></select></div></div>
+    ${Object.keys(blocNames).length ? `<label for="sbl">Bloc en cours</label><select id="sbl" data-chg="blocActif"><option value="">Le plus récent de la prog</option>${Object.keys(blocNames).map(Number).sort((a, b) => a - b).map(n => `<option value="${n}" ${n === chosenBloc() ? "selected" : ""}>Bloc ${n}</option>`).join("")}</select>` : ""}
     <label for="scat">Catégorie de poids</label><select id="scat" data-chg="prof" data-k="categorie">${CATS.map(c => `<option value="${c}" ${c === cat() ? "selected" : ""}>${c > 0 ? "+" + c : c} kg</option>`).join("")}</select>
     <div class="grid2"><div><label for="sdo">Date des objectifs</label><input id="sdo" type="date" value="${objDate()}" data-chg="prof" data-k="date_objectif"></div>
       <div><label for="sdc">Début de la prog</label><input id="sdc" type="date" value="${D.profil.debut_coaching || ""}" data-chg="prof" data-k="debut_coaching"></div></div>
@@ -1565,6 +1569,9 @@ const CHG = {
   prof:async (d, el) => { const k = d.k, val = k === "categorie" ? Number(el.value) : el.value, i = raw.P.findIndex((r, j) => j > 0 && String(r[0]).trim() === k);
     try { if (i > 0) await putVals(APP_ID, `PROFIL!B${i + 1}`, [[val]]); else { await appendVals(APP_ID, "PROFIL!A1:C1", [[k, val, ""]]); raw.P.push([k, val]); }
       D.profil[k] = /^(date_|debut_)/.test(k) ? toIso(val) : val; toast("Réglage enregistré"); saveCache(); render(); } catch(e){ toast(errMsg(e), true); } },
+  blocActif:async (d, el) => { const n = num(el.value);
+    try { if (n && !loadedBlocs.has(n)) { toast("Chargement du bloc " + n + "…"); await loadBloc(n); } } catch(e){ return toast(errMsg(e), true); }
+    sel = null; await CHG.prof({k:"bloc_actif"}, {value:n ? String(n) : ""}); },
   att:async (d, el) => { await saveAtt(d.d, d.l, +d.i, el.value === "" ? "" : num(el.value), null); },
   import:(d, el) => readImport(el.files[0])
 };
@@ -1705,7 +1712,7 @@ async function createBook(p){
   const r = await gapi(API, {method:"POST", body:JSON.stringify({properties:{title:"Street Lifting – " + (p.prenom || "carnet"), locale:"fr_FR"},
     sheets:Object.keys(TABS).map(t => ({properties:{title:t, gridProperties:{frozenRowCount:1}}}))})});
   const id = r.spreadsheetId;
-  const prof = [["prenom",p.prenom],["sexe",p.sexe],["naissance",""],["taille_cm",p.taille || ""],["categorie",p.categorie],["coach_sheet_id",p.coach || ""],["mu_acquis",p.mu || "NON"],
+  const prof = [["prenom",p.prenom],["sexe",p.sexe],["naissance",""],["taille_cm",p.taille || ""],["categorie",p.categorie],["coach_sheet_id",p.coach || ""],["bloc_actif",p.bloc || ""],["mu_acquis",p.mu || "NON"],
     ["date_objectif",addMonths(isoOf(new Date()), 12)],["debut_street",p.debut || ""],["debut_coaching",p.debutCoach || ""]];
   const data = Object.keys(TABS).map(t => ({range:t + "!A1", values:[TABS[t]]}));
   data.push({range:"PROFIL!A2", values:prof});
@@ -1770,7 +1777,8 @@ function onboard(step, why){
     <label>Tes PR actuels (kg de lest, laisse vide si tu ne sais pas)</label>
     <div class="grid2">${LIFTS.map(l => `<div><label for="obpr${l}" style="margin-top:0">${LNAME[l]}</label><input id="obpr${l}" inputmode="decimal" value="${v(P["pr_" + l])}"></div>`).join("")}</div>
     <label for="obk">Lien de la prog de ton coach (facultatif)</label><input id="obk" type="url" placeholder="https://docs.google.com/spreadsheets/d/…" value="${P.coach ? sheetUrl(P.coach) : ""}">
-    ${P.bloc ? `<label for="obb">Lundi de la semaine 1 du bloc ${P.bloc}</label><input id="obb" type="date"><p class="muted tiny" style="margin-top:6px">Pour dater tes séances. Tu pourras le changer plus tard.</p>` : ""}
+    ${P.blocs && P.blocs.length ? `<label for="obbl">Ton bloc en cours</label><select id="obbl">${P.blocs.map(n => `<option value="${n}" ${n === P.bloc ? "selected" : ""}>Bloc ${n}</option>`).join("")}</select><p class="muted tiny" style="margin-top:6px">Choisis le bloc que tu fais en ce moment. Tu pourras le changer dans les réglages.</p>` : ""}
+    ${P.bloc ? `<label for="obb">Lundi de la semaine 1 de ce bloc</label><input id="obb" type="date"><p class="muted tiny" style="margin-top:6px">Pour dater tes séances. Tu pourras le changer plus tard.</p>` : ""}
     <p class="muted tiny" style="margin-top:6px">La prog doit être partagée avec le compte Google avec lequel tu es connecté.</p>
     <button class="btn" style="margin-top:20px" data-act="obCreate" id="obgo">Créer mon carnet</button>
     <button class="btn ghost" style="margin-top:10px" data-act="obStep" data-s="carnet">Retour</button>${err}`; }
@@ -1791,13 +1799,13 @@ Object.assign(ACT, {
       const meta = await gapi(API + id + "?fields=" + enc("properties.title,sheets.properties.title"), {}, true);
       const tabs = (meta.sheets || []).map(x => x.properties.title), blocs = tabs.map(t => { const m = t.match(/^\s*BLOC\s*(\d+)/i); return m ? {n:+m[1], t} : null; }).filter(Boolean).sort((a, c) => c.n - a.n);
       const pre = {coach:id, prenom:prenomOf(meta.properties && meta.properties.title)};
-      if (blocs.length) { Object.assign(pre, parseCoachProfile(await getVals(id, "'" + blocs[0].t.replace(/'/g, "''") + "'!A1:CZ24")), {bloc:blocs[0].n}); }
+      if (blocs.length) { Object.assign(pre, parseCoachProfile(await getVals(id, "'" + blocs[0].t.replace(/'/g, "''") + "'!A1:CZ24")), {bloc:blocs[0].n, blocs:blocs.map(x => x.n).sort((a, c) => a - c)}); }
       obPre = pre; onboard("create", blocs.length ? "" : "Aucun onglet « BLOC » trouvé : remplis ton profil à la main.");
     } catch(e){ b.disabled = false; b.textContent = "Tout remplir depuis ma prog"; toast("Prog inaccessible : " + errMsg(e), true); }
   },
   obCreate:async () => {
     const p = {prenom:$("#obp").value.trim(), sexe:$("#obs").value, categorie:Number($("#obc").value), debut:$("#obd").value, poids:$("#obw").value, coach:idOf($("#obk").value),
-      taille:obPre && obPre.taille, bloc:obPre && obPre.bloc, blocDate:$("#obb") ? $("#obb").value : ""};
+      taille:obPre && obPre.taille, bloc:$("#obbl") ? Number($("#obbl").value) : obPre && obPre.bloc, blocDate:$("#obb") ? $("#obb").value : ""};
     LIFTS.forEach(l => p["pr_" + l] = $("#obpr" + l).value);
     if (!p.prenom) return toast("Indique ton prénom", true);
     if ($("#obk").value.trim() && !p.coach) return toast("Le lien de la prog n'est pas reconnu", true);

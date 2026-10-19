@@ -91,7 +91,7 @@ async function createBook(p){
   const r = await gapi(API, {method:"POST", body:JSON.stringify({properties:{title:"Street Lifting – " + (p.prenom || "carnet"), locale:"fr_FR"},
     sheets:Object.keys(TABS).map(t => ({properties:{title:t, gridProperties:{frozenRowCount:1}}}))})});
   const id = r.spreadsheetId;
-  const prof = [["prenom",p.prenom],["sexe",p.sexe],["naissance",""],["taille_cm",p.taille || ""],["categorie",p.categorie],["coach_sheet_id",p.coach || ""],["mu_acquis",p.mu || "NON"],
+  const prof = [["prenom",p.prenom],["sexe",p.sexe],["naissance",""],["taille_cm",p.taille || ""],["categorie",p.categorie],["coach_sheet_id",p.coach || ""],["bloc_actif",p.bloc || ""],["mu_acquis",p.mu || "NON"],
     ["date_objectif",addMonths(isoOf(new Date()), 12)],["debut_street",p.debut || ""],["debut_coaching",p.debutCoach || ""]];
   const data = Object.keys(TABS).map(t => ({range:t + "!A1", values:[TABS[t]]}));
   data.push({range:"PROFIL!A2", values:prof});
@@ -156,7 +156,8 @@ function onboard(step, why){
     <label>Tes PR actuels (kg de lest, laisse vide si tu ne sais pas)</label>
     <div class="grid2">${LIFTS.map(l => `<div><label for="obpr${l}" style="margin-top:0">${LNAME[l]}</label><input id="obpr${l}" inputmode="decimal" value="${v(P["pr_" + l])}"></div>`).join("")}</div>
     <label for="obk">Lien de la prog de ton coach (facultatif)</label><input id="obk" type="url" placeholder="https://docs.google.com/spreadsheets/d/…" value="${P.coach ? sheetUrl(P.coach) : ""}">
-    ${P.bloc ? `<label for="obb">Lundi de la semaine 1 du bloc ${P.bloc}</label><input id="obb" type="date"><p class="muted tiny" style="margin-top:6px">Pour dater tes séances. Tu pourras le changer plus tard.</p>` : ""}
+    ${P.blocs && P.blocs.length ? `<label for="obbl">Ton bloc en cours</label><select id="obbl">${P.blocs.map(n => `<option value="${n}" ${n === P.bloc ? "selected" : ""}>Bloc ${n}</option>`).join("")}</select><p class="muted tiny" style="margin-top:6px">Choisis le bloc que tu fais en ce moment. Tu pourras le changer dans les réglages.</p>` : ""}
+    ${P.bloc ? `<label for="obb">Lundi de la semaine 1 de ce bloc</label><input id="obb" type="date"><p class="muted tiny" style="margin-top:6px">Pour dater tes séances. Tu pourras le changer plus tard.</p>` : ""}
     <p class="muted tiny" style="margin-top:6px">La prog doit être partagée avec le compte Google avec lequel tu es connecté.</p>
     <button class="btn" style="margin-top:20px" data-act="obCreate" id="obgo">Créer mon carnet</button>
     <button class="btn ghost" style="margin-top:10px" data-act="obStep" data-s="carnet">Retour</button>${err}`; }
@@ -177,13 +178,13 @@ Object.assign(ACT, {
       const meta = await gapi(API + id + "?fields=" + enc("properties.title,sheets.properties.title"), {}, true);
       const tabs = (meta.sheets || []).map(x => x.properties.title), blocs = tabs.map(t => { const m = t.match(/^\s*BLOC\s*(\d+)/i); return m ? {n:+m[1], t} : null; }).filter(Boolean).sort((a, c) => c.n - a.n);
       const pre = {coach:id, prenom:prenomOf(meta.properties && meta.properties.title)};
-      if (blocs.length) { Object.assign(pre, parseCoachProfile(await getVals(id, "'" + blocs[0].t.replace(/'/g, "''") + "'!A1:CZ24")), {bloc:blocs[0].n}); }
+      if (blocs.length) { Object.assign(pre, parseCoachProfile(await getVals(id, "'" + blocs[0].t.replace(/'/g, "''") + "'!A1:CZ24")), {bloc:blocs[0].n, blocs:blocs.map(x => x.n).sort((a, c) => a - c)}); }
       obPre = pre; onboard("create", blocs.length ? "" : "Aucun onglet « BLOC » trouvé : remplis ton profil à la main.");
     } catch(e){ b.disabled = false; b.textContent = "Tout remplir depuis ma prog"; toast("Prog inaccessible : " + errMsg(e), true); }
   },
   obCreate:async () => {
     const p = {prenom:$("#obp").value.trim(), sexe:$("#obs").value, categorie:Number($("#obc").value), debut:$("#obd").value, poids:$("#obw").value, coach:idOf($("#obk").value),
-      taille:obPre && obPre.taille, bloc:obPre && obPre.bloc, blocDate:$("#obb") ? $("#obb").value : ""};
+      taille:obPre && obPre.taille, bloc:$("#obbl") ? Number($("#obbl").value) : obPre && obPre.bloc, blocDate:$("#obb") ? $("#obb").value : ""};
     LIFTS.forEach(l => p["pr_" + l] = $("#obpr" + l).value);
     if (!p.prenom) return toast("Indique ton prénom", true);
     if ($("#obk").value.trim() && !p.coach) return toast("Le lien de la prog n'est pas reconnu", true);

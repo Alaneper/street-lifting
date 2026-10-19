@@ -617,14 +617,17 @@ function parseBloc(v, sheet, bloc){
   }
   return {seances, weeks};
 }
-const activeBloc = () => { const b = S.map(s => s.bloc); return b.length ? Math.max(...b) : null; };
+const chosenBloc = () => { const n = num(D && D.profil.bloc_actif); return n && blocNames[n] ? n : null; };
+const activeBloc = () => { const c = chosenBloc(); if (c !== null && S.some(s => s.bloc === c)) return c; const b = S.map(s => s.bloc); return b.length ? Math.max(...b) : null; };
 const nextSeance = () => { const b = activeBloc(); return b === null ? null : (S.find(s => s.bloc === b && !s.faite) || null); };
 async function loadCoach(){
   await loadBlocList();
   const nums = Object.keys(blocNames).map(Number).sort((a, b) => b - a);
   if (!nums.length) { seanceErr = "Aucun onglet « BLOC » trouvé dans la prog de ton coach."; return; }
   const keep = new Set(loadedBlocs); loadedBlocs.clear(); S = []; weekMeta = {};
-  for (const n of nums.slice(0, 3)) { await loadBloc(n); if (S.some(s => s.bloc === n)) break; }
+  const c = chosenBloc();
+  if (c !== null) await loadBloc(c);
+  else for (const n of nums.slice(0, 3)) { await loadBloc(n); if (S.some(s => s.bloc === n)) break; }
   for (const n of keep) if (blocNames[n] && !loadedBlocs.has(n)) await loadBloc(n);
   allLoaded = Object.keys(blocNames).every(n => loadedBlocs.has(+n));
 }
@@ -1425,6 +1428,7 @@ function settingsHtml(){
     <p class="muted small" style="margin-top:4px">${t ? "Synchronisé à " + String(t.getHours()).padStart(2, "0") + ":" + String(t.getMinutes()).padStart(2, "0") : "Pas encore synchronisé"}. L'app relit tes Sheets à chaque ouverture.</p>
     <div class="grid2"><div><label for="smu">Muscle-up acquis</label><select id="smu" data-chg="prof" data-k="mu_acquis"><option ${muOn() ? "" : "selected"}>NON</option><option ${muOn() ? "selected" : ""}>OUI</option></select></div>
       <div><label for="ssx">Sexe (pour le RIS)</label><select id="ssx" data-chg="prof" data-k="sexe"><option value="H" ${sexe() === "H" ? "selected" : ""}>Homme</option><option value="F" ${sexe() === "F" ? "selected" : ""}>Femme</option></select></div></div>
+    ${Object.keys(blocNames).length ? `<label for="sbl">Bloc en cours</label><select id="sbl" data-chg="blocActif"><option value="">Le plus récent de la prog</option>${Object.keys(blocNames).map(Number).sort((a, b) => a - b).map(n => `<option value="${n}" ${n === chosenBloc() ? "selected" : ""}>Bloc ${n}</option>`).join("")}</select>` : ""}
     <label for="scat">Catégorie de poids</label><select id="scat" data-chg="prof" data-k="categorie">${CATS.map(c => `<option value="${c}" ${c === cat() ? "selected" : ""}>${c > 0 ? "+" + c : c} kg</option>`).join("")}</select>
     <div class="grid2"><div><label for="sdo">Date des objectifs</label><input id="sdo" type="date" value="${objDate()}" data-chg="prof" data-k="date_objectif"></div>
       <div><label for="sdc">Début de la prog</label><input id="sdc" type="date" value="${D.profil.debut_coaching || ""}" data-chg="prof" data-k="debut_coaching"></div></div>
@@ -1558,6 +1562,9 @@ const CHG = {
   prof:async (d, el) => { const k = d.k, val = k === "categorie" ? Number(el.value) : el.value, i = raw.P.findIndex((r, j) => j > 0 && String(r[0]).trim() === k);
     try { if (i > 0) await putVals(APP_ID, `PROFIL!B${i + 1}`, [[val]]); else { await appendVals(APP_ID, "PROFIL!A1:C1", [[k, val, ""]]); raw.P.push([k, val]); }
       D.profil[k] = /^(date_|debut_)/.test(k) ? toIso(val) : val; toast("Réglage enregistré"); saveCache(); render(); } catch(e){ toast(errMsg(e), true); } },
+  blocActif:async (d, el) => { const n = num(el.value);
+    try { if (n && !loadedBlocs.has(n)) { toast("Chargement du bloc " + n + "…"); await loadBloc(n); } } catch(e){ return toast(errMsg(e), true); }
+    sel = null; await CHG.prof({k:"bloc_actif"}, {value:n ? String(n) : ""}); },
   att:async (d, el) => { await saveAtt(d.d, d.l, +d.i, el.value === "" ? "" : num(el.value), null); },
   import:(d, el) => readImport(el.files[0])
 };
