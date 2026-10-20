@@ -397,7 +397,7 @@ body.ob .tabs,body.ob .avatar{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "16 · 20 oct. 2026";
+const APP_VER = "17 · 20 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];
 const LNAME = {MU:"Muscle-up", PULL:"Tractions", DIP:"Dips", SQUAT:"Squat", TOTAL:"Total"};
 const LCOL = {MU:"var(--mu)", PULL:"var(--pull)", DIP:"var(--dip)", SQUAT:"var(--squat)"};
@@ -546,6 +546,11 @@ async function loadApp(){
   const R = ["PROFIL!A1:C60","PR!A1:E3000","POIDS!A1:C10000","OBJECTIFS!A1:C60","RECORDS!A1:G200","COMPETITIONS!A1:E200","SERIES!A1:I10000","BLOCS!A1:C200","TENTATIVES!A1:I500","CHECKLIST!A1:C500","BILAN!A1:I1000"];
   const [P, PR, PO, OB, RE, CO, SE, BL, TE, CH, BI] = await getMany(APP_ID, R);
   raw = {P, OB, BL, TE, CH};
+  let repas = [], aliments = [], nutTabs = false;
+  try { const [RP, AL] = await Promise.all([getVals(APP_ID, "REPAS!A1:J40000"), getVals(APP_ID, "ALIMENTS!A1:I5000")]); nutTabs = true;
+    repas = RP.map((r, i) => ({_row:i + 1, date:toIso(r[0]), h:String(r[1] || ""), nom:String(r[2] || ""), q:num(r[5]) || 0, k:num(r[6]) || 0, p:num(r[7]) || 0, g:num(r[8]) || 0, l:num(r[9]) || 0})).slice(1).filter(x => x.date && x.nom);
+    aliments = AL.slice(1).filter(r => r[0] && num(r[4]) !== null).map(r => ({nom:String(r[0]), marque:String(r[1] || ""), src:String(r[2] || "perso"), code:String(r[3] || ""), k:num(r[4]), p:num(r[5]) || 0, g:num(r[6]) || 0, l:num(r[7]) || 0}));
+  } catch(e){ repas = (D && D.repas) || []; aliments = (D && D.aliments) || []; }
   try { ARCH = (await getVals(APP_ID, "HISTORIQUE!A1:Q30000")).map((r, i) => ({_row:i + 1, r})).slice(1).filter(x => x.r[0] && x.r[1]); archTab = true; } catch(e){ ARCH = []; archTab = false; }
   const profil = {};
   P.slice(1).forEach(r => { if (r[0]) profil[String(r[0]).trim()] = r[1] ?? ""; });
@@ -564,7 +569,7 @@ async function loadApp(){
   const tent = TE.map((r, i) => ({row:i + 1, date:toIso(r[0]), lift:norm(r[1]), t:[num(r[2]), num(r[3]), num(r[4])], r:[r[5] || "", r[6] || "", r[7] || ""]})).slice(1).filter(x => x.date && x.lift);
   const checks = CH.map((r, i) => ({row:i + 1, date:toIso(r[0]), item:String(r[1] || "").trim(), done:/^(true|vrai|oui|1|x)$/i.test(String(r[2] || "").trim())})).slice(1).filter(x => x.date && x.item);
   const bilans = BI.slice(1).map(r => ({date:toIso(r[0]), bloc:num(r[1]), semaine:String(r[2] ?? "").trim(), v:BILAN_CRIT.map((_, i) => num(r[3 + i]))})).filter(b => b.bloc);
-  D = {profil, prs, poids, objectifs, records, comps, series, blocs, tent, checks, bilans, today:isoOf(new Date())};
+  D = {profil, prs, poids, objectifs, records, comps, series, blocs, tent, checks, bilans, repas, aliments, _nutTabs:nutTabs, today:isoOf(new Date())};
 }
 
 /* =====================================================================
@@ -574,7 +579,7 @@ const coachId = () => idOf(D.profil.coach_sheet_id);
 /* Les blocs de la prog : onglets « BLOC n », et aussi tout onglet nommé autrement (« Peaking BSLC »…)
    qui contient un tableau de séances (en-tête « MOUVEMENT »). Ordre chronologique = ordre des onglets. */
 let progOrder = [];
-const CARNET_TABS = new Set(["PROFIL","PR","POIDS","OBJECTIFS","RECORDS","COMPETITIONS","SERIES","BLOCS","TENTATIVES","CHECKLIST","BILAN","HISTORIQUE"]);
+const CARNET_TABS = new Set(["PROFIL","PR","POIDS","OBJECTIFS","RECORDS","COMPETITIONS","SERIES","BLOCS","TENTATIVES","CHECKLIST","BILAN","HISTORIQUE","REPAS","ALIMENTS"]);
 const BLOC_RE = /^\s*BLOC\s*(\d+)\s*$/i;
 /* Un onglet est un bloc s'il contient un tableau de séances : une ligne avec « MOUVEMENT » et « SÉRIES » ou « RÉPÉTITIONS ». */
 function progInfo(v){
@@ -1589,7 +1594,7 @@ function avg7(P){ return P.map(p => { const w = P.filter(x => x.date <= p.date &
 function weightTrend(){ const P = D.poids.filter(p => p.date >= addDays(D.today, -21)); if (P.length < 4) return null;
   const x = P.map(p => days(P[0].date, p.date)), y = P.map(p => p.poids), n = x.length, mx = sum(x) / n, my = sum(y) / n;
   let a = 0, c = 0; x.forEach((xi, i) => { a += (xi - mx) * (y[i] - my); c += (xi - mx) ** 2; }); return c ? {perDay:a / c, at:d => my + a / c * (days(P[0].date, d) - mx)} : null; }
-function rCorps(){
+function rPoids(){
   const P = D.poids, last = P.at(-1), lim = catLimit(), V = inRange(P, pwRange), mm = avg7(P), mmV = mm.slice(P.length - V.length), tw = P.find(p => p.date === D.today);
   const delta = V.length > 1 ? mmV.at(-1) - mmV[0] : null, av = V.length ? sum(V.map(p => p.poids)) / V.length : null;
   $("#v-corps").innerHTML = `
@@ -1913,6 +1918,176 @@ const CHG = {
   att:async (d, el) => { await saveAtt(d.d, d.l, +d.i, el.value === "" ? "" : num(el.value), null); },
   import:(d, el) => readImport(el.files[0])
 };
+/* =====================================================================
+   ALIMENTATION : table Ciqual 2025 (Anses) + Open Food Facts pour les marques
+   Carnet : onglet REPAS (une ligne par aliment pesé) et ALIMENTS (aliments de marque ou créés).
+   ===================================================================== */
+let corpsTab = "nutri", nutDate = null, FOODS = null, foodsLoading = null, nutQ = "", nutPick = null, offRes = null, offBusy = false, nutCreate = false;
+const NUT_ACT = [[1.375, "Peu actif (1 à 3 séances)"], [1.55, "Actif (4 à 5 séances)"], [1.725, "Très actif (6+ séances ou travail physique)"]];
+const NUT_OBJ = [["suivi", "Juste suivre ce que je mange"], ["maintien", "Garder mon poids"], ["perte", "Perdre du poids"], ["prise", "Prendre du poids"], ["compet", "Faire le poids pour une compét"]];
+const deacc = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/œ/g, "oe").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+function loadFoods(){
+  if (FOODS) return Promise.resolve(FOODS);
+  if (!foodsLoading) foodsLoading = fetch("aliments.json").then(r => r.json()).then(j => {
+    FOODS = j.a.map(a => ({src:"ciqual", code:String(a[0]), nom:a[1], k:a[2], p:a[3], g:a[4], l:a[5], f:a[6], su:a[7], se:a[8], por:a[9], est:a[10], n:deacc(a[1])}));
+    return FOODS; }).catch(e => { foodsLoading = null; throw e; });
+  return foodsLoading;
+}
+/* Aliments de base d'un sportif : remontent en tête des suggestions (ordre = priorité). */
+const STAPLES = ["pomme de terre","poulet","pates seches","riz blanc","oeuf","pain","banane","pomme","flocons d avoine","lait","yaourt","fromage blanc","skyr","thon","saumon","boeuf","steak hache","jambon","dinde","haricot","lentille","pois chiche","brocoli","carotte","tomate","courgette","epinard","haricot vert","patate douce","avocat","amande","noix","beurre de cacahuete","huile d olive","beurre","miel","chocolat","fraise","orange","kiwi","mangue","raisin","poire","semoule","quinoa","cereales","muesli","emmental","mozzarella","creme fraiche","sucre","confiture","compote","petits pois","mais","concombre","salade","oignon","champignon","porc","cabillaud","crevette","tofu","whey"].map((s, i) => [s, 40 - i * 0.5]);
+const persoFoods = () => (D.aliments || []).map(a => ({...a, n:deacc(a.nom + " " + (a.marque || ""))}));
+/* Recherche : chaque mot tapé doit commencer un mot du nom ; le 1er mot du nom, les noms courts et les aliments courants (portion INCA3 connue) passent devant. */
+function searchFoods(q, max){
+  const t = deacc(q).split(" ").filter(w => w && !/^(de|d|du|des|la|le|les|l|a|au|aux|en|et)$/.test(w)); if (!t.length) return [];
+  const pool = persoFoods().concat(FOODS || []), out = [];
+  for (const f of pool) {
+    const w = f.n.split(" "); let ok = true, sc = 0;
+    for (const x of t) { const i = w.findIndex(y => y.startsWith(x)); if (i < 0) { ok = false; break; } sc += i === 0 ? 30 : i < 3 ? 12 : 4; if (w[i] === x) sc += 6; }
+    if (!ok) continue;
+    sc -= f.n.length / 6; if (f.por) sc += 8;
+    for (const [st, b] of STAPLES) if (f.n.startsWith(st)) { sc += b * (t.join(" ").length <= 3 ? 4 : .4); break; } if (f.src !== "ciqual") sc += 25; if (/prelev|martinique|guadeloupe|reunion|guyane|mayotte/.test(f.n)) sc -= 20;
+    out.push([sc, f]);
+  }
+  return out.sort((a, b) => b[0] - a[0]).slice(0, max || 8).map(x => x[1]);
+}
+/* « 250 g de pâtes sèches », « pâtes 250g », « 1 cordon bleu », « 2 oeufs » */
+function parseFoodLine(s){
+  const t = String(s || "").trim(); let m;
+  if ((m = t.match(/^(\d+(?:[.,]\d+)?)\s*(kg|g|gr|grammes?|ml|cl|l)\b\.?\s*(?:d['’]\s*|de\s+|du\s+|des\s+)?(.+)$/i))) return {q:qtyG(m[1], m[2]), txt:m[3]};
+  if ((m = t.match(/^(.+?)\s+(\d+(?:[.,]\d+)?)\s*(kg|g|gr|grammes?|ml|cl|l)\.?$/i))) return {q:qtyG(m[2], m[3]), txt:m[1]};
+  if ((m = t.match(/^(\d+(?:[.,]\d+)?)\s+(?:x\s*)?(.+)$/i))) return {n:num(m[1]), txt:m[2]};
+  return {txt:t};
+}
+const qtyG = (v, u) => { const x = num(v), k = String(u).toLowerCase(); return k === "kg" || k === "l" ? x * 1000 : k === "cl" ? x * 10 : x; };
+const macrosOf = (f, q) => ({k:f.k * q / 100, p:(f.p || 0) * q / 100, g:(f.g || 0) * q / 100, l:(f.l || 0) * q / 100});
+
+/* ---------- Besoins : Mifflin-St Jeor × activité, puis objectif ---------- */
+function ageNow(){ const n = toIso(D.profil.naissance); if (n) return Math.floor(days(n, D.today) / 365.25); return num(D.profil.age) || null; }
+function nutTargets(){
+  const P = D.poids, w = P.length ? (avg7(P).at(-1) || P.at(-1).poids) : null, h = num(D.profil.taille_cm), a = ageNow();
+  if (!w || !h || !a) return {missing:[!w && "une pesée", !h && "ta taille", !a && "ton âge"].filter(Boolean)};
+  const bmr = 10 * w + 6.25 * h - 5 * a + (sexe() === "F" ? -161 : 5), act = num(D.profil.nut_activite) || 1.55, tdee = bmr * act;
+  const obj = D.profil.nut_objectif || "suivi"; let rate = 0, note = "", warn = "";
+  if (obj === "perte") rate = -(num(D.profil.nut_rythme) || 0.5);
+  if (obj === "prise") rate = num(D.profil.nut_rythme) || 0.25;
+  if (obj === "compet") { const lim = num(D.profil.nut_cible) || catLimit(), dt = toIso(D.profil.nut_date) || (nextComp() || {}).date;
+    if (lim && dt) { const wk = Math.max(1, days(D.today, dt) / 7), need = w - lim + 0.3; /* 300 g de marge sous la limite */
+      if (need <= 0) note = "Tu es déjà sous la limite de " + fmt(lim, 1) + " kg avec la marge : garde ton poids.";
+      else { rate = -need / wk / w * 100; note = `Il faut perdre ${fmt(need, 1)} kg (avec 300 g de marge) en ${fmt(wk, 1)} semaines.`;
+        if (rate < -1) { warn = `C'est plus de 1 % de ton poids par semaine : trop rapide pour garder ta force. L'app plafonne à 1 % ; parle-en à ton coach (catégorie, date).`; rate = -1; } } }
+    else note = "Indique ta limite de poids et la date de la pesée."; }
+  const delta = obj === "suivi" || obj === "maintien" ? 0 : w * rate / 100 * 7700 / 7;
+  let kcal = tdee + delta; if (kcal < bmr) { warn = warn || "Le déficit demandé passerait sous ton métabolisme de base : l'app s'arrête à ce plancher."; kcal = bmr; }
+  const pk = rate < 0 ? 2.2 : 1.8, p = pk * w, l = Math.max(0.5 * w, kcal * 0.25 / 9), g = Math.max(0, (kcal - p * 4 - l * 9) / 4);
+  return {w, bmr, tdee, kcal, p, g, l, pk, rate, obj, note, warn};
+}
+
+/* ---------- Écran ---------- */
+function corpsSeg(){ return `<div class="segc" style="margin-bottom:14px">${[["nutri", "Alimentation"], ["poids", "Poids"]].map(([k, t]) => `<button aria-pressed="${corpsTab === k}" data-act="corpsTab" data-k="${k}">${t}</button>`).join("")}</div>`; }
+function rCorps(){ if (corpsTab === "poids") { rPoids(); $("#v-corps").insertAdjacentHTML("afterbegin", corpsSeg()); return; } rNutri(); }
+function dayRows(d){ return (D.repas || []).filter(x => x.date === d); }
+function rNutri(){
+  if (!nutDate) nutDate = D.today;
+  if (!FOODS) loadFoods().then(() => { const l = $("#nutload"); if (l) l.remove(); nutRefresh(); }).catch(() => { const l = $("#nutload"); if (l) l.textContent = "Table des aliments indisponible hors connexion pour l'instant."; });
+  const R = dayRows(nutDate), tot = R.reduce((a, x) => ({k:a.k + x.k, p:a.p + x.p, g:a.g + x.g, l:a.l + x.l}), {k:0, p:0, g:0, l:0}), T = nutTargets();
+  const hasT = T.kcal && T.obj !== "suivi", left = hasT ? T.kcal - tot.k : null;
+  const bar = (lab, v, tg, col) => `<div style="margin-top:12px"><div class="row small"><span>${lab}</span><span><b>${fmt(v, 0)}</b>${tg ? ` / ${fmt(tg, 0)} g` : " g"}</span></div><div class="bar" style="--c:${col}"><i style="width:${tg ? Math.min(100, v / tg * 100) : 0}%"></i></div></div>`;
+  const rows = R.slice().sort((a, b) => (a.h || "") < (b.h || "") ? -1 : 1).map(x => `<div class="item" style="display:flex;gap:10px;align-items:center"><span class="muted small" style="width:42px">${esc(x.h || "")}</span><span class="grow"><span class="ttl" style="display:block">${esc(x.nom)}</span><span class="muted tiny">${fmt(x.q, 0)} g · P ${fmt(x.p, 1)} · G ${fmt(x.g, 1)} · L ${fmt(x.l, 1)}</span></span><b class="small">${fmt(x.k, 0)}</b><button class="iconbtn" style="width:32px;height:32px" data-act="nutDel" data-r="${x._row}" aria-label="Supprimer">×</button></div>`).join("");
+  $("#v-corps").innerHTML = corpsSeg() + `
+    <div class="row" style="margin-bottom:10px"><button class="iconbtn" data-act="nutDay" data-d="-1" aria-label="Jour précédent">‹</button><b>${nutDate === D.today ? "Aujourd'hui" : cap(dlong(nutDate))}</b><button class="iconbtn" data-act="nutDay" data-d="1" aria-label="Jour suivant" ${nutDate >= D.today ? "disabled" : ""}>›</button></div>
+    ${heroCard({small:hasT ? "Calories du jour" : "Calories du jour (suivi)", big:`${fmt(tot.k, 0)}<small>${hasT ? " / " + fmt(T.kcal, 0) : ""} kcal</small>`, sub:hasT ? (left >= 0 ? "reste " + fmt(left, 0) + " kcal" : fmt(-left, 0) + " kcal au-dessus") : R.length + " aliment" + (R.length > 1 ? "s" : "") + " noté" + (R.length > 1 ? "s" : ""), deco:false})}
+    <div class="panel" style="margin-top:12px">${bar("Protéines", tot.p, hasT && T.p, "var(--brand)")}${bar("Glucides", tot.g, hasT && T.g, "var(--chalk)")}${bar("Lipides", tot.l, hasT && T.l, "var(--dust)")}</div>
+    <h2 class="h2">Ajouter</h2>
+    <input id="nutin" placeholder="Ex. riz, 250 g de pâtes sèches, 1 cordon bleu" value="${esc(nutQ)}" autocomplete="off" data-inp="nutQ">
+    ${!FOODS ? `<p class="muted small" style="margin-top:8px" id="nutload">Chargement de la table des aliments…</p>` : ""}
+    <div id="nutdyn">${nutDyn()}</div>
+    <h2 class="h2">${nutDate === D.today ? "Mangé aujourd'hui" : "Mangé ce jour-là"} <span class="muted">${R.length}</span></h2>
+    ${rows ? `<div class="list">${rows}</div>` : `<p class="muted small">Rien de noté pour l'instant. Pèse, tape le nom, ajoute.</p>`}
+    ${nutGoalHtml(T)}`;
+}
+function nutDyn(){
+  const sug = nutQ && FOODS ? searchFoods(parseFoodLine(nutQ).txt) : [];
+  const pick = nutPick ? `<div class="panel" style="margin-top:10px"><p style="font-weight:700">${esc(nutPick.f.nom)}${nutPick.f.marque ? ` <span class="muted small">${esc(nutPick.f.marque)}</span>` : ""}</p>
+      <p class="muted tiny" style="margin-top:2px">Pour 100 g : ${fmt(nutPick.f.k, 0)} kcal · P ${fmt(nutPick.f.p, 1)} · G ${fmt(nutPick.f.g, 1)} · L ${fmt(nutPick.f.l, 1)}${nutPick.f.est ? " · kcal calculées (Ciqual sans valeur)" : ""}</p>
+      <div class="grid2" style="margin-top:10px;grid-template-columns:1fr auto"><input id="nq" inputmode="decimal" placeholder="Quantité pesée (g)" value="${nutPick.q ? fmt(nutPick.q, 0) : ""}"><button class="btn sm" data-act="nutAdd">Ajouter</button></div>
+      ${nutPick.f.por ? `<div class="chips" style="margin-top:8px"><button class="chip" data-act="nutQty" data-q="${nutPick.f.por}">Portion courante : ${nutPick.f.por} g</button>${nutPick.n && nutPick.n > 1 ? `<button class="chip" data-act="nutQty" data-q="${nutPick.f.por * nutPick.n}">${fmt(nutPick.n)} × ${nutPick.f.por} g</button>` : ""}</div>` : ""}
+      <button class="link small muted" style="margin-top:8px" data-act="nutCancel">Annuler</button></div>` : "";
+  const list = sug.length && !nutPick ? `<div class="list" style="margin-top:6px">${sug.map((f, i) => `<button class="item" data-act="nutPickFood" data-i="${i}"><span class="grow"><span class="ttl" style="display:block">${esc(f.nom)}</span><span class="muted tiny">${f.marque ? esc(f.marque) + " · " : ""}${fmt(f.k, 0)} kcal · P ${fmt(f.p, 1)} · G ${fmt(f.g, 1)} · L ${fmt(f.l, 1)} pour 100 g</span></span></button>`).join("")}</div>` : "";
+  const off = offRes ? `<div class="list" style="margin-top:6px">${offRes.length ? offRes.map((f, i) => `<button class="item" data-act="nutPickOff" data-i="${i}"><span class="grow"><span class="ttl" style="display:block">${esc(f.nom)}</span><span class="muted tiny">${esc(f.marque || "marque ?")} · ${fmt(f.k, 0)} kcal · P ${fmt(f.p, 1)} · G ${fmt(f.g, 1)} · L ${fmt(f.l, 1)} pour 100 g</span></span></button>`).join("") : `<p class="muted small" style="padding:10px 0">Aucun produit trouvé.</p>`}</div><p class="muted tiny" style="margin-top:6px">Open Food Facts : base collaborative, valeurs recopiées des emballages. Vérifie avec ton paquet.</p>` : "";
+  const create = nutCreate ? `<div class="panel" style="margin-top:10px"><p style="font-weight:700">Nouvel aliment (valeurs de l'étiquette, pour 100 g)</p>
+      <label for="ncn">Nom</label><input id="ncn" value="${esc(parseFoodLine(nutQ).txt || "")}"><label for="ncm">Marque</label><input id="ncm">
+      <div class="grid2"><div><label for="nck">Kcal</label><input id="nck" inputmode="decimal"></div><div><label for="ncp">Protéines (g)</label><input id="ncp" inputmode="decimal"></div><div><label for="ncg">Glucides (g)</label><input id="ncg" inputmode="decimal"></div><div><label for="ncl">Lipides (g)</label><input id="ncl" inputmode="decimal"></div></div>
+      <button class="btn" style="margin-top:12px" data-act="nutCreateSave">Enregistrer l'aliment</button><button class="link small muted" style="margin-top:8px" data-act="nutCreate">Annuler</button></div>` : "";
+  return `${pick}${list}
+    ${nutQ && !nutPick ? `<div class="chips" style="margin-top:8px"><button class="chip" data-act="nutOff">${offBusy ? "Recherche…" : "Chercher une marque"}</button><button class="chip" data-act="nutCreate">Créer cet aliment</button></div>` : ""}
+    ${off}${create}`;
+}
+const nutRefresh = () => { const el = $("#nutdyn"); if (el) el.innerHTML = nutDyn(); };
+function nutGoalHtml(T){
+  const o = D.profil.nut_objectif || "suivi", lim = catLimit();
+  return `<h2 class="h2">Mon objectif</h2><div class="panel">
+    <label for="nob" style="margin-top:0">Objectif</label><select id="nob" data-chg="prof" data-k="nut_objectif">${NUT_OBJ.map(([k, t]) => `<option value="${k}" ${k === o ? "selected" : ""}>${t}</option>`).join("")}</select>
+    ${o === "perte" || o === "prise" ? `<label for="nry">Rythme visé (% du poids par semaine)</label><input id="nry" inputmode="decimal" value="${esc(D.profil.nut_rythme || (o === "perte" ? "0,5" : "0,25"))}" data-chg="prof" data-k="nut_rythme"><p class="muted tiny" style="margin-top:4px">${o === "perte" ? "Repère : 0,5 à 1 % par semaine pour garder sa masse musculaire (Helms et al., 2014)." : "Repère : 0,25 à 0,5 % par semaine pour limiter le gras (Iraki et al., 2019)."}</p>` : ""}
+    ${o === "compet" ? `<div class="grid2"><div><label for="nci">Limite de poids (kg)</label><input id="nci" inputmode="decimal" value="${esc(D.profil.nut_cible || (lim || ""))}" data-chg="prof" data-k="nut_cible"></div><div><label for="nda">Date de la pesée</label><input id="nda" type="date" value="${esc(toIso(D.profil.nut_date) || (nextComp() || {}).date || "")}" data-chg="prof" data-k="nut_date"></div></div>` : ""}
+    <label for="nac">Activité</label><select id="nac" data-chg="prof" data-k="nut_activite">${NUT_ACT.map(([v, t]) => `<option value="${v}" ${v === (num(D.profil.nut_activite) || 1.55) ? "selected" : ""}>${t}</option>`).join("")}</select>
+    ${!num(D.profil.taille_cm) || !ageNow() ? `<div class="grid2">${!num(D.profil.taille_cm) ? `<div><label for="nta">Taille (cm)</label><input id="nta" inputmode="numeric" data-chg="prof" data-k="taille_cm"></div>` : ""}${!ageNow() ? `<div><label for="nna">Date de naissance</label><input id="nna" type="date" data-chg="prof" data-k="naissance"></div>` : ""}</div>` : ""}
+    ${T.missing ? `<p class="muted small" style="margin-top:12px">Pour calculer tes besoins, il manque ${T.missing.join(", ")}.</p>` : `
+      <div class="grid3" style="margin-top:14px"><div><p class="muted tiny">Métabolisme de base</p><p class="show t-s">${fmt(T.bmr, 0)}</p></div><div><p class="muted tiny">Dépense du jour</p><p class="show t-s">${fmt(T.tdee, 0)}</p></div><div><p class="muted tiny">${o === "suivi" ? "Repère" : "Cible"}</p><p class="show t-s">${fmt(o === "suivi" ? T.tdee : T.kcal, 0)}</p></div></div>
+      ${o !== "suivi" ? `<p class="small" style="margin-top:10px">Protéines ${fmt(T.p, 0)} g (${fmt(T.pk, 1)} g/kg) · Lipides ${fmt(T.l, 0)} g · Glucides ${fmt(T.g, 0)} g</p>` : ""}
+      ${T.note ? `<p class="muted small" style="margin-top:8px">${esc(T.note)}</p>` : ""}${T.warn ? `<p class="small" style="margin-top:8px;color:var(--warn)">${esc(T.warn)}</p>` : ""}
+      <p class="muted tiny" style="margin-top:10px">Estimation de départ : formule de Mifflin-St Jeor × ton activité, 7 700 kcal par kg (approximation). Protéines : 1,8 g/kg, 2,2 g/kg en perte ; lipides : 25 % des calories, au moins 0,5 g/kg ; glucides : le reste. À ajuster après 2 à 3 semaines selon l'évolution réelle de ton poids.</p>`}
+  </div>`;
+}
+
+/* ---------- Actions ---------- */
+async function nutEnsureTabs(){ if (D._nutTabs) return; if (typeof ensureTabs === "function") await ensureTabs(APP_ID); D._nutTabs = true; }
+Object.assign(ACT, {
+  corpsTab:d => { corpsTab = d.k; rCorps(); },
+  nutDay:d => { nutDate = addDays(nutDate || D.today, +d.d); if (nutDate > D.today) nutDate = D.today; nutPick = null; rNutri(); },
+  nutPickFood:d => { const p = parseFoodLine(nutQ), f = searchFoods(p.txt)[+d.i]; if (!f) return; nutPick = {f, q:p.q || (p.n && f.por ? p.n * f.por : null), n:p.n}; offRes = null; nutRefresh(); setTimeout(() => { const q = $("#nq"); if (q) q.focus(); }, 50); },
+  nutPickOff:d => { const f = offRes && offRes[+d.i]; if (!f) return; const p = parseFoodLine(nutQ); nutPick = {f, q:p.q, n:p.n, off:true}; nutRefresh(); },
+  nutQty:d => { if (nutPick) { nutPick.q = num(d.q); nutRefresh(); } },
+  nutCancel:() => { nutPick = null; nutRefresh(); },
+  nutCreate:() => { nutCreate = !nutCreate; offRes = null; nutRefresh(); },
+  nutAdd:async () => {
+    const q = num($("#nq") && $("#nq").value); if (!q || q <= 0 || q > 5000) return toast("Indique la quantité pesée en grammes", true);
+    const f = nutPick.f, m = macrosOf(f, q), now = new Date(), h = nutDate === D.today ? String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0") : "";
+    try { await nutEnsureTabs();
+      if (nutPick.off && !(D.aliments || []).some(a => a.code === f.code && a.src === "off")) await saveFood(f);
+      const row = [nutDate, h, f.nom + (f.marque ? " (" + f.marque + ")" : ""), f.src, f.code || "", r1(q), r1(m.k), r1(m.p), r1(m.g), r1(m.l)];
+      const res = await appendVals(APP_ID, "REPAS!A1:J1", [row]), mm = JSON.stringify(res || {}).match(/REPAS!A(\d+)/);
+      D.repas.push({_row:mm ? +mm[1] : 0, date:nutDate, h, nom:row[2], q, k:m.k, p:m.p, g:m.g, l:m.l});
+      nutPick = null; nutQ = ""; offRes = null; saveCache(); toast(fmt(m.k, 0) + " kcal ajoutées"); rNutri();
+    } catch(e){ toast(errMsg(e), true); }
+  },
+  nutDel:async d => { const r = +d.r; if (!r) return; try { await putVals(APP_ID, `REPAS!A${r}:J${r}`, [["", "", "", "", "", "", "", "", "", ""]]); D.repas = D.repas.filter(x => x._row !== r); saveCache(); rNutri(); } catch(e){ toast(errMsg(e), true); } },
+  nutOff:async () => {
+    const q = parseFoodLine(nutQ).txt; if (!q || offBusy) return; offBusy = true; nutRefresh();
+    try {
+      const u = "https://world.openfoodfacts.org/cgi/search.pl?search_simple=1&action=process&json=1&page_size=15&sort_by=unique_scans_n&fields=code,product_name,product_name_fr,brands,nutriments&search_terms=" + encodeURIComponent(q);
+      const j = await (await fetch(u)).json();
+      offRes = (j.products || []).map(p => { const n = p.nutriments || {}, k = n["energy-kcal_100g"] ?? (n.energy_100g ? n.energy_100g / 4.184 : null);
+        return {src:"off", code:p.code, nom:p.product_name_fr || p.product_name || "", marque:(p.brands || "").split(",")[0].trim(), k, p:n.proteins_100g, g:n.carbohydrates_100g, l:n.fat_100g}; })
+        .filter(f => f.nom && f.k !== null && f.k !== undefined && f.p !== undefined && f.g !== undefined && f.l !== undefined);
+    } catch(e){ toast("Recherche de marque impossible (connexion ?)", true); offRes = null; }
+    offBusy = false; nutRefresh();
+  },
+  nutCreateSave:async () => {
+    const f = {src:"perso", code:"p" + Date.now().toString(36), nom:$("#ncn").value.trim(), marque:$("#ncm").value.trim(), k:num($("#nck").value), p:num($("#ncp").value) || 0, g:num($("#ncg").value) || 0, l:num($("#ncl").value) || 0};
+    if (!f.nom || f.k === null) return toast("Nom et kcal obligatoires", true);
+    try { await nutEnsureTabs(); await saveFood(f); nutCreate = false; nutPick = {f, q:parseFoodLine(nutQ).q}; nutRefresh(); toast("Aliment enregistré"); } catch(e){ toast(errMsg(e), true); }
+  }
+});
+const r1 = x => Math.round(x * 10) / 10;
+async function saveFood(f){
+  await appendVals(APP_ID, "ALIMENTS!A1:I1", [[f.nom, f.marque || "", f.src, f.code || "", r1(f.k), r1(f.p || 0), r1(f.g || 0), r1(f.l || 0), ""]]);
+  (D.aliments = D.aliments || []).push({...f});
+}
+/* saisie : suggestions au fil de la frappe */
+document.addEventListener("input", ev => { const t = ev.target; if (!t || t.dataset.inp !== "nutQ") return; nutQ = t.value; nutPick = null; offRes = null; nutCreate = false;
+  clearTimeout(t._h); t._h = setTimeout(nutRefresh, 80); });
+document.addEventListener("keydown", ev => { if (ev.key === "Enter" && ev.target && ev.target.id === "nq") { ev.preventDefault(); ACT.nutAdd(); } });
+
 document.addEventListener("click", ev => { const t = ev.target.closest("[data-act]"); if (!t || t.disabled) return; const f = ACT[t.dataset.act]; if (f) { ev.preventDefault(); f(t.dataset, t, ev); } });
 document.addEventListener("change", ev => { const t = ev.target.closest("[data-chg]"); if (!t) return; const f = CHG[t.dataset.chg]; if (f) f(t.dataset, t, ev); });
 document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => setTab(b.dataset.tab)));
@@ -2032,7 +2207,8 @@ const TABS = {
   COMPETITIONS:["Date","Nom","Lieu","Note","Statut"], SERIES:["Date","Bloc","Semaine","Séance","Exercice","Charge (kg)","Reps par série","Source","Note"],
   BLOCS:["Bloc","Lundi de la semaine 1","Note"], TENTATIVES:["Date compét","Mouvement","Tentative 1","Tentative 2","Tentative 3","Résultat 1","Résultat 2","Résultat 3","Note"],
   CHECKLIST:["Date compét","Élément","Fait"], BILAN:["Date","Bloc","Semaine","Sommeil","Plaisir","Motivation","Fatigue","Hydratation","Alimentation"],
-  HISTORIQUE:["Prog","Onglet","Bloc","Début du bloc","Semaine","Séance","Jour","Ligne","Mouvement","Variation","Séries","Reps","Charge","RPE S1","RPE dernière","Commentaire athlète","Cycle"]
+  HISTORIQUE:["Prog","Onglet","Bloc","Début du bloc","Semaine","Séance","Jour","Ligne","Mouvement","Variation","Séries","Reps","Charge","RPE S1","RPE dernière","Commentaire athlète","Cycle"],
+  REPAS:["Date","Heure","Aliment","Source","Code","Quantité (g)","Kcal","Protéines (g)","Glucides (g)","Lipides (g)"], ALIMENTS:["Nom","Marque","Source","Code","Kcal /100 g","Protéines /100 g","Glucides /100 g","Lipides /100 g","Note"]
 };
 /* Records vérifiés le 19/10/2026 sur rankings.officialstreetlifting.com (catégorie -80 kg hommes). Les autres catégories s'ajoutent dans l'onglet RECORDS. */
 const OSL = "https://rankings.officialstreetlifting.com/records/male/classes/-80kg";
