@@ -381,6 +381,7 @@ details>summary::-webkit-details-marker{display:none}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
+const APP_VER = "15 · 20 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];
 const LNAME = {MU:"Muscle-up", PULL:"Tractions", DIP:"Dips", SQUAT:"Squat", TOTAL:"Total"};
 const LCOL = {MU:"var(--mu)", PULL:"var(--pull)", DIP:"var(--dip)", SQUAT:"var(--squat)"};
@@ -882,6 +883,8 @@ function exercisePoints(){
     let sets = lift && !own ? null : setsFromComment(e, c);
     if (sets && lift && num(e.series) && sets.length > num(e.series) + 2) sets = null;
     if (!sets && own && lift && num(e.series) && isNumTxt(e.reps)) sets = Array(num(e.series)).fill(0).map(() => ({r:num(e.reps), c}));
+    const rg = String(e.reps).match(/^\s*(\d+)\s*[-–]\s*(\d+)\s*$/); /* fourchette « 6-8 » : au moins la borne basse */
+    if (!sets && own && lift && c !== null && num(e.series) && rg) sets = Array(num(e.series)).fill(0).map(() => ({r:+rg[1], c, rng:e.reps}));
     if (!sets) continue;
     if (failTxt(e.rpeLast) && sets.length > 1) sets = sets.slice(0, -1);
     const rp = num(e.rpeLast); if (rp && rp >= 5 && rp <= 10 && sets.length) sets = sets.map((x, i) => i === sets.length - 1 ? {...x, rpe:rp} : x);
@@ -910,7 +913,7 @@ function compSets(l){
   const ok = x => x.c !== null && x.c !== undefined && x.c >= 0 && Number.isInteger(x.r) && x.r >= 1 && x.r <= 12;
   const out = D.prs.filter(p => p.lift === l).map(p => ({c:p.charge, r:p.reps, date:p.date, src:"PR", coach:/prog du coach/i.test(p.note)})).filter(ok);
   for (const o of exercisePoints()) { if (o.lift !== l) continue;
-    for (const p of o.pts) { if (!p.comp) continue; p.rows.forEach((st, k) => st.forEach(x => { if (ok(x)) out.push({c:x.c, r:x.r, rpe:x.rpe, date:p.date, bloc:p.bloc, sem:p.sem, src:p.src, wh:p.wh[k], ex:o.key}); })); } }
+    for (const p of o.pts) { if (!p.comp) continue; p.rows.forEach((st, k) => st.forEach(x => { if (ok(x)) out.push({c:x.c, r:x.r, rng:x.rng, rpe:x.rpe, date:p.date, bloc:p.bloc, sem:p.sem, src:p.src, wh:p.wh[k], ex:o.key}); })); } }
   return out;
 }
 /* nRM = charge la plus lourde faite pour exactement n reps, sur tout l'historique. Rien n'est extrapolé. */
@@ -932,15 +935,14 @@ function e1rmOf(l, x){
 }
 function e1rmBest(l, sets){
   const all = sets.map(x => { const e = e1rmOf(l, x); return e ? {...x, ...e} : null; }).filter(Boolean);
-  const low = all.filter(x => x.xe <= 6), pool = low.length ? low : all; /* séries proches de 5 reps : les plus fiables (Reynolds et al., 2006) */
-  return pool.reduce((a, x) => !a || x.v > a.v ? x : a, null);
+  return all.reduce((a, x) => !a || x.v > a.v ? x : a, null); /* la plus haute de toutes les estimations (séries de 10 reps au plus) */
 }
 const srcTxt = x => x.src === "PR" ? (x.coach ? "max de la prog" : (x.date ? dfr(x.date) : "") + " · PR") : x.src === "carnet" && !x.bloc ? (x.date ? dfr(x.date) : "") + " · noté"
   : (x.bloc !== undefined && x.bloc !== null ? blocShort(x.bloc) + " S" + x.sem : "") + (x.date ? " · " + dfr(x.date) : "");
 function repTableHtml(l){
   if (!allLoaded) return `<h2 class="h2">Records par répétitions</h2><div class="empty"><div class="spin"></div><p class="small">Lecture de tous tes blocs…</p></div>`;
   const sets = compSets(l), rm = repMaxes(sets), e = e1rmBest(l, sets), b = best(l), u = BW_LIFTS.includes(l) ? " de lest" : "";
-  const tiles = rm.map(({n, b:x}) => `<div class="rm${x ? "" : " off"}" ${x ? `role="button" tabindex="0" data-act="rmInfo" data-l="${l}" data-n="${n}"` : ""}><p class="muted tiny">${n} rep${n > 1 ? "s" : ""}</p><p class="show">${x ? fmt(x.c) : "—"}</p><p class="muted tiny">${x ? esc(srcTxt(x)) : "pas encore fait"}</p></div>`).join("");
+  const tiles = rm.map(({n, b:x}) => `<div class="rm${x ? "" : " off"}" role="button" tabindex="0" data-act="${x ? "rmInfo" : "rmAdd"}" data-l="${l}" data-n="${n}"><p class="muted tiny">${n} rep${n > 1 ? "s" : ""}</p><p class="show">${x ? fmt(x.c) : "—"}</p><p class="muted tiny">${x ? esc(srcTxt(x)) : "ajouter"}</p></div>`).join("");
   const eh = e ? `<div class="panel" style="margin-top:0"><p class="muted small">1RM estimé</p>
       <p class="show t-m" style="margin-top:4px;color:${LCOL[l]}">${fmt(Math.floor(e.v * 4) / 4)}<small> kg${u}</small></p>
       <p class="muted small" style="margin-top:4px">D'après ${fmt(e.c)} kg × ${e.r}${e.rpe ? " à RPE " + fmt(e.rpe) : ""} (${esc(srcTxt(e))}).
@@ -1162,7 +1164,7 @@ function backoffOf(s, e, k, liveRows){
 /* Mouvement de compétition ou variante ? « COMP », vide, ou seulement de l'équipement (coudières, genouillères, raw, emom) = compét.
    Pause, tempo, iso, élastique, zercher, high pull… = variante. Un tempo noté (« 3/2/0 », « 2CT ») = variante. */
 const VARIANT_RE = /PAUS|TEMPO|ISO|ZERCHER|[ÉE]LAST|NEGAT|N[ÉE]GAT|EXCENT|PIRAM|PYRAM|HIGH ?PULL|HAUTE?|CHEST|DEAD ?STOP|STATO|BOX|PIN|PARTIEL|DEMI|SLOW|ASSIST|BULGAR|GOBELET|HACK|BELT|FRONT|SAFETY|SSB|LARSEN|SPOTTO|ARCHER|TYPEWRITER|L-?SIT|STRICT|KIPP/;
-const EQUIP_RE = /^(COMP|COMPET|COMPÉT|COMPETITION|COMPÉTITION|COUDI[ÈE]RES?|GENOUILL[ÈE]RES?|SLEEVES?|STRAPS?|RAW|EMOM|STANDARD|CLASSIQUE|NORMAL|PRISE|LARGEUR|D'ÉPAULE|D'EPAULE|ÉPAULES?)$/;
+const EQUIP_RE = /^(COMP|COMPET|COMPÉT|COMPETITION|COMPÉTITION|COUDI[ÈE]RES?|GENOUILL[ÈE]RES?|SLEEVES?|STRAPS?|RAW|EMOM|STANDARD|CLASSIQUE|NORMAL|PRISE|LARGEUR|D'ÉPAULE|D'EPAULE|ÉPAULES?|\d{1,2}RM|MAX|TEST)$/;
 function isCompVar(v, tempo){
   const x = norm(v).replace(/[()]/g, " "); if (VARIANT_RE.test(x)) return false;
   if (tempo && /\d/.test(String(tempo))) return false;
@@ -1394,13 +1396,13 @@ function rProg(){
   const seg = `<div class="seg3">${["SQUAT","DIP","PULL","MU"].filter(l => best(l)).map((l, i) => `<i style="width:${(best(l) / (oT || 1) * 100).toFixed(1)}%;background:rgba(255,255,255,${[1, .75, .55, .4][i]})"></i>`).join("")}</div>`;
   $("#v-prog").innerHTML = `
     ${heroCard({small:"Mon total", big:`${fmt(t)}<small>kg</small>`, sub:`RIS ${fmt(r, 1)} · objectif ${fmt(oT, 1)} kg`, extra:seg, deco:false})}
-    <div class="tiles2" style="margin-top:12px"><div><p class="muted small">Réaliste au ${dfr(objDate())}</p><p class="show">${bands.length ? fmt(sum(bands.map(b => b.lo)), 0) + "–" + fmt(sum(bands.map(b => b.hi)), 0) : "–"}</p></div><div><p class="muted small">RIS visé</p><p class="show">${fmt(risOf(oT, bw()), 1)}</p></div></div>
+    <div class="tiles2" style="margin-top:12px"><div><p class="muted small">Total visé</p><p class="show">${fmt(oT, 2)}</p></div><div><p class="muted small">RIS visé</p><p class="show">${fmt(risOf(oT, bw()), 1)}</p></div></div>
     <h2 class="h2">Mouvements de compét</h2>
     <div>${["PULL","DIP","SQUAT","MU"].map(l => { const b = best(l), o = D.objectifs[l], v = verdictOf(l, o), lock = l === "MU" && !muOn();
       if (lock) return `<button class="vrow" data-act="openLift" data-l="${l}"><span class="d10" style="--c:transparent;box-shadow:inset 0 0 0 2px var(--mu)"></span><span class="grow"><b style="color:var(--steel-hi)">${LNAME[l]}</b></span><span class="muted small">à débloquer</span></button>`;
       return `<button class="liftrow" data-act="openLift" data-l="${l}"><span class="top"><span class="d10" style="--c:${LCOL[l]}"></span><b>${LNAME[l]}</b><span class="val">${kg(b)}</span></span>
         <span class="bar" style="display:block;--c:${LCOL[l]}"><i style="width:${o && b ? pct(b, o) : 0}%"></i></span>
-        <span class="meta"><span>${o ? "objectif " + kg(o) : "pas encore d'objectif"}</span><span>${v ? v.txt.toLowerCase() : ""}</span></span></button>`; }).join("")}</div>
+        <span class="meta"><span>${o ? "objectif " + kg(o) : "pas encore d'objectif"}</span><span>${o && b !== null ? (o <= b ? "atteint" : "encore " + fmt(o - b, 2) + " kg") : ""}</span></span></button>`; }).join("")}</div>
     <h2 class="h2">Semaine par semaine</h2>
     ${weekHtml()}
     ${dpHtml()}
@@ -1480,17 +1482,11 @@ function rLiftPage(l){
     ${lock ? `<div class="panel" style="margin-top:16px"><p>Ton muscle-up n'est pas encore acquis. Active-le dans les réglages dès que tu l'as, il entrera dans ton total.</p><button class="btn ghost" style="margin-top:12px" data-act="settings">Ouvrir les réglages</button></div>` : `
     ${tr ? `<p class="muted small" style="margin-top:6px">Rythme mesuré : ${tr.parMois >= 0 ? "+" : ""}${fmt(tr.parMois, 1)} kg par mois, d'après ${tr.n} ${liftSeries(l)[0] && liftSeries(l)[0].src === "prog" ? "e1RM calculés par ta prog" : "PR"}.</p>` : ""}
 
-    <h2 class="h2">Objectif au ${dfr(objDate())}</h2>
+    <h2 class="h2">Objectif</h2>
     <div class="panel">
-      <label for="obj" style="margin-top:0">Charge visée (kg)</label>
-      <input id="obj" inputmode="decimal" value="${o ?? ""}" placeholder="${r ? "Zone réaliste : " + fmt(r.lo, 0) + " à " + fmt(zoneHi(l, mo), 0) : "À fixer"}" data-chg="setObj" data-l="${l}">
-      ${scale}
-      ${v && mt ? `<div class="verdict" style="--vc:${v.c}"><span class="ic"></span><p><b>${v.txt}.</b> ${v.k === 0 ? "Tu y es déjà, remonte la barre." : `Il te faut +${fmt(o - b, 1)} kg.`}</p></div>
-        ${v.k === 0 ? "" : `<div class="two"><div><p class="muted tiny">À ton rythme actuel</p><p class="show">${mTr !== null ? cap(dmon(addMonths(D.today, mTr))) : "–"}</p><p class="muted tiny" style="margin-top:4px">${tr && tr.parMois > 0 ? "+" + fmt(tr.parMois, 1) + " kg par mois" : "pas assez de données"}</p></div>
-          <div><p class="muted tiny">Repère scientifique</p><p class="show">${mt.early > 120 ? "> 10 ans" : monthRange(addMonths(D.today, mt.early), mt.late > 120 ? null : addMonths(D.today, mt.late))}</p><p class="muted tiny" style="margin-top:4px">+7,5 à 12,5 % la 1re année</p></div></div>
-          <p class="muted tiny" style="margin-top:8px">Un rythme de débutant ralentit avec le temps : la date réaliste se situe entre les deux. Repère : Latella et al., 2023.</p>`}`
-        : `<p class="muted small" style="margin-top:12px">${r ? "Fixe un objectif pour voir s'il est réaliste et le délai pour l'atteindre." : BW_LIFTS.includes(l) && !bw() ? "Ajoute une pesée pour calculer ta zone réaliste." : "Ajoute un PR pour calculer ta zone réaliste."}</p>`}
-      ${r ? `<canvas id="c-obj" style="margin-top:16px" aria-label="Projection"></canvas><p class="muted tiny" style="margin-top:6px">Zone verte : progression réaliste selon l'étude. ${tr ? "Pointillés clairs : ton rythme mesuré prolongé. " : ""}${o ? "Ligne de couleur : ton objectif." : ""}</p>` : ""}
+      <label for="obj" style="margin-top:0">Charge visée (kg${BW_LIFTS.includes(l) ? " de lest" : ""})</label>
+      <input id="obj" inputmode="decimal" value="${o ?? ""}" placeholder="À fixer" data-chg="setObj" data-l="${l}">
+      ${o && b !== null ? `<p class="muted small" style="margin-top:10px">${o <= b ? "Objectif déjà atteint, remonte la barre." : "Il te manque " + fmt(o - b, 2) + " kg."}</p>` : ""}
     </div>
 
     <h2 class="h2">Historique <span class="muted">${D.prs.filter(p => p.lift === l).length} PR</span></h2>
@@ -1503,7 +1499,8 @@ function rLiftPage(l){
         + [["Record de Belgique", nr], ["Record du monde", wr]].map(([lab, x]) => x ? `<div class="rec"><div class="row"><span>${lab} · ${esc(x.detenteur)}</span><span style="color:var(--steel-hi)">${fmt(x.valeur)}</span></div><div class="bar" style="--c:#5B5F67"><i style="width:${x.valeur / top * 100}%"></i></div></div>` : `<p class="muted small rec">${lab} : pas encore renseigné.</p>`).join(""); })()}
       <p class="muted tiny" style="margin-top:12px">Les records situent le haut de la catégorie, pas un objectif à un an.</p></div>
 
-    <h2 class="h2">Nouveau PR</h2>
+    <h2 class="h2">Ajouter un record</h2>
+    <p class="muted small" style="margin:-6px 0 8px">Pour une perf absente de ta prog : charge et nombre de reps. Elle compte dans le tableau des records et dans le 1RM estimé.</p>
     <div class="panel">
       <div class="grid2"><div><label for="prc" style="margin-top:0">${BW_LIFTS.includes(l) ? "Lest (kg)" : "Charge (kg)"}</label><input id="prc" inputmode="decimal"></div><div><label for="prr" style="margin-top:0">Reps</label><input id="prr" inputmode="numeric" value="1"></div></div>
       <label for="prd">Date</label><input id="prd" type="date" value="${D.today}">
@@ -1655,12 +1652,6 @@ function prepHtml(c){
       ${lim && proj ? `<div class="bar" style="margin-top:10px;--c:${proj <= lim ? "var(--ok)" : "var(--bad)"}"><i style="width:${pct(proj, lim)}%"></i></div>` : ""}
     </div>
     <div class="panel">
-      <p style="font-weight:600">Tentatives prévues</p><p class="small muted" style="margin-top:4px">À valider avec ton coach. Note ensuite si chaque essai est réussi.</p>
-      ${att.map(l => { const r = D.tent.find(x => x.date === c.date && x.lift === l) || {t:[null, null, null], r:["", "", ""]};
-        return `<div class="att"><span class="row" style="justify-content:flex-start;gap:8px"><span class="disc" style="--c:${LCOL[l]}"></span><b class="small">${LNAME[l]}</b></span>${[0, 1, 2].map(i => `<div><input inputmode="decimal" value="${r.t[i] ?? ""}" placeholder="${i + 1}" aria-label="${LNAME[l]} tentative ${i + 1}" data-chg="att" data-l="${l}" data-i="${i}" data-d="${c.date}">
-          <div class="res"><button class="y" aria-pressed="${r.r[i] === "OK"}" data-act="attRes" data-l="${l}" data-i="${i}" data-d="${c.date}" data-v="OK" aria-label="Réussie">✓</button><button class="n" aria-pressed="${r.r[i] === "NON"}" data-act="attRes" data-l="${l}" data-i="${i}" data-d="${c.date}" data-v="NON" aria-label="Ratée">✗</button></div></div>`).join("")}</div>`; }).join("")}
-    </div>
-    <div class="panel">
       <div class="row"><p style="font-weight:600">Checklist</p><span class="muted small">${ch.filter(x => x.done).length}/${ch.length}</span></div>
       ${ch.length ? `<div style="margin-top:6px">${ch.map(x => `<button class="check-row" role="checkbox" aria-checked="${x.done}" data-act="check" data-r="${x.row}"><span class="box"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M5 12l5 5 9-10"/></svg></span><span>${esc(x.item)}</span></button>`).join("")}</div>`
         : `<button class="btn ghost" style="margin-top:12px" data-act="initChecks" data-d="${c.date}">Créer la checklist</button>`}
@@ -1696,10 +1687,10 @@ function rSheet(){
     const line = x => { const w = x.wh || {};
       if (x.src === "PR") return x.coach ? "Max actuel écrit dans ta prog (case MAX ACTUELS)" : "PR enregistré le " + dfr(x.date);
       if (w.app) return "Noté dans l'app" + (x.date ? " le " + dfr(x.date) : "") + " · " + esc(blocLabel(x.bloc)) + ", semaine " + esc(x.sem);
-      return `${esc(String(w.sheet || blocLabel(x.bloc)).trim())}${w.archived ? " (historique)" : ""} · semaine ${esc(x.sem)} · ${esc(w.seance || "")} · ligne ${w.row || "?"}<br>Prog : « ${esc(String(w.charge || "").trim() || "–")} »${String(w.com || "").trim() ? ", ton commentaire : « " + esc(String(w.com).trim()) + " »" : ""}${String(w.rpe1 || "").trim() || String(w.rpeLast || "").trim() ? ", RPE " + esc([w.rpe1, w.rpeLast].filter(v => String(v || "").trim()).join(" / ")) : ""}`; };
+      return `${esc(String(w.sheet || blocLabel(x.bloc)).trim())}${w.archived ? " (historique)" : ""} · semaine ${esc(x.sem)} · ${esc(w.seance || "")} · ligne ${w.row || "?"}<br>Prog : « ${esc(String(w.charge || "").trim() || "–")} »${x.rng ? `, reps « ${esc(x.rng)} » (compté ${x.r})` : ""}${String(w.com || "").trim() ? ", ton commentaire : « " + esc(String(w.com).trim()) + " »" : ""}${String(w.rpe1 || "").trim() || String(w.rpeLast || "").trim() ? ", RPE " + esc([w.rpe1, w.rpeLast].filter(v => String(v || "").trim()).join(" / ")) : ""}`; };
     return `<p class="show t-m">${LNAME[l]} · ${N} rep${N > 1 ? "s" : ""}</p><p class="muted small" style="margin-top:4px">Toutes les séries à exactement ${N} rep${N > 1 ? "s" : ""}, de la plus lourde à la plus légère. La première est ton record.</p>
       ${L.length ? `<div class="list" style="margin-top:12px">${L.map((x, i) => `<div class="item" style="display:block"><div class="row"><b>${fmt(x.c)} kg${BW_LIFTS.includes(l) ? " de lest" : ""}</b><span class="muted small">${i === 0 ? "record" : esc(x.ex ? exName(x.ex) : "")}</span></div><p class="muted tiny" style="margin-top:4px">${line(x)}</p></div>`).join("")}</div>` : `<p class="muted small" style="margin-top:12px">Aucune série à ${N} reps trouvée.</p>`}
-      <p class="muted tiny" style="margin-top:10px">Une valeur fausse ? Corrige la ligne indiquée dans ta prog (charge réelle dans « Commentaire athlète », ou RPE « échec » si la série est ratée), puis synchronise.</p>
+      <p class="muted tiny" style="margin-top:10px">Une valeur fausse ? Corrige la ligne indiquée dans ta prog (charge réelle dans « Commentaire athlète », ou RPE « échec » si la série est ratée), puis synchronise. Une perf manquante ? Ajoute-la en bas de la fiche, « Ajouter un record ».</p>
       <button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`; }
   if (sheet === "rest") return `<div id="restbox" class="timer"><svg viewBox="0 0 220 220"><circle cx="110" cy="110" r="100" fill="none" stroke="var(--deck2)" stroke-width="10"/><circle id="restring" cx="110" cy="110" r="100" fill="none" stroke="var(--chalk)" stroke-width="10" stroke-linecap="round" stroke-dasharray="628" stroke-dashoffset="0" style="transition:stroke-dashoffset .25s linear"/></svg>
       <div style="text-align:center"><p class="muted small" id="resttitle">Repos</p><p class="show" id="restval">0:00</p></div></div>
@@ -1743,6 +1734,7 @@ function settingsHtml(){
     <div class="grid2"><div><label for="sdo">Date des objectifs</label><input id="sdo" type="date" value="${objDate()}" data-chg="prof" data-k="date_objectif"></div>
       <div><label for="sdc">Début de la prog</label><input id="sdc" type="date" value="${D.profil.debut_coaching || ""}" data-chg="prof" data-k="debut_coaching"></div></div>
     <label for="sds">Début du street lifting</label><input id="sds" type="date" value="${D.profil.debut_street || ""}" data-chg="prof" data-k="debut_street">
+    <p class="muted tiny" style="margin-top:14px">Version de l'app : ${APP_VER}</p>
     <h2 class="h2" style="font-size:20px">Méthodes et sources</h2>
     <p class="src"><b style="color:var(--chalk)">RIS</b> : formule de Waris Radji et Mathieu Ardoin, édition 2026 (constantes publiées dans le code d'<a href="https://openstreetlifting.org" target="_blank" rel="noopener">OpenStreetlifting</a>). <a href="https://warisradji.com/ris/" target="_blank" rel="noopener">Calculateur officiel</a>.</p>
     <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Zone réaliste</b> : Latella et al. (2023), <a href="https://doi.org/10.1007/s40279-023-01962-6" target="_blank" rel="noopener">Sports Medicine</a> : +7,5 à 12,5 % de force la 1re année de compétition, jusqu'à ~20 % après 10 ans. L'étude porte sur le powerlifting. L'app ajoute ton rythme mesuré, souvent plus parlant au début.</p>
@@ -1815,6 +1807,7 @@ const ACT = {
   pickBloc:async d => { const b = +d.b; try { if (!loadedBlocs.has(b)) { toast("Chargement : " + blocLabel(b) + "…"); await loadBloc(b); } const x = S.find(y => y.bloc === b && !y.faite) || S.find(y => y.bloc === b); if (!x) return toast(blocLabel(b) + " ne contient pas encore de séance.", true); sel = x.key; rSeance(); } catch(e){ toast(errMsg(e), true); } },
   startLive:d => startLive(d.k, d.i),
   rmInfo:d => openSheet("rm|" + d.l + "|" + d.n),
+  rmAdd:d => { closeSheet(); setTimeout(() => { const r = $("#prr"), c = $("#prc"); if (!r || !c) return; r.value = d.n; c.scrollIntoView({behavior:"smooth", block:"center"}); c.focus(); }, 80); },
   pickWeek:d => { const b = +d.b; progSel = {b, w:d.w !== undefined ? d.w : (weeksOfBloc(b).filter(w => S.some(s => s.bloc === b && s.semaine === w && s.faite)).at(-1) || weeksOfBloc(b)[0])}; rProg(); },
   closeLive:async () => { if (live) await saveRow(live.i); live = null; try { wakeLock && wakeLock.release(); } catch(e){} renderLayer(); render(); toast("Séance enregistrée, tu peux la reprendre plus tard"); },
   liveNav:async d => { const ok = await saveRow(live.i); if (!ok) return; const s = seanceByKey(live.key); live.i = Math.max(0, Math.min(s.exercices.length - 1, live.i + +d.d)); persistLive(); renderLayer(); document.querySelector(".live").scrollTop = 0; },
