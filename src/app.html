@@ -463,7 +463,18 @@ function parseSets(s, defC){
 /* Séries notées dans la prog, vérifiées contre la prescription.
    « 85,90,95 » sur un 3×5 à 95 kg = des charges, pas des reps : on le relit comme 3 séries de 5. */
 function setsFromComment(e, c){
-  const sets = parseSets(e.commentaire, c); if (!sets) return null;
+  const raw = String(e.commentaire ?? "").trim(); if (!raw) return null;
+  const head = ((raw.match(/^[\d\s.,;/+x*@]+/i) || [""])[0]).trim().replace(/[\s.,;+\/]+$/, ""); if (!head) return null;
+  const reps1 = isNumTxt(e.reps) ? num(e.reps) : null, ns = num(e.series);
+  /* charges réelles série par série : « 150/155/157,5 » sur un 3×5 */
+  if (/\//.test(head) || (/\+/.test(head) && /\d,\d/.test(head))) {
+    const vals = head.split(/\s*[\/+]\s*/).map(num);
+    if (reps1 && vals.length >= 2 && vals.every(v => v !== null && v > reps1 * 2 + 3)) return vals.map(v => ({r:reps1, c:v}));
+  }
+  /* une seule charge notée : « 200 » sur un 1×3 prévu à 192,5–200 */
+  if (isNumTxt(head) && reps1 && ns && num(head) > reps1 * 2 + 3 && (c === null || Math.abs(num(head) - c) <= Math.max(10, Math.abs(c) * .3)))
+    return Array(Math.min(12, ns)).fill(0).map(() => ({r:reps1, c:num(head)}));
+  const sets = parseSets(head, c); if (!sets) return null;
   const rr = (String(e.reps).match(/\d+/g) || []).map(Number), hi = rr.length ? Math.max(...rr) : 30, lo = rr.length ? Math.min(...rr) : null;
   if (!sets.some(x => x.r > hi * 2 + 3)) return sets;
   if (c && lo && sets.every(x => x.r >= c * .5 && x.r <= c * 1.5)) return sets.map(x => ({r:lo, c:x.r}));
@@ -833,7 +844,7 @@ function monthsTo(l, target){
 function liftHistory(l){
   const pts = D.prs.filter(p => p.lift === l && p.reps === 1).map(p => ({date:p.date, v:p.charge, src:"PR"}));
   for (const s of S) { const d = dateOf(s); if (!d || !s.faite) continue;
-    for (const e of s.exercices) { if (liftOf(e.mouvement) !== l || norm(e.variation) !== "COMP") continue; const v = num(e.e1rm); if (v) pts.push({date:d, v, src:"prog"}); } }
+    for (const e of s.exercices) { if (liftOf(e.mouvement) !== l || !isCompEx(e)) continue; const v = num(e.e1rm); if (v) pts.push({date:d, v, src:"prog"}); } }
   return pts.sort((a, b) => a.date < b.date ? -1 : 1);
 }
 function liftSeries(l){ const h = liftHistory(l), pg = h.filter(x => x.src === "prog"); return pg.length >= 3 ? pg : h.filter(x => x.src === "PR"); }
@@ -865,21 +876,25 @@ function exercisePoints(){
   for (const s of S) for (const e of s.exercices) {
     const key = exKey(e), lift = liftOf(e.mouvement), lg = logged[[s.bloc, s.semaine, s.seance, key].join("|")];
     if (lg && (lg.includes("L" + e.row) || lg.includes(""))) continue;
-    const c = chargeGuess(e); if (c === null) continue;
+    const c = chargeGuess(e); const fc = c === null ? setsFromComment(e, null) : null; if (c === null && !(fc && fc.every(x => x.c !== null && x.c !== undefined))) continue;
+    if (failTxt(e.rpe1) && (failTxt(e.rpeLast) || !String(e.rpeLast || "").trim())) continue;
     const own = num(e.rpe1) !== null || num(e.rpeLast) !== null;
     let sets = lift && !own ? null : setsFromComment(e, c);
     if (sets && lift && num(e.series) && sets.length > num(e.series) + 2) sets = null;
     if (!sets && own && lift && num(e.series) && isNumTxt(e.reps)) sets = Array(num(e.series)).fill(0).map(() => ({r:num(e.reps), c}));
     if (!sets) continue;
+    if (failTxt(e.rpeLast) && sets.length > 1) sets = sets.slice(0, -1);
     const rp = num(e.rpeLast); if (rp && rp >= 5 && rp <= 10 && sets.length) sets = sets.map((x, i) => i === sets.length - 1 ? {...x, rpe:rp} : x);
-    rows.push({sk:s.key, ex:key, lift, bloc:s.bloc, sem:s.semaine, date:dateOf(s), order:rank(s.bloc) * 1000 + (num(s.semaine) || 0) * 10 + s.idx, label:blocShort(s.bloc) + " S" + s.semaine, sets, src:"prog"});
+    rows.push({sk:s.key, ex:key, lift, comp:isCompEx(e), where:{bloc:s.bloc, sem:s.semaine, seance:s.seance, row:e.row, sheet:s.sheet, charge:e.charge, rpe1:e.rpe1, rpeLast:e.rpeLast, com:e.commentaire, archived:!!s.archived}, bloc:s.bloc, sem:s.semaine, date:dateOf(s), order:rank(s.bloc) * 1000 + (num(s.semaine) || 0) * 10 + s.idx, label:blocShort(s.bloc) + " S" + s.semaine, sets, src:"prog"});
   }
   for (const x of D.series) {
     const s = S.find(z => z.bloc === x.bloc && z.semaine === x.semaine && z.seance === x.seance && (!x.date || !dateOf(z) || Math.abs(days(x.date, dateOf(z))) <= 14));
-    rows.push({sk: s ? s.key : "d" + x.date, bloc:x.bloc, sem:x.semaine, ex:x.ex, lift:liftOf(x.ex.split(" · ")[0]), date:x.date || (s && dateOf(s)), order:x.bloc ? rank(x.bloc) * 1000 + (num(x.semaine) || 0) * 10 + (s ? s.idx : 0) : 0, label:x.date ? dfr(x.date) : blocShort(x.bloc) + " S" + x.semaine, sets:x.sets, src:"carnet"});
+    const xe = s && s.exercices.find(z => "L" + z.row === x.note), xl = liftOf(x.ex.split(" · ")[0]);
+    if (xe && /lastique|band|assist/i.test(String(xe.charge))) continue;
+    rows.push({sk: s ? s.key : "d" + x.date, comp:!!xl && (xe ? isCompEx(xe) : isCompVar(x.ex.split(" · ")[1] || "")), where:{bloc:x.bloc, sem:x.semaine, seance:x.seance, app:true}, bloc:x.bloc, sem:x.semaine, ex:x.ex, lift:liftOf(x.ex.split(" · ")[0]), date:x.date || (s && dateOf(s)), order:x.bloc ? rank(x.bloc) * 1000 + (num(x.semaine) || 0) * 10 + (s ? s.idx : 0) : 0, label:x.date ? dfr(x.date) : blocShort(x.bloc) + " S" + x.semaine, sets:x.sets, src:"carnet"});
   }
   const map = {};
-  for (const r of rows) { const o = map[r.ex] = map[r.ex] || {key:r.ex, lift:r.lift, pts:{}}; const p = o.pts[r.sk] = o.pts[r.sk] || {sk:r.sk, date:r.date, order:r.order, label:r.label, bloc:r.bloc, sem:r.sem, rows:[], src:r.src}; p.rows.push(r.sets); if (r.src === "carnet") p.src = "carnet"; }
+  for (const r of rows) { const o = map[r.ex] = map[r.ex] || {key:r.ex, lift:r.lift, pts:{}}; const p = o.pts[r.sk] = o.pts[r.sk] || {sk:r.sk, date:r.date, order:r.order, label:r.label, bloc:r.bloc, sem:r.sem, rows:[], wh:[], comp:r.comp, src:r.src}; p.rows.push(r.sets); p.wh.push(r.where); if (r.src === "carnet") p.src = "carnet"; }
   return Object.values(map).map(o => {
     const pts = Object.values(o.pts).map(p => {
       const w = bwAt(p.date || D.today), all = p.rows.flat();
@@ -894,8 +909,8 @@ function exercisePoints(){
 function compSets(l){
   const ok = x => x.c !== null && x.c !== undefined && x.c >= 0 && Number.isInteger(x.r) && x.r >= 1 && x.r <= 12;
   const out = D.prs.filter(p => p.lift === l).map(p => ({c:p.charge, r:p.reps, date:p.date, src:"PR", coach:/prog du coach/i.test(p.note)})).filter(ok);
-  for (const o of exercisePoints()) { if (o.lift !== l || !/ · COMP$/.test(o.key)) continue;
-    for (const p of o.pts) for (const x of p.sets) if (ok(x)) out.push({c:x.c, r:x.r, rpe:x.rpe, date:p.date, bloc:p.bloc, sem:p.sem, src:p.src}); }
+  for (const o of exercisePoints()) { if (o.lift !== l) continue;
+    for (const p of o.pts) { if (!p.comp) continue; p.rows.forEach((st, k) => st.forEach(x => { if (ok(x)) out.push({c:x.c, r:x.r, rpe:x.rpe, date:p.date, bloc:p.bloc, sem:p.sem, src:p.src, wh:p.wh[k], ex:o.key}); })); } }
   return out;
 }
 /* nRM = charge la plus lourde faite pour exactement n reps, sur tout l'historique. Rien n'est extrapolé. */
@@ -925,14 +940,14 @@ const srcTxt = x => x.src === "PR" ? (x.coach ? "max de la prog" : (x.date ? dfr
 function repTableHtml(l){
   if (!allLoaded) return `<h2 class="h2">Records par répétitions</h2><div class="empty"><div class="spin"></div><p class="small">Lecture de tous tes blocs…</p></div>`;
   const sets = compSets(l), rm = repMaxes(sets), e = e1rmBest(l, sets), b = best(l), u = BW_LIFTS.includes(l) ? " de lest" : "";
-  const tiles = rm.map(({n, b:x}) => `<div class="rm${x ? "" : " off"}"><p class="muted tiny">${n} rep${n > 1 ? "s" : ""}</p><p class="show">${x ? fmt(x.c) : "—"}</p><p class="muted tiny">${x ? esc(srcTxt(x)) : "pas encore fait"}</p></div>`).join("");
+  const tiles = rm.map(({n, b:x}) => `<div class="rm${x ? "" : " off"}" ${x ? `role="button" tabindex="0" data-act="rmInfo" data-l="${l}" data-n="${n}"` : ""}><p class="muted tiny">${n} rep${n > 1 ? "s" : ""}</p><p class="show">${x ? fmt(x.c) : "—"}</p><p class="muted tiny">${x ? esc(srcTxt(x)) : "pas encore fait"}</p></div>`).join("");
   const eh = e ? `<div class="panel" style="margin-top:0"><p class="muted small">1RM estimé</p>
       <p class="show t-m" style="margin-top:4px;color:${LCOL[l]}">${fmt(Math.floor(e.v * 4) / 4)}<small> kg${u}</small></p>
       <p class="muted small" style="margin-top:4px">D'après ${fmt(e.c)} kg × ${e.r}${e.rpe ? " à RPE " + fmt(e.rpe) : ""} (${esc(srcTxt(e))}).
       ${b !== null ? (e.v > b + .2 ? ` C'est ${fmt(e.v - b, 1)} kg au-dessus de ton PR (${fmt(b)}) : un potentiel, pas un acquis.` : ` Ton PR (${fmt(b)}) est déjà à ce niveau.`) : ""}</p></div>` : "";
   return `<h2 class="h2">Records par répétitions <span class="muted">${LNAME[l].toLowerCase()} compét</span></h2>
     ${eh}<div class="rmgrid" style="margin-top:10px">${tiles}</div>
-    <p class="muted tiny" style="margin-top:8px">${BW_LIFTS.includes(l) ? "Lest en kg. " : ""}Charge la plus lourde faite pour exactement ce nombre de reps, sur tous tes blocs : séances « Comp » où tu as noté un RPE, séances notées dans l'app et PR. « — » : jamais fait, rien n'est extrapolé.</p>`;
+    <p class="muted tiny" style="margin-top:8px">${BW_LIFTS.includes(l) ? "Lest en kg. " : ""}Charge la plus lourde faite pour exactement ce nombre de reps, sur tous tes blocs (mouvement de compét, sans pause ni tempo ni élastique) : lignes de ta prog avec un RPE, séances notées dans l'app et PR. Touche une case pour voir d'où vient la valeur. « — » : jamais fait.</p>`;
 }
 const fmtSets = sets => { const c0 = sets[0].c; return sets.every(x => x.c === c0) ? fmt(c0) + " kg × " + sets.map(x => x.r).join(" · ") : sets.map(x => x.r + "@" + fmt(x.c)).join(" · "); };
 
@@ -1120,16 +1135,46 @@ function restSec(t, lift){
   m = s.match(/(\d+)\s*(?:''|"|’’|s\b|sec)/); if (m) return +m[1];
   return lift ? 180 : 90;
 }
+/* Charge prescrite lisible :
+   « 105 » ; « -15 » (assistance, négatif) ; « -10%/-5% ( 92,5 ) » (valeur calculée par le coach) ;
+   « 27+2,3 » (machine + petits disques, additionnés) ; « 192,5-200 » (fourchette : borne basse) ; « 14 (3plaques) ». */
 function chargeGuess(e){
-  if (isNumTxt(e.charge)) return num(e.charge);
-  const m = String(e.charge).match(/\(\s*(\d+(?:[.,]\d+)?)\s*\)/); if (m) return num(m[1]);
+  const t = String(e.charge ?? "").trim();
+  if (isNumTxt(t)) return num(t);
+  if (/^-\s*\d+([.,]\d+)?$/.test(t)) return num(t.replace(/\s/g, ""));
+  const m = t.match(/\(\s*(\d+(?:[.,]\d+)?)\s*\)/); if (m) return num(m[1]);
+  if (/^\d+([.,]\d+)?(\s*\+\s*\d+([.,]\d+)?)+$/.test(t)) return Math.round(sum(t.split("+").map(num)) * 100) / 100;
+  const r = t.match(/^(\d+(?:[.,]\d+)?)\s*[-–]\s*(\d+(?:[.,]\d+)?)$/); if (r && num(r[2]) > num(r[1])) return num(r[1]);
+  const l = t.match(/^(\d+(?:[.,]\d+)?)\s*(?:kg)?\s*\(/i); if (l) return num(l[1]);
   return null;
 }
-function initSets(s, e){
+/* Back-off en % du top set de la séance : « -12,5%/-5% » → entre 87,5 % et 95 % de la charge du top set. */
+function backoffOf(s, e, k, liveRows){
+  const m = String(e.charge ?? "").match(/^\s*-?\s*(\d+(?:[.,]\d+)?)\s*%\s*\/\s*-?\s*(\d+(?:[.,]\d+)?)\s*%?/); if (!m) return null;
+  const l = liftOf(e.mouvement); let base = null;
+  for (let j = k - 1; j >= 0; j--) { const x = s.exercices[j]; if (liftOf(x.mouvement) !== l) continue;
+    const lv = liveRows && liveRows[j] && liveRows[j].sets.filter(z => z.done && z.c !== null).map(z => num(z.c));
+    base = lv && lv.length ? Math.max(...lv) : chargeGuess(x); if (base !== null) break; }
+  if (base === null) return null;
+  const a = num(m[1]), b = num(m[2]), lo = base * (1 - Math.max(a, b) / 100), hi = base * (1 - Math.min(a, b) / 100);
+  return {base, lo, hi, mid:Math.floor((lo + hi) / 2 / 1.25) * 1.25};
+}
+/* Mouvement de compétition ou variante ? « COMP », vide, ou seulement de l'équipement (coudières, genouillères, raw, emom) = compét.
+   Pause, tempo, iso, élastique, zercher, high pull… = variante. Un tempo noté (« 3/2/0 », « 2CT ») = variante. */
+const VARIANT_RE = /PAUS|TEMPO|ISO|ZERCHER|[ÉE]LAST|NEGAT|N[ÉE]GAT|EXCENT|PIRAM|PYRAM|HIGH ?PULL|HAUTE?|CHEST|DEAD ?STOP|STATO|BOX|PIN|PARTIEL|DEMI|SLOW|ASSIST|BULGAR|GOBELET|HACK|BELT|FRONT|SAFETY|SSB|LARSEN|SPOTTO|ARCHER|TYPEWRITER|L-?SIT|STRICT|KIPP/;
+const EQUIP_RE = /^(COMP|COMPET|COMPÉT|COMPETITION|COMPÉTITION|COUDI[ÈE]RES?|GENOUILL[ÈE]RES?|SLEEVES?|STRAPS?|RAW|EMOM|STANDARD|CLASSIQUE|NORMAL|PRISE|LARGEUR|D'ÉPAULE|D'EPAULE|ÉPAULES?)$/;
+function isCompVar(v, tempo){
+  const x = norm(v).replace(/[()]/g, " "); if (VARIANT_RE.test(x)) return false;
+  if (tempo && /\d/.test(String(tempo))) return false;
+  return x.split(/[\s,+\/]+/).filter(Boolean).every(w => EQUIP_RE.test(w));
+}
+const isCompEx = e => !!liftOf(e.mouvement) && isCompVar(e.variation, e.tempo);
+const failTxt = v => /chec|fail|rat[ée]/i.test(String(v ?? ""));
+function initSets(s, e, k){
   const key = exKey(e), lift = liftOf(e.mouvement);
   const lg = D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
   if (lg) return lg.sets.map(x => ({c:x.c, r:x.r, done:true}));
-  const nS = Math.min(12, num(e.series) || 1), cg = chargeGuess(e);
+  const nS = Math.min(12, num(e.series) || 1), bo = chargeGuess(e) === null ? backoffOf(s, e, k) : null, cg = bo ? bo.mid : chargeGuess(e);
   const prev = exercisePoints().find(o => o.key === key), last = prev && prev.last;
   let seq = null; if (/^\d+(\/\d+)+$/.test(String(e.reps).trim())) seq = String(e.reps).split("/").map(Number);
   const target = isNumTxt(e.reps) ? num(e.reps) : (String(e.reps).match(/^(\d+)\s*-\s*\d+$/) || [])[1];
@@ -1145,7 +1190,7 @@ async function startLive(key, i){
   let st = store.get("sl4-live");
   if (!st || st.key !== key) st = {key, start:Date.now(), i:0, rows:{}, pdc:false};
   if (i !== undefined) st.i = +i;
-  s.exercices.forEach((e, k) => { if (!st.rows[k]) st.rows[k] = {sets:initSets(s, e), rpe1:num(e.rpe1), rpeLast:num(e.rpeLast), dirty:false}; });
+  s.exercices.forEach((e, k) => { if (!st.rows[k]) st.rows[k] = {sets:initSets(s, e, k), bo:!!backoffOf(s, e, k), rpe1:num(e.rpe1), rpeLast:num(e.rpeLast), dirty:false}; });
   live = st; store.set("sl4-live", live);
   try { wakeLock = await navigator.wakeLock?.request("screen"); } catch(e){ wakeLock = null; }
   if (!live.pdc && s.recapRow) openSheet("pdc"); else renderLayer();
@@ -1153,6 +1198,8 @@ async function startLive(key, i){
 function persistLive(){ if (live) store.set("sl4-live", live); }
 function rLive(){
   const s = seanceByKey(live.key); if (!s) { live = null; return ""; }
+  const k0 = live.i, bo0 = live.rows[k0] && live.rows[k0].bo ? backoffOf(s, s.exercices[k0], k0, live.rows) : null;
+  if (bo0 && !live.rows[k0].dirty && !live.rows[k0].sets.some(x => x.done)) live.rows[k0].sets.forEach(x => x.c = bo0.mid);
   const k = live.i, e = s.exercices[k], st = live.rows[k], l = liftOf(e.mouvement), renfo = norm(e.mouvement) === "RENFO", col = l ? LCOL[l] : "var(--chalk)";
   const prev = prevRowSets(s, k), nx = s.exercices[k + 1], nl = nx ? liftOf(nx.mouvement) : null;
   const el = Math.floor((Date.now() - live.start) / 60000), doneN = st.sets.filter(x => x.done).length, curJ = st.sets.findIndex(x => !x.done);
@@ -1167,8 +1214,8 @@ function rLive(){
     <div class="live-progress">${s.exercices.map((x, j) => { const lj = liftOf(x.mouvement), dn = live.rows[j] && live.rows[j].sets.some(z => z.done);
       return `<i class="${j === k ? "cur" : dn ? "on" : ""}" style="--c:${lj ? LCOL[lj] : "var(--dust)"}"></i>`; }).join("")}</div>
     ${(() => { const cur = st.sets[curJ < 0 ? st.sets.length - 1 : curJ] || {}, c0 = cur.c ?? chargeGuess(e);
-      return heroCard({color:l ? col : "var(--deck2)", deco:!!l, small:`Exercice ${k + 1} sur ${s.exercices.length} · ${esc(name)}`, big:c0 !== null && c0 !== undefined && c0 !== "" ? `${fmt(num(c0))}<small>kg</small>` : (isBW ? "PDC" : esc(e.charge || "—")), sub:`${esc(e.series)} série${num(e.series) > 1 ? "s" : ""} de ${esc(e.reps)}${e.tempo ? " · tempo " + esc(e.tempo) : ""}${e.repos ? " · repos " + esc(e.repos) : ""}`}); })()}
-    <h2 class="h2">Séries <span class="muted">${prev ? "la dernière fois : " + esc(fmtSets(prev.sets)) : esc(e.intensite || "")}</span></h2>
+      return heroCard({color:l ? col : "var(--deck2)", deco:!!l, small:`Exercice ${k + 1} sur ${s.exercices.length} · ${esc(name)}`, big:c0 !== null && c0 !== undefined && c0 !== "" ? `${fmt(num(c0))}<small>kg</small>` : (isBW ? "PDC" : esc(e.charge || "—")), sub:`${esc(e.series)} série${num(e.series) > 1 ? "s" : ""} de ${esc(e.reps)}${e.tempo ? " · tempo " + esc(e.tempo) : ""}${e.repos ? " · repos " + esc(e.repos) : ""}${(() => { const b = backoffOf(s, e, k, live.rows); return b ? ` · ${esc(String(e.charge).trim())} de ${fmt(b.base)} kg = ${fmt(Math.ceil(b.lo * 4) / 4)} à ${fmt(Math.floor(b.hi * 4) / 4)} kg` : chargeGuess(e) !== null && !isNumTxt(e.charge) && String(e.charge).trim() ? " · prévu : " + esc(String(e.charge).trim()) : ""; })()}`}); })()}
+    <h2 class="h2">Séries <span class="muted">${prev ? `dernière fois (${esc(prev.where)}) : ${esc(fmtSets(prev.sets))}${prev.src === "prévu" ? ", charge prévue" : ""}` : esc(e.intensite || "")}</span></h2>
     ${e.coach ? `<div class="coachnote"><b>Consigne du coach.</b> ${esc(e.coach)}</div>` : ""}
     ${e.angle ? `<p class="prev">À filmer : ${esc(e.angle)}</p>` : ""}
     <section class="setgrid" style="--c:${l ? col : "var(--brand)"}" aria-label="Séries">
@@ -1190,17 +1237,20 @@ function rLive(){
     <p class="muted tiny" style="text-align:center;margin-top:12px">${doneN}/${st.sets.length} séries faites. Tout est enregistré quand tu changes d'exercice.</p>
   </div></div>`;
 }
+/* Dernière fois : même séance, même ligne de l'exercice, semaine précédente du même bloc d'abord, puis blocs précédents. */
 function prevRowSets(s, k){
-  const e = s.exercices[k], key = exKey(e);
-  const cands = S.filter(z => rank(z.bloc) * 100 + (num(z.semaine) || 0) < rank(s.bloc) * 100 + (num(s.semaine) || 0) && z.idx === s.idx).sort((a, b) => (rank(b.bloc) * 100 + (num(b.semaine) || 0)) - (rank(a.bloc) * 100 + (num(a.semaine) || 0)));
+  const e = s.exercices[k], key = exKey(e), me = rank(s.bloc) * 100 + (num(s.semaine) || 0), rk = z => rank(z.bloc) * 100 + (num(z.semaine) || 0);
+  const pool = S.filter(z => rk(z) < me && z.idx === s.idx), cands = pool.filter(z => z.bloc === s.bloc).sort((a, b) => rk(b) - rk(a)).concat(pool.filter(z => z.bloc !== s.bloc).sort((a, b) => rk(b) - rk(a)));
+  const pos = s.exercices.filter((x, j) => j < k && exKey(x) === key).length;
   for (const z of cands) {
-    const same = z.exercices.filter(x => exKey(x) === key); if (!same.length) continue;
-    const pos = s.exercices.filter((x, j) => j < k && exKey(x) === key).length, ez = same[Math.min(pos, same.length - 1)];
+    const same = z.exercices.filter(x => exKey(x) === key); if (!same.length || pos >= same.length) continue;
+    const ez = same[pos], where = (z.bloc === s.bloc ? "" : blocLabel(z.bloc) + ", ") + "S" + z.semaine;
     const lg = D.series.find(x => x.bloc === z.bloc && x.semaine === z.semaine && x.seance === z.seance && x.ex === key && (!x.note || x.note === "L" + ez.row));
-    if (lg) return {date:lg.date || dateOf(z), sets:lg.sets};
-    const c = chargeGuess(ez), st = c !== null ? parseSets(ez.commentaire, c) : null;
-    if (st) return {date:dateOf(z), sets:st};
-    if (z.faite && c !== null && num(ez.series) && isNumTxt(ez.reps) && (ez.rpe1 || ez.rpeLast)) return {date:dateOf(z), sets:Array(num(ez.series)).fill(0).map(() => ({r:num(ez.reps), c}))};
+    if (lg) return {date:lg.date || dateOf(z), sets:lg.sets, where, src:"noté"};
+    if (failTxt(ez.rpe1) && failTxt(ez.rpeLast)) continue;
+    const c = chargeGuess(ez), st = setsFromComment(ez, c);
+    if (st && st.every(x => x.c !== null && x.c !== undefined)) return {date:dateOf(z), sets:st, where, src:"noté dans la prog"};
+    if (c !== null && num(ez.series) && isNumTxt(ez.reps) && (num(ez.rpe1) !== null || num(ez.rpeLast) !== null)) return {date:dateOf(z), sets:Array(num(ez.series)).fill(0).map(() => ({r:num(ez.reps), c})), where, src:"prévu"};
   }
   return null;
 }
@@ -1299,7 +1349,7 @@ function weekView(sel){
     const before = o.pts.filter(p => !keys.has(p.sk) && (p.bloc !== undefined && p.bloc !== null ? wOrd(p.bloc, p.sem) < me : p.order < Math.min(...cur.map(c => c.order))));
     const top = cur.reduce((a, p) => p.e1rmBest > a.e1rmBest ? p : a, cur[0]), prev = before.at(-1);
     const bestSet = top.sets.reduce((a, x) => e1rm(x.c, x.r, o.lift, bwAt(top.date || D.today)) > e1rm(a.c, a.r, o.lift, bwAt(top.date || D.today)) ? x : a, top.sets[0]);
-    items.push({o, top, bestSet, prev, d:prev ? top.e1rmBest - prev.e1rmBest : null, comp:!!o.lift && / · COMP$/.test(o.key)});
+    items.push({o, top, bestSet, prev, d:prev ? top.e1rmBest - prev.e1rmBest : null, comp:!!o.lift && cur.some(p => p.comp)});
   }
   /* records de reps battus cette semaine (mouvements de compét, nombre de reps exact) */
   const recs = [];
@@ -1641,6 +1691,16 @@ function restPill(){
     <button class="rb" data-act="restAdd" data-s="-15" aria-label="Retirer 15 secondes">−15</button><button class="rb" data-act="restAdd" data-s="15" aria-label="Ajouter 15 secondes">+15</button><button class="go2" data-act="closeSheet">Passer</button></section>`;
 }
 function rSheet(){
+  if (sheet.startsWith("rm|")) { const [, l, n] = sheet.split("|"), N = +n;
+    const L = compSets(l).filter(x => x.r === N).sort((a, b) => b.c - a.c || ((a.date || "") < (b.date || "") ? -1 : 1)).slice(0, 10);
+    const line = x => { const w = x.wh || {};
+      if (x.src === "PR") return x.coach ? "Max actuel écrit dans ta prog (case MAX ACTUELS)" : "PR enregistré le " + dfr(x.date);
+      if (w.app) return "Noté dans l'app" + (x.date ? " le " + dfr(x.date) : "") + " · " + esc(blocLabel(x.bloc)) + ", semaine " + esc(x.sem);
+      return `${esc(String(w.sheet || blocLabel(x.bloc)).trim())}${w.archived ? " (historique)" : ""} · semaine ${esc(x.sem)} · ${esc(w.seance || "")} · ligne ${w.row || "?"}<br>Prog : « ${esc(String(w.charge || "").trim() || "–")} »${String(w.com || "").trim() ? ", ton commentaire : « " + esc(String(w.com).trim()) + " »" : ""}${String(w.rpe1 || "").trim() || String(w.rpeLast || "").trim() ? ", RPE " + esc([w.rpe1, w.rpeLast].filter(v => String(v || "").trim()).join(" / ")) : ""}`; };
+    return `<p class="show t-m">${LNAME[l]} · ${N} rep${N > 1 ? "s" : ""}</p><p class="muted small" style="margin-top:4px">Toutes les séries à exactement ${N} rep${N > 1 ? "s" : ""}, de la plus lourde à la plus légère. La première est ton record.</p>
+      ${L.length ? `<div class="list" style="margin-top:12px">${L.map((x, i) => `<div class="item" style="display:block"><div class="row"><b>${fmt(x.c)} kg${BW_LIFTS.includes(l) ? " de lest" : ""}</b><span class="muted small">${i === 0 ? "record" : esc(x.ex ? exName(x.ex) : "")}</span></div><p class="muted tiny" style="margin-top:4px">${line(x)}</p></div>`).join("")}</div>` : `<p class="muted small" style="margin-top:12px">Aucune série à ${N} reps trouvée.</p>`}
+      <p class="muted tiny" style="margin-top:10px">Une valeur fausse ? Corrige la ligne indiquée dans ta prog (charge réelle dans « Commentaire athlète », ou RPE « échec » si la série est ratée), puis synchronise.</p>
+      <button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`; }
   if (sheet === "rest") return `<div id="restbox" class="timer"><svg viewBox="0 0 220 220"><circle cx="110" cy="110" r="100" fill="none" stroke="var(--deck2)" stroke-width="10"/><circle id="restring" cx="110" cy="110" r="100" fill="none" stroke="var(--chalk)" stroke-width="10" stroke-linecap="round" stroke-dasharray="628" stroke-dashoffset="0" style="transition:stroke-dashoffset .25s linear"/></svg>
       <div style="text-align:center"><p class="muted small" id="resttitle">Repos</p><p class="show" id="restval">0:00</p></div></div>
     <div class="grid3" style="margin-top:10px"><button class="btn ghost" data-act="restAdd" data-s="-15">−15 s</button><button class="btn ghost" data-act="restAdd" data-s="30">+30 s</button><button class="btn" data-act="closeSheet">Série suivante</button></div>`;
@@ -1754,6 +1814,7 @@ const ACT = {
   sel:d => { sel = d.k; rSeance(); },
   pickBloc:async d => { const b = +d.b; try { if (!loadedBlocs.has(b)) { toast("Chargement : " + blocLabel(b) + "…"); await loadBloc(b); } const x = S.find(y => y.bloc === b && !y.faite) || S.find(y => y.bloc === b); if (!x) return toast(blocLabel(b) + " ne contient pas encore de séance.", true); sel = x.key; rSeance(); } catch(e){ toast(errMsg(e), true); } },
   startLive:d => startLive(d.k, d.i),
+  rmInfo:d => openSheet("rm|" + d.l + "|" + d.n),
   pickWeek:d => { const b = +d.b; progSel = {b, w:d.w !== undefined ? d.w : (weeksOfBloc(b).filter(w => S.some(s => s.bloc === b && s.semaine === w && s.faite)).at(-1) || weeksOfBloc(b)[0])}; rProg(); },
   closeLive:async () => { if (live) await saveRow(live.i); live = null; try { wakeLock && wakeLock.release(); } catch(e){} renderLayer(); render(); toast("Séance enregistrée, tu peux la reprendre plus tard"); },
   liveNav:async d => { const ok = await saveRow(live.i); if (!ok) return; const s = seanceByKey(live.key); live.i = Math.max(0, Math.min(s.exercices.length - 1, live.i + +d.d)); persistLive(); renderLayer(); document.querySelector(".live").scrollTop = 0; },
