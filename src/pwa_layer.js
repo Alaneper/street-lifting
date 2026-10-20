@@ -152,7 +152,7 @@ function onboard(step, why){
     ${obPre ? `<p class="muted small" style="margin-top:6px">Rempli depuis ta prog${P.bloc ? " (onglet « " + esc(P.blocTitles[P.bloc].trim()) + " »)" : ""}. Vérifie et corrige si besoin.</p>` : ""}
     <label for="obp">Prénom</label><input id="obp" autocomplete="given-name" value="${v(P.prenom)}">
     <div class="grid2"><div><label for="obs">Sexe (pour le RIS)</label><select id="obs"><option value="H">Homme</option><option value="F">Femme</option></select></div>
-      <div><label for="obc">Catégorie</label><select id="obc">${CATS.map(c => `<option value="${c}" ${c === (P.categorie || -80) ? "selected" : ""}>${c > 0 ? "+" + c : c} kg</option>`).join("")}</select></div></div>
+      <div><label for="obc">Catégorie</label><select id="obc">${[["Hommes", CATS_H], ["Femmes", CATS_F]].map(([g, L]) => `<optgroup label="${g}">${L.map(c => `<option value="${c}" ${c === (P.categorie || -80) && g === "Hommes" ? "selected" : ""}>${c > 0 ? "+" + c : c} kg</option>`).join("")}</optgroup>`).join("")}</select></div></div>
     <div class="grid2"><div><label for="obd">Début du street lifting</label><input id="obd" type="date"></div><div><label for="obw">Poids de corps (kg)</label><input id="obw" inputmode="decimal" placeholder="73,2" value="${v(P.poids)}"></div></div>
     <label>Tes PR actuels (kg de lest, laisse vide si tu ne sais pas)</label>
     <div class="grid2">${LIFTS.map(l => `<div><label for="obpr${l}" style="margin-top:0">${LNAME[l]}</label><input id="obpr${l}" inputmode="decimal" value="${v(P["pr_" + l])}"></div>`).join("")}</div>

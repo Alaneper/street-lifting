@@ -381,13 +381,29 @@ details>summary::-webkit-details-marker{display:none}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "15 · 20 oct. 2026";
+const APP_VER = "16 · 20 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];
 const LNAME = {MU:"Muscle-up", PULL:"Tractions", DIP:"Dips", SQUAT:"Squat", TOTAL:"Total"};
 const LCOL = {MU:"var(--mu)", PULL:"var(--pull)", DIP:"var(--dip)", SQUAT:"var(--squat)"};
 const BW_LIFTS = ["MU","PULL","DIP"];
 const RPE_OPTS = [5,6,6.5,7,7.5,8,8.5,9,9.5,10];
-const CATS = [-66,-73,-80,-87,-94,-101,101];
+const CATS_H = [-66,-73,-80,-87,-94,-101,101], CATS_F = [-52,-57,-63,-70,70];
+let CATS = CATS_H;
+const catsFor = sx => sx === "F" ? CATS_F : CATS_H;
+/* Records du monde FinalRep (https://final-rep.com/records/, liste mondiale 10/2025, page consultée le 20/10/2026). */
+const WR_FINALREP = `H|-66|448|Youssef Ashura Bouida|43|Youssef Ashura Bouida|100|Youssef Ashura Bouida|143.25|Julien Capdeville|210|Alessio Ceragioli
+H|-73|526.75|Chevillard Aubin|46.25|Chevillard Aubin|108|Chevillard Aubin|158|Johan Sanon|243|Lorenzo Mazzi
+H|-80|532.75|Chevillard Aubin|46.25|Chevillard Aubin|106|Chevillard Aubin|161.25|Daniel Wassenaar|270|Tony D'Agostino
+H|-87|584.25|Pere Coll|53|Pere Coll|120|Ludovic Adigery|182.5|Pere Coll|275|Tony D'Agostino
+H|-94|610|Xavier Macias|44|Xavier Macias|114|Xavier Macias|180.25|Badreddine van der Stoel|292.5|Xavier Macias
+H|-101|562.5|Mathew Zlat|37.5|Mathew Zlat|103.75|Valerio Naldi|175|Mathew Zlat|280|David Klimek
+H|101|577.5|Tonio Zeidler|40|Patryk Dzieniszewski|101.25|Valerio Naldi|187.5|Tonio Zeidler|310|Jan Makula
+F|-52|251.25|Ludivine Compain|17.5|Ludivine Compain|44.5|Katrena G Jia Min|70|Katrena G Jia Min|140|Anais Lozano
+F|-57|291.25|Nadine Hettinga|31.5|Martha Lubczynskyj|62.75|Martha Lubczynskyj|83.5|Nadine Hettinga|160|Julie Brion
+F|-63|286.5|Faye Butler|20|Laura Garcia|55|Gianna Webbe|84|Faye Butler|166|Frida Austigard
+F|-70|293.75|Lynn Narings|23.25|Lynn Narings|57.25|Danae Morgan|80.5|Nadine Schulz|163|Milana Popovic
+F|70|337.5|Sarah Anyamele|27.5|Sarah Anyamele|53.75|Claudia van Osch|85|Sarah Anyamele|180|Sarah Anyamele`.split("\n").map(l => l.split("|"));
+const WR_SRC = "FinalRep, liste mondiale 10/2025";
 const JOUR_IDX = {LUNDI:0, MARDI:1, MERCREDI:2, JEUDI:3, VENDREDI:4, SAMEDI:5, DIMANCHE:6};
 const BILAN_CRIT = ["Sommeil","Plaisir","Motivation","Fatigue","Hydratation","Alimentation"];
 const CHECK_DEFAULT = ["Inscription et licence en ordre","Horaire de la pesée noté","Ceinture de lest et chaîne","Magnésie","Chaussures et tenue","Pièce d'identité","Repas et boisson pour la journée","Tentatives validées avec le coach"];
@@ -826,7 +842,10 @@ const risOf = (total, w) => { const c = RIS[sexe()]; if (!total || !w) return nu
 function best(l){ if (l === "MU" && !muOn()) return null; const x = D.prs.filter(p => p.lift === l && p.reps === 1); return x.length ? Math.max(...x.map(p => p.charge)) : null; }
 const total = () => LIFTS.reduce((s, l) => s + (best(l) || 0), 0);
 function bestSeries(l){ let m = -Infinity; const out = []; D.prs.filter(p => p.lift === l && p.reps === 1).forEach(p => { if (p.charge > m) { m = p.charge; out.push({date:p.date, v:m}); } }); return out; }
-const record = (type, l) => { const r = D.records.find(r => r.type === type && r.categorie === cat() && r.lift === l); return r && r.valeur ? r : null; };
+const record = (type, l) => {
+  if (type === "WR") { const row = WR_FINALREP.find(r => r[0] === (sexe() === "F" ? "F" : "H") && +r[1] === cat()); if (!row) return null;
+    const i = ["TOTAL","MU","PULL","DIP","SQUAT"].indexOf(l); return i < 0 ? null : {valeur:+row[2 + i * 2], detenteur:row[3 + i * 2], source:WR_SRC}; }
+  const r = D.records.find(r => r.type === type && r.categorie === cat() && r.lift === l && /final-?rep/i.test(r.source || "")); return r && r.valeur ? r : null; };
 const nextComp = () => D.comps.find(c => c.date >= D.today) || null;
 const firstComp = () => D.comps.length ? D.comps[0].date : null;
 /* 1RM estimé : table RPE de RTS (série à fond) jusqu'à 10 reps, Epley au-delà ; pour MU/tractions/dips, sur la charge réelle (corps + lest) puis ramené au lest */
@@ -1496,8 +1515,8 @@ function rLiftPage(l){
     <h2 class="h2">Face aux records <span class="muted">${cat()} kg</span></h2>
     <div>${(() => { const top = Math.max(b || 0, ...[nr, wr].filter(Boolean).map(x => x.valeur)) || 1;
       return `<div class="rec" style="margin-top:0"><div class="row"><b>Toi</b><b>${fmt(b)}</b></div><div class="bar" style="--c:${LCOL[l]}"><i style="width:${(b || 0) / top * 100}%"></i></div></div>`
-        + [["Record de Belgique", nr], ["Record du monde", wr]].map(([lab, x]) => x ? `<div class="rec"><div class="row"><span>${lab} · ${esc(x.detenteur)}</span><span style="color:var(--steel-hi)">${fmt(x.valeur)}</span></div><div class="bar" style="--c:#5B5F67"><i style="width:${x.valeur / top * 100}%"></i></div></div>` : `<p class="muted small rec">${lab} : pas encore renseigné.</p>`).join(""); })()}
-      <p class="muted tiny" style="margin-top:12px">Les records situent le haut de la catégorie, pas un objectif à un an.</p></div>
+        + [["Record de Belgique", nr], ["Record du monde", wr]].map(([lab, x]) => x ? `<div class="rec"><div class="row"><span>${lab} · ${esc(x.detenteur)}</span><span style="color:var(--steel-hi)">${fmt(x.valeur)}</span></div><div class="bar" style="--c:#5B5F67"><i style="width:${x.valeur / top * 100}%"></i></div></div>` : `<p class="muted small rec">${lab} : ${lab.includes("Belgique") ? "pas encore publié par FinalRep (seuls le Brésil, la zone DACH et la France le sont)." : "pas de record dans cette catégorie."}</p>`).join(""); })()}
+      <p class="muted tiny" style="margin-top:12px">Source : <a href="https://final-rep.com/records/" target="_blank" rel="noopener">FinalRep, records</a> (${WR_SRC}). Catégorie ${sexe() === "F" ? "femmes" : "hommes"} ${cat() > 0 ? "+" + cat() : cat()} kg.</p></div>
 
     <h2 class="h2">Ajouter un record</h2>
     <p class="muted small" style="margin:-6px 0 8px">Pour une perf absente de ta prog : charge et nombre de reps. Elle compte dans le tableau des records et dans le 1RM estimé.</p>
@@ -1588,17 +1607,32 @@ function rCorps(){
       <p class="muted tiny" style="margin-top:8px">La ligne claire est ta moyenne sur 7 jours, plus fiable que la pesée brute. Pèse-toi le matin, à jeun.</p>
     </div>
     <h2 class="h2">Importer un historique</h2>
-    <div><p class="small muted">Fichier CSV exporté de MyFitnessPal (« Progress ») ou tout tableau avec une colonne date et une colonne poids.</p>
-      <input id="imp" type="file" accept=".csv,text/csv,text/plain" style="margin-top:12px" data-chg="import"><div id="impres"></div></div>
+    <div><p class="small muted">Le fichier ZIP de MyFitnessPal (compte gratuit compris) ou tout tableau CSV avec une colonne date et une colonne poids.</p>
+      <details style="margin-top:8px"><summary class="small">Récupérer ses pesées MyFitnessPal</summary><p class="small muted" style="margin-top:6px">Sur myfitnesspal.com (navigateur, pas l'app) : ton profil, Paramètres, Compte, « Télécharger tes données », puis demande l'export. Tu reçois un e-mail avec un fichier ZIP : choisis-le ici tel quel, l'app lit les pesées du fichier « measurements ».</p></details>
+      <input id="imp" type="file" accept=".csv,.zip,text/csv,text/plain,application/zip" style="margin-top:12px" data-chg="import"><div id="impres"></div></div>
     <h2 class="h2">Dernières pesées</h2><div>${P.slice().reverse().slice(0, 15).map(p => vrow(cap(dlong(p.date)), "", kg(p.poids, 1))).join("")}</div>`;
   if (V.length > 1) { const ds = [{label:"Pesée", data:V.map(p => p.poids), color:getCss("var(--dust)"), width:1, pts:V.length <= 45, faint:true}, {label:"Moyenne 7 j", data:mmV.map(v => +v.toFixed(2)), color:getCss("var(--chalk)"), width:2.5, pts:false}];
     if (lim && Math.max(...V.map(p => p.poids)) > lim - 2.5) ds.push({label:"Limite", data:V.map(() => lim), color:getCss("var(--squat)"), dash:true, pts:false, width:1.5});
     lineChart("c-pw", V.map(p => dfr(p.date)), ds, {unit:" kg"}); }
 }
-function readImport(file){
-  if (!file) return; const rd = new FileReader();
-  rd.onload = () => {
-    const txt = String(rd.result).replace(/^﻿/, ""), lines = txt.split(/\r?\n/).filter(l => l.trim());
+/* ZIP MyFitnessPal : on cherche le CSV des mesures (poids) dans l'archive. */
+async function readImport(file){
+  if (!file) return;
+  if (/\.zip$/i.test(file.name) || /zip/.test(file.type)) {
+    $("#impres").innerHTML = `<p class="small muted" style="margin-top:12px">Lecture de l'archive…</p>`;
+    try {
+      if (!window.JSZip) await new Promise((ok, ko) => { const sc = document.createElement("script"); sc.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"; sc.onload = ok; sc.onerror = ko; document.head.appendChild(sc); });
+      const z = await JSZip.loadAsync(file), names = Object.keys(z.files).filter(n => /\.csv$/i.test(n));
+      const pick = names.find(n => /measure|mesure|weight|poids/i.test(n)) || names[0];
+      if (!pick) { $("#impres").innerHTML = `<p class="small" style="margin-top:12px;color:var(--bad)">Aucun fichier CSV dans l'archive.</p>`; return; }
+      return parseImport(await z.file(pick).async("string"));
+    } catch(e){ $("#impres").innerHTML = `<p class="small" style="margin-top:12px;color:var(--bad)">Archive illisible : décompresse-la et choisis le fichier « measurements ».</p>`; return; }
+  }
+  const rd = new FileReader(); rd.onload = () => parseImport(String(rd.result)); rd.readAsText(file);
+}
+function parseImport(raw){
+  {
+    const txt = String(raw).replace(/^﻿/, ""), lines = txt.split(/\r?\n/).filter(l => l.trim());
     const sep = [",", ";", "\t"].sort((a, b) => lines[0].split(b).length - lines[0].split(a).length)[0], split = l => l.split(sep).map(x => x.replace(/^"|"$/g, "").trim());
     const head = split(lines[0]).map(h => h.toLowerCase()); let di = head.findIndex(h => /date|jour/.test(h)), wi = head.findIndex(h => /weight|poids|body ?mass/.test(h));
     const lb = head.some(h => /\blbs?\b|pound/.test(h)), rows = [];
@@ -1609,8 +1643,7 @@ function readImport(file){
     const have = new Set(D.poids.map(p => p.date)), fresh = rows.filter(r => !have.has(r[0])); importRows = fresh; const ds = rows.map(r => r[0]).sort();
     $("#impres").innerHTML = rows.length ? `<p class="small" style="margin-top:12px">${rows.length} pesées trouvées${lb ? " (converties de lb en kg)" : ""}, du ${dfr(ds[0])} au ${dfr(ds.at(-1))}. ${fresh.length} nouvelles.</p>${fresh.length ? `<button class="btn" style="margin-top:12px" id="impb" data-act="doImport">Importer ${fresh.length} pesées</button>` : ""}`
       : `<p class="small" style="margin-top:12px;color:var(--bad)">Aucune pesée reconnue. Le fichier doit contenir une colonne date et une colonne poids.</p>`;
-  };
-  rd.readAsText(file);
+  }
 }
 
 /* =====================================================================
@@ -1730,7 +1763,7 @@ function settingsHtml(){
     <div class="grid2"><div><label for="smu">Muscle-up acquis</label><select id="smu" data-chg="prof" data-k="mu_acquis"><option ${muOn() ? "" : "selected"}>NON</option><option ${muOn() ? "selected" : ""}>OUI</option></select></div>
       <div><label for="ssx">Sexe (pour le RIS)</label><select id="ssx" data-chg="prof" data-k="sexe"><option value="H" ${sexe() === "H" ? "selected" : ""}>Homme</option><option value="F" ${sexe() === "F" ? "selected" : ""}>Femme</option></select></div></div>
     ${Object.keys(blocNames).length ? `<label for="sbl">Bloc en cours</label><select id="sbl" data-chg="blocActif"><option value="">Le dernier onglet de la prog</option>${progOrder.map(n => `<option value="${n}" ${n === chosenBloc() ? "selected" : ""}>${esc(blocLabel(n))}</option>`).join("")}</select>` : ""}
-    <label for="scat">Catégorie de poids</label><select id="scat" data-chg="prof" data-k="categorie">${CATS.map(c => `<option value="${c}" ${c === cat() ? "selected" : ""}>${c > 0 ? "+" + c : c} kg</option>`).join("")}</select>
+    <label for="scat">Catégorie de poids</label><select id="scat" data-chg="prof" data-k="categorie">${catsFor(sexe()).map(c => `<option value="${c}" ${c === cat() ? "selected" : ""}>${c > 0 ? "+" + c : c} kg</option>`).join("")}</select>
     <div class="grid2"><div><label for="sdo">Date des objectifs</label><input id="sdo" type="date" value="${objDate()}" data-chg="prof" data-k="date_objectif"></div>
       <div><label for="sdc">Début de la prog</label><input id="sdc" type="date" value="${D.profil.debut_coaching || ""}" data-chg="prof" data-k="debut_coaching"></div></div>
     <label for="sds">Début du street lifting</label><input id="sds" type="date" value="${D.profil.debut_street || ""}" data-chg="prof" data-k="debut_street">
