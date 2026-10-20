@@ -381,7 +381,7 @@ details>summary::-webkit-details-marker{display:none}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "17 · 20 oct. 2026";
+const APP_VER = "18 · 20 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];
 const LNAME = {MU:"Muscle-up", PULL:"Tractions", DIP:"Dips", SQUAT:"Squat", TOTAL:"Total"};
 const LCOL = {MU:"var(--mu)", PULL:"var(--pull)", DIP:"var(--dip)", SQUAT:"var(--squat)"};
@@ -390,20 +390,70 @@ const RPE_OPTS = [5,6,6.5,7,7.5,8,8.5,9,9.5,10];
 const CATS_H = [-66,-73,-80,-87,-94,-101,101], CATS_F = [-52,-57,-63,-70,70];
 let CATS = CATS_H;
 const catsFor = sx => sx === "F" ? CATS_F : CATS_H;
-/* Records du monde FinalRep (https://final-rep.com/records/, liste mondiale 10/2025, page consultée le 20/10/2026). */
-const WR_FINALREP = `H|-66|448|Youssef Ashura Bouida|43|Youssef Ashura Bouida|100|Youssef Ashura Bouida|143.25|Julien Capdeville|210|Alessio Ceragioli
-H|-73|526.75|Chevillard Aubin|46.25|Chevillard Aubin|108|Chevillard Aubin|158|Johan Sanon|243|Lorenzo Mazzi
-H|-80|532.75|Chevillard Aubin|46.25|Chevillard Aubin|106|Chevillard Aubin|161.25|Daniel Wassenaar|270|Tony D'Agostino
-H|-87|584.25|Pere Coll|53|Pere Coll|120|Ludovic Adigery|182.5|Pere Coll|275|Tony D'Agostino
-H|-94|610|Xavier Macias|44|Xavier Macias|114|Xavier Macias|180.25|Badreddine van der Stoel|292.5|Xavier Macias
-H|-101|562.5|Mathew Zlat|37.5|Mathew Zlat|103.75|Valerio Naldi|175|Mathew Zlat|280|David Klimek
-H|101|577.5|Tonio Zeidler|40|Patryk Dzieniszewski|101.25|Valerio Naldi|187.5|Tonio Zeidler|310|Jan Makula
-F|-52|251.25|Ludivine Compain|17.5|Ludivine Compain|44.5|Katrena G Jia Min|70|Katrena G Jia Min|140|Anais Lozano
-F|-57|291.25|Nadine Hettinga|31.5|Martha Lubczynskyj|62.75|Martha Lubczynskyj|83.5|Nadine Hettinga|160|Julie Brion
-F|-63|286.5|Faye Butler|20|Laura Garcia|55|Gianna Webbe|84|Faye Butler|166|Frida Austigard
-F|-70|293.75|Lynn Narings|23.25|Lynn Narings|57.25|Danae Morgan|80.5|Nadine Schulz|163|Milana Popovic
-F|70|337.5|Sarah Anyamele|27.5|Sarah Anyamele|53.75|Claudia van Osch|85|Sarah Anyamele|180|Sarah Anyamele`.split("\n").map(l => l.split("|"));
-const WR_SRC = "FinalRep, liste mondiale 10/2025";
+/* Records Official Streetlifting (https://rankings.officialstreetlifting.com, tableaux « all-time world & national records » par catégorie,
+   relevés le 20/10/2026). Record de Belgique = meilleure perf belge visible dans ces tableaux (les ~50 meilleures par mouvement) ;
+   pour le total, seule la 1re page du classement est lisible : vide si aucun Belge n'y figure. */
+const REC_OSL = `H|-66|TOTAL|473.75|Walid Boulaghzalate|ITA||
+H|-66|MU|45|Marko Stepic|SRB|30|Dylan Eren
+H|-66|PULL|101.25|Mateusz Koślak|POL|83.75|Dylan Eren
+H|-66|DIP|143.5|Julien Capdeville|FRA|117.5|Thi Zho
+H|-66|SQUAT|237.5|Owen Gayle|GBR|170|Thi Zho
+H|-73|TOTAL|526.75|Aubin Chevillard|FRA||
+H|-73|MU|50|Lionel Da Silva|PRT|35|Samir Hussain
+H|-73|PULL|108|Aubin Chevillard|FRA|82.5|Samir Hussain
+H|-73|DIP|161.25|Ali Shaaben|LBN|135|Albert Israelyan
+H|-73|SQUAT|255|Kristos Vagenas|CAN|240.5|Albert Israelyan
+H|-80|TOTAL|538.5|Aubin Chevillard|FRA||
+H|-80|MU|47.5|Aubin Chevillard|FRA|40|François Conreur
+H|-80|PULL|120|Dmitrii Vlasov|RUS|100.25|François Conreur
+H|-80|DIP|175|Benjamin Detre|FRA|150|François Conreur
+H|-80|SQUAT|271.5|Michael Incoronato|ITA|220|Albert Israelyan
+H|-87|TOTAL|584.25|Pere Coll Fernandez|ESP|528.75|BB Gorison
+H|-87|MU|53|Pere Coll Fernandez|ESP|35|Gwendal Scott Roy Simon
+H|-87|PULL|120.5|Domenico Nicolosi|ITA|95|Paul-Emile Huet
+H|-87|DIP|182.5|Pere Coll Fernandez|ESP|152.5|BB Gorison
+H|-87|SQUAT|302.5|Tony D'Agostino|ITA|255|BB Gorison
+H|-94|TOTAL|620.25|Xavier Macias|ITA|517.5|Robin Pittia
+H|-94|MU|47.5|Dylan Baki Heurteux|FRA|31.25|Gwendal Simon
+H|-94|PULL|125|Ludovic Adamantium|FRA|86.25|Gwendal Scott Roy Simon
+H|-94|DIP|190.25|Théo Goutte-Toquet|FRA|160|Robin Pittia
+H|-94|SQUAT|315|Geir Thorsen|NOR|277.5|Jonas Mees
+H|-101|TOTAL|635|Mathew Zlat|RUS||
+H|-101|MU|47.5|Miguel Tirado Martínez|ESP|15|Florian Lory
+H|-101|PULL|120|Mathew Zlat|RUS|82.5|Florian Lory
+H|-101|DIP|190|Mathew Zlat|RUS|135|Samuel Adjeodah
+H|-101|SQUAT|321.5|Xavier Macias|ITA|245|Florian Lory
+H|101|TOTAL|585|Marc Nassif|LBN||
+H|101|MU|38.75|Marc Nassif|LBN|7.5|Louis Peeters
+H|101|PULL|107.5|Marc Nassif|LBN|62.5|Louis Peeters
+H|101|DIP|187.5|Tonio Zeidler|DEU|117.5|Louis Peeters
+H|101|SQUAT|310|Rok Didakovic|HRV|220|Louis Peeters
+F|-52|TOTAL|263.75|Ludivine Compain|FRA||
+F|-52|MU|22.75|Maragda Puigcerver|ESP||
+F|-52|PULL|48|Jill Rehman|CAN|32.5|Lindsay Depaepe
+F|-52|DIP|71.25|Camille Seychelles|FRA|47.5|Lindsay Depaepe
+F|-52|SQUAT|145|Anaïs Lozano Rojas|ESP|112.5|Lindsay Depaepe
+F|-57|TOTAL|305|Lylia Ammour|FRA||
+F|-57|MU|31.5|Martha Lubczynskyj|GBR|10|Alice Nederlandt
+F|-57|PULL|62.75|Martha Lubczynskyj|GBR|36.25|Manon Vergucht
+F|-57|DIP|83.5|Nadine Hettinga|NLD|55|Manon Vergucht
+F|-57|SQUAT|165|Sofia Cerdan Bes|ITA|122.5|Manon Vergucht
+F|-63|TOTAL|306.25|Lynn Narings|NLD||
+F|-63|MU|31.25|Martha Lubczynskyj|GBR|6.25|Manon Vergucht
+F|-63|PULL|60|Lilian Silva Monteiro|BRA|42.5|Lotte Berghmans
+F|-63|DIP|86.25|Gianna Webbe|GBR|50|Manon Vergucht
+F|-63|SQUAT|167.5|Julijana Kovacic|SRB|150.5|Morgane Bouvy
+F|-70|TOTAL|301.25|Lynn Narings|NLD||
+F|-70|MU|23.5|Christina Fröhlich|DEU||
+F|-70|PULL|57.5|Danae Morgan|USA|41.25|Lotte Berghmans
+F|-70|DIP|80.75|Miche De Malleray Guil|FRA|41.25|Lotte Berghmans
+F|-70|SQUAT|175|Frida Austigard Petersen|NOR|132.5|Damarys Breard
+F|70|TOTAL|337.5|Sarah Anyamele|DEU|275|Liselotte Den Haese
+F|70|MU|27.5|Sarah Anyamele|DEU|10|Liselotte Den Haese
+F|70|PULL|53.75|Claudia Van Osch|NLD|37.5|Liselotte Den Haese
+F|70|DIP|85|Sarah Anyamele|DEU|72.5|Liselotte Den Haese
+F|70|SQUAT|180|Sarah Anyamele|DEU|155|Liselotte Den Haese`.split("\n").map(l => l.split("|"));
+const WR_SRC = "Official Streetlifting, relevé du 20/10/2026";
 const JOUR_IDX = {LUNDI:0, MARDI:1, MERCREDI:2, JEUDI:3, VENDREDI:4, SAMEDI:5, DIMANCHE:6};
 const BILAN_CRIT = ["Sommeil","Plaisir","Motivation","Fatigue","Hydratation","Alimentation"];
 const CHECK_DEFAULT = ["Inscription et licence en ordre","Horaire de la pesée noté","Ceinture de lest et chaîne","Magnésie","Chaussures et tenue","Pièce d'identité","Repas et boisson pour la journée","Tentatives validées avec le coach"];
@@ -545,6 +595,8 @@ async function loadApp(){
   const [P, PR, PO, OB, RE, CO, SE, BL, TE, CH, BI] = await Promise.all(R.map(r => getVals(APP_ID, r)));
   raw = {P, OB, BL, TE, CH};
   let repas = [], aliments = [], nutTabs = false;
+  let depense = {};
+  try { const DP = await getVals(APP_ID, "DEPENSE!A1:D5000"); DP.slice(1).forEach((r, i) => { const d = toIso(r[0]), k = num(r[1]); if (d && k) depense[d] = {k, src:String(r[2] || ""), h:String(r[3] || ""), _row:i + 2}; }); } catch(e){ depense = (D && D.depense) || {}; }
   try { const [RP, AL] = await Promise.all([getVals(APP_ID, "REPAS!A1:J40000"), getVals(APP_ID, "ALIMENTS!A1:I5000")]); nutTabs = true;
     repas = RP.map((r, i) => ({_row:i + 1, date:toIso(r[0]), h:String(r[1] || ""), nom:String(r[2] || ""), q:num(r[5]) || 0, k:num(r[6]) || 0, p:num(r[7]) || 0, g:num(r[8]) || 0, l:num(r[9]) || 0})).slice(1).filter(x => x.date && x.nom);
     aliments = AL.slice(1).filter(r => r[0] && num(r[4]) !== null).map(r => ({nom:String(r[0]), marque:String(r[1] || ""), src:String(r[2] || "perso"), code:String(r[3] || ""), k:num(r[4]), p:num(r[5]) || 0, g:num(r[6]) || 0, l:num(r[7]) || 0}));
@@ -567,7 +619,7 @@ async function loadApp(){
   const tent = TE.map((r, i) => ({row:i + 1, date:toIso(r[0]), lift:norm(r[1]), t:[num(r[2]), num(r[3]), num(r[4])], r:[r[5] || "", r[6] || "", r[7] || ""]})).slice(1).filter(x => x.date && x.lift);
   const checks = CH.map((r, i) => ({row:i + 1, date:toIso(r[0]), item:String(r[1] || "").trim(), done:/^(true|vrai|oui|1|x)$/i.test(String(r[2] || "").trim())})).slice(1).filter(x => x.date && x.item);
   const bilans = BI.slice(1).map(r => ({date:toIso(r[0]), bloc:num(r[1]), semaine:String(r[2] ?? "").trim(), v:BILAN_CRIT.map((_, i) => num(r[3 + i]))})).filter(b => b.bloc);
-  D = {profil, prs, poids, objectifs, records, comps, series, blocs, tent, checks, bilans, repas, aliments, _nutTabs:nutTabs, today:isoOf(new Date())};
+  D = {profil, prs, poids, objectifs, records, comps, series, blocs, tent, checks, bilans, repas, aliments, depense, _nutTabs:nutTabs, today:isoOf(new Date())};
 }
 
 /* =====================================================================
@@ -577,7 +629,7 @@ const coachId = () => D.profil.coach_sheet_id;
 /* Les blocs de la prog : onglets « BLOC n », et aussi tout onglet nommé autrement (« Peaking BSLC »…)
    qui contient un tableau de séances (en-tête « MOUVEMENT »). Ordre chronologique = ordre des onglets. */
 let progOrder = [];
-const CARNET_TABS = new Set(["PROFIL","PR","POIDS","OBJECTIFS","RECORDS","COMPETITIONS","SERIES","BLOCS","TENTATIVES","CHECKLIST","BILAN","HISTORIQUE","REPAS","ALIMENTS"]);
+const CARNET_TABS = new Set(["PROFIL","PR","POIDS","OBJECTIFS","RECORDS","COMPETITIONS","SERIES","BLOCS","TENTATIVES","CHECKLIST","BILAN","HISTORIQUE","REPAS","ALIMENTS","DEPENSE"]);
 const BLOC_RE = /^\s*BLOC\s*(\d+)\s*$/i;
 /* Un onglet est un bloc s'il contient un tableau de séances : une ligne avec « MOUVEMENT » et « SÉRIES » ou « RÉPÉTITIONS ». */
 function progInfo(v){
@@ -848,9 +900,9 @@ function best(l){ if (l === "MU" && !muOn()) return null; const x = D.prs.filter
 const total = () => LIFTS.reduce((s, l) => s + (best(l) || 0), 0);
 function bestSeries(l){ let m = -Infinity; const out = []; D.prs.filter(p => p.lift === l && p.reps === 1).forEach(p => { if (p.charge > m) { m = p.charge; out.push({date:p.date, v:m}); } }); return out; }
 const record = (type, l) => {
-  if (type === "WR") { const row = WR_FINALREP.find(r => r[0] === (sexe() === "F" ? "F" : "H") && +r[1] === cat()); if (!row) return null;
-    const i = ["TOTAL","MU","PULL","DIP","SQUAT"].indexOf(l); return i < 0 ? null : {valeur:+row[2 + i * 2], detenteur:row[3 + i * 2], source:WR_SRC}; }
-  const r = D.records.find(r => r.type === type && r.categorie === cat() && r.lift === l && /final-?rep/i.test(r.source || "")); return r && r.valeur ? r : null; };
+  const row = REC_OSL.find(r => r[0] === (sexe() === "F" ? "F" : "H") && +r[1] === cat() && r[2] === l); if (!row) return null;
+  if (type === "WR") return {valeur:+row[3], detenteur:row[4] + " (" + row[5] + ")", source:WR_SRC};
+  return row[6] ? {valeur:+row[6], detenteur:row[7], source:WR_SRC} : null; };
 const nextComp = () => D.comps.find(c => c.date >= D.today) || null;
 const firstComp = () => D.comps.length ? D.comps[0].date : null;
 /* 1RM estimé : table RPE de RTS (série à fond) jusqu'à 10 reps, Epley au-delà ; pour MU/tractions/dips, sur la charge réelle (corps + lest) puis ramené au lest */
@@ -1520,8 +1572,8 @@ function rLiftPage(l){
     <h2 class="h2">Face aux records <span class="muted">${cat()} kg</span></h2>
     <div>${(() => { const top = Math.max(b || 0, ...[nr, wr].filter(Boolean).map(x => x.valeur)) || 1;
       return `<div class="rec" style="margin-top:0"><div class="row"><b>Toi</b><b>${fmt(b)}</b></div><div class="bar" style="--c:${LCOL[l]}"><i style="width:${(b || 0) / top * 100}%"></i></div></div>`
-        + [["Record de Belgique", nr], ["Record du monde", wr]].map(([lab, x]) => x ? `<div class="rec"><div class="row"><span>${lab} · ${esc(x.detenteur)}</span><span style="color:var(--steel-hi)">${fmt(x.valeur)}</span></div><div class="bar" style="--c:#5B5F67"><i style="width:${x.valeur / top * 100}%"></i></div></div>` : `<p class="muted small rec">${lab} : ${lab.includes("Belgique") ? "pas encore publié par FinalRep (seuls le Brésil, la zone DACH et la France le sont)." : "pas de record dans cette catégorie."}</p>`).join(""); })()}
-      <p class="muted tiny" style="margin-top:12px">Source : <a href="https://final-rep.com/records/" target="_blank" rel="noopener">FinalRep, records</a> (${WR_SRC}). Catégorie ${sexe() === "F" ? "femmes" : "hommes"} ${cat() > 0 ? "+" + cat() : cat()} kg.</p></div>
+        + [["Record de Belgique", nr], ["Record du monde", wr]].map(([lab, x]) => x ? `<div class="rec"><div class="row"><span>${lab} · ${esc(x.detenteur)}</span><span style="color:var(--steel-hi)">${fmt(x.valeur)}</span></div><div class="bar" style="--c:#5B5F67"><i style="width:${x.valeur / top * 100}%"></i></div></div>` : `<p class="muted small rec">${lab} : ${lab.includes("Belgique") ? "aucune perf belge dans les tableaux publiés." : "pas de record dans cette catégorie."}</p>`).join(""); })()}
+      <p class="muted tiny" style="margin-top:12px">Source : <a href="https://rankings.officialstreetlifting.com/records/${sexe() === "F" ? "female" : "male"}/classes/${cat() > 0 ? "+" + cat() : cat()}kg" target="_blank" rel="noopener">Official Streetlifting, records ${sexe() === "F" ? "femmes" : "hommes"} ${cat() > 0 ? "+" + cat() : cat()} kg</a> (relevé du 20/10/2026). Record de Belgique : meilleure perf belge de leurs tableaux.</p></div>
 
     <h2 class="h2">Ajouter un record</h2>
     <p class="muted small" style="margin:-6px 0 8px">Pour une perf absente de ta prog : charge et nombre de reps. Elle compte dans le tableau des records et dans le 1RM estimé.</p>
@@ -1956,10 +2008,11 @@ const macrosOf = (f, q) => ({k:f.k * q / 100, p:(f.p || 0) * q / 100, g:(f.g || 
 
 /* ---------- Besoins : Mifflin-St Jeor × activité, puis objectif ---------- */
 function ageNow(){ const n = toIso(D.profil.naissance); if (n) return Math.floor(days(n, D.today) / 365.25); return num(D.profil.age) || null; }
-function nutTargets(){
-  const P = D.poids, w = P.length ? (avg7(P).at(-1) || P.at(-1).poids) : null, h = num(D.profil.taille_cm), a = ageNow();
-  if (!w || !h || !a) return {missing:[!w && "une pesée", !h && "ta taille", !a && "ton âge"].filter(Boolean)};
-  const bmr = 10 * w + 6.25 * h - 5 * a + (sexe() === "F" ? -161 : 5), act = num(D.profil.nut_activite) || 1.55, tdee = bmr * act;
+function nutTargets(day){
+  const P = D.poids, w = P.length ? (avg7(P).at(-1) || P.at(-1).poids) : null, h = num(D.profil.taille_cm), a = ageNow(), dep = (D.depense || {})[day || D.today];
+  if (!w) return {missing:["une pesée"]};
+  if (!dep && (!h || !a)) return {missing:[!h && "ta taille", !a && "ton âge"].filter(Boolean), orDep:true};
+  const bmr = h && a ? 10 * w + 6.25 * h - 5 * a + (sexe() === "F" ? -161 : 5) : null, act = num(D.profil.nut_activite) || 1.55, tdee = dep ? dep.k : bmr * act;
   const obj = D.profil.nut_objectif || "suivi"; let rate = 0, note = "", warn = "";
   if (obj === "perte") rate = -(num(D.profil.nut_rythme) || 0.5);
   if (obj === "prise") rate = num(D.profil.nut_rythme) || 0.25;
@@ -1970,9 +2023,9 @@ function nutTargets(){
         if (rate < -1) { warn = `C'est plus de 1 % de ton poids par semaine : trop rapide pour garder ta force. L'app plafonne à 1 % ; parle-en à ton coach (catégorie, date).`; rate = -1; } } }
     else note = "Indique ta limite de poids et la date de la pesée."; }
   const delta = obj === "suivi" || obj === "maintien" ? 0 : w * rate / 100 * 7700 / 7;
-  let kcal = tdee + delta; if (kcal < bmr) { warn = warn || "Le déficit demandé passerait sous ton métabolisme de base : l'app s'arrête à ce plancher."; kcal = bmr; }
+  let kcal = tdee + delta; if (bmr && kcal < bmr) { warn = warn || "Le déficit demandé passerait sous ton métabolisme de base : l'app s'arrête à ce plancher."; kcal = bmr; }
   const pk = rate < 0 ? 2.2 : 1.8, p = pk * w, l = Math.max(0.5 * w, kcal * 0.25 / 9), g = Math.max(0, (kcal - p * 4 - l * 9) / 4);
-  return {w, bmr, tdee, kcal, p, g, l, pk, rate, obj, note, warn};
+  return {w, bmr, tdee, kcal, p, g, l, pk, rate, obj, note, warn, dep};
 }
 
 /* ---------- Écran ---------- */
@@ -1982,13 +2035,15 @@ function dayRows(d){ return (D.repas || []).filter(x => x.date === d); }
 function rNutri(){
   if (!nutDate) nutDate = D.today;
   if (!FOODS) loadFoods().then(() => { const l = $("#nutload"); if (l) l.remove(); nutRefresh(); }).catch(() => { const l = $("#nutload"); if (l) l.textContent = "Table des aliments indisponible hors connexion pour l'instant."; });
-  const R = dayRows(nutDate), tot = R.reduce((a, x) => ({k:a.k + x.k, p:a.p + x.p, g:a.g + x.g, l:a.l + x.l}), {k:0, p:0, g:0, l:0}), T = nutTargets();
-  const hasT = T.kcal && T.obj !== "suivi", left = hasT ? T.kcal - tot.k : null;
+  const R = dayRows(nutDate), tot = R.reduce((a, x) => ({k:a.k + x.k, p:a.p + x.p, g:a.g + x.g, l:a.l + x.l}), {k:0, p:0, g:0, l:0}), T = nutTargets(nutDate);
+  const hasT = T.kcal && (T.obj !== "suivi" || T.dep), left = hasT ? T.kcal - tot.k : null;
   const bar = (lab, v, tg, col) => `<div style="margin-top:12px"><div class="row small"><span>${lab}</span><span><b>${fmt(v, 0)}</b>${tg ? ` / ${fmt(tg, 0)} g` : " g"}</span></div><div class="bar" style="--c:${col}"><i style="width:${tg ? Math.min(100, v / tg * 100) : 0}%"></i></div></div>`;
   const rows = R.slice().sort((a, b) => (a.h || "") < (b.h || "") ? -1 : 1).map(x => `<div class="item" style="display:flex;gap:10px;align-items:center"><span class="muted small" style="width:42px">${esc(x.h || "")}</span><span class="grow"><span class="ttl" style="display:block">${esc(x.nom)}</span><span class="muted tiny">${fmt(x.q, 0)} g · P ${fmt(x.p, 1)} · G ${fmt(x.g, 1)} · L ${fmt(x.l, 1)}</span></span><b class="small">${fmt(x.k, 0)}</b><button class="iconbtn" style="width:32px;height:32px" data-act="nutDel" data-r="${x._row}" aria-label="Supprimer">×</button></div>`).join("");
   $("#v-corps").innerHTML = corpsSeg() + `
     <div class="row" style="margin-bottom:10px"><button class="iconbtn" data-act="nutDay" data-d="-1" aria-label="Jour précédent">‹</button><b>${nutDate === D.today ? "Aujourd'hui" : cap(dlong(nutDate))}</b><button class="iconbtn" data-act="nutDay" data-d="1" aria-label="Jour suivant" ${nutDate >= D.today ? "disabled" : ""}>›</button></div>
     ${heroCard({small:hasT ? "Calories du jour" : "Calories du jour (suivi)", big:`${fmt(tot.k, 0)}<small>${hasT ? " / " + fmt(T.kcal, 0) : ""} kcal</small>`, sub:hasT ? (left >= 0 ? "reste " + fmt(left, 0) + " kcal" : fmt(-left, 0) + " kcal au-dessus") : R.length + " aliment" + (R.length > 1 ? "s" : "") + " noté" + (R.length > 1 ? "s" : ""), deco:false})}
+    ${(() => { const dp = (D.depense || {})[nutDate]; return `<div class="panel" style="margin-top:12px"><div class="row"><span><b>Dépense du jour</b><br><span class="muted tiny">${dp ? (dp.src || "saisie") + (dp.h ? " · " + esc(dp.h) : "") : "Calories de ta montre (Polar Flow…) ; sinon, estimation"}</span></span>
+      <span class="row" style="gap:6px"><input id="ndep" inputmode="numeric" style="width:92px;text-align:right" placeholder="${T.tdee && !dp ? fmt(T.tdee, 0) : "kcal"}" value="${dp ? fmt(dp.k, 0) : ""}"><button class="btn sm" data-act="nutDep">OK</button></span></div></div>`; })()}
     <div class="panel" style="margin-top:12px">${bar("Protéines", tot.p, hasT && T.p, "var(--brand)")}${bar("Glucides", tot.g, hasT && T.g, "var(--chalk)")}${bar("Lipides", tot.l, hasT && T.l, "var(--dust)")}</div>
     <h2 class="h2">Ajouter</h2>
     <input id="nutin" placeholder="Ex. riz, 250 g de pâtes sèches, 1 cordon bleu" value="${esc(nutQ)}" autocomplete="off" data-inp="nutQ">
@@ -2024,11 +2079,11 @@ function nutGoalHtml(T){
     ${o === "compet" ? `<div class="grid2"><div><label for="nci">Limite de poids (kg)</label><input id="nci" inputmode="decimal" value="${esc(D.profil.nut_cible || (lim || ""))}" data-chg="prof" data-k="nut_cible"></div><div><label for="nda">Date de la pesée</label><input id="nda" type="date" value="${esc(toIso(D.profil.nut_date) || (nextComp() || {}).date || "")}" data-chg="prof" data-k="nut_date"></div></div>` : ""}
     <label for="nac">Activité</label><select id="nac" data-chg="prof" data-k="nut_activite">${NUT_ACT.map(([v, t]) => `<option value="${v}" ${v === (num(D.profil.nut_activite) || 1.55) ? "selected" : ""}>${t}</option>`).join("")}</select>
     ${!num(D.profil.taille_cm) || !ageNow() ? `<div class="grid2">${!num(D.profil.taille_cm) ? `<div><label for="nta">Taille (cm)</label><input id="nta" inputmode="numeric" data-chg="prof" data-k="taille_cm"></div>` : ""}${!ageNow() ? `<div><label for="nna">Date de naissance</label><input id="nna" type="date" data-chg="prof" data-k="naissance"></div>` : ""}</div>` : ""}
-    ${T.missing ? `<p class="muted small" style="margin-top:12px">Pour calculer tes besoins, il manque ${T.missing.join(", ")}.</p>` : `
-      <div class="grid3" style="margin-top:14px"><div><p class="muted tiny">Métabolisme de base</p><p class="show t-s">${fmt(T.bmr, 0)}</p></div><div><p class="muted tiny">Dépense du jour</p><p class="show t-s">${fmt(T.tdee, 0)}</p></div><div><p class="muted tiny">${o === "suivi" ? "Repère" : "Cible"}</p><p class="show t-s">${fmt(o === "suivi" ? T.tdee : T.kcal, 0)}</p></div></div>
+    ${T.missing ? `<p class="muted small" style="margin-top:12px">${T.orDep ? "Note ta dépense du jour (ta montre) plus haut, ou indique " + T.missing.join(" et ") + " pour une estimation." : "Pour calculer tes besoins, il manque " + T.missing.join(", ") + "."}</p>` : `
+      <div class="grid3" style="margin-top:14px"><div><p class="muted tiny">Métabolisme de base</p><p class="show t-s">${T.bmr ? fmt(T.bmr, 0) : "–"}</p></div><div><p class="muted tiny">Dépense du jour${T.dep ? " (montre)" : " (estimée)"}</p><p class="show t-s">${fmt(T.tdee, 0)}</p></div><div><p class="muted tiny">${o === "suivi" ? "Repère" : "Cible"}</p><p class="show t-s">${fmt(o === "suivi" ? T.tdee : T.kcal, 0)}</p></div></div>
       ${o !== "suivi" ? `<p class="small" style="margin-top:10px">Protéines ${fmt(T.p, 0)} g (${fmt(T.pk, 1)} g/kg) · Lipides ${fmt(T.l, 0)} g · Glucides ${fmt(T.g, 0)} g</p>` : ""}
       ${T.note ? `<p class="muted small" style="margin-top:8px">${esc(T.note)}</p>` : ""}${T.warn ? `<p class="small" style="margin-top:8px;color:var(--warn)">${esc(T.warn)}</p>` : ""}
-      <p class="muted tiny" style="margin-top:10px">Estimation de départ : formule de Mifflin-St Jeor × ton activité, 7 700 kcal par kg (approximation). Protéines : 1,8 g/kg, 2,2 g/kg en perte ; lipides : 25 % des calories, au moins 0,5 g/kg ; glucides : le reste. À ajuster après 2 à 3 semaines selon l'évolution réelle de ton poids.</p>`}
+      <p class="muted tiny" style="margin-top:10px">${T.dep ? "Dépense : celle de ta montre pour ce jour. " : ""}Sans montre : formule de Mifflin-St Jeor × ton activité, 7 700 kcal par kg (approximation). Protéines : 1,8 g/kg, 2,2 g/kg en perte ; lipides : 25 % des calories, au moins 0,5 g/kg ; glucides : le reste. À ajuster après 2 à 3 semaines selon l'évolution réelle de ton poids.</p>`}
   </div>`;
 }
 
@@ -2036,6 +2091,13 @@ function nutGoalHtml(T){
 async function nutEnsureTabs(){ if (D._nutTabs) return; if (typeof ensureTabs === "function") await ensureTabs(APP_ID); D._nutTabs = true; }
 Object.assign(ACT, {
   corpsTab:d => { corpsTab = d.k; rCorps(); },
+  nutDep:async () => { const k = num($("#ndep").value); if (!k || k < 800 || k > 9000) return toast("Indique la dépense du jour en kcal (ex. 3 200)", true);
+    const now = new Date(), h = nutDate === D.today ? String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0") : "", old = (D.depense || {})[nutDate];
+    try { if (!D._nutTabs && typeof ensureTabs === "function") { await ensureTabs(APP_ID); D._nutTabs = true; }
+      const row = [nutDate, Math.round(k), "saisie", h];
+      if (old && old._row) await putVals(APP_ID, `DEPENSE!A${old._row}:D${old._row}`, [row]);
+      else { const res = await appendVals(APP_ID, "DEPENSE!A1:D1", [row]), m = JSON.stringify(res || {}).match(/DEPENSE!A(\d+)/); D.depense[nutDate] = {_row:m ? +m[1] : 0}; }
+      Object.assign(D.depense[nutDate] || (D.depense[nutDate] = {}), {k:Math.round(k), src:"saisie", h}); saveCache(); rNutri(); toast("Dépense enregistrée"); } catch(e){ toast(errMsg(e), true); } },
   nutDay:d => { nutDate = addDays(nutDate || D.today, +d.d); if (nutDate > D.today) nutDate = D.today; nutPick = null; rNutri(); },
   nutPickFood:d => { const p = parseFoodLine(nutQ), f = searchFoods(p.txt)[+d.i]; if (!f) return; nutPick = {f, q:p.q || (p.n && f.por ? p.n * f.por : null), n:p.n}; offRes = null; nutRefresh(); setTimeout(() => { const q = $("#nq"); if (q) q.focus(); }, 50); },
   nutPickOff:d => { const f = offRes && offRes[+d.i]; if (!f) return; const p = parseFoodLine(nutQ); nutPick = {f, q:p.q, n:p.n, off:true}; nutRefresh(); },

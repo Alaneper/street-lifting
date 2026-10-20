@@ -18,6 +18,8 @@ with sync_playwright() as p:
         pg.click("[data-act=nutAdd]"); pg.wait_for_timeout(800)
     print("héros :", pg.locator("#v-corps .hero").first.inner_text().replace("\n", " | "))
     print("REPAS :", pg.evaluate(f"(window.__sheets['{APP}'].REPAS||[]).slice(0,4)"))
+    pg.fill("#ndep", "4398"); pg.click("[data-act=nutDep]"); pg.wait_for_timeout(800)
+    print("dépense :", pg.evaluate(f"(window.__sheets['{APP}'].DEPENSE||[]).slice(0,3)"), "| héros :", pg.locator("#v-corps .hero").first.inner_text().replace("\n"," | "))
     pg.select_option("#nob", "perte"); pg.wait_for_timeout(1200)
     print("objectif :", pg.locator("#v-corps .panel").last.inner_text().replace("\n", " | ")[:400])
     pg.screenshot(path=str(OUT / "nutri.png"), full_page=True)
