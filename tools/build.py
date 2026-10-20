@@ -38,7 +38,7 @@ rep('<meta name="claude:viewport-fit-sides" content="cover">\n', "")
 s = head + s
 rep("</style>\n\n<main", """/* Web app */
 body{padding-top:calc(env(safe-area-inset-top,0px) + 8px)}
-body.ob .tabs,body.ob .avatar{display:none}
+body.ob .tabs,body.ob .avatar,body.ob .topbar{display:none}
 .ob{max-width:520px;margin:0 auto;padding-bottom:40px}
 .obbar{margin-top:12px}
 .obbar .plate{transform-box:fill-box;transform-origin:center;animation:obin .6s cubic-bezier(.2,.9,.2,1) both}
@@ -53,7 +53,7 @@ rep('<p class="muted small" style="margin-top:14px">La première fois, Claude te
 cut("/* =====================================================================\n   ACCÈS AUX DONNÉES", "/* =====================================================================\n   DONNÉES PERSO", "")
 rep('const SHEETS = "Google Sheets";\nconst APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";', "let APP_ID = \"\";")
 rep("let mcp = null, D = null", "let D = null")
-rep("await Promise.all(R.map(r => getVals(APP_ID, r)))", "await getMany(APP_ID, R)")
+rep("Promise.all(R.map(r => getVals(APP_ID, r)))", "getMany(APP_ID, R)")
 rep("const coachId = () => D.profil.coach_sheet_id;", "const coachId = () => idOf(D.profil.coach_sheet_id);")
 rep('"sl4-cache"', 'ck("sl4-cache")', 2)
 n = s.count('"sl4-live"'); s = s.replace('"sl4-live"', 'ck("sl4-live")'); assert n >= 4, n

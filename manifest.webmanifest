@@ -1,7 +1,7 @@
 {
   "name": "Street Lifting",
   "short_name": "Street Lifting",
-  "description": "PR, total, RIS, prog du coach, poids de corps et compétitions.",
+  "description": "Prog du coach, records, total, RIS, poids, alimentation et compétitions.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",

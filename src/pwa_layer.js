@@ -69,19 +69,13 @@ const dlr = {async save({filename, data}){
 /* ---------- Carnet de données : structure ---------- */
 const TABS = {
   PROFIL:["Clé","Valeur","Note"], PR:["Date","Mouvement","Charge (kg)","Reps","Note"], POIDS:["Date","Poids (kg)","Note"],
-  OBJECTIFS:["Mouvement","Objectif (kg)","Note"], RECORDS:["Type","Catégorie","Mouvement","Record (kg)","Détenteur","Source","Vérifié le"],
+  OBJECTIFS:["Mouvement","Objectif (kg)","Note"],
   COMPETITIONS:["Date","Nom","Lieu","Note","Statut"], SERIES:["Date","Bloc","Semaine","Séance","Exercice","Charge (kg)","Reps par série","Source","Note"],
-  BLOCS:["Bloc","Lundi de la semaine 1","Note"], TENTATIVES:["Date compét","Mouvement","Tentative 1","Tentative 2","Tentative 3","Résultat 1","Résultat 2","Résultat 3","Note"],
+  BLOCS:["Bloc","Lundi de la semaine 1","Note"],
   CHECKLIST:["Date compét","Élément","Fait"], BILAN:["Date","Bloc","Semaine","Sommeil","Plaisir","Motivation","Fatigue","Hydratation","Alimentation"],
   HISTORIQUE:["Prog","Onglet","Bloc","Début du bloc","Semaine","Séance","Jour","Ligne","Mouvement","Variation","Séries","Reps","Charge","RPE S1","RPE dernière","Commentaire athlète","Cycle"],
   REPAS:["Date","Heure","Aliment","Source","Code","Quantité (g)","Kcal","Protéines (g)","Glucides (g)","Lipides (g)"], ALIMENTS:["Nom","Marque","Source","Code","Kcal /100 g","Protéines /100 g","Glucides /100 g","Lipides /100 g","Note"], DEPENSE:["Date","Kcal","Source","Heure"]
 };
-/* Records vérifiés le 19/10/2026 sur rankings.officialstreetlifting.com (catégorie -80 kg hommes). Les autres catégories s'ajoutent dans l'onglet RECORDS. */
-const OSL = "https://rankings.officialstreetlifting.com/records/male/classes/-80kg";
-const RECORDS_DEFAULT = [["WR","-80","TOTAL","538.5","Aubin Chevillard (FRA)",OSL,"2026-10-19"],["WR","-80","MU","47.5","Aubin Chevillard (FRA)",OSL,"2026-10-19"],
-  ["WR","-80","PULL","120","Dmitrii Vlasov (RUS)",OSL,"2026-10-19"],["WR","-80","DIP","175","Benjamin Detre (FRA)",OSL,"2026-10-19"],["WR","-80","SQUAT","271.5","Michael Incoronato (ITA)",OSL,"2026-10-19"],
-  ["NR BE","-80","MU","40","François Conreur (BEL)",OSL,"2026-10-19"],["NR BE","-80","PULL","100.25","François Conreur (BEL)",OSL,"2026-10-19"],
-  ["NR BE","-80","DIP","150","François Conreur (BEL)",OSL,"2026-10-19"],["NR BE","-80","SQUAT","220","Albert Israelyan (BEL)",OSL,"2026-10-19"]];
 async function writeMany(id, data){ return gapi(API + id + "/values:batchUpdate", {method:"POST", body:JSON.stringify({valueInputOption:"RAW", data})}); }
 async function ensureTabs(id){
   const have = new Set(await getTitles(id)), miss = Object.keys(TABS).filter(t => !have.has(t));
@@ -94,10 +88,9 @@ async function createBook(p){
     sheets:Object.keys(TABS).map(t => ({properties:{title:t, gridProperties:{frozenRowCount:1}}}))})});
   const id = r.spreadsheetId;
   const prof = [["prenom",p.prenom],["sexe",p.sexe],["naissance",""],["taille_cm",p.taille || ""],["categorie",p.categorie],["coach_sheet_id",p.coach || ""],["bloc_actif",p.bloc || ""],["mu_acquis",p.mu || "NON"],
-    ["date_objectif",addMonths(isoOf(new Date()), 12)],["debut_street",p.debut || ""],["debut_coaching",p.debutCoach || ""]];
+    ["debut_street",p.debut || ""],["debut_coaching",p.debutCoach || ""]];
   const data = Object.keys(TABS).map(t => ({range:t + "!A1", values:[TABS[t]]}));
   data.push({range:"PROFIL!A2", values:prof});
-  data.push({range:"RECORDS!A2", values:RECORDS_DEFAULT});
   const prs = LIFTS.filter(l => num(p["pr_" + l])).map(l => [isoOf(new Date()), l, num(p["pr_" + l]), 1, p.coach && obPre ? "Max de la prog du coach" : "Saisi à l'inscription"]);
   if (prs.length) data.push({range:"PR!A2", values:prs});
   if (num(p.poids)) data.push({range:"POIDS!A2", values:[[isoOf(new Date()), num(p.poids), ""]]});
@@ -141,7 +134,7 @@ function onboard(step, why){
     <button class="btn" style="margin-top:22px" data-act="obLogin">Continuer avec Google</button>${err}
     <p class="muted tiny" style="margin-top:14px">Google peut afficher « application non validée » : c'est normal pour une app en test. Touche « Continuer ».</p>`;
   else if (step === "carnet") h = `<p class="show t-m" style="margin-top:18px">Ton carnet de données</p>
-    <p class="muted small" style="margin-top:6px">L'app range tes PR, pesées et séances dans un Google Sheet à toi.</p>
+    <p class="muted small" style="margin-top:6px">L'app range tes records, pesées, séances et repas dans un Google Sheet à toi.</p>
     <div class="panel" style="margin-top:16px"><p style="font-weight:600">Nouveau ici, avec une prog de coach</p><p class="muted small" style="margin-top:4px">Colle le lien de ta prog : l'app y lit ton prénom, ton poids et tes max, et crée ton carnet.</p>
       <label for="obcoach">Lien de la prog de ton coach</label><input id="obcoach" type="url" placeholder="https://docs.google.com/spreadsheets/d/…">
       <button class="btn" style="margin-top:12px" data-act="obFromCoach" id="obfc">Tout remplir depuis ma prog</button>

@@ -364,7 +364,7 @@ details>summary::-webkit-details-marker{display:none}
 @media (prefers-reduced-motion:reduce){*,*::before{animation:none!important;transition:none!important}}
 /* Web app */
 body{padding-top:calc(env(safe-area-inset-top,0px) + 8px)}
-body.ob .tabs,body.ob .avatar{display:none}
+body.ob .tabs,body.ob .avatar,body.ob .topbar{display:none}
 .ob{max-width:520px;margin:0 auto;padding-bottom:40px}
 .obbar{margin-top:12px}
 .obbar .plate{transform-box:fill-box;transform-origin:center;animation:obin .6s cubic-bezier(.2,.9,.2,1) both}
@@ -397,7 +397,7 @@ body.ob .tabs,body.ob .avatar{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "18 · 20 oct. 2026";
+const APP_VER = "19 · 20 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];
 const LNAME = {MU:"Muscle-up", PULL:"Tractions", DIP:"Dips", SQUAT:"Squat", TOTAL:"Total"};
 const LCOL = {MU:"var(--mu)", PULL:"var(--pull)", DIP:"var(--dip)", SQUAT:"var(--squat)"};
@@ -478,10 +478,6 @@ const RIS = {
   H:{a:335.5625, k:556.1103380806655, b:0.10289374204365953, v:76.74125992622565, q:0.4973075488457353},
   F:{a:189.0625, k:281.8317115772956, b:0.28812554082125424, v:69.83492229989282, q:0.004337919108356886}
 };
-/* Repère de progression : Latella et al. (2023), Sports Medicine 54(3):753-774.
-   +7,5 à 12,5 % la 1re année de compétition, jusqu'à ~20 % après 10 ans (12,5 à 20 %).
-   Entre les deux : interpolation logarithmique (calcul de l'app). */
-const G1 = [0.075, 0.125], G10 = [0.125, 0.20];
 
 /* =====================================================================
    ÉTAT
@@ -593,35 +589,35 @@ const store = {
    DONNÉES PERSO (Sheet « Street lifting app »)
    ===================================================================== */
 async function loadApp(){
-  const R = ["PROFIL!A1:C60","PR!A1:E3000","POIDS!A1:C10000","OBJECTIFS!A1:C60","RECORDS!A1:G200","COMPETITIONS!A1:E200","SERIES!A1:I10000","BLOCS!A1:C200","TENTATIVES!A1:I500","CHECKLIST!A1:C500","BILAN!A1:I1000"];
-  const [P, PR, PO, OB, RE, CO, SE, BL, TE, CH, BI] = await getMany(APP_ID, R);
-  raw = {P, OB, BL, TE, CH};
+  const R = ["PROFIL!A1:C60","PR!A1:E3000","POIDS!A1:C10000","OBJECTIFS!A1:C60","COMPETITIONS!A1:E200","SERIES!A1:I10000","BLOCS!A1:C200","CHECKLIST!A1:C500","BILAN!A1:I1000"];
+  /* onglets ajoutés plus tard : lus en même temps, absents tolérés */
+  const opt = r => getVals(APP_ID, r).catch(() => null);
+  const [[P, PR, PO, OB, CO, SE, BL, CH, BI], [DPo, RPo, ALo, HIo]] = await Promise.all([getMany(APP_ID, R), Promise.all(["DEPENSE!A1:D5000", "REPAS!A1:J40000", "ALIMENTS!A1:I5000", "HISTORIQUE!A1:Q30000"].map(opt))]);
+  raw = {P, OB, BL, CH};
   let repas = [], aliments = [], nutTabs = false;
   let depense = {};
-  try { const DP = await getVals(APP_ID, "DEPENSE!A1:D5000"); DP.slice(1).forEach((r, i) => { const d = toIso(r[0]), k = num(r[1]); if (d && k) depense[d] = {k, src:String(r[2] || ""), h:String(r[3] || ""), _row:i + 2}; }); } catch(e){ depense = (D && D.depense) || {}; }
-  try { const [RP, AL] = await Promise.all([getVals(APP_ID, "REPAS!A1:J40000"), getVals(APP_ID, "ALIMENTS!A1:I5000")]); nutTabs = true;
+  try { const DP = DPo; if (!DP) throw 0; DP.slice(1).forEach((r, i) => { const d = toIso(r[0]), k = num(r[1]); if (d && k) depense[d] = {k, src:String(r[2] || ""), h:String(r[3] || ""), _row:i + 2}; }); } catch(e){ depense = (D && D.depense) || {}; }
+  try { const RP = RPo, AL = ALo; if (!RP || !AL) throw 0; nutTabs = true;
     repas = RP.map((r, i) => ({_row:i + 1, date:toIso(r[0]), h:String(r[1] || ""), nom:String(r[2] || ""), q:num(r[5]) || 0, k:num(r[6]) || 0, p:num(r[7]) || 0, g:num(r[8]) || 0, l:num(r[9]) || 0})).slice(1).filter(x => x.date && x.nom);
     aliments = AL.slice(1).filter(r => r[0] && num(r[4]) !== null).map(r => ({nom:String(r[0]), marque:String(r[1] || ""), src:String(r[2] || "perso"), code:String(r[3] || ""), k:num(r[4]), p:num(r[5]) || 0, g:num(r[6]) || 0, l:num(r[7]) || 0}));
   } catch(e){ repas = (D && D.repas) || []; aliments = (D && D.aliments) || []; }
-  try { ARCH = (await getVals(APP_ID, "HISTORIQUE!A1:Q30000")).map((r, i) => ({_row:i + 1, r})).slice(1).filter(x => x.r[0] && x.r[1]); archTab = true; } catch(e){ ARCH = []; archTab = false; }
+  try { if (!HIo) throw 0; ARCH = HIo.map((r, i) => ({_row:i + 1, r})).slice(1).filter(x => x.r[0] && x.r[1]); archTab = true; } catch(e){ ARCH = []; archTab = false; }
   const profil = {};
   P.slice(1).forEach(r => { if (r[0]) profil[String(r[0]).trim()] = r[1] ?? ""; });
-  ["date_objectif","debut_street","debut_coaching"].forEach(k => profil[k] = toIso(profil[k]));
+  ["debut_street","debut_coaching"].forEach(k => profil[k] = toIso(profil[k]));
   const prs = PR.slice(1).map(r => ({date:toIso(r[0]), lift:norm(r[1]), charge:num(r[2]), reps:num(r[3]) || 1, note:r[4] || ""}))
     .filter(p => p.date && LIFTS.includes(p.lift) && p.charge !== null).sort((a, b) => a.date < b.date ? -1 : 1);
   const pm = {}; PO.slice(1).forEach(r => { const d = toIso(r[0]), p = num(r[1]); if (d && p) pm[d] = p; });
   const poids = Object.keys(pm).sort().map(d => ({date:d, poids:pm[d]}));
   const objectifs = {}; OB.slice(1).forEach(r => { if (r[0]) objectifs[norm(r[0])] = num(r[1]); });
-  const records = RE.slice(1).filter(r => r[0]).map(r => ({type:String(r[0]).trim(), categorie:num(r[1]), lift:norm(r[2]), valeur:num(r[3]), detenteur:r[4] || "", source:r[5] || "", verifie:toIso(r[6])}));
   const comps = CO.map((r, i) => ({row:i + 1, date:toIso(r[0]), nom:String(r[1] || "").trim(), lieu:String(r[2] || "").trim(), note:String(r[3] || "").trim(), tbc:/confirmer/i.test(r[4] || "")}))
     .slice(1).filter(c => c.date && c.nom).sort((a, b) => a.date < b.date ? -1 : 1);
   const series = SE.map((r, i) => ({_row:i + 1, date:toIso(r[0]), bloc:num(r[1]), semaine:String(r[2] ?? "").trim(), seance:String(r[3] ?? "").trim(), ex:norm(r[4]), charge:num(r[5]), sets:parseSets(r[6], num(r[5])), note:String(r[8] || "")}))
     .slice(1).filter(x => x.ex && x.sets);
   const blocs = {}; BL.slice(1).forEach(r => { const n = num(r[0]), d = toIso(r[1]); if (n && d) blocs[n] = d; });
-  const tent = TE.map((r, i) => ({row:i + 1, date:toIso(r[0]), lift:norm(r[1]), t:[num(r[2]), num(r[3]), num(r[4])], r:[r[5] || "", r[6] || "", r[7] || ""]})).slice(1).filter(x => x.date && x.lift);
   const checks = CH.map((r, i) => ({row:i + 1, date:toIso(r[0]), item:String(r[1] || "").trim(), done:/^(true|vrai|oui|1|x)$/i.test(String(r[2] || "").trim())})).slice(1).filter(x => x.date && x.item);
   const bilans = BI.slice(1).map(r => ({date:toIso(r[0]), bloc:num(r[1]), semaine:String(r[2] ?? "").trim(), v:BILAN_CRIT.map((_, i) => num(r[3 + i]))})).filter(b => b.bloc);
-  D = {profil, prs, poids, objectifs, records, comps, series, blocs, tent, checks, bilans, repas, aliments, depense, _nutTabs:nutTabs, today:isoOf(new Date())};
+  D = {profil, prs, poids, objectifs, comps, series, blocs, checks, bilans, repas, aliments, depense, _nutTabs:nutTabs, today:isoOf(new Date())};
 }
 
 /* =====================================================================
@@ -757,8 +753,8 @@ const blocLabel = b => archMeta[b] ? blocBase(b) + (archMeta[b].start ? " · " +
 const blocLow = b => isNamed(b) ? "« " + blocNames[b].trim() + " »" : "bloc " + b;
 const blocShort = b => { const t = String(blocNames[b] || "").trim(), m = t.match(NUM_RE), base = m ? "B" + m[1] : t ? t.split(/\s+/)[0].slice(0, 10) : "B" + b;
   return archMeta[b] && archMeta[b].start ? base + "·" + archMeta[b].start.slice(5, 7) + "/" + archMeta[b].start.slice(2, 4) : base; };
-async function loadBloc(n){
-  const v = await getVals(coachId(), q(blocNames[n]) + "!A1:CZ1000");
+async function loadBloc(n, pre){
+  const v = pre || await getVals(coachId(), q(blocNames[n]) + "!A1:CZ1000");
   const {seances, weeks} = parseBloc(v, blocNames[n], n);
   fixJours(seances);
   S = S.filter(s => s.bloc !== n).concat(seances);
@@ -862,7 +858,11 @@ function ensureAllBlocs(){
   if (allLoaded) return Promise.resolve();
   if (loadingAll) return loadingAll;
   loadingAll = (async () => {
-    for (const n of progOrder) if (liveIds.has(n) && !loadedBlocs.has(n)) await loadBloc(n);
+    /* les blocs restants sont lus par paquets de 4 en une seule requête (batchGet) */
+    const todo = progOrder.filter(n => liveIds.has(n) && !loadedBlocs.has(n));
+    for (let i = 0; i < todo.length; i += 4) { const part = todo.slice(i, i + 4);
+      const vals = typeof getMany === "function" ? await getMany(coachId(), part.map(n => q(blocNames[n]) + "!A1:CZ1000")) : null;
+      for (let k = 0; k < part.length; k++) await loadBloc(part[k], vals ? vals[k] || [] : null); }
     allLoaded = true; loadingAll = null; mergeArchive(); saveCache(); archiveSync();
   })().catch(e => { loadingAll = null; throw e; });
   return loadingAll;
@@ -910,44 +910,12 @@ const firstComp = () => D.comps.length ? D.comps[0].date : null;
 /* 1RM estimé : table RPE de RTS (série à fond) jusqu'à 10 reps, Epley au-delà ; pour MU/tractions/dips, sur la charge réelle (corps + lest) puis ramené au lest */
 function e1rm(c, r, lift, w){ if (!r) return null; const W = BW_LIFTS.includes(lift) && w ? w : 0, pc = r <= 10 ? rtsPct(r) : null;
   return pc ? (c + W) / pc - W : (c + W) * (1 + r / 30) - W; }
-const Gcum = (t, i) => t <= 0 ? 0 : t < 1 ? G1[i] * t : G1[i] + (G10[i] - G1[i]) * Math.log10(t);
-function gainFrac(m, i){ const fc = firstComp() || D.today, t0 = Math.max(0, days(fc, D.today) / 365.25); return (1 + Gcum(t0 + m / 12, i)) / (1 + Gcum(t0, i)) - 1; }
-function sysLoad(l){ const b = best(l); if (b === null) return null; return BW_LIFTS.includes(l) ? (bw() ? b + bw() : null) : b; }
-function band(l, m){ const b = best(l), s = sysLoad(l); if (b === null || !s) return null; return {lo:b + s * gainFrac(m, 0), hi:b + s * gainFrac(m, 1)}; }
-function monthsTo(l, target){
-  const b = best(l), s = sysLoad(l); if (b === null || !s) return null; if (target <= b) return {early:0, late:0};
-  const f = i => { for (let m = 0.25; m <= 120; m += 0.25) if (b + s * gainFrac(m, i) >= target) return m; return Infinity; };
-  return {early:f(1), late:f(0)};
-}
-/* Historique daté d'un mouvement : PR + e1RM des séries « COMP » calculés par la prog */
 function liftHistory(l){
   const pts = D.prs.filter(p => p.lift === l && p.reps === 1).map(p => ({date:p.date, v:p.charge, src:"PR"}));
   for (const s of S) { const d = dateOf(s); if (!d || !s.faite) continue;
     for (const e of s.exercices) { if (liftOf(e.mouvement) !== l || !isCompEx(e)) continue; const v = num(e.e1rm); if (v) pts.push({date:d, v, src:"prog"}); } }
   return pts.sort((a, b) => a.date < b.date ? -1 : 1);
 }
-function liftSeries(l){ const h = liftHistory(l), pg = h.filter(x => x.src === "prog"); return pg.length >= 3 ? pg : h.filter(x => x.src === "PR"); }
-function measuredTrend(l){
-  const p = liftSeries(l); if (p.length < 3 || days(p[0].date, p.at(-1).date) < 28) return null;
-  const x = p.map(z => days(p[0].date, z.date)), y = p.map(z => z.v), n = x.length, mx = sum(x) / n, my = sum(y) / n;
-  let a = 0, c = 0; x.forEach((xi, i) => { a += (xi - mx) * (y[i] - my); c += (xi - mx) ** 2; });
-  return c ? {parMois:a / c * 30.44, n} : null;
-}
-function monthsByTrend(l, target){ const t = measuredTrend(l), b = best(l); if (!t || b === null || t.parMois <= 0.05) return null; return Math.max(0, (target - b) / t.parMois); }
-const objDate = () => D.profil.date_objectif || addDays(D.today, 365);
-function zoneHi(l, m){ const r = band(l, m), t = measuredTrend(l), b = best(l); if (!r) return null; return t && t.parMois > 0 ? Math.max(r.hi, b + t.parMois * m) : r.hi; }
-function verdictOf(l, obj){
-  const b = best(l), m = Math.max(0, days(D.today, objDate()) / 30.44), r = band(l, m); if (!obj || !r || b === null) return null;
-  const hi = zoneHi(l, m);
-  if (obj <= b) return {k:0, txt:"Déjà atteint", c:"var(--ok)"};
-  if (obj <= r.lo) return {k:1, txt:"Prudent", c:"#3d8a62"};
-  if (obj <= hi) return {k:2, txt:"Réaliste", c:"var(--ok)"};
-  if (obj <= hi + (hi - b)) return {k:3, txt:"Ambitieux", c:"var(--warn)"};
-  return {k:4, txt:"Très ambitieux", c:"var(--bad)"};
-}
-const monthRange = (a, b) => { const x = dmon(a); if (!b || dmon(b) === x) return cap(x) + (b ? "" : " et +"); const y = dmon(b); return x.slice(-2) === y.slice(-2) ? cap(x.split(" ")[0]) + "–" + y : cap(x) + "–" + y; };
-const fmtMonths = m => m === Infinity ? "plus de 10 ans" : m < 1 ? "moins d'un mois" : m < 24 ? Math.round(m) + " mois" : fmt(m / 12, 1) + " ans";
-
 /* ---------- Performances par exercice (prog + carnet), regroupées par séance ---------- */
 function exercisePoints(){
   const rows = [], logged = {};
@@ -1250,6 +1218,8 @@ function isCompVar(v, tempo){
 }
 const isCompEx = e => !!liftOf(e.mouvement) && isCompVar(e.variation, e.tempo);
 const failTxt = v => /chec|fail|rat[ée]/i.test(String(v ?? ""));
+/* Exercice en durée : « 15" », « 30'' », « 45 s » → secondes */
+const timedOf = e => { const m = String(e.reps || "").trim().match(/^(\d+)\s*(?:"|''|’’|s|sec)$/i); return m ? +m[1] : null; };
 function initSets(s, e, k){
   const key = exKey(e), lift = liftOf(e.mouvement);
   const lg = D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
@@ -1294,15 +1264,15 @@ function rLive(){
     <div class="live-progress">${s.exercices.map((x, j) => { const lj = liftOf(x.mouvement), dn = live.rows[j] && live.rows[j].sets.some(z => z.done);
       return `<i class="${j === k ? "cur" : dn ? "on" : ""}" style="--c:${lj ? LCOL[lj] : "var(--dust)"}"></i>`; }).join("")}</div>
     ${(() => { const cur = st.sets[curJ < 0 ? st.sets.length - 1 : curJ] || {}, c0 = cur.c ?? chargeGuess(e);
-      return heroCard({color:l ? col : "var(--deck2)", deco:!!l, small:`Exercice ${k + 1} sur ${s.exercices.length} · ${esc(name)}`, big:c0 !== null && c0 !== undefined && c0 !== "" ? `${fmt(num(c0))}<small>kg</small>` : (isBW ? "PDC" : esc(e.charge || "—")), sub:`${esc(e.series)} série${num(e.series) > 1 ? "s" : ""} de ${esc(e.reps)}${e.tempo ? " · tempo " + esc(e.tempo) : ""}${e.repos ? " · repos " + esc(e.repos) : ""}${(() => { const b = backoffOf(s, e, k, live.rows); return b ? ` · ${esc(String(e.charge).trim())} de ${fmt(b.base)} kg = ${fmt(Math.ceil(b.lo * 4) / 4)} à ${fmt(Math.floor(b.hi * 4) / 4)} kg` : chargeGuess(e) !== null && !isNumTxt(e.charge) && String(e.charge).trim() ? " · prévu : " + esc(String(e.charge).trim()) : ""; })()}`}); })()}
+      return heroCard({color:l ? col : "var(--deck2)", deco:!!l, small:`Exercice ${k + 1} sur ${s.exercices.length} · ${esc(name)}`, big:c0 !== null && c0 !== undefined && c0 !== "" ? `${fmt(num(c0))}<small>kg</small>` : timedOf(e) ? `${timedOf(e)}<small>s</small>` : (isBW ? "0<small>kg de lest</small>" : e.charge ? esc(e.charge) : "<small style=\"font-size:.5em\">Poids du corps</small>"), sub:`${esc(e.series)} série${num(e.series) > 1 ? "s" : ""} de ${esc(e.reps)}${e.tempo ? " · tempo " + esc(e.tempo) : ""}${e.repos ? " · repos " + esc(e.repos) : ""}${(() => { const b = backoffOf(s, e, k, live.rows); return b ? ` · ${esc(String(e.charge).trim())} de ${fmt(b.base)} kg = ${fmt(Math.ceil(b.lo * 4) / 4)} à ${fmt(Math.floor(b.hi * 4) / 4)} kg` : chargeGuess(e) !== null && !isNumTxt(e.charge) && String(e.charge).trim() ? " · prévu : " + esc(String(e.charge).trim()) : ""; })()}`}); })()}
     <h2 class="h2">Séries <span class="muted">${prev ? `dernière fois (${esc(prev.where)}) : ${esc(fmtSets(prev.sets))}${prev.src === "prévu" ? ", charge prévue" : ""}` : esc(e.intensite || "")}</span></h2>
     ${e.coach ? `<div class="coachnote"><b>Consigne du coach.</b> ${esc(e.coach)}</div>` : ""}
     ${e.angle ? `<p class="prev">À filmer : ${esc(e.angle)}</p>` : ""}
     <section class="setgrid" style="--c:${l ? col : "var(--brand)"}" aria-label="Séries">
       <div class="hd"><span>N°</span><span>Précédent</span><span>${isBW ? "Lest" : "Kg"}</span><span>Reps</span><span></span></div>
       ${st.sets.map((x, j) => `<div class="setrow ${x.done ? "done" : ""} ${j === curJ ? "cur" : ""}"><span class="n">${j + 1}</span><span class="pv">${pv(j)}</span>
-        <input inputmode="decimal" value="${x.c === null || x.c === undefined ? "" : String(x.c).replace(".", ",")}" placeholder="${isBW ? "0" : "kg"}" data-chg="setC" data-j="${j}" aria-label="${isBW ? "Lest" : "Charge"} série ${j + 1}">
-        <input inputmode="numeric" value="${x.r ?? ""}" placeholder="–" data-chg="setR" data-j="${j}" aria-label="Reps série ${j + 1}">
+        ${timedOf(e) && !chargeGuess(e) ? `<span class="small muted" style="text-align:center">–</span><span class="small" style="text-align:center;font-weight:700">${timedOf(e)} s</span>` : `<input inputmode="decimal" value="${x.c === null || x.c === undefined ? "" : String(x.c).replace(".", ",")}" placeholder="${isBW ? "0" : "kg"}" data-chg="setC" data-j="${j}" aria-label="${isBW ? "Lest" : "Charge"} série ${j + 1}">
+        <input inputmode="numeric" value="${x.r ?? ""}" placeholder="–" data-chg="setR" data-j="${j}" aria-label="Reps série ${j + 1}">`}
         <button class="ck" data-act="doneSet" data-j="${j}" aria-label="Série ${j + 1} faite" aria-pressed="${x.done}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></button></div>`).join("")}
       <div class="row" style="padding:8px 10px 4px"><button class="link small" data-act="addSet">+ Ajouter une série</button>${st.sets.length > 1 ? `<button class="link small muted" data-act="delSet">Retirer la dernière</button>` : ""}</div>
     </section>
@@ -1348,7 +1318,16 @@ function onSetDone(j){
   const box = $("#prbox");
   if (l && x.r === 1 && best(l) !== null && num(x.c) > best(l)) {
     box.innerHTML = `<div class="today" style="margin-top:14px;--c1:${LCOL[l]};--c2:${LCOL[l]}"><p class="show t-m">Nouveau max : ${fmt(num(x.c))} kg</p><p class="muted small" style="margin:4px 0 12px">${LNAME[l]}, +${fmt(num(x.c) - best(l))} kg sur ton record.</p><button class="btn" data-act="livePR" data-l="${l}" data-c="${num(x.c)}">Enregistrer comme PR</button></div>`;
-  } else if (cur && b0 && cur > b0 * 1.005) { toast("Record sur cet exercice : 1RM estimé " + fmt(cur, 1) + " kg"); }
+  } else {
+    /* record à nombre de reps exact (mouvement de compét), sinon meilleur 1RM estimé de l'exercice */
+    const c = num(x.c), r = x.r; let rr = null;
+    if (l && isCompEx(e) && c !== null && c >= 0 && r >= 1 && r <= 12) {
+      const prior = compSets(l).filter(y => y.r === r && !(y.wh && y.wh.bloc === s.bloc && y.wh.sem === s.semaine && y.wh.seance === s.seance)).map(y => y.c);
+      if (prior.length && c > Math.max(...prior)) rr = {l, r, c, d:c - Math.max(...prior)};
+    }
+    if (rr) { (live.recs = live.recs || []).push(rr); persistLive(); toast(`Record à ${r} rep${r > 1 ? "s" : ""} : ${fmt(c)} kg (+${fmt(rr.d)})`); }
+    else if (cur && b0 && cur > b0 * 1.005) toast("Meilleur 1RM estimé sur cet exercice : " + fmt(cur, 1) + " kg");
+  }
   /* Minuteur de repos (sauf après la dernière série) */
   if (j < st.sets.length - 1) startRest(restSec(e.repos, l));
 }
@@ -1395,9 +1374,16 @@ async function finishLive(){
   const s = seanceByKey(live.key), dur = Math.round((Date.now() - live.start) / 60000);
   const all = Object.values(live.rows).flatMap(r => r.sets.filter(x => x.done && x.r)), ton = sum(all.map(x => (num(x.c) || 0) * x.r)), reps = sum(all.map(x => +x.r));
   const prevS = S.find(z => z.bloc === s.bloc && z.idx === s.idx && (num(z.semaine) || 0) === (num(s.semaine) || 0) - 1);
-  const pts = exercisePoints(), prevTon = prevS ? sum(pts.flatMap(o => o.pts.filter(p => p.sk === prevS.key)).map(p => p.tonnage)) || null : null;
+  const pts = exercisePoints();
+  /* tonnage comparé sur les seuls exercices faits les deux fois (une séance écourtée ne fausse pas l'écart) */
+  /* ligne par ligne : chaque exercice fait aujourd'hui face à la même ligne de la semaine précédente */
+  const both = []; let prevTon = 0, tonSame = 0;
+  Object.entries(live.rows).forEach(([k, r]) => { const t = sum(r.sets.filter(x => x.done && x.r).map(x => (num(x.c) || 0) * x.r)); if (t <= 0) return;
+    const pv = prevRowSets(s, +k), pt = pv ? sum(pv.sets.map(x => (num(x.c) || 0) * (x.r || 0))) : 0; if (pt <= 0) return;
+    both.push(k); prevTon += pt; tonSame += t; });
+  if (!both.length) { prevTon = null; tonSame = null; }
   const recs = [...new Set(s.exercices.map(exKey))].map(k => { const o = pts.find(z => z.key === k); if (!o) return null; const cur = o.pts.find(p => p.sk === s.key), oth = o.pts.filter(p => p.sk !== s.key); if (!cur || !oth.length) return null; return cur.e1rmBest > Math.max(...oth.map(p => p.e1rmBest)) + .05 ? exName(o.key) : null; }).filter(Boolean);
-  live.summary = {dur, ton, reps, sets:all.length, prevTon, recs};
+  live.summary = {dur, ton, reps, sets:all.length, prevTon, tonSame, nSame:both.length, recs, repRecs:live.recs || []};
   store.del(ck("sl4-live")); try { wakeLock && wakeLock.release(); } catch(e){}
   openSheet("summary");
 }
@@ -1459,8 +1445,8 @@ function weekHtml(){
     <p class="muted tiny" style="margin-top:8px">Écart comparé à la dernière fois que tu as fait le même exercice avant cette semaine.</p>`;
 }
 function rProg(){
-  const t = total(), r = risOf(t, bw()), mo = Math.max(0, days(D.today, objDate()) / 30.44);
-  const bands = LIFTS.map(l => band(l, mo)).filter(Boolean), oT = LIFTS.reduce((s, l) => s + ((l === "MU" && !muOn()) ? 0 : (D.objectifs[l] || best(l) || 0)), 0);
+  const t = total(), r = risOf(t, bw());
+  const oT = LIFTS.reduce((s, l) => s + ((l === "MU" && !muOn()) ? 0 : (D.objectifs[l] || best(l) || 0)), 0);
   let exHtml = `<div class="empty"><div class="spin"></div><p class="small">Lecture de tout l'historique de ta prog…</p></div>`;
   if (allLoaded) {
     const ab = activeBloc(), cur = new Set(S.filter(s => s.bloc === ab).flatMap(s => s.exercices.map(exKey)));
@@ -1476,7 +1462,7 @@ function rProg(){
     ${heroCard({small:"Mon total", big:`${fmt(t)}<small>kg</small>`, sub:`RIS ${fmt(r, 1)} · objectif ${fmt(oT, 1)} kg`, extra:seg, deco:false})}
     <div class="tiles2" style="margin-top:12px"><div><p class="muted small">Total visé</p><p class="show">${fmt(oT, 2)}</p></div><div><p class="muted small">RIS visé</p><p class="show">${fmt(risOf(oT, bw()), 1)}</p></div></div>
     <h2 class="h2">Mouvements de compét</h2>
-    <div>${["PULL","DIP","SQUAT","MU"].map(l => { const b = best(l), o = D.objectifs[l], v = verdictOf(l, o), lock = l === "MU" && !muOn();
+    <div>${["PULL","DIP","SQUAT","MU"].map(l => { const b = best(l), o = D.objectifs[l], lock = l === "MU" && !muOn();
       if (lock) return `<button class="vrow" data-act="openLift" data-l="${l}"><span class="d10" style="--c:transparent;box-shadow:inset 0 0 0 2px var(--mu)"></span><span class="grow"><b style="color:var(--steel-hi)">${LNAME[l]}</b></span><span class="muted small">à débloquer</span></button>`;
       return `<button class="liftrow" data-act="openLift" data-l="${l}"><span class="top"><span class="d10" style="--c:${LCOL[l]}"></span><b>${LNAME[l]}</b><span class="val">${kg(b)}</span></span>
         <span class="bar" style="display:block;--c:${LCOL[l]}"><i style="width:${o && b ? pct(b, o) : 0}%"></i></span>
@@ -1543,22 +1529,14 @@ function drawVolume(){
 
 /* ---------- Fiche mouvement ---------- */
 function rLiftPage(l){
-  const b = best(l), o = D.objectifs[l], mo = Math.max(0, days(D.today, objDate()) / 30.44), r = band(l, mo), v = verdictOf(l, o), mt = o ? monthsTo(l, o) : null, mTr = o ? monthsByTrend(l, o) : null, tr = measuredTrend(l);
+  const b = best(l), o = D.objectifs[l];
   const hist = D.prs.filter(p => p.lift === l).slice().reverse(), nr = record("NR BE", l), wr = record("WR", l), lock = l === "MU" && !muOn();
-  let scale = "";
-  if (r && b !== null) {
-    const hi = zoneHi(l, mo), amb = hi + (hi - b), max = Math.max(o || 0, amb) * 1.06, w = x => Math.max(0, Math.min(100, (x - b) / (max - b) * 100));
-    const z = [["Prudent", b, r.lo, "#2f5f47"], ["Réaliste", r.lo, hi, "#3d8a62"], ["Ambitieux", hi, amb, "#8a7326"], ["Très ambitieux", amb, max, "#8f3d36"]];
-    scale = `<div class="scale" role="img" aria-label="Échelle de réalisme de l'objectif">${z.map(([n, a, c, col]) => `<span style="width:${w(c) - w(a)}%;background:${col}">${w(c) - w(a) > 17 ? n : ""}</span>`).join("")}${o ? `<i class="mk" style="left:${w(o)}%"></i>` : ""}</div>
-      <div class="scale-lbl">${(() => { let lastX = -100; return [[b, 0], [r.lo, w(r.lo)], [hi, w(hi)], [amb, w(amb)]].map(([val, xx], i) => { if (xx - lastX < 11) return ""; lastX = xx; return `<b style="left:${xx}%;${i === 0 ? "transform:none" : ""}">${fmt(val, i === 0 ? 2 : 0)}</b>`; }).join(""); })()}</div>`;
-  }
   return `<div class="page" role="dialog" aria-label="${LNAME[l]}"><div class="wrap">
     <div class="pagebar"><button class="iconbtn" data-act="closePage" aria-label="Retour"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button>
       <span class="disc" style="--c:${LCOL[l]};width:20px;height:20px"></span></div>
     ${heroCard({color:LCOL[l], small:`${LNAME[l]} · record perso${!lock && hist.length ? " · " + dlong(D.prs.filter(p => p.lift === l && p.reps === 1).sort((a, c) => c.charge - a.charge)[0]?.date || hist[0].date) : ""}`, big:lock ? "—" : `${fmt(b)}<small>kg</small>`, sub:!lock && BW_LIFTS.includes(l) && bw() ? fmt(b + bw(), 1) + " kg avec ton poids de corps" : (lock ? "à débloquer" : "")})}
     ${lock ? "" : repTableHtml(l)}
     ${lock ? `<div class="panel" style="margin-top:16px"><p>Ton muscle-up n'est pas encore acquis. Active-le dans les réglages dès que tu l'as, il entrera dans ton total.</p><button class="btn ghost" style="margin-top:12px" data-act="settings">Ouvrir les réglages</button></div>` : `
-    ${tr ? `<p class="muted small" style="margin-top:6px">Rythme mesuré : ${tr.parMois >= 0 ? "+" : ""}${fmt(tr.parMois, 1)} kg par mois, d'après ${tr.n} ${liftSeries(l)[0] && liftSeries(l)[0].src === "prog" ? "e1RM calculés par ta prog" : "PR"}.</p>` : ""}
 
     <h2 class="h2">Objectif</h2>
     <div class="panel">
@@ -1583,7 +1561,7 @@ function rLiftPage(l){
       <div class="grid2"><div><label for="prc" style="margin-top:0">${BW_LIFTS.includes(l) ? "Lest (kg)" : "Charge (kg)"}</label><input id="prc" inputmode="decimal"></div><div><label for="prr" style="margin-top:0">Reps</label><input id="prr" inputmode="numeric" value="1"></div></div>
       <label for="prd">Date</label><input id="prd" type="date" value="${D.today}">
       <label for="prn">Note</label><input id="prn" placeholder="Compét, entraînement…">
-      <button class="btn" style="margin-top:14px" data-act="addPR" data-l="${l}">Ajouter le PR</button>
+      <button class="btn" style="margin-top:14px" data-act="addPR" data-l="${l}">Ajouter le record</button>
     </div>
     ${hist.length ? `<div class="panel"><table>${hist.map(p => `<tr><td>${cap(dlong(p.date))}<div class="muted tiny">${esc(p.note)}</div></td><td><b>${fmt(p.charge)} kg</b>${p.reps > 1 ? " × " + p.reps : ""}</td></tr>`).join("")}</table></div>
       <button class="btn line" style="margin-top:10px" data-act="share" data-l="${l}">Créer la carte de mon record</button>` : ""}`}
@@ -1591,17 +1569,7 @@ function rLiftPage(l){
 }
 function drawLiftCharts(l){
   if (l === "MU" && !muOn()) return;
-  const b = best(l), o = D.objectifs[l], tr = measuredTrend(l), col = getCss(LCOL[l]);
-  if (document.getElementById("c-obj") && b !== null) {
-    const mt = o ? monthsTo(l, o) : null, mTr = o ? monthsByTrend(l, o) : null;
-    const H = Math.min(24, Math.max(12, Math.ceil(days(D.today, objDate()) / 30.44), mTr !== null ? Math.ceil(mTr) + 3 : 0, mt && mt.early <= 24 ? Math.ceil(mt.early) + 2 : 0));
-    const ms = Array.from({length:H + 1}, (_, i) => i);
-    const sets = [{label:"Haut", data:ms.map(m => +band(l, m).hi.toFixed(1)), color:getCss("var(--ok)"), fill:"+1", pts:false, width:1},
-                  {label:"Bas", data:ms.map(m => +band(l, m).lo.toFixed(1)), color:getCss("var(--ok)"), pts:false, width:1}];
-    if (tr) sets.push({label:"Ton rythme", data:ms.map(m => +(b + tr.parMois * m).toFixed(1)), color:getCss("var(--chalk)"), dash:true, width:1.5});
-    if (o) sets.push({label:"Objectif", data:ms.map(() => o), color:col, width:2, pts:false});
-    lineChart("c-obj", ms.map(m => dmon(addMonths(D.today, m))), sets, {legend:false, unit:" kg"});
-  }
+  const col = getCss(LCOL[l]);
   const pts = liftMetric === "1rm" ? inRange(bestSeries(l), "all") : liftHistory(l).filter(p => p.src === "prog");
   if (document.getElementById("c-lift")) {
     if (pts.length > 1) lineChart("c-lift", pts.map(p => dfr(p.date)), [{label:liftMetric === "1rm" ? "Meilleur 1RM" : "e1RM", data:pts.map(p => p.v), color:col, area:true}], {unit:" kg"});
@@ -1668,7 +1636,7 @@ function rPoids(){
     <h2 class="h2">Importer un historique</h2>
     <div><p class="small muted">Le fichier ZIP de MyFitnessPal (compte gratuit compris) ou tout tableau CSV avec une colonne date et une colonne poids.</p>
       <details style="margin-top:8px"><summary class="small">Récupérer ses pesées MyFitnessPal</summary><p class="small muted" style="margin-top:6px">Sur myfitnesspal.com (navigateur, pas l'app) : ton profil, Paramètres, Compte, « Télécharger tes données », puis demande l'export. Tu reçois un e-mail avec un fichier ZIP : choisis-le ici tel quel, l'app lit les pesées du fichier « measurements ».</p></details>
-      <input id="imp" type="file" accept=".csv,.zip,text/csv,text/plain,application/zip" style="margin-top:12px" data-chg="import"><div id="impres"></div></div>
+      <label class="btn ghost" style="margin-top:12px;display:flex;align-items:center;justify-content:center;cursor:pointer">Choisir le fichier (ZIP ou CSV)<input id="imp" type="file" accept=".csv,.zip,text/csv,text/plain,application/zip" data-chg="import" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></label><div id="impres"></div></div>
     <h2 class="h2">Dernières pesées</h2><div>${P.slice().reverse().slice(0, 15).map(p => vrow(cap(dlong(p.date)), "", kg(p.poids, 1))).join("")}</div>`;
   if (V.length > 1) { const ds = [{label:"Pesée", data:V.map(p => p.poids), color:getCss("var(--dust)"), width:1, pts:V.length <= 45, faint:true}, {label:"Moyenne 7 j", data:mmV.map(v => +v.toFixed(2)), color:getCss("var(--chalk)"), width:2.5, pts:false}];
     if (lim && Math.max(...V.map(p => p.poids)) > lim - 2.5) ds.push({label:"Limite", data:V.map(() => lim), color:getCss("var(--squat)"), dash:true, pts:false, width:1.5});
@@ -1791,11 +1759,12 @@ function rSheet(){
     return `<p class="show t-m">Ton poids ce matin</p><p class="muted small" style="margin-top:4px">Ton coach le demande au début de chaque séance. Il va dans le récap de la séance et dans ta courbe.</p>
       <div class="stepper" style="margin-top:14px"><button data-act="stepW" data-d="-0.1" aria-label="Moins 100 g">−</button><input id="pw" inputmode="decimal" value="${tw ? fmt(tw.poids, 1) : last ? fmt(last.poids, 1) : ""}" aria-label="Poids en kg"><button data-act="stepW" data-d="0.1" aria-label="Plus 100 g">+</button></div>
       <button class="btn" style="margin-top:14px" data-act="pdcSave">Enregistrer et commencer</button><button class="btn line" style="margin-top:8px" data-act="pdcSkip">Passer</button>`; }
-  if (sheet === "summary") { const m = live.summary, s = seanceByKey(live.key), d = m.prevTon ? (m.ton - m.prevTon) / m.prevTon * 100 : null;
+  if (sheet === "summary") { const m = live.summary, s = seanceByKey(live.key), d = m.prevTon ? (m.tonSame - m.prevTon) / m.prevTon * 100 : null;
     return `<p class="muted">${esc(s.seance)} terminée</p><p class="show t-l" style="margin-top:4px">Bien joué ${esc(D.profil.prenom || "")}</p>
       <div class="grid3" style="margin-top:18px"><div><p class="muted small">Durée</p><p class="show t-m">${m.dur}<span class="unit">min</span></p></div><div><p class="muted small">Séries</p><p class="show t-m">${m.sets}</p></div><div><p class="muted small">Reps</p><p class="show t-m">${m.reps}</p></div></div>
-      <div class="panel" style="margin-top:14px;background:var(--deck2)"><p class="muted small">Tonnage des charges ajoutées</p><p class="show t-m" style="margin-top:4px">${fmt(m.ton, 0)}<span class="unit">kg</span></p>${d !== null ? `<p class="small" style="margin-top:4px;color:${d >= 0 ? "var(--ok)" : "var(--dust)"}">${d >= 0 ? "+" : ""}${fmt(d, 0)} % par rapport à la même séance la semaine passée</p>` : ""}</div>
-      ${m.recs.length ? `<div style="margin-top:14px"><p style="font-weight:600">Records battus</p>${m.recs.map(r => `<p class="small" style="margin-top:4px">${esc(r)}</p>`).join("")}</div>` : ""}
+      <div class="panel" style="margin-top:14px;background:var(--deck2)"><p class="muted small">Tonnage des charges ajoutées</p><p class="show t-m" style="margin-top:4px">${fmt(m.ton, 0)}<span class="unit">kg</span></p>${d !== null ? `<p class="small" style="margin-top:4px;color:${d >= 0 ? "var(--ok)" : "var(--dust)"}">${d >= 0 ? "+" : ""}${fmt(d, 0)} % sur ${m.nSame} exercice${m.nSame > 1 ? "s" : ""} fait${m.nSame > 1 ? "s" : ""} aussi la semaine passée</p>` : ""}</div>
+      ${m.repRecs && m.repRecs.length ? `<div style="margin-top:14px"><p style="font-weight:600">Records de reps</p>${m.repRecs.map(r => `<p class="small" style="margin-top:4px"><span class="d10" style="--c:${LCOL[r.l]};display:inline-block;margin-right:6px"></span>${LNAME[r.l]} · ${r.r} rep${r.r > 1 ? "s" : ""} : <b>${fmt(r.c)} kg</b> <span class="muted">(+${fmt(r.d)})</span></p>`).join("")}</div>` : ""}
+      ${m.recs.length ? `<div style="margin-top:14px"><p style="font-weight:600">Meilleur 1RM estimé</p>${m.recs.map(r => `<p class="small" style="margin-top:4px">${esc(r)}</p>`).join("")}</div>` : ""}
       <button class="btn" style="margin-top:18px" data-act="closeSummary">Fermer</button>`; }
   if (sheet && sheet.startsWith("bilan|")) { const wk = weekMeta[sheet.slice(6)]; if (!wk) return `<p>Bilan introuvable.</p>`; const v = Object.assign({}, wk.vals, wk.draft || {});
     return `<p class="show t-m">Bilan de la semaine ${esc(wk.semaine)}</p><p class="muted small" style="margin-top:4px">${esc(blocLabel(wk.bloc))}. Note chaque critère de 1 à 10, comme dans le template de ton coach.</p>
@@ -1823,10 +1792,8 @@ function settingsHtml(){
       <div><label for="ssx">Sexe (pour le RIS)</label><select id="ssx" data-chg="prof" data-k="sexe"><option value="H" ${sexe() === "H" ? "selected" : ""}>Homme</option><option value="F" ${sexe() === "F" ? "selected" : ""}>Femme</option></select></div></div>
     ${Object.keys(blocNames).length ? `<label for="sbl">Bloc en cours</label><select id="sbl" data-chg="blocActif"><option value="">Le dernier onglet de la prog</option>${progOrder.map(n => `<option value="${n}" ${n === chosenBloc() ? "selected" : ""}>${esc(blocLabel(n))}</option>`).join("")}</select>` : ""}
     <label for="scat">Catégorie de poids</label><select id="scat" data-chg="prof" data-k="categorie">${catsFor(sexe()).map(c => `<option value="${c}" ${c === cat() ? "selected" : ""}>${c > 0 ? "+" + c : c} kg</option>`).join("")}</select>
-    <div class="grid2"><div><label for="sdo">Date des objectifs</label><input id="sdo" type="date" value="${objDate()}" data-chg="prof" data-k="date_objectif"></div>
-      <div><label for="sdc">Début de la prog</label><input id="sdc" type="date" value="${D.profil.debut_coaching || ""}" data-chg="prof" data-k="debut_coaching"></div></div>
-    <label for="sds">Début du street lifting</label><input id="sds" type="date" value="${D.profil.debut_street || ""}" data-chg="prof" data-k="debut_street">
-    <p class="muted tiny" style="margin-top:14px">Version de l'app : ${APP_VER}</p>
+    <div class="grid2"><div><label for="sdc">Début de la prog</label><input id="sdc" type="date" value="${D.profil.debut_coaching || ""}" data-chg="prof" data-k="debut_coaching"></div>
+      <div><label for="sds">Début du street lifting</label><input id="sds" type="date" value="${D.profil.debut_street || ""}" data-chg="prof" data-k="debut_street"></div></div>
     <h2 class="h2" style="font-size:20px">Compte et carnet</h2>
     <p class="muted small">${cfg().email ? "Connecté avec " + esc(cfg().email) : "Connecté à Google"}.</p>
     <label for="scoach">Lien de la prog du coach</label><input id="scoach" type="url" value="${coachId() ? sheetUrl(coachId()) : ""}" placeholder="https://docs.google.com/spreadsheets/d/…" data-chg="coachLink">
@@ -1834,9 +1801,11 @@ function settingsHtml(){
     <div class="grid2" style="margin-top:8px"><button class="btn ghost sm" data-act="switchBook">Changer de carnet</button><button class="btn ghost sm" data-act="logout">Se déconnecter</button></div>
     <h2 class="h2" style="font-size:20px">Méthodes et sources</h2>
     <p class="src"><b style="color:var(--chalk)">RIS</b> : formule de Waris Radji et Mathieu Ardoin, édition 2026 (constantes publiées dans le code d'<a href="https://openstreetlifting.org" target="_blank" rel="noopener">OpenStreetlifting</a>). <a href="https://warisradji.com/ris/" target="_blank" rel="noopener">Calculateur officiel</a>.</p>
-    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Zone réaliste</b> : Latella et al. (2023), <a href="https://doi.org/10.1007/s40279-023-01962-6" target="_blank" rel="noopener">Sports Medicine</a> : +7,5 à 12,5 % de force la 1re année de compétition, jusqu'à ~20 % après 10 ans. L'étude porte sur le powerlifting. L'app ajoute ton rythme mesuré, souvent plus parlant au début.</p>
-    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">1RM estimé</b> : table RPE de Reactive Training Systems (Tuchscherer), la même que la colonne E1RM de ta prog : % du 1RM selon les reps et les reps en réserve (RIR = 10 − RPE, <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al., 2016</a>). Calcul sur la charge réelle (poids de corps + lest) pour muscle-up, tractions et dips. Prudence : RIR compté au plus à 2, car l'effort se juge mal loin de l'échec (<a href="https://www.strongerbyscience.com/reps-in-reserve" target="_blank" rel="noopener">synthèse Stronger by Science</a>) ; les séries de 6 reps ou moins sont préférées, la prédiction étant la plus fiable autour de 5 reps (<a href="https://www.unm.edu/~rrobergs/478RMStrengthPrediction.pdf" target="_blank" rel="noopener">Reynolds et al., 2006</a>) et se dégradant au-delà de 10 (<a href="https://researchconnect.suny.edu/en/publications/accuracy-of-prediction-equations-for-determining-one-repetition-m/" target="_blank" rel="noopener">Mayhew et al., 2008</a>).</p>
-    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Records</b> : <a href="https://rankings.officialstreetlifting.com/records/male/classes/-80kg" target="_blank" rel="noopener">Official Streetlifting</a>.</p>
+    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Records</b> : <a href="https://rankings.officialstreetlifting.com/" target="_blank" rel="noopener">Official Streetlifting</a>, tableaux de records par catégorie, relevés le 20/10/2026. Record de Belgique : meilleure perf belge de ces tableaux.</p>
+    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">1RM estimé</b> : table RPE de Reactive Training Systems (Tuchscherer), la même que la colonne E1RM de ta prog : % du 1RM selon les reps et les reps en réserve (RIR = 10 − RPE, <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al., 2016</a>). Calcul sur la charge réelle (poids de corps + lest) pour muscle-up, tractions et dips. RIR compté au plus à 2 : l'effort se juge mal loin de l'échec (<a href="https://www.strongerbyscience.com/reps-in-reserve" target="_blank" rel="noopener">synthèse Stronger by Science</a>). Séries de 10 reps au plus (<a href="https://researchconnect.suny.edu/en/publications/accuracy-of-prediction-equations-for-determining-one-repetition-m/" target="_blank" rel="noopener">Mayhew et al., 2008</a>).</p>
+    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Aliments</b> : <a href="https://ciqual.anses.fr/" target="_blank" rel="noopener">table Ciqual 2025 de l'Anses</a> (Licence Ouverte), portions courantes de l'étude INCA3 ; produits de marque : <a href="https://world.openfoodfacts.org/" target="_blank" rel="noopener">Open Food Facts</a> (base collaborative, ODbL).</p>
+    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Besoins</b> : dépense de ta montre si tu la notes ; sinon formule de Mifflin-St Jeor × activité. Rythmes : perte 0,5 à 1 % du poids par semaine (<a href="https://openrepository.aut.ac.nz/items/723f44d2-7c20-4214-ba62-987339099039/full" target="_blank" rel="noopener">Helms et al., 2014</a>), prise 0,25 à 0,5 % (<a href="https://www.mdpi.com/2075-4663/7/7/154" target="_blank" rel="noopener">Iraki et al., 2019</a>).</p>
+    <p class="muted tiny" style="margin-top:14px">Version de l'app : ${APP_VER}</p>
     <button class="btn" style="margin-top:18px" data-act="closeSheet">Fermer</button>`;
 }
 
@@ -1941,7 +1910,6 @@ const ACT = {
     try { if (ed) await putVals(APP_ID, `COMPETITIONS!A${ed}:E${ed}`, [row]); else await appendVals(APP_ID, "COMPETITIONS!A1:E1", [row]);
       toast(ed ? "Compétition modifiée" : "Compétition ajoutée"); armed = null; calMonth = date.slice(0, 7); await loadApp(); saveCache(); rAgenda(); } catch(e){ toast(errMsg(e) + ambig(e), true); } },
   ics:() => exportIcs(),
-  attRes:async d => { const r = D.tent.find(x => x.date === d.d && x.lift === d.l); const cur = r ? r.r[+d.i] : ""; await saveAtt(d.d, d.l, +d.i, null, cur === d.v ? "" : d.v); },
   check:async d => { const x = D.checks.find(c => c.row === +d.r); if (!x) return; x.done = !x.done; rAgenda(); try { await putVals(APP_ID, `CHECKLIST!C${x.row}`, [[x.done ? "TRUE" : "FALSE"]]); } catch(e){ x.done = !x.done; rAgenda(); toast(errMsg(e), true); } },
   initChecks:async d => { try { await appendVals(APP_ID, "CHECKLIST!A1:C1", CHECK_DEFAULT.map(i => [d.d, i, "FALSE"])); await loadApp(); rAgenda(); } catch(e){ toast(errMsg(e), true); } },
   addCheck:async d => { const t = $("#newcheck").value.trim(); if (!t) return; try { await appendVals(APP_ID, "CHECKLIST!A1:C1", [[d.d, t, "FALSE"]]); await loadApp(); rAgenda(); } catch(e){ toast(errMsg(e), true); } },
@@ -1967,7 +1935,6 @@ const CHG = {
   blocActif:async (d, el) => { const n = num(el.value);
     try { if (n && !loadedBlocs.has(n)) { toast("Chargement : " + blocLabel(n) + "…"); await loadBloc(n); } } catch(e){ return toast(errMsg(e), true); }
     sel = null; await CHG.prof({k:"bloc_actif"}, {value:n ? String(n) : ""}); },
-  att:async (d, el) => { await saveAtt(d.d, d.l, +d.i, el.value === "" ? "" : num(el.value), null); },
   import:(d, el) => readImport(el.files[0])
 };
 /* =====================================================================
@@ -2051,7 +2018,8 @@ function rNutri(){
     ${heroCard({small:hasT ? "Calories du jour" : "Calories du jour (suivi)", big:`${fmt(tot.k, 0)}<small>${hasT ? " / " + fmt(T.kcal, 0) : ""} kcal</small>`, sub:hasT ? (left >= 0 ? "reste " + fmt(left, 0) + " kcal" : fmt(-left, 0) + " kcal au-dessus") : R.length + " aliment" + (R.length > 1 ? "s" : "") + " noté" + (R.length > 1 ? "s" : ""), deco:false})}
     ${(() => { const dp = (D.depense || {})[nutDate]; return `<div class="panel" style="margin-top:12px"><div class="row"><span><b>Dépense du jour</b><br><span class="muted tiny">${dp ? (dp.src || "saisie") + (dp.h ? " · " + esc(dp.h) : "") : "Calories de ta montre (Polar Flow…) ; sinon, estimation"}</span></span>
       <span class="row" style="gap:6px"><input id="ndep" inputmode="numeric" style="width:92px;text-align:right" placeholder="${T.tdee && !dp ? fmt(T.tdee, 0) : "kcal"}" value="${dp ? fmt(dp.k, 0) : ""}"><button class="btn sm" data-act="nutDep">OK</button></span></div></div>`; })()}
-    <div class="panel" style="margin-top:12px">${bar("Protéines", tot.p, hasT && T.p, "var(--brand)")}${bar("Glucides", tot.g, hasT && T.g, "var(--chalk)")}${bar("Lipides", tot.l, hasT && T.l, "var(--dust)")}</div>
+    ${hasT ? `<div class="panel" style="margin-top:12px">${bar("Protéines", tot.p, T.p, "var(--brand)")}${bar("Glucides", tot.g, T.g, "var(--chalk)")}${bar("Lipides", tot.l, T.l, "var(--dust)")}</div>`
+      : `<div class="grid3" style="margin-top:12px">${[["Protéines", tot.p], ["Glucides", tot.g], ["Lipides", tot.l]].map(([k, v]) => `<div class="panel" style="margin:0;padding:12px 14px"><p class="muted tiny">${k}</p><p class="show t-s" style="margin-top:2px">${fmt(v, 0)}<small style="font-size:.6em"> g</small></p></div>`).join("")}</div>`}
     <h2 class="h2">Ajouter</h2>
     <input id="nutin" placeholder="Ex. riz, 250 g de pâtes sèches, 1 cordon bleu" value="${esc(nutQ)}" autocomplete="off" data-inp="nutQ">
     ${!FOODS ? `<p class="muted small" style="margin-top:8px" id="nutload">Chargement de la table des aliments…</p>` : ""}
@@ -2126,10 +2094,13 @@ Object.assign(ACT, {
   nutOff:async () => {
     const q = parseFoodLine(nutQ).txt; if (!q || offBusy) return; offBusy = true; nutRefresh();
     try {
-      const u = "https://world.openfoodfacts.org/cgi/search.pl?search_simple=1&action=process&json=1&page_size=15&sort_by=unique_scans_n&fields=code,product_name,product_name_fr,brands,nutriments&search_terms=" + encodeURIComponent(q);
-      const j = await (await fetch(u)).json();
-      offRes = (j.products || []).map(p => { const n = p.nutriments || {}, k = n["energy-kcal_100g"] ?? (n.energy_100g ? n.energy_100g / 4.184 : null);
-        return {src:"off", code:p.code, nom:p.product_name_fr || p.product_name || "", marque:(p.brands || "").split(",")[0].trim(), k, p:n.proteins_100g, g:n.carbohydrates_100g, l:n.fat_100g}; })
+      /* Recherche plein texte « Search-a-licious » (recommandée par Open Food Facts), sinon l'ancienne API */
+      const F = "code,product_name,product_name_fr,brands,nutriments";
+      let list = null;
+      try { const j = await (await fetch("https://search.openfoodfacts.org/search?page_size=15&langs=fr&fields=" + F + "&q=" + encodeURIComponent(q))).json(); list = j.hits || null; } catch(e){ list = null; }
+      if (!list) { const j = await (await fetch("https://world.openfoodfacts.org/cgi/search.pl?search_simple=1&action=process&json=1&page_size=15&sort_by=unique_scans_n&fields=" + F + "&search_terms=" + encodeURIComponent(q))).json(); list = j.products || []; }
+      offRes = list.map(p => { const n = p.nutriments || {}, k = n["energy-kcal_100g"] ?? (n.energy_100g ? n.energy_100g / 4.184 : null);
+        return {src:"off", code:p.code, nom:p.product_name_fr || p.product_name || "", marque:(Array.isArray(p.brands) ? p.brands[0] || "" : String(p.brands || "").split(",")[0]).trim(), k, p:n.proteins_100g, g:n.carbohydrates_100g, l:n.fat_100g}; })
         .filter(f => f.nom && f.k !== null && f.k !== undefined && f.p !== undefined && f.g !== undefined && f.l !== undefined);
     } catch(e){ toast("Recherche de marque impossible (connexion ?)", true); offRes = null; }
     offBusy = false; nutRefresh();
@@ -2171,14 +2142,6 @@ async function addPR(l, c, r, d, n){
     firstPaint = true; render();
     if (isPr) { toast("Nouveau record : +" + fmt(nb - (before || 0)) + " kg en " + LNAME[l].toLowerCase()); const el = $("#liftbig"); if (el) el.classList.add("burst"); } else toast("PR enregistré");
   } catch(e){ toast(errMsg(e) + ambig(e), true); }
-}
-async function saveAtt(date, l, i, val, res){
-  let r = D.tent.find(x => x.date === date && x.lift === l);
-  const t = r ? r.t.slice() : [null, null, null], rs = r ? r.r.slice() : ["", "", ""];
-  if (val !== null) t[i] = val === "" ? null : val; if (res !== null) rs[i] = res;
-  const row = [date, l, t[0] ?? "", t[1] ?? "", t[2] ?? "", rs[0], rs[1], rs[2], ""];
-  try { if (r) await putVals(APP_ID, `TENTATIVES!A${r.row}:I${r.row}`, [row]); else { await appendVals(APP_ID, "TENTATIVES!A1:I1", [row]); await loadApp(); r = D.tent.find(x => x.date === date && x.lift === l); }
-    if (r) { r.t = t; r.r = rs; } saveCache(); if (res !== null) rAgenda(); } catch(e){ toast(errMsg(e), true); }
 }
 async function doImport(){
   if (!importRows || !importRows.length) return; const b = $("#impb"); b.disabled = true;
@@ -2265,19 +2228,13 @@ const dlr = {async save({filename, data}){
 /* ---------- Carnet de données : structure ---------- */
 const TABS = {
   PROFIL:["Clé","Valeur","Note"], PR:["Date","Mouvement","Charge (kg)","Reps","Note"], POIDS:["Date","Poids (kg)","Note"],
-  OBJECTIFS:["Mouvement","Objectif (kg)","Note"], RECORDS:["Type","Catégorie","Mouvement","Record (kg)","Détenteur","Source","Vérifié le"],
+  OBJECTIFS:["Mouvement","Objectif (kg)","Note"],
   COMPETITIONS:["Date","Nom","Lieu","Note","Statut"], SERIES:["Date","Bloc","Semaine","Séance","Exercice","Charge (kg)","Reps par série","Source","Note"],
-  BLOCS:["Bloc","Lundi de la semaine 1","Note"], TENTATIVES:["Date compét","Mouvement","Tentative 1","Tentative 2","Tentative 3","Résultat 1","Résultat 2","Résultat 3","Note"],
+  BLOCS:["Bloc","Lundi de la semaine 1","Note"],
   CHECKLIST:["Date compét","Élément","Fait"], BILAN:["Date","Bloc","Semaine","Sommeil","Plaisir","Motivation","Fatigue","Hydratation","Alimentation"],
   HISTORIQUE:["Prog","Onglet","Bloc","Début du bloc","Semaine","Séance","Jour","Ligne","Mouvement","Variation","Séries","Reps","Charge","RPE S1","RPE dernière","Commentaire athlète","Cycle"],
   REPAS:["Date","Heure","Aliment","Source","Code","Quantité (g)","Kcal","Protéines (g)","Glucides (g)","Lipides (g)"], ALIMENTS:["Nom","Marque","Source","Code","Kcal /100 g","Protéines /100 g","Glucides /100 g","Lipides /100 g","Note"], DEPENSE:["Date","Kcal","Source","Heure"]
 };
-/* Records vérifiés le 19/10/2026 sur rankings.officialstreetlifting.com (catégorie -80 kg hommes). Les autres catégories s'ajoutent dans l'onglet RECORDS. */
-const OSL = "https://rankings.officialstreetlifting.com/records/male/classes/-80kg";
-const RECORDS_DEFAULT = [["WR","-80","TOTAL","538.5","Aubin Chevillard (FRA)",OSL,"2026-10-19"],["WR","-80","MU","47.5","Aubin Chevillard (FRA)",OSL,"2026-10-19"],
-  ["WR","-80","PULL","120","Dmitrii Vlasov (RUS)",OSL,"2026-10-19"],["WR","-80","DIP","175","Benjamin Detre (FRA)",OSL,"2026-10-19"],["WR","-80","SQUAT","271.5","Michael Incoronato (ITA)",OSL,"2026-10-19"],
-  ["NR BE","-80","MU","40","François Conreur (BEL)",OSL,"2026-10-19"],["NR BE","-80","PULL","100.25","François Conreur (BEL)",OSL,"2026-10-19"],
-  ["NR BE","-80","DIP","150","François Conreur (BEL)",OSL,"2026-10-19"],["NR BE","-80","SQUAT","220","Albert Israelyan (BEL)",OSL,"2026-10-19"]];
 async function writeMany(id, data){ return gapi(API + id + "/values:batchUpdate", {method:"POST", body:JSON.stringify({valueInputOption:"RAW", data})}); }
 async function ensureTabs(id){
   const have = new Set(await getTitles(id)), miss = Object.keys(TABS).filter(t => !have.has(t));
@@ -2290,10 +2247,9 @@ async function createBook(p){
     sheets:Object.keys(TABS).map(t => ({properties:{title:t, gridProperties:{frozenRowCount:1}}}))})});
   const id = r.spreadsheetId;
   const prof = [["prenom",p.prenom],["sexe",p.sexe],["naissance",""],["taille_cm",p.taille || ""],["categorie",p.categorie],["coach_sheet_id",p.coach || ""],["bloc_actif",p.bloc || ""],["mu_acquis",p.mu || "NON"],
-    ["date_objectif",addMonths(isoOf(new Date()), 12)],["debut_street",p.debut || ""],["debut_coaching",p.debutCoach || ""]];
+    ["debut_street",p.debut || ""],["debut_coaching",p.debutCoach || ""]];
   const data = Object.keys(TABS).map(t => ({range:t + "!A1", values:[TABS[t]]}));
   data.push({range:"PROFIL!A2", values:prof});
-  data.push({range:"RECORDS!A2", values:RECORDS_DEFAULT});
   const prs = LIFTS.filter(l => num(p["pr_" + l])).map(l => [isoOf(new Date()), l, num(p["pr_" + l]), 1, p.coach && obPre ? "Max de la prog du coach" : "Saisi à l'inscription"]);
   if (prs.length) data.push({range:"PR!A2", values:prs});
   if (num(p.poids)) data.push({range:"POIDS!A2", values:[[isoOf(new Date()), num(p.poids), ""]]});
@@ -2337,7 +2293,7 @@ function onboard(step, why){
     <button class="btn" style="margin-top:22px" data-act="obLogin">Continuer avec Google</button>${err}
     <p class="muted tiny" style="margin-top:14px">Google peut afficher « application non validée » : c'est normal pour une app en test. Touche « Continuer ».</p>`;
   else if (step === "carnet") h = `<p class="show t-m" style="margin-top:18px">Ton carnet de données</p>
-    <p class="muted small" style="margin-top:6px">L'app range tes PR, pesées et séances dans un Google Sheet à toi.</p>
+    <p class="muted small" style="margin-top:6px">L'app range tes records, pesées, séances et repas dans un Google Sheet à toi.</p>
     <div class="panel" style="margin-top:16px"><p style="font-weight:600">Nouveau ici, avec une prog de coach</p><p class="muted small" style="margin-top:4px">Colle le lien de ta prog : l'app y lit ton prénom, ton poids et tes max, et crée ton carnet.</p>
       <label for="obcoach">Lien de la prog de ton coach</label><input id="obcoach" type="url" placeholder="https://docs.google.com/spreadsheets/d/…">
       <button class="btn" style="margin-top:12px" data-act="obFromCoach" id="obfc">Tout remplir depuis ma prog</button>
