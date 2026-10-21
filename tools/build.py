@@ -111,7 +111,7 @@ async function startApp(){
   }
   fetchEmail();
   await syncAll(true);
-  if (store.get("sl-resume")) { store.del("sl-resume"); const lv = store.get(ck("sl4-live")); if (lv && seanceByKey(lv.key)) startLive(lv.key); }
+  if (store.get("sl-resume")) { store.del("sl-resume"); const lv = store.get(ck("sl4-live")); if (!live && lv && seanceByKey(lv.key)) startLive(lv.key); }
 }
 async function boot(){
   auth.fromHash();

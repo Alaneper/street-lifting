@@ -309,6 +309,10 @@ body.scrolled .topbar::before{border-bottom-color:var(--seam)}
 .tabname{color:var(--dust);font-weight:600;opacity:0;transition:opacity .2s}.tabname::before{content:"· "}
 body.scrolled .tabname{opacity:1}
 html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 64px)}
+html,body{overflow-x:clip}body{margin-top:0}
+.brandmark{white-space:nowrap;min-width:0}
+@media (max-width:374px){.tabname{display:none}}
+@media (max-height:500px){.topbar{position:static}}
 .brandmark{display:flex;align-items:center;gap:8px;font:700 17px var(--f-text)}
 .hero{position:relative;overflow:hidden;background:var(--hc,var(--brand));border-radius:24px;padding:20px;color:#fff;margin-top:14px}
 .hero.plain{--hc:var(--deck2)}
@@ -971,6 +975,7 @@ function exercisePoints(){
     if (!sets) continue;
     if (failTxt(e.rpeLast) && sets.length > 1) sets = sets.slice(0, -1);
     const rp = num(e.rpeLast); if (rp && rp >= 5 && rp <= 10 && sets.length) sets = sets.map((x, i) => i === sets.length - 1 ? {...x, rpe:rp} : x);
+    const r1 = num(e.rpe1); if (r1 && r1 >= 5 && r1 <= 10 && sets.length && (sets.length > 1 || !(rp && rp >= 5))) sets = sets.map((x, i) => i === 0 ? {...x, rpe:r1} : x);
     rows.push({sk:s.key, ex:key, lift, comp:isCompEx(e), where:{bloc:s.bloc, sem:s.semaine, seance:s.seance, row:e.row, sheet:s.sheet, charge:e.charge, rpe1:e.rpe1, rpeLast:e.rpeLast, com:e.commentaire, archived:!!s.archived}, bloc:s.bloc, sem:s.semaine, date:dateOf(s), order:rank(s.bloc) * 1000 + (num(s.semaine) || 0) * 10 + s.idx, label:blocShort(s.bloc) + " S" + s.semaine, sets, src:"prog"});
   }
   for (const x of D.series) {
@@ -1021,8 +1026,9 @@ function e1rmBest(l, sets){
   const all = sets.map(x => { const e = e1rmOf(l, x); return e ? {...x, ...e} : null; }).filter(Boolean);
   /* Choix d'Alane (21/10/2026) : le 1RM estimé part de la charge la plus lourde ; à charge égale, la meilleure estimation. */
   if (!all.length) return null;
-  const top = Math.max(...all.map(x => x.c));
-  return all.filter(x => x.c >= top - 1e-9).reduce((a, x) => !a || x.v > a.v ? x : a, null);
+  const multi = all.filter(x => x.r >= 2), pool = multi.length ? multi : all;   /* un 1 rep, c'est déjà ton PR : l'estimation part des séries de 2 reps ou plus */
+  const top = Math.max(...pool.map(x => x.c));
+  return pool.filter(x => x.c >= top - 1e-9).reduce((a, x) => !a || x.v > a.v ? x : a, null);
 }
 /* Date courte (sans l'année si c'est l'année en cours) : tient dans les cases du tableau des records. */
 const dShort = iso => !iso ? "" : iso.slice(0, 4) === D.today.slice(0, 4) ? dfr(iso).slice(0, 5) : MOIS[+iso.slice(5, 7) - 1] + " " + iso.slice(2, 4);
@@ -1055,9 +1061,9 @@ function loadCache(){
 /* =====================================================================
    RENDU GÉNÉRAL ET NAVIGATION
    ===================================================================== */
-let corpsManual = false;
+let corpsManual = "";   /* jour où tu as choisi Alimentation/Poids toi-même */
 function setTab(t){
-  if (t === "corps" && tab !== "corps" && !corpsManual) corpsTab = D && new Date().getHours() < 12 && !D.poids.some(p => p.date === D.today) ? "poids" : "nutri";
+  if (t === "corps" && tab !== "corps" && !(D && corpsManual === D.today)) corpsTab = D && new Date().getHours() < 12 && !D.poids.some(p => p.date === D.today) ? "poids" : "nutri";
   tab = t;
   const tn = $("#tabname"); if (tn) tn.textContent = {home:"Aujourd'hui", seance:"Prog", prog:"Progrès", corps:"Corps", agenda:"Compét"}[t] || "";
   document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.tab === t ? "page" : "false"));
@@ -1160,17 +1166,21 @@ function remainingInBloc(){ const b = activeBloc(); return b === null ? 0 : S.fi
 /* Pesée du matin (choix d'Alane, maquette A) : sous le héros tant que tu ne t'es pas pesé aujourd'hui.
    Deux touchers : ajuster, « Noter ». La marge sur ta catégorie s'affiche en direct. */
 const limTxt = (v, lim) => v <= lim ? `Limite des −${lim} : ${fmt(lim - v, 1)} kg de marge` : `${fmt(v - lim, 1)} kg au-dessus de la limite des −${lim}`;
+let hwDraft = null;   /* saisie en cours : {d:jour, v:texte} */
 function weighCard(pw){
-  const v = pw ? pw.poids : null, lim = catLimit(), yday = pw && pw.date === addDays(D.today, -1);
-  const ref = pw ? (yday ? "hier " : "le " + dShort(pw.date) + " : ") + kg(pw.poids, 1) : "";
+  const dv = hwDraft && hwDraft.d === D.today ? num(hwDraft.v) : null, v = dv || (pw ? pw.poids : null), lim = catLimit(), yday = pw && pw.date === addDays(D.today, -1);
+  const ref = pw ? (yday ? "Hier : " : (pw.date.slice(0, 4) === D.today.slice(0, 4) ? dfr(pw.date).slice(0, 5) : dfr(pw.date)) + " : ") + kg(pw.poids, 1) : "";
   return `<section class="card weigh" style="margin-top:12px" aria-label="Pesée"><div class="row"><b style="font-size:16px">${new Date().getHours() < 12 ? "Pesée du matin" : "Pesée du jour"}</b><span class="muted small">${ref}</span></div>
-    <div class="stepper big"><button data-act="stepW" data-d="-0.1" aria-label="Moins 100 g">−</button><input id="hw" inputmode="decimal" value="${v ? fmt(v, 1) : ""}" placeholder="kg" aria-label="Poids en kg" data-inp="hw"><button data-act="stepW" data-d="0.1" aria-label="Plus 100 g">+</button></div>
-    <button class="btn" style="margin-top:10px" data-act="saveW" data-src="hw" id="hwbtn">Noter${v ? " " + fmt(v, 1) + " kg" : ""}</button>
-    ${lim ? `<p class="muted small" id="hwlim" style="margin-top:10px;text-align:center">${v ? limTxt(v, lim) : ""}</p>` : ""}</section>`;
+    <div class="stepper big"><button data-act="stepW" data-d="-0.1" aria-label="Moins 100 g">−</button><input id="hw" inputmode="decimal" value="${hwDraft && hwDraft.d === D.today ? esc(hwDraft.v) : v ? fmt(v, 1) : ""}" placeholder="kg" aria-label="Poids en kg" data-inp="hw"><button data-act="stepW" data-d="0.1" aria-label="Plus 100 g">+</button></div>
+    <button class="btn" style="margin-top:10px" data-act="saveW" data-src="hw" id="hwbtn">Noter${okW(v) ? " " + fmt(v, 1) + " kg" : ""}</button>
+    ${lim ? `<p class="muted small" id="hwlim" style="margin-top:10px;text-align:center">${okW(v) ? limTxt(v, lim) : ""}</p>` : ""}</section>`;
 }
-function hwRefresh(){ const v = num(($("#hw") || {}).value), b = $("#hwbtn"), l = $("#hwlim"), lim = catLimit();
-  if (b) b.textContent = "Noter" + (v ? " " + fmt(v, 1) + " kg" : ""); if (l && lim) l.textContent = v ? limTxt(v, lim) : ""; }
+const okW = v => !!v && v >= 30 && v <= 250;
+function hwRefresh(){ const i = $("#hw"), v = num((i || {}).value), b = $("#hwbtn"), l = $("#hwlim"), lim = catLimit();
+  if (i) hwDraft = {d:D.today, v:i.value};
+  if (b) b.textContent = "Noter" + (okW(v) ? " " + fmt(v, 1) + " kg" : ""); if (l && lim) l.textContent = okW(v) ? limTxt(v, lim) : ""; }
 function rHome(){
+  if (document.activeElement && document.activeElement.id === "hw") return;   /* ne pas fermer le clavier pendant la saisie du poids */
   const t = total(), r = risOf(t, bw()), ts = todaySeance(), ns = nextSeance(), sess = ts && !ts.faite ? ts : ns, nc = nextComp(), pw = D.poids.at(-1), weighed = pw && pw.date === D.today;
   const bil = pendingBilan(), lv = store.get("sl4-live"), sessDate = sess && dateOf(sess), rem = remainingInBloc();
   const weekRef = sessDate && sessDate > addDays(D.today, 6 - (dObj(D.today).getDay() + 6) % 7) ? sessDate : D.today, wr = S.length ? weekRows(weekRef) : "";
@@ -1296,14 +1306,20 @@ function initSets(s, e, k){
 }
 async function startLive(key, i){
   const s = seanceByKey(key); if (!s) return;
+  if (live && live.key === key) { if (i !== undefined) live.i = +i; return renderLayer(); }   /* déjà ouverte : pas de seconde ouverture */
   if (s.archived) return toast("Ce bloc vient de ton historique : il se consulte, il ne se modifie plus.", true);
   let st = store.get("sl4-live");
   if (!st || st.key !== key) st = {key, start:Date.now(), i:0, rows:{}, pdc:false};
   if (i !== undefined) st.i = +i;
   s.exercices.forEach((e, k) => { if (!st.rows[k]) st.rows[k] = {sets:initSets(s, e, k), bo:!!backoffOf(s, e, k), rpe1:num(e.rpe1), rpeLast:num(e.rpeLast), dirty:false}; });
   live = st; live.at = Date.now(); delete live.paused; store.set("sl4-live", live);
+  try { if (wakeLock) wakeLock.release(); } catch(e){}
   try { wakeLock = await navigator.wakeLock?.request("screen"); } catch(e){ wakeLock = null; }
-  if (!live.pdc && s.recapRow) openSheet("pdc"); else renderLayer();
+  const tw = D.poids.find(p => p.date === D.today);
+  if (!live.pdc && s.recapRow && tw) {   /* déjà pesé (carte du matin) : le poids part directement dans le récap du coach */
+    live.pdc = true; persistLive(); renderLayer();
+    putVals(coachId(), q(s.sheet) + "!" + colL(s.pdcCol) + s.recapRow, [[tw.poids]]).then(() => { s.pdc = String(tw.poids); }).catch(() => {});
+  } else if (!live.pdc && s.recapRow) openSheet("pdc"); else renderLayer();
 }
 function persistLive(){ if (live) { live.at = Date.now(); store.set("sl4-live", live); } }
 /* Reprise automatique (choix d'Alane) : si l'iPhone a fermé l'app pendant une séance de moins de 3 h, on la rouvre dessus. */
@@ -1393,7 +1409,7 @@ function onSetDone(j){
       if (prior.length && c > Math.max(...prior)) rr = {l, r, c, d:c - Math.max(...prior)};
     }
     if (rr) { (live.recs = live.recs || []).push(rr); persistLive(); toast(`Record à ${r} rep${r > 1 ? "s" : ""} : ${fmt(c)} kg (+${fmt(rr.d)})`); }
-    else if (cur && b0 && cur > b0 * 1.005) toast("Meilleur 1RM estimé sur cet exercice : " + fmt(cur, 1) + " kg");
+    else if (cur && b0 && cur > b0 * 1.005 && !st.sets.some(y => y !== x && y.done && (num(y.c) || 0) > (num(x.c) || 0))) toast("Meilleur 1RM estimé sur cet exercice : " + fmt(cur, 1) + " kg");
   }
   /* Minuteur de repos (sauf après la dernière série) */
   if (j < st.sets.length - 1) startRest(restSec(e.repos, l));
@@ -1520,7 +1536,7 @@ function rProg(){
     const all = exercisePoints(), now = all.filter(o => cur.has(o.key)), old = all.filter(o => !cur.has(o.key));
     const rowEx = o => { const v = o.pts.map(p => p.e1rm), d = trend4w(o.pts), col = o.lift ? LCOL[o.lift] : "var(--chalk)";
       return `<button class="item" data-act="openEx" data-k="${esc(o.key)}"><span class="grow"><span class="ttl" style="display:block">${esc(exName(o.key))}</span><span class="muted small">${esc(fmtSets(o.last.sets))}</span></span>
-        ${sparkSVG(v.slice(-10), o.lift ? getCss(col) : getCss("var(--chalk)"))}<span class="small" style="width:52px;text-align:right;color:${d > 0 ? "var(--chalk)" : "var(--dust)"}">${d === null ? "" : (d > 0 ? "+" : "") + fmt(d, 0) + " %"}</span></button>`; };
+        ${sparkSVG(v.slice(-10), o.lift ? getCss(col) : getCss("var(--chalk)"))}<span class="small" style="width:52px;text-align:right;color:${d > 0 ? "var(--chalk)" : "var(--dust)"}">${d === null ? "" : (d > 0 ? "+" : "") + fmt(d, 0).replace("-", "−") + " %"}</span></button>`; };
     exHtml = `${now.length ? `<div class="list">${now.map(rowEx).join("")}</div>` : `<p class="muted small">Aucune performance notée pour les exercices du ${esc(blocLow(ab))}. Lance une séance pour commencer.</p>`}
       ${old.length ? `<details style="margin-top:14px"><summary class="small muted">Anciens exercices (${old.length})</summary><div class="list" style="margin-top:6px">${old.map(rowEx).join("")}</div></details>` : ""}`;
   } else ensureAllBlocs().then(() => { if (tab === "prog") rProg(); }).catch(() => {});
@@ -1657,7 +1673,7 @@ function rExPage(key){
     <div class="grid3" style="margin-top:18px">
       <div><p class="muted small">Dernière fois</p><p class="show t-s" style="margin-top:4px">${fmt(la.charge)} kg</p><p class="muted tiny">${la.sets.map(x => x.r).join(" · ")}</p></div>
       <div><p class="muted small">1RM estimé</p><p class="show t-s" style="margin-top:4px">${fmt(la.e1rm, 1)}</p><p class="muted tiny">record ${fmt(bp.e1rmBest, 1)}</p></div>
-      <div><p class="muted small">Depuis le début</p><p class="show t-s" style="margin-top:4px;color:${g < 0 ? "var(--dust)" : "var(--chalk)"}">${g === null ? "–" : (g > 0 ? "+" : "") + fmt(g, 1) + " %"}</p><p class="muted tiny">${P.length} séances</p></div>
+      <div><p class="muted small">Depuis le début</p><p class="show t-s" style="margin-top:4px;color:${g < 0 ? "var(--dust)" : "var(--chalk)"}">${g === null ? "–" : (g > 0 ? "+" : "") + fmt(g, 1).replace("-", "−") + " %"}</p><p class="muted tiny">${P.length} séances</p></div>
     </div>
     <div class="chips" style="margin-top:20px">${EXM.map(([k, t]) => `<button class="chip" aria-pressed="${exMetric === k}" data-act="exMetric" data-k="${k}" data-x="${esc(key)}">${t}</button>`).join("")}</div>
     <div class="panel" style="margin-top:10px">${P.length > 1 ? `<canvas id="c-ex" aria-label="Progression"></canvas>` : `<p class="muted small" style="text-align:center;padding:18px 0">La courbe apparaît dès la 2e séance notée.</p>`}
@@ -1850,7 +1866,7 @@ function rSheet(){
     else { s.style.transform = ""; const sc = document.querySelector(".scrim"); if (sc) sc.style.opacity = ""; } });
 })();
 function openSheet(s){ sheet = s; renderLayer(); if (s.startsWith("share|")) drawShare(s.slice(6)); }
-function closeSheet(){ sheet = null; renderLayer(); }
+function closeSheet(){ if (sheet === "pdc" && live) { live.pdc = true; persistLive(); } sheet = null; renderLayer(); }
 function settingsHtml(){
   const t = lastSync ? new Date(lastSync) : null;
   return `<div class="row"><p class="show t-m">Réglages</p><button class="btn sm ghost" data-act="sync">Synchroniser</button></div>
@@ -1864,7 +1880,7 @@ function settingsHtml(){
     <h2 class="h2" style="font-size:20px">Méthodes et sources</h2>
     <p class="src"><b style="color:var(--chalk)">RIS</b> : formule de Waris Radji et Mathieu Ardoin, édition 2026 (constantes publiées dans le code d'<a href="https://openstreetlifting.org" target="_blank" rel="noopener">OpenStreetlifting</a>). <a href="https://warisradji.com/ris/" target="_blank" rel="noopener">Calculateur officiel</a>.</p>
     <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Records</b> : <a href="https://rankings.officialstreetlifting.com/" target="_blank" rel="noopener">Official Streetlifting</a>, tableaux de records par catégorie, relevés le 20/10/2026. Record de Belgique : meilleure perf belge de ces tableaux.</p>
-    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">1RM estimé</b> : table RPE de Reactive Training Systems (Tuchscherer), la même que la colonne E1RM de ta prog : % du 1RM selon les reps et les reps en réserve (RIR = 10 − RPE, <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al., 2016</a>). Calcul sur la charge réelle (poids de corps + lest) pour muscle-up, tractions et dips. RIR compté au plus à 2 : l'effort se juge mal loin de l'échec (<a href="https://www.strongerbyscience.com/reps-in-reserve" target="_blank" rel="noopener">synthèse Stronger by Science</a>). Il part de ta série la plus lourde (à charge égale, la meilleure estimation) : une série légère à beaucoup de reps ne gonfle pas l'estimation. Séries de 10 reps au plus (<a href="https://researchconnect.suny.edu/en/publications/accuracy-of-prediction-equations-for-determining-one-repetition-m/" target="_blank" rel="noopener">Mayhew et al., 2008</a>).</p>
+    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">1RM estimé</b> : table RPE de Reactive Training Systems (Tuchscherer), la même que la colonne E1RM de ta prog : % du 1RM selon les reps et les reps en réserve (RIR = 10 − RPE, <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al., 2016</a>). Calcul sur la charge réelle (poids de corps + lest) pour muscle-up, tractions et dips. RIR compté au plus à 2 : l'effort se juge mal loin de l'échec (<a href="https://www.strongerbyscience.com/reps-in-reserve" target="_blank" rel="noopener">synthèse Stronger by Science</a>). Il part de ta série la plus lourde de 2 reps ou plus (à charge égale, la meilleure estimation ; un 1 rep, c'est déjà ton PR) : une série légère à beaucoup de reps ne gonfle pas l'estimation. Séries de 10 reps au plus (<a href="https://researchconnect.suny.edu/en/publications/accuracy-of-prediction-equations-for-determining-one-repetition-m/" target="_blank" rel="noopener">Mayhew et al., 2008</a>).</p>
     <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Aliments</b> : <a href="https://ciqual.anses.fr/" target="_blank" rel="noopener">table Ciqual 2025 de l'Anses</a> (Licence Ouverte), portions courantes de l'étude INCA3 ; produits de marque : <a href="https://world.openfoodfacts.org/" target="_blank" rel="noopener">Open Food Facts</a> (base collaborative, ODbL).</p>
     <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Besoins</b> : dépense de ta montre si tu la notes ; sinon formule de Mifflin-St Jeor × activité. Rythmes : perte 0,5 à 1 % du poids par semaine (<a href="https://openrepository.aut.ac.nz/items/723f44d2-7c20-4214-ba62-987339099039/full" target="_blank" rel="noopener">Helms et al., 2014</a>), prise 0,25 à 0,5 % (<a href="https://www.mdpi.com/2075-4663/7/7/154" target="_blank" rel="noopener">Iraki et al., 2019</a>).</p>
     <p class="muted tiny" style="margin-top:14px">Version de l'app : ${APP_VER}</p>
@@ -2137,7 +2153,7 @@ function nutGoalHtml(T){
 /* ---------- Actions ---------- */
 async function nutEnsureTabs(){ if (D._nutTabs) return; if (typeof ensureTabs === "function") await ensureTabs(APP_ID); D._nutTabs = true; }
 Object.assign(ACT, {
-  corpsTab:d => { corpsTab = d.k; corpsManual = true; rCorps(); },
+  corpsTab:d => { corpsTab = d.k; corpsManual = D.today; rCorps(); },
   nutDep:async () => { const k = num($("#ndep").value); if (!k || k < 800 || k > 9000) return toast("Indique la dépense du jour en kcal (ex. 3 200)", true);
     const now = new Date(), h = nutDate === D.today ? String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0") : "", old = (D.depense || {})[nutDate];
     try { if (!D._nutTabs && typeof ensureTabs === "function") { await ensureTabs(APP_ID); D._nutTabs = true; }
@@ -2203,7 +2219,7 @@ async function saveWeight(v, dt, toRecap){
     await appendVals(APP_ID, "POIDS!A1:C1", [[dt, v, toRecap ? "séance" : ""]]);
     D.poids = D.poids.filter(p => p.date !== dt).concat([{date:dt, poids:v}]).sort((a, b) => a.date < b.date ? -1 : 1);
     if (toRecap && live) { const s = seanceByKey(live.key); if (s && s.recapRow) { await putVals(coachId(), q(s.sheet) + "!" + colL(s.pdcCol) + s.recapRow, [[v]]); s.pdc = String(v); } }
-    const lim = catLimit(); toast(toRecap ? "Poids noté dans ta courbe et dans le récap de séance" : "Pesée enregistrée" + (lim && dt === D.today ? " · " + (v <= lim ? fmt(lim - v, 1) + " kg sous la limite" : fmt(v - lim, 1) + " kg au-dessus de la limite") : "")); saveCache(); render();
+    hwDraft = null; const lim = catLimit(); toast(toRecap ? "Poids noté dans ta courbe et dans le récap de séance" : "Pesée enregistrée" + (lim && dt === D.today ? " · " + (v <= lim ? fmt(lim - v, 1) + " kg sous la limite" : fmt(v - lim, 1) + " kg au-dessus de la limite") : "")); saveCache(); render();
   } catch(e){ toast(errMsg(e) + ambig(e), true); }
 }
 async function addPR(l, c, r, d, n){
