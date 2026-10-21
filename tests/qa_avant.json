@@ -1,0 +1,935 @@
+{
+ "iphone/01-connexion": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "iphone/02-carnet": {
+  "cibles_moins_24": [
+   "Je n'ai pas de prog, je remplis moi-même 231×19"
+  ],
+  "cibles_moins_44": [
+   "https://docs.google.com/spreadsheets/d/… 326×43",
+   "https://docs.google.com/spreadsheets/d/… 326×43"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "iphone/03-aujourdhui": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 4,
+    "ex": [
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"seance\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" strok",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"prog\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"corps\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"agenda\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" strok"
+    ]
+   }
+  ]
+ },
+ "iphone/04-prog": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Bloc 1 61×33",
+   "Bloc 2 64×33",
+   "Bloc 3 64×33",
+   "Bloc 4 64×33",
+   "Bloc 5 64×33",
+   "Bloc 6 63×33",
+   "Bloc 7 63×33"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 10,
+    "ex": [
+     "Element has insufficient color contrast of 2.97 (foreground color: #5e646d, background color: #16181c, font size: 9.0pt (12px), font weight: normal). Expected c ← <button class=\"cell done \" aria-current=\"false\" aria-label=\"Semaine 1, Séance 1\" data-act=",
+     "Element has insufficient color contrast of 2.97 (foreground color: #5e646d, background color: #16181c, font size: 9.0pt (12px), font weight: normal). Expected c ← <button class=\"cell done \" aria-current=\"false\" aria-label=\"Semaine 1, Séance 2\" data-act=",
+     "Element has insufficient color contrast of 2.97 (foreground color: #5e646d, background color: #16181c, font size: 9.0pt (12px), font weight: normal). Expected c ← <button class=\"cell done \" aria-current=\"false\" aria-label=\"Semaine 1, Séance 3\" data-act=",
+     "Element has insufficient color contrast of 2.97 (foreground color: #5e646d, background color: #16181c, font size: 9.0pt (12px), font weight: normal). Expected c ← <button class=\"cell done \" aria-current=\"false\" aria-label=\"Semaine 1, Séance 4\" data-act="
+    ]
+   }
+  ]
+ },
+ "iphone/05-progres": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Bloc 7 63×33",
+   "Bloc 6 63×33",
+   "Bloc 5 64×33",
+   "Bloc 4 64×33",
+   "Bloc 3 64×33",
+   "Bloc 2 64×33",
+   "Bloc 1 61×33",
+   "S1 39×33",
+   "S2 42×33",
+   "S3 42×33",
+   "S4 42×33"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 4,
+    "ex": [
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"home\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"seance\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"corps\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"agenda\" aria-current=\"false\">"
+    ]
+   }
+  ]
+ },
+ "iphone/06-corps-alimentation": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Alimentation 168×32",
+   "Poids 168×32",
+   "Jour précédent 42×42",
+   "2762 58×43",
+   "OK 37×54",
+   "Ex. riz, 250 g de pâtes sèches, 1 cordon 342×43"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 2,
+    "ex": [
+     "Element has insufficient color contrast of 3.23 (foreground color: #5e646d, background color: #0d0e10, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"seance\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke",
+     "Element has insufficient color contrast of 3.23 (foreground color: #5e646d, background color: #0d0e10, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"prog\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\""
+    ]
+   }
+  ]
+ },
+ "iphone/07-corps-poids": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Alimentation 168×32",
+   "Poids 168×32",
+   "7 j 48×32",
+   "1 mois 48×32",
+   "3 mois 48×32",
+   "6 mois 48×32",
+   "1 an 48×32",
+   "2 ans 48×32",
+   "Tout 48×32"
+  ],
+  "debordements": [],
+  "textes_coupes": [
+   "INPUT"
+  ],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 4,
+    "ex": [
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"home\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"seance\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"prog\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"agenda\" aria-current=\"false\">"
+    ]
+   }
+  ]
+ },
+ "iphone/08-compet": {
+  "cibles_moins_24": [
+   "Modifier 47×19",
+   "Supprimer 60×19",
+   "Modifier 47×19",
+   "Supprimer 60×19"
+  ],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Mois précédent 36×36",
+   "Mois suivant 36×36",
+   "Championnat de Belgique 310×43",
+   "Ville, salle 310×43",
+   "Fédération, horaire de pesée… 310×43"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 10,
+    "ex": [
+     "Element has insufficient color contrast of 2.76 (foreground color: #55585e, background color: #0a0b0d, font size: 10.5pt (14px), font weight: normal). Expected  ← <div class=\"d out  \">26<i class=\"todo\"></i></div>",
+     "Element has insufficient color contrast of 2.76 (foreground color: #55585e, background color: #0a0b0d, font size: 10.5pt (14px), font weight: normal). Expected  ← <div class=\"d out  \">27</div>",
+     "Element has insufficient color contrast of 2.76 (foreground color: #55585e, background color: #0a0b0d, font size: 10.5pt (14px), font weight: normal). Expected  ← <div class=\"d out  \">28<i class=\"todo\"></i></div>",
+     "Element has insufficient color contrast of 2.76 (foreground color: #55585e, background color: #0a0b0d, font size: 10.5pt (14px), font weight: normal). Expected  ← <div class=\"d out  \">29<i class=\"todo\"></i></div>"
+    ]
+   }
+  ]
+ },
+ "iphone/09-fiche-tractions": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Bloc 7 63×33",
+   "Bloc 6 63×33",
+   "Bloc 5 64×33",
+   "Bloc 4 64×33",
+   "Bloc 3 64×33",
+   "Bloc 2 64×33",
+   "Bloc 1 61×33",
+   "S1 39×33",
+   "S2 42×33",
+   "S3 42×33",
+   "S4 42×33",
+   "Retour 42×42",
+   "40 278×43",
+   "Tes PR 67×33",
+   "e1RM de la prog 120×33",
+   "INPUT 134×43",
+   "1 134×43"
+  ],
+  "debordements": [],
+  "textes_coupes": [
+   "B7 S1 · 14/10/26",
+   "B7 S1 · 14/10/26"
+  ],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 5,
+    "ex": [
+     "Element has insufficient color contrast of 2.75 (foreground color: #e2edfe, background color: #4c8df6, font size: 11.3pt (15px), font weight: normal). Expected  ← <p class=\"hu\">105,7 kg avec ton poids de corps</p>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"home\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"seance\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"corps\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke="
+    ]
+   }
+  ]
+ },
+ "iphone/10-reglages": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Bloc 7 63×33",
+   "Bloc 6 63×33",
+   "Bloc 5 64×33",
+   "Bloc 4 64×33",
+   "Bloc 3 64×33",
+   "Bloc 2 64×33",
+   "Bloc 1 61×33",
+   "S1 39×33",
+   "S2 42×33",
+   "S3 42×33",
+   "S4 42×33",
+   "https://docs.google.com/spreadsheets/d/1 358×43"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 4,
+    "ex": [
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"home\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"seance\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"corps\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"agenda\" aria-current=\"false\">"
+    ]
+   }
+  ]
+ },
+ "iphone/11-seance-pesee": {
+  "cibles_moins_24": [
+   "+ Ajouter une série 107×19",
+   "Retirer la dernière 103×19"
+  ],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Bloc 7 63×33",
+   "Bloc 6 63×33",
+   "Bloc 5 64×33",
+   "Bloc 4 64×33",
+   "Bloc 3 64×33",
+   "Bloc 2 64×33",
+   "Bloc 1 61×33",
+   "S1 39×33",
+   "S2 42×33",
+   "S3 42×33",
+   "S4 42×33",
+   "Fermer la séance 42×42",
+   "Terminer 84×36"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 9,
+    "ex": [
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>N°</span>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>Précédent</span>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>Kg</span>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>Reps</span>"
+    ]
+   }
+  ]
+ },
+ "iphone/12-seance-serie": {
+  "cibles_moins_24": [
+   "+ Ajouter une série 107×19"
+  ],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Bloc 7 63×33",
+   "Bloc 6 63×33",
+   "Bloc 5 64×33",
+   "Bloc 4 64×33",
+   "Bloc 3 64×33",
+   "Bloc 2 64×33",
+   "Bloc 1 61×33",
+   "S1 39×33",
+   "S2 42×33",
+   "S3 42×33",
+   "S4 42×33",
+   "Fermer la séance 42×42",
+   "Terminer 84×36"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 11,
+    "ex": [
+     "Element has insufficient color contrast of 2.87 (foreground color: #fde3e2, background color: #f0524a, font size: 11.3pt (15px), font weight: normal). Expected  ← <p class=\"hs\">Exercice 2 sur 6 · Squat comp</p>",
+     "Element has insufficient color contrast of 2.87 (foreground color: #fde3e2, background color: #f0524a, font size: 11.3pt (15px), font weight: normal). Expected  ← <p class=\"hu\">1 série de 3 · repos 3-5'</p>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>N°</span>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>Précédent</span>"
+    ]
+   }
+  ]
+ },
+ "iphone/13-seance-apres-validation": {
+  "cibles_moins_24": [
+   "+ Ajouter une série 107×19"
+  ],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Bloc 7 63×33",
+   "Bloc 6 63×33",
+   "Bloc 5 64×33",
+   "Bloc 4 64×33",
+   "Bloc 3 64×33",
+   "Bloc 2 64×33",
+   "Bloc 1 61×33",
+   "S1 39×33",
+   "S2 42×33",
+   "S3 42×33",
+   "S4 42×33",
+   "Fermer la séance 42×42",
+   "Terminer 84×36"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 11,
+    "ex": [
+     "Element has insufficient color contrast of 2.87 (foreground color: #fde3e2, background color: #f0524a, font size: 11.3pt (15px), font weight: normal). Expected  ← <p class=\"hs\">Exercice 2 sur 6 · Squat comp</p>",
+     "Element has insufficient color contrast of 2.87 (foreground color: #fde3e2, background color: #f0524a, font size: 11.3pt (15px), font weight: normal). Expected  ← <p class=\"hu\">1 série de 3 · repos 3-5'</p>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>N°</span>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>Précédent</span>"
+    ]
+   }
+  ]
+ },
+ "iphone/14-seance-repos": {
+  "cibles_moins_24": [
+   "+ Ajouter une série 107×19",
+   "Retirer la dernière 103×19"
+  ],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Bloc 7 63×33",
+   "Bloc 6 63×33",
+   "Bloc 5 64×33",
+   "Bloc 4 64×33",
+   "Bloc 3 64×33",
+   "Bloc 2 64×33",
+   "Bloc 1 61×33",
+   "S1 39×33",
+   "S2 42×33",
+   "S3 42×33",
+   "S4 42×33",
+   "Fermer la séance 42×42",
+   "Terminer 84×36"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 11,
+    "ex": [
+     "Element has insufficient color contrast of 2.87 (foreground color: #fde3e2, background color: #f0524a, font size: 11.3pt (15px), font weight: normal). Expected  ← <p class=\"hs\">Exercice 3 sur 6 · Squat comp</p>",
+     "Element has insufficient color contrast of 2.87 (foreground color: #fde3e2, background color: #f0524a, font size: 11.3pt (15px), font weight: normal). Expected  ← <p class=\"hu\">3 séries de 5 · repos 3-5' · -10%/-5%  ( 99,75 ) de 108,5 kg = 97,75 à 103 k",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>N°</span>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>Précédent</span>"
+    ]
+   }
+  ]
+ },
+ "iphone/15-seance-bilan": {
+  "cibles_moins_24": [
+   "+ Ajouter une série 107×19",
+   "Retirer la dernière 103×19"
+  ],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Bloc 7 63×33",
+   "Bloc 6 63×33",
+   "Bloc 5 64×33",
+   "Bloc 4 64×33",
+   "Bloc 3 64×33",
+   "Bloc 2 64×33",
+   "Bloc 1 61×33",
+   "S1 39×33",
+   "S2 42×33",
+   "S3 42×33",
+   "S4 42×33",
+   "Fermer la séance 42×42",
+   "Terminer 84×36"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 11,
+    "ex": [
+     "Element has insufficient color contrast of 2.87 (foreground color: #fde3e2, background color: #f0524a, font size: 11.3pt (15px), font weight: normal). Expected  ← <p class=\"hs\">Exercice 3 sur 6 · Squat comp</p>",
+     "Element has insufficient color contrast of 2.87 (foreground color: #fde3e2, background color: #f0524a, font size: 11.3pt (15px), font weight: normal). Expected  ← <p class=\"hu\">3 séries de 5 · repos 3-5' · -10%/-5%  ( 99,75 ) de 108,5 kg = 97,75 à 103 k",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>N°</span>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>Précédent</span>"
+    ]
+   }
+  ]
+ },
+ "iphone/console": [],
+ "ipad/01-connexion": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "ipad/02-carnet": {
+  "cibles_moins_24": [
+   "Je n'ai pas de prog, je remplis moi-même 231×19"
+  ],
+  "cibles_moins_44": [
+   "https://docs.google.com/spreadsheets/d/… 424×43",
+   "https://docs.google.com/spreadsheets/d/… 424×43"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "ipad/03-aujourdhui": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 4,
+    "ex": [
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"seance\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" strok",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"prog\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"corps\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"agenda\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" strok"
+    ]
+   }
+  ]
+ },
+ "ipad/04-prog": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Bloc 1 61×33",
+   "Bloc 2 64×33",
+   "Bloc 3 64×33",
+   "Bloc 4 64×33",
+   "Bloc 5 64×33",
+   "Bloc 6 63×33",
+   "Bloc 7 63×33"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 10,
+    "ex": [
+     "Element has insufficient color contrast of 2.97 (foreground color: #5e646d, background color: #16181c, font size: 9.0pt (12px), font weight: normal). Expected c ← <button class=\"cell done \" aria-current=\"false\" aria-label=\"Semaine 1, Séance 1\" data-act=",
+     "Element has insufficient color contrast of 2.97 (foreground color: #5e646d, background color: #16181c, font size: 9.0pt (12px), font weight: normal). Expected c ← <button class=\"cell done \" aria-current=\"false\" aria-label=\"Semaine 1, Séance 2\" data-act=",
+     "Element has insufficient color contrast of 2.97 (foreground color: #5e646d, background color: #16181c, font size: 9.0pt (12px), font weight: normal). Expected c ← <button class=\"cell done \" aria-current=\"false\" aria-label=\"Semaine 1, Séance 3\" data-act=",
+     "Element has insufficient color contrast of 2.97 (foreground color: #5e646d, background color: #16181c, font size: 9.0pt (12px), font weight: normal). Expected c ← <button class=\"cell done \" aria-current=\"false\" aria-label=\"Semaine 1, Séance 4\" data-act="
+    ]
+   }
+  ]
+ },
+ "ipad/05-progres": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Bloc 7 63×33",
+   "Bloc 6 63×33",
+   "Bloc 5 64×33",
+   "Bloc 4 64×33",
+   "Bloc 3 64×33",
+   "Bloc 2 64×33",
+   "Bloc 1 61×33",
+   "S1 39×33",
+   "S2 42×33",
+   "S3 42×33",
+   "S4 42×33"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 4,
+    "ex": [
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"home\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"seance\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"corps\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"agenda\" aria-current=\"false\">"
+    ]
+   }
+  ]
+ },
+ "ipad/06-corps-alimentation": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Alimentation 357×32",
+   "Poids 357×32",
+   "Jour précédent 42×42",
+   "2762 92×43",
+   "Ex. riz, 250 g de pâtes sèches, 1 cordon 720×43"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 4,
+    "ex": [
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"home\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"seance\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"prog\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"agenda\" aria-current=\"false\">"
+    ]
+   }
+  ]
+ },
+ "ipad/07-corps-poids": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Alimentation 357×32",
+   "Poids 357×32",
+   "7 j 102×32",
+   "1 mois 102×32",
+   "3 mois 102×32",
+   "6 mois 102×32",
+   "1 an 102×32",
+   "2 ans 102×32",
+   "Tout 102×32"
+  ],
+  "debordements": [],
+  "textes_coupes": [
+   "INPUT"
+  ],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 4,
+    "ex": [
+     "Element has insufficient color contrast of 3.23 (foreground color: #5e646d, background color: #0d0e10, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"home\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"",
+     "Element has insufficient color contrast of 3.23 (foreground color: #5e646d, background color: #0d0e10, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"seance\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke",
+     "Element has insufficient color contrast of 3.23 (foreground color: #5e646d, background color: #0d0e10, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"prog\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"",
+     "Element has insufficient color contrast of 3.23 (foreground color: #5e646d, background color: #0d0e10, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"agenda\" aria-current=\"false\">"
+    ]
+   }
+  ]
+ },
+ "ipad/08-compet": {
+  "cibles_moins_24": [
+   "Modifier 47×19",
+   "Supprimer 60×19",
+   "Modifier 47×19",
+   "Supprimer 60×19"
+  ],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Mois précédent 36×36",
+   "Mois suivant 36×36",
+   "Championnat de Belgique 688×43",
+   "Ville, salle 688×43",
+   "Fédération, horaire de pesée… 688×43"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 10,
+    "ex": [
+     "Element has insufficient color contrast of 2.76 (foreground color: #55585e, background color: #0a0b0d, font size: 10.5pt (14px), font weight: normal). Expected  ← <div class=\"d out  \">26<i class=\"todo\"></i></div>",
+     "Element has insufficient color contrast of 2.76 (foreground color: #55585e, background color: #0a0b0d, font size: 10.5pt (14px), font weight: normal). Expected  ← <div class=\"d out  \">27</div>",
+     "Element has insufficient color contrast of 2.76 (foreground color: #55585e, background color: #0a0b0d, font size: 10.5pt (14px), font weight: normal). Expected  ← <div class=\"d out  \">28<i class=\"todo\"></i></div>",
+     "Element has insufficient color contrast of 2.76 (foreground color: #55585e, background color: #0a0b0d, font size: 10.5pt (14px), font weight: normal). Expected  ← <div class=\"d out  \">29<i class=\"todo\"></i></div>"
+    ]
+   }
+  ]
+ },
+ "ipad/09-fiche-tractions": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Bloc 7 63×33",
+   "Bloc 6 63×33",
+   "Bloc 5 64×33",
+   "Bloc 4 64×33",
+   "Bloc 3 64×33",
+   "Bloc 2 64×33",
+   "Bloc 1 61×33",
+   "S1 39×33",
+   "S2 42×33",
+   "S3 42×33",
+   "S4 42×33",
+   "Retour 42×42",
+   "40 648×43",
+   "Tes PR 67×33",
+   "e1RM de la prog 120×33",
+   "INPUT 319×43",
+   "1 319×43",
+   "Compét, entraînement… 648×43"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 6,
+    "ex": [
+     "Element has insufficient color contrast of 2.75 (foreground color: #e2edfe, background color: #4c8df6, font size: 11.3pt (15px), font weight: normal). Expected  ← <p class=\"hs\">Tractions · record perso · mercredi 21 octobre</p>",
+     "Element has insufficient color contrast of 2.75 (foreground color: #e2edfe, background color: #4c8df6, font size: 11.3pt (15px), font weight: normal). Expected  ← <p class=\"hu\">105,7 kg avec ton poids de corps</p>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"home\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"seance\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke"
+    ]
+   }
+  ]
+ },
+ "ipad/10-reglages": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Bloc 7 63×33",
+   "Bloc 6 63×33",
+   "Bloc 5 64×33",
+   "Bloc 4 64×33",
+   "Bloc 3 64×33",
+   "Bloc 2 64×33",
+   "Bloc 1 61×33",
+   "S1 39×33",
+   "S2 42×33",
+   "S3 42×33",
+   "S4 42×33",
+   "https://docs.google.com/spreadsheets/d/1 680×43"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 4,
+    "ex": [
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"home\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"seance\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"corps\" aria-current=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 8.3pt (11px), font weight: normal). Expected c ← <button data-tab=\"agenda\" aria-current=\"false\">"
+    ]
+   }
+  ]
+ },
+ "ipad/11-seance-pesee": {
+  "cibles_moins_24": [
+   "+ Ajouter une série 107×19",
+   "Retirer la dernière 103×19"
+  ],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Bloc 7 63×33",
+   "Bloc 6 63×33",
+   "Bloc 5 64×33",
+   "Bloc 4 64×33",
+   "Bloc 3 64×33",
+   "Bloc 2 64×33",
+   "Bloc 1 61×33",
+   "S1 39×33",
+   "S2 42×33",
+   "S3 42×33",
+   "S4 42×33",
+   "Fermer la séance 42×42",
+   "Terminer 84×36"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 9,
+    "ex": [
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>N°</span>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>Précédent</span>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>Kg</span>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>Reps</span>"
+    ]
+   }
+  ]
+ },
+ "ipad/12-seance-serie": {
+  "cibles_moins_24": [
+   "+ Ajouter une série 107×19"
+  ],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Bloc 7 63×33",
+   "Bloc 6 63×33",
+   "Bloc 5 64×33",
+   "Bloc 4 64×33",
+   "Bloc 3 64×33",
+   "Bloc 2 64×33",
+   "Bloc 1 61×33",
+   "S1 39×33",
+   "S2 42×33",
+   "S3 42×33",
+   "S4 42×33",
+   "Fermer la séance 42×42",
+   "Terminer 84×36"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 11,
+    "ex": [
+     "Element has insufficient color contrast of 2.87 (foreground color: #fde3e2, background color: #f0524a, font size: 11.3pt (15px), font weight: normal). Expected  ← <p class=\"hs\">Exercice 2 sur 6 · Squat comp</p>",
+     "Element has insufficient color contrast of 2.87 (foreground color: #fde3e2, background color: #f0524a, font size: 11.3pt (15px), font weight: normal). Expected  ← <p class=\"hu\">1 série de 3 · repos 3-5'</p>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>N°</span>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>Précédent</span>"
+    ]
+   }
+  ]
+ },
+ "ipad/13-seance-apres-validation": {
+  "cibles_moins_24": [
+   "+ Ajouter une série 107×19"
+  ],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Bloc 7 63×33",
+   "Bloc 6 63×33",
+   "Bloc 5 64×33",
+   "Bloc 4 64×33",
+   "Bloc 3 64×33",
+   "Bloc 2 64×33",
+   "Bloc 1 61×33",
+   "S1 39×33",
+   "S2 42×33",
+   "S3 42×33",
+   "S4 42×33",
+   "Fermer la séance 42×42",
+   "Terminer 84×36"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 11,
+    "ex": [
+     "Element has insufficient color contrast of 2.87 (foreground color: #fde3e2, background color: #f0524a, font size: 11.3pt (15px), font weight: normal). Expected  ← <p class=\"hs\">Exercice 2 sur 6 · Squat comp</p>",
+     "Element has insufficient color contrast of 2.87 (foreground color: #fde3e2, background color: #f0524a, font size: 11.3pt (15px), font weight: normal). Expected  ← <p class=\"hu\">1 série de 3 · repos 3-5'</p>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>N°</span>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>Précédent</span>"
+    ]
+   }
+  ]
+ },
+ "ipad/14-seance-repos": {
+  "cibles_moins_24": [
+   "+ Ajouter une série 107×19",
+   "Retirer la dernière 103×19"
+  ],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Bloc 7 63×33",
+   "Bloc 6 63×33",
+   "Bloc 5 64×33",
+   "Bloc 4 64×33",
+   "Bloc 3 64×33",
+   "Bloc 2 64×33",
+   "Bloc 1 61×33",
+   "S1 39×33",
+   "S2 42×33",
+   "S3 42×33",
+   "S4 42×33",
+   "Fermer la séance 42×42",
+   "Terminer 84×36"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 11,
+    "ex": [
+     "Element has insufficient color contrast of 2.87 (foreground color: #fde3e2, background color: #f0524a, font size: 11.3pt (15px), font weight: normal). Expected  ← <p class=\"hs\">Exercice 3 sur 6 · Squat comp</p>",
+     "Element has insufficient color contrast of 2.87 (foreground color: #fde3e2, background color: #f0524a, font size: 11.3pt (15px), font weight: normal). Expected  ← <p class=\"hu\">3 séries de 5 · repos 3-5' · -10%/-5%  ( 99,75 ) de 108,5 kg = 97,75 à 103 k",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>N°</span>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>Précédent</span>"
+    ]
+   }
+  ]
+ },
+ "ipad/15-seance-bilan": {
+  "cibles_moins_24": [
+   "+ Ajouter une série 107×19",
+   "Retirer la dernière 103×19"
+  ],
+  "cibles_moins_44": [
+   "Réglages et synchronisation 40×40",
+   "Bloc 7 63×33",
+   "Bloc 6 63×33",
+   "Bloc 5 64×33",
+   "Bloc 4 64×33",
+   "Bloc 3 64×33",
+   "Bloc 2 64×33",
+   "Bloc 1 61×33",
+   "S1 39×33",
+   "S2 42×33",
+   "S3 42×33",
+   "S4 42×33",
+   "Fermer la séance 42×42",
+   "Terminer 84×36"
+  ],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "n": 11,
+    "ex": [
+     "Element has insufficient color contrast of 2.87 (foreground color: #fde3e2, background color: #f0524a, font size: 11.3pt (15px), font weight: normal). Expected  ← <p class=\"hs\">Exercice 3 sur 6 · Squat comp</p>",
+     "Element has insufficient color contrast of 2.87 (foreground color: #fde3e2, background color: #f0524a, font size: 11.3pt (15px), font weight: normal). Expected  ← <p class=\"hu\">3 séries de 5 · repos 3-5' · -10%/-5%  ( 99,75 ) de 108,5 kg = 97,75 à 103 k",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>N°</span>",
+     "Element has insufficient color contrast of 3.29 (foreground color: #5e646d, background color: #0a0b0d, font size: 9.0pt (12px), font weight: normal). Expected c ← <span>Précédent</span>"
+    ]
+   }
+  ]
+ },
+ "ipad/console": [],
+ "_totaux": {
+  "cibles<24": 26,
+  "cibles<44": 294,
+  "debordements": 0,
+  "textes_coupes": 4,
+  "champs_zoom_ios": 0,
+  "axe": 195
+ }
+}

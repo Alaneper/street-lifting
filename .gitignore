@@ -1,3 +1,6 @@
 test-build.html
 tests/shots/
 __pycache__/
+tests/audit/avant/
+tests/audit/apres/
+tests/audit/lot1/

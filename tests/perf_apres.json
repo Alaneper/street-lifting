@@ -1,0 +1,137 @@
+{
+ "appels_api_A_acces_valide": [
+  [
+   57,
+   433,
+   "1PLTt-6Qb7kdPXTornMlyJfiH-Pxo3V-2FPD-BkRW2LU?fields=sheets.properties.title"
+  ],
+  [
+   57,
+   434,
+   "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values:batchGet?ranges=PROFIL!A1:C60&"
+  ],
+  [
+   57,
+   434,
+   "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values/DEPENSE!A1:D5000"
+  ],
+  [
+   57,
+   434,
+   "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values/REPAS!A1:J40000"
+  ],
+  [
+   57,
+   434,
+   "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values/ALIMENTS!A1:I5000"
+  ],
+  [
+   57,
+   434,
+   "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values/HISTORIQUE!A1:Q30000"
+  ],
+  [
+   443,
+   815,
+   "1PLTt-6Qb7kdPXTornMlyJfiH-Pxo3V-2FPD-BkRW2LU/values:batchGet?ranges='BLOC 7'!A1:"
+  ]
+ ],
+ "A_acces_valide": {
+  "essais": [
+   {
+    "fcp": 0.11,
+    "content": 0.1,
+    "fresh": 0.89,
+    "pages": 1
+   },
+   {
+    "fcp": 0.1,
+    "content": 0.1,
+    "fresh": 0.87,
+    "pages": 1
+   },
+   {
+    "fcp": 0.12,
+    "content": 0.0,
+    "fresh": 0.86,
+    "pages": 1
+   }
+  ],
+  "médiane": {
+   "fcp": 0.11,
+   "content": 0.1,
+   "fresh": 0.87
+  }
+ },
+ "appels_api_B_acces_expire": [
+  [
+   612,
+   990,
+   "1PLTt-6Qb7kdPXTornMlyJfiH-Pxo3V-2FPD-BkRW2LU?fields=sheets.properties.title"
+  ],
+  [
+   612,
+   991,
+   "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values:batchGet?ranges=PROFIL!A1:C60&"
+  ],
+  [
+   612,
+   991,
+   "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values/DEPENSE!A1:D5000"
+  ],
+  [
+   612,
+   991,
+   "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values/REPAS!A1:J40000"
+  ],
+  [
+   612,
+   991,
+   "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values/ALIMENTS!A1:I5000"
+  ],
+  [
+   612,
+   991,
+   "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values/HISTORIQUE!A1:Q30000"
+  ],
+  [
+   998,
+   1375,
+   "1PLTt-6Qb7kdPXTornMlyJfiH-Pxo3V-2FPD-BkRW2LU/values:batchGet?ranges='BLOC 7'!A1:"
+  ]
+ ],
+ "B_acces_expire": {
+  "essais": [
+   {
+    "fcp": 0.0,
+    "content": 0.13,
+    "fresh": 1.56,
+    "pages": 2
+   },
+   {
+    "fcp": 0.12,
+    "content": -0.0,
+    "fresh": 1.39,
+    "pages": 2
+   },
+   {
+    "fcp": 0.1,
+    "content": -0.0,
+    "fresh": 1.42,
+    "pages": 2
+   }
+  ],
+  "médiane": {
+   "fcp": 0.1,
+   "content": -0.0,
+   "fresh": 1.42
+  }
+ },
+ "erreurs_console": [],
+ "hypotheses": {
+  "aller_retour_s": 0.15,
+  "debit_octets_s": 200000.0,
+  "api_sheets_ms": 350,
+  "google_s": 0.4
+ }
+}
