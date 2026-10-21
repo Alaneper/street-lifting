@@ -361,7 +361,7 @@ html,body{overflow-x:clip}body{margin-top:0}
 .segc button[aria-pressed="true"]{background:var(--deck2);color:#fff}
 .segc button::after{content:"";position:absolute;inset:-3px 0}
 .rmgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.rm{background:var(--deck);border-radius:14px;padding:10px 12px;min-width:0}.rm .show{font-size:24px;margin:2px 0}.rm.off .show{color:var(--faint)}.rm .tiny{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rm{background:var(--deck);border-radius:14px;padding:10px 12px;min-width:0}.rm .rpe-at{font:600 13px var(--f-text);color:var(--dust);margin-left:4px}.rm .show{font-size:24px;margin:2px 0}.rm.off .show{color:var(--faint)}.rm .tiny{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tiles2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .tiles2>*{background:var(--deck);border-radius:16px;padding:14px;min-width:0;text-align:left}
 .tiles2 .show{font-size:30px;font-weight:800;margin-top:4px;line-height:1}
@@ -407,7 +407,7 @@ html,body{overflow-x:clip}body{margin-top:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "21 · 21 oct. 2026";
+const APP_VER = "22 · 21 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];
 const LNAME = {MU:"Muscle-up", PULL:"Tractions", DIP:"Dips", SQUAT:"Squat", TOTAL:"Total"};
 const LCOL = {MU:"var(--mu)", PULL:"var(--pull)", DIP:"var(--dip)", SQUAT:"var(--squat)"};
@@ -616,11 +616,9 @@ async function loadApp(){
   const R = ["PROFIL!A1:C60","PR!A1:E3000","POIDS!A1:C10000","OBJECTIFS!A1:C60","COMPETITIONS!A1:E200","SERIES!A1:I10000","BLOCS!A1:C200","CHECKLIST!A1:C500","BILAN!A1:I1000"];
   /* onglets ajoutés plus tard : lus en même temps, absents tolérés */
   const opt = r => getVals(APP_ID, r).catch(() => null);
-  const [[P, PR, PO, OB, CO, SE, BL, CH, BI], [DPo, RPo, ALo, HIo]] = await Promise.all([Promise.all(R.map(r => getVals(APP_ID, r))), Promise.all(["DEPENSE!A1:D5000", "REPAS!A1:J40000", "ALIMENTS!A1:I5000", "HISTORIQUE!A1:Q30000"].map(opt))]);
+  const [[P, PR, PO, OB, CO, SE, BL, CH, BI], [RPo, ALo, HIo]] = await Promise.all([Promise.all(R.map(r => getVals(APP_ID, r))), Promise.all(["REPAS!A1:J40000", "ALIMENTS!A1:I5000", "HISTORIQUE!A1:Q30000"].map(opt))]);
   raw = {P, OB, BL, CH};
   let repas = [], aliments = [], nutTabs = false;
-  let depense = {};
-  try { const DP = DPo; if (!DP) throw 0; DP.slice(1).forEach((r, i) => { const d = toIso(r[0]), k = num(r[1]); if (d && k) depense[d] = {k, src:String(r[2] || ""), h:String(r[3] || ""), _row:i + 2}; }); } catch(e){ depense = (D && D.depense) || {}; }
   try { const RP = RPo, AL = ALo; if (!RP || !AL) throw 0; nutTabs = true;
     repas = RP.map((r, i) => ({_row:i + 1, date:toIso(r[0]), h:String(r[1] || ""), nom:String(r[2] || ""), q:num(r[5]) || 0, k:num(r[6]) || 0, p:num(r[7]) || 0, g:num(r[8]) || 0, l:num(r[9]) || 0})).slice(1).filter(x => x.date && x.nom);
     aliments = AL.slice(1).filter(r => r[0] && num(r[4]) !== null).map(r => ({nom:String(r[0]), marque:String(r[1] || ""), src:String(r[2] || "perso"), code:String(r[3] || ""), k:num(r[4]), p:num(r[5]) || 0, g:num(r[6]) || 0, l:num(r[7]) || 0}));
@@ -629,7 +627,7 @@ async function loadApp(){
   const profil = {};
   P.slice(1).forEach(r => { if (r[0]) profil[String(r[0]).trim()] = r[1] ?? ""; });
   ["debut_street","debut_coaching"].forEach(k => profil[k] = toIso(profil[k]));
-  const prs = PR.slice(1).map(r => ({date:toIso(r[0]), lift:norm(r[1]), charge:num(r[2]), reps:num(r[3]) || 1, note:r[4] || ""}))
+  const prs = PR.slice(1).map(r => ({date:toIso(r[0]), lift:norm(r[1]), charge:num(r[2]), reps:num(r[3]) || 1, note:r[4] || "", rpe:num(r[5]) || null}))
     .filter(p => p.date && LIFTS.includes(p.lift) && p.charge !== null).sort((a, b) => a.date < b.date ? -1 : 1);
   const pm = {}; PO.slice(1).forEach(r => { const d = toIso(r[0]), p = num(r[1]); if (d && p) pm[d] = p; });
   const poids = Object.keys(pm).sort().map(d => ({date:d, poids:pm[d]}));
@@ -641,7 +639,7 @@ async function loadApp(){
   const blocs = {}; BL.slice(1).forEach(r => { const n = num(r[0]), d = toIso(r[1]); if (n && d) blocs[n] = d; });
   const checks = CH.map((r, i) => ({row:i + 1, date:toIso(r[0]), item:String(r[1] || "").trim(), done:/^(true|vrai|oui|1|x)$/i.test(String(r[2] || "").trim())})).slice(1).filter(x => x.date && x.item);
   const bilans = BI.slice(1).map(r => ({date:toIso(r[0]), bloc:num(r[1]), semaine:String(r[2] ?? "").trim(), v:BILAN_CRIT.map((_, i) => num(r[3 + i]))})).filter(b => b.bloc);
-  D = {profil, prs, poids, objectifs, comps, series, blocs, checks, bilans, repas, aliments, depense, _nutTabs:nutTabs, today:isoOf(new Date())};
+  D = {profil, prs, poids, objectifs, comps, series, blocs, checks, bilans, repas, aliments, _nutTabs:nutTabs, today:isoOf(new Date())};
 }
 
 /* =====================================================================
@@ -1000,7 +998,7 @@ function exercisePoints(){
 /* ---------- Records par répétitions et 1RM estimé (mouvement de compétition, variation « COMP ») ---------- */
 function compSets(l){
   const ok = x => x.c !== null && x.c !== undefined && x.c >= 0 && Number.isInteger(x.r) && x.r >= 1 && x.r <= 12;
-  const out = D.prs.filter(p => p.lift === l).map(p => ({c:p.charge, r:p.reps, date:p.date, src:"PR", coach:/prog du coach/i.test(p.note)})).filter(ok);
+  const out = D.prs.filter(p => p.lift === l).map(p => ({c:p.charge, r:p.reps, rpe:p.rpe || null, date:p.date, src:"PR", coach:/prog du coach/i.test(p.note)})).filter(ok);
   for (const o of exercisePoints()) { if (o.lift !== l) continue;
     for (const p of o.pts) { if (!p.comp) continue; p.rows.forEach((st, k) => st.forEach(x => { if (ok(x)) out.push({c:x.c, r:x.r, rng:x.rng, rpe:x.rpe, date:p.date, bloc:p.bloc, sem:p.sem, src:p.src, wh:p.wh[k], ex:o.key}); })); } }
   return out;
@@ -1008,7 +1006,8 @@ function compSets(l){
 /* nRM = charge la plus lourde faite pour exactement n reps, sur tout l'historique. Rien n'est extrapolé. */
 function repMaxes(sets){
   return Array.from({length:12}, (_, i) => { const n = i + 1; let b = null;
-    for (const x of sets) if (x.r === n && (!b || x.c > b.c || (x.c === b.c && (x.date || "") < (b.date || "")))) b = x;
+    const easier = (x, y) => (x.rpe || 10) < (y.rpe || 10);
+    for (const x of sets) if (x.r === n && (!b || x.c > b.c || (x.c === b.c && (easier(x, b) || (!easier(b, x) && (x.date || "") < (b.date || "")))))) b = x;
     return {n, b}; });
 }
 /* Table RPE de Reactive Training Systems (Tuchscherer) : % du 1RM selon reps + reps en réserve, par pas de 0,5.
@@ -1016,9 +1015,9 @@ function repMaxes(sets){
 const RTS = [100, 97.8, 95.5, 93.9, 92.2, 90.7, 89.2, 87.8, 86.3, 85, 83.7, 82.4, 81.1, 79.9, 78.6, 77.4, 76.2, 75.1, 73.9];
 const rtsPct = x => { const i = Math.round((x - 1) * 2); return i >= 0 && i < RTS.length ? RTS[i] / 100 : null; };
 /* 1RM estimé d'une série : charge réelle (poids de corps + lest pour MU, tractions, dips) ÷ % de la table.
-   Reps en réserve prises au plus à 2 (RPE 8) : les estimations d'effort loin de l'échec sont peu fiables. Sans RPE : série supposée à fond. */
+   RPE pris en compte de 6 à 10 (toute la table RTS : 30 kg × 1 à RPE 6 ne vaut pas un 1RM de 30 kg). Sans RPE : série supposée à fond. */
 function e1rmOf(l, x){
-  const rir = x.rpe ? Math.min(2, Math.max(0, 10 - x.rpe)) : 0, xe = x.r + rir, pc = rtsPct(xe); if (!pc) return null;
+  const rir = x.rpe ? Math.min(4, Math.max(0, 10 - x.rpe)) : 0, xe = x.r + rir, pc = rtsPct(xe); if (!pc) return null;
   const w = BW_LIFTS.includes(l) ? bwAt(x.date || D.today) : 0; if (BW_LIFTS.includes(l) && !w) return null;
   return {v:x.r === 1 && !rir ? x.c : (x.c + w) / pc - w, xe};
 }
@@ -1026,7 +1025,8 @@ function e1rmBest(l, sets){
   const all = sets.map(x => { const e = e1rmOf(l, x); return e ? {...x, ...e} : null; }).filter(Boolean);
   /* Choix d'Alane (21/10/2026) : le 1RM estimé part de la charge la plus lourde ; à charge égale, la meilleure estimation. */
   if (!all.length) return null;
-  const multi = all.filter(x => x.r >= 2), pool = multi.length ? multi : all;   /* un 1 rep, c'est déjà ton PR : l'estimation part des séries de 2 reps ou plus */
+  /* un 1 rep à fond (ou sans RPE), c'est déjà ton PR ; un 1 rep facile (RPE < 10) dit ce que tu peux faire de plus */
+  const multi = all.filter(x => x.r >= 2 || (x.rpe && x.rpe < 10)), pool = multi.length ? multi : all;
   const top = Math.max(...pool.map(x => x.c));
   return pool.filter(x => x.c >= top - 1e-9).reduce((a, x) => !a || x.v > a.v ? x : a, null);
 }
@@ -1037,7 +1037,7 @@ const srcTxt = x => x.src === "PR" ? (x.coach ? "max de la prog" : (x.date ? dSh
 function repTableHtml(l){
   if (!allLoaded) return `<h2 class="h2">Records par répétitions</h2><div class="empty"><div class="spin"></div><p class="small">Lecture de tous tes blocs…</p></div>`;
   const sets = compSets(l), rm = repMaxes(sets), e = e1rmBest(l, sets), b = best(l), u = BW_LIFTS.includes(l) ? " de lest" : "";
-  const tiles = rm.map(({n, b:x}) => `<div class="rm${x ? "" : " off"}" role="button" tabindex="0" data-act="${x ? "rmInfo" : "rmAdd"}" data-l="${l}" data-n="${n}"><p class="muted tiny">${n} rep${n > 1 ? "s" : ""}</p><p class="show">${x ? fmt(x.c) : "—"}</p><p class="muted tiny">${x ? esc(srcTxt(x)) : "ajouter"}</p></div>`).join("");
+  const tiles = rm.map(({n, b:x}) => `<div class="rm${x ? "" : " off"}" role="button" tabindex="0" data-act="${x ? "rmInfo" : "rmAdd"}" data-l="${l}" data-n="${n}"><p class="muted tiny">${n} rep${n > 1 ? "s" : ""}</p><p class="show">${x ? fmt(x.c) : "—"}${x && x.rpe ? `<small class="rpe-at">@${fmt(x.rpe)}</small>` : ""}</p><p class="muted tiny">${x ? esc(srcTxt(x)) : "ajouter"}</p></div>`).join("");
   const eh = e ? `<div class="panel" style="margin-top:0"><p class="muted small">1RM estimé</p>
       <p class="show t-m" style="margin-top:4px;color:${LCOL[l]}">${fmt(Math.floor(e.v * 4) / 4)}<small> kg${u}</small></p>
       <p class="muted small" style="margin-top:4px">D'après ${fmt(e.c)} kg × ${e.r}${e.rpe ? " à RPE " + fmt(e.rpe) : ""} (${esc(srcTxt(e))}).
@@ -1348,7 +1348,6 @@ function rLive(){
       return `<i class="${j === k ? "cur" : dn ? "on" : ""}" style="--c:${lj ? LCOL[lj] : "var(--dust)"}"></i>`; }).join("")}</div>
     ${(() => { const cur = st.sets[curJ < 0 ? st.sets.length - 1 : curJ] || {}, c0 = cur.c ?? chargeGuess(e);
       return heroCard({color:l ? col : "var(--deck2)", deco:!!l, small:`Exercice ${k + 1} sur ${s.exercices.length} · ${esc(name)}`, big:c0 !== null && c0 !== undefined && c0 !== "" ? `${fmt(num(c0))}<small>kg</small>` : timedOf(e) ? `${timedOf(e)}<small>s</small>` : (isBW ? "0<small>kg de lest</small>" : e.charge ? esc(e.charge) : "<small style=\"font-size:.5em\">Poids du corps</small>"), sub:`${esc(e.series)} série${num(e.series) > 1 ? "s" : ""} de ${esc(e.reps)}${e.tempo ? " · tempo " + esc(e.tempo) : ""}${e.repos ? " · repos " + esc(e.repos) : ""}${(() => { const b = backoffOf(s, e, k, live.rows); return b ? ` · ${esc(String(e.charge).trim())} de ${fmt(b.base)} kg = ${fmt(Math.ceil(b.lo * 4) / 4)} à ${fmt(Math.floor(b.hi * 4) / 4)} kg` : chargeGuess(e) !== null && !isNumTxt(e.charge) && String(e.charge).trim() ? " · prévu : " + esc(String(e.charge).trim()) : ""; })()}`}); })()}
-    <h2 class="h2">Séries <span class="muted">${prev ? `dernière fois (${esc(prev.where)}) : ${esc(fmtSets(prev.sets))}${prev.src === "prévu" ? ", charge prévue" : ""}` : esc(e.intensite || "")}</span></h2>
     ${e.coach ? `<div class="coachnote"><b>Consigne du coach.</b> ${esc(e.coach)}</div>` : ""}
     ${e.angle ? `<p class="prev">À filmer : ${esc(e.angle)}</p>` : ""}
     <section class="setgrid" style="--c:${l ? col : "var(--brand)"}" aria-label="Séries">
@@ -1642,6 +1641,7 @@ function rLiftPage(l){
     <p class="muted small" style="margin:-6px 0 8px">Pour une perf absente de ta prog : charge et nombre de reps. Elle compte dans le tableau des records et dans le 1RM estimé.</p>
     <div class="panel">
       <div class="grid2"><div><label for="prc" style="margin-top:0">${BW_LIFTS.includes(l) ? "Lest (kg)" : "Charge (kg)"}</label><input id="prc" inputmode="decimal"></div><div><label for="prr" style="margin-top:0">Reps</label><input id="prr" inputmode="numeric" value="1"></div></div>
+      <label for="prpe">RPE (facultatif)</label><select id="prpe"><option value="">Pas noté</option>${[6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10].map(v => `<option value="${v}">${fmt(v)}${v === 10 ? " (à fond)" : ""}</option>`).join("")}</select>
       <label for="prd">Date</label><input id="prd" type="date" value="${D.today}">
       <label for="prn">Note</label><input id="prn" placeholder="Compét, entraînement…">
       <button class="btn" style="margin-top:14px" data-act="addPR" data-l="${l}">Ajouter le record</button>
@@ -1826,13 +1826,20 @@ function restPill(){
 }
 function rSheet(){
   if (sheet.startsWith("rm|")) { const [, l, n] = sheet.split("|"), N = +n;
-    const L = compSets(l).filter(x => x.r === N).sort((a, b) => b.c - a.c || ((a.date || "") < (b.date || "") ? -1 : 1)).slice(0, 10);
+    /* toutes les perfs à exactement N reps, regroupées par séance et par charge (les séries identiques d'une même ligne = une perf),
+       avec leur RPE et leur date ; la plus lourde d'abord, à charge égale la plus facile (RPE le plus bas) */
+    const G = new Map();
+    for (const x of compSets(l).filter(x => x.r === N)) { const w = x.wh || {}, k = [x.src, x.date, x.ex || "", w.row || "", x.c].join("|");
+      const g = G.get(k) || Object.assign({}, x, {n:0, rpes:[]}); g.n++; if (x.rpe) g.rpes.push(x.rpe); G.set(k, g); }
+    const L = [...G.values()].map(g => Object.assign(g, {rmin:g.rpes.length ? Math.min(...g.rpes) : null, rmax:g.rpes.length ? Math.max(...g.rpes) : null}))
+      .sort((a, b) => b.c - a.c || (a.rmin || 10) - (b.rmin || 10) || ((a.date || "") < (b.date || "") ? -1 : 1)).slice(0, 25);
+    const rpeTxt = g => g.rmin === null ? "RPE non noté" : g.rmin === g.rmax ? "RPE " + fmt(g.rmin) : "RPE " + fmt(g.rmin) + " → " + fmt(g.rmax);
     const line = x => { const w = x.wh || {};
       if (x.src === "PR") return x.coach ? "Max actuel écrit dans ta prog (case MAX ACTUELS)" : "PR enregistré le " + dfr(x.date);
       if (w.app) return "Noté dans l'app" + (x.date ? " le " + dfr(x.date) : "") + " · " + esc(blocLabel(x.bloc)) + ", semaine " + esc(x.sem);
       return `${esc(String(w.sheet || blocLabel(x.bloc)).trim())}${w.archived ? " (historique)" : ""} · semaine ${esc(x.sem)} · ${esc(w.seance || "")} · ligne ${w.row || "?"}<br>Prog : « ${esc(String(w.charge || "").trim() || "–")} »${x.rng ? `, reps « ${esc(x.rng)} » (compté ${x.r})` : ""}${String(w.com || "").trim() ? ", ton commentaire : « " + esc(String(w.com).trim()) + " »" : ""}${String(w.rpe1 || "").trim() || String(w.rpeLast || "").trim() ? ", RPE " + esc([w.rpe1, w.rpeLast].filter(v => String(v || "").trim()).join(" / ")) : ""}`; };
-    return `<p class="show t-m">${LNAME[l]} · ${N} rep${N > 1 ? "s" : ""}</p><p class="muted small" style="margin-top:4px">Toutes les séries à exactement ${N} rep${N > 1 ? "s" : ""}, de la plus lourde à la plus légère. La première est ton record.</p>
-      ${L.length ? `<div class="list" style="margin-top:12px">${L.map((x, i) => `<div class="item" style="display:block"><div class="row"><b>${fmt(x.c)} kg${BW_LIFTS.includes(l) ? " de lest" : ""}</b><span class="muted small">${i === 0 ? "record" : esc(x.ex ? exName(x.ex) : "")}</span></div><p class="muted tiny" style="margin-top:4px">${line(x)}</p></div>`).join("")}</div>` : `<p class="muted small" style="margin-top:12px">Aucune série à ${N} reps trouvée.</p>`}
+    return `<p class="show t-m">${LNAME[l]} · ${N} rep${N > 1 ? "s" : ""}</p><p class="muted small" style="margin-top:4px">Toutes tes perfs à exactement ${N} rep${N > 1 ? "s" : ""}, avec leur RPE et leur date : la plus lourde d'abord ; à charge égale, la plus facile (RPE le plus bas). La première est ton record.</p>
+      ${L.length ? `<div class="list" style="margin-top:12px">${L.map((x, i) => `<div class="item" style="display:block"><div class="row"><b>${fmt(x.c)} kg${BW_LIFTS.includes(l) ? " de lest" : ""}${x.n > 1 ? ` <span class="muted small">× ${x.n} séries</span>` : ""}</b><span class="pill${i === 0 ? " go" : ""}">${i === 0 ? "record · " : ""}${rpeTxt(x)}</span></div><p class="small" style="margin-top:4px">${x.date ? cap(dlong(x.date)) + " " + x.date.slice(0, 4) : "Date inconnue"}${x.ex ? " · " + esc(exName(x.ex)) : ""}</p><p class="muted tiny" style="margin-top:2px">${line(x)}</p></div>`).join("")}</div>` : `<p class="muted small" style="margin-top:12px">Aucune série à ${N} reps trouvée.</p>`}
       <p class="muted tiny" style="margin-top:10px">Une valeur fausse ? Corrige la ligne indiquée dans ta prog (charge réelle dans « Commentaire athlète », ou RPE « échec » si la série est ratée), puis synchronise. Une perf manquante ? Ajoute-la en bas de la fiche, « Ajouter un record ».</p>
       <button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`; }
   if (sheet === "rest") return `<div id="restbox" class="timer"><svg viewBox="0 0 220 220"><circle cx="110" cy="110" r="100" fill="none" stroke="var(--deck2)" stroke-width="10"/><circle id="restring" cx="110" cy="110" r="100" fill="none" stroke="var(--chalk)" stroke-width="10" stroke-linecap="round" stroke-dasharray="628" stroke-dashoffset="0" style="transition:stroke-dashoffset .25s linear"/></svg>
@@ -1880,9 +1887,9 @@ function settingsHtml(){
     <h2 class="h2" style="font-size:20px">Méthodes et sources</h2>
     <p class="src"><b style="color:var(--chalk)">RIS</b> : formule de Waris Radji et Mathieu Ardoin, édition 2026 (constantes publiées dans le code d'<a href="https://openstreetlifting.org" target="_blank" rel="noopener">OpenStreetlifting</a>). <a href="https://warisradji.com/ris/" target="_blank" rel="noopener">Calculateur officiel</a>.</p>
     <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Records</b> : <a href="https://rankings.officialstreetlifting.com/" target="_blank" rel="noopener">Official Streetlifting</a>, tableaux de records par catégorie, relevés le 20/10/2026. Record de Belgique : meilleure perf belge de ces tableaux.</p>
-    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">1RM estimé</b> : table RPE de Reactive Training Systems (Tuchscherer), la même que la colonne E1RM de ta prog : % du 1RM selon les reps et les reps en réserve (RIR = 10 − RPE, <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al., 2016</a>). Calcul sur la charge réelle (poids de corps + lest) pour muscle-up, tractions et dips. RIR compté au plus à 2 : l'effort se juge mal loin de l'échec (<a href="https://www.strongerbyscience.com/reps-in-reserve" target="_blank" rel="noopener">synthèse Stronger by Science</a>). Il part de ta série la plus lourde de 2 reps ou plus (à charge égale, la meilleure estimation ; un 1 rep, c'est déjà ton PR) : une série légère à beaucoup de reps ne gonfle pas l'estimation. Séries de 10 reps au plus (<a href="https://researchconnect.suny.edu/en/publications/accuracy-of-prediction-equations-for-determining-one-repetition-m/" target="_blank" rel="noopener">Mayhew et al., 2008</a>).</p>
+    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">1RM estimé</b> : table RPE de Reactive Training Systems (Tuchscherer), la même que la colonne E1RM de ta prog : % du 1RM selon les reps et les reps en réserve (RIR = 10 − RPE, <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al., 2016</a>). Calcul sur la charge réelle (poids de corps + lest) pour muscle-up, tractions et dips. RPE pris en compte de 6 à 10, comme dans la table (au-delà de 4 reps en réserve, l'effort se juge mal : <a href="https://www.strongerbyscience.com/reps-in-reserve" target="_blank" rel="noopener">synthèse Stronger by Science</a>). Il part de ta série la plus lourde de 2 reps ou plus (à charge égale, la meilleure estimation ; un 1 rep à fond, c'est déjà ton PR) : une série légère à beaucoup de reps ne gonfle pas l'estimation. Séries de 10 reps au plus (<a href="https://researchconnect.suny.edu/en/publications/accuracy-of-prediction-equations-for-determining-one-repetition-m/" target="_blank" rel="noopener">Mayhew et al., 2008</a>).</p>
     <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Aliments</b> : <a href="https://ciqual.anses.fr/" target="_blank" rel="noopener">table Ciqual 2025 de l'Anses</a> (Licence Ouverte), portions courantes de l'étude INCA3 ; produits de marque : <a href="https://world.openfoodfacts.org/" target="_blank" rel="noopener">Open Food Facts</a> (base collaborative, ODbL).</p>
-    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Besoins</b> : dépense de ta montre si tu la notes ; sinon formule de Mifflin-St Jeor × activité. Rythmes : perte 0,5 à 1 % du poids par semaine (<a href="https://openrepository.aut.ac.nz/items/723f44d2-7c20-4214-ba62-987339099039/full" target="_blank" rel="noopener">Helms et al., 2014</a>), prise 0,25 à 0,5 % (<a href="https://www.mdpi.com/2075-4663/7/7/154" target="_blank" rel="noopener">Iraki et al., 2019</a>).</p>
+    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Besoins</b> : formule de Mifflin-St Jeor × activité. Rythmes : perte 0,5 à 1 % du poids par semaine (<a href="https://openrepository.aut.ac.nz/items/723f44d2-7c20-4214-ba62-987339099039/full" target="_blank" rel="noopener">Helms et al., 2014</a>), prise 0,25 à 0,5 % (<a href="https://www.mdpi.com/2075-4663/7/7/154" target="_blank" rel="noopener">Iraki et al., 2019</a>).</p>
     <p class="muted tiny" style="margin-top:14px">Version de l'app : ${APP_VER}</p>
     <button class="btn" style="margin-top:18px" data-act="closeSheet">Fermer</button>`;
 }
@@ -1984,7 +1991,7 @@ const ACT = {
   closePage:() => { page = null; renderLayer(); },
   liftMetric:d => { liftMetric = d.k; renderLayer(); },
   exMetric:d => { exMetric = d.k; renderLayer(); },
-  addPR:async d => { const c = num($("#prc").value), r = num($("#prr").value) || 1; if (c === null) return toast("Indique une charge", true); await addPR(d.l, c, r, $("#prd").value || D.today, $("#prn").value.trim()); },
+  addPR:async d => { const c = num($("#prc").value), r = num($("#prr").value) || 1; if (c === null) return toast("Indique une charge", true); await addPR(d.l, c, r, $("#prd").value || D.today, $("#prn").value.trim(), num($("#prpe").value)); },
   share:d => openSheet("share|" + d.l),
   saveShare:async () => { const cv = document.getElementById("sharecv"), dl = await window.claude?.use("downloads").catch(() => null); if (!dl) return toast("L'enregistrement d'image n'est pas disponible ici.", true);
     cv.toBlob(async b => { try { await dl.save({filename:"record-street-lifting.png", data:b}); toast("Image enregistrée"); } catch(e){ toast("Enregistrement annulé", true); } }, "image/png"); },
@@ -2071,10 +2078,10 @@ const macrosOf = (f, q) => ({k:f.k * q / 100, p:(f.p || 0) * q / 100, g:(f.g || 
 /* ---------- Besoins : Mifflin-St Jeor × activité, puis objectif ---------- */
 function ageNow(){ const n = toIso(D.profil.naissance); if (n) return Math.floor(days(n, D.today) / 365.25); return num(D.profil.age) || null; }
 function nutTargets(day){
-  const P = D.poids, w = P.length ? (avg7(P).at(-1) || P.at(-1).poids) : null, h = num(D.profil.taille_cm), a = ageNow(), dep = (D.depense || {})[day || D.today];
+  const P = D.poids, w = P.length ? (avg7(P).at(-1) || P.at(-1).poids) : null, h = num(D.profil.taille_cm), a = ageNow();
   if (!w) return {missing:["une pesée"]};
-  if (!dep && (!h || !a)) return {missing:[!h && "ta taille", !a && "ton âge"].filter(Boolean), orDep:true};
-  const bmr = h && a ? 10 * w + 6.25 * h - 5 * a + (sexe() === "F" ? -161 : 5) : null, act = num(D.profil.nut_activite) || 1.55, tdee = dep ? dep.k : bmr * act;
+  if (!h || !a) return {missing:[!h && "ta taille", !a && "ton âge"].filter(Boolean)};
+  const bmr = h && a ? 10 * w + 6.25 * h - 5 * a + (sexe() === "F" ? -161 : 5) : null, act = num(D.profil.nut_activite) || 1.55, tdee = bmr * act;
   const obj = D.profil.nut_objectif || "suivi"; let rate = 0, note = "", warn = "";
   if (obj === "perte") rate = -(num(D.profil.nut_rythme) || 0.5);
   if (obj === "prise") rate = num(D.profil.nut_rythme) || 0.25;
@@ -2087,7 +2094,7 @@ function nutTargets(day){
   const delta = obj === "suivi" || obj === "maintien" ? 0 : w * rate / 100 * 7700 / 7;
   let kcal = tdee + delta; if (bmr && kcal < bmr) { warn = warn || "Le déficit demandé passerait sous ton métabolisme de base : l'app s'arrête à ce plancher."; kcal = bmr; }
   const pk = rate < 0 ? 2.2 : 1.8, p = pk * w, l = Math.max(0.5 * w, kcal * 0.25 / 9), g = Math.max(0, (kcal - p * 4 - l * 9) / 4);
-  return {w, bmr, tdee, kcal, p, g, l, pk, rate, obj, note, warn, dep};
+  return {w, bmr, tdee, kcal, p, g, l, pk, rate, obj, note, warn};
 }
 
 /* ---------- Écran ---------- */
@@ -2098,14 +2105,12 @@ function rNutri(){
   if (!nutDate) nutDate = D.today;
   if (!FOODS) loadFoods().then(() => { const l = $("#nutload"); if (l) l.remove(); nutRefresh(); }).catch(() => { const l = $("#nutload"); if (l) l.textContent = "Table des aliments indisponible hors connexion pour l'instant."; });
   const R = dayRows(nutDate), tot = R.reduce((a, x) => ({k:a.k + x.k, p:a.p + x.p, g:a.g + x.g, l:a.l + x.l}), {k:0, p:0, g:0, l:0}), T = nutTargets(nutDate);
-  const hasT = T.kcal && (T.obj !== "suivi" || T.dep), left = hasT ? T.kcal - tot.k : null;
+  const hasT = T.kcal && T.obj !== "suivi", left = hasT ? T.kcal - tot.k : null;
   const bar = (lab, v, tg, col) => `<div style="margin-top:12px"><div class="row small"><span>${lab}</span><span><b>${fmt(v, 0)}</b>${tg ? ` / ${fmt(tg, 0)} g` : " g"}</span></div><div class="bar" style="--c:${col}"><i style="width:${tg ? Math.min(100, v / tg * 100) : 0}%"></i></div></div>`;
   const rows = R.slice().sort((a, b) => (a.h || "") < (b.h || "") ? -1 : 1).map(x => `<div class="item" style="display:flex;gap:10px;align-items:center"><span class="muted small" style="width:42px">${esc(x.h || "")}</span><span class="grow"><span class="ttl" style="display:block">${esc(x.nom)}</span><span class="muted tiny">${fmt(x.q, 0)} g · P ${fmt(x.p, 1)} · G ${fmt(x.g, 1)} · L ${fmt(x.l, 1)}</span></span><b class="small">${fmt(x.k, 0)}</b><button class="iconbtn" data-act="nutDel" data-r="${x._row}" aria-label="Supprimer">×</button></div>`).join("");
   $("#v-corps").innerHTML = corpsSeg() + `
     <div class="row" style="margin-bottom:10px"><button class="iconbtn" data-act="nutDay" data-d="-1" aria-label="Jour précédent">‹</button><b>${nutDate === D.today ? "Aujourd'hui" : cap(dlong(nutDate))}</b><button class="iconbtn" data-act="nutDay" data-d="1" aria-label="Jour suivant" ${nutDate >= D.today ? "disabled" : ""}>›</button></div>
     ${heroCard({small:hasT ? "Calories du jour" : "Calories du jour (suivi)", big:`${fmt(tot.k, 0)}<small>${hasT ? " / " + fmt(T.kcal, 0) : ""} kcal</small>`, sub:hasT ? (left >= 0 ? "reste " + fmt(left, 0) + " kcal" : fmt(-left, 0) + " kcal au-dessus") : R.length ? R.length + " aliment" + (R.length > 1 ? "s" : "") + " noté" + (R.length > 1 ? "s" : "") : "Aucun aliment noté", deco:false})}
-    ${(() => { const dp = (D.depense || {})[nutDate]; return `<div class="panel" style="margin-top:12px"><div class="row"><span><b>Dépense du jour</b><br><span class="muted tiny">${dp ? (dp.src || "saisie") + (dp.h ? " · " + esc(dp.h) : "") : "Kcal de ta montre, sinon estimation"}</span></span>
-      <span class="row" style="gap:6px"><input id="ndep" inputmode="numeric" style="width:92px;text-align:right" placeholder="${T.tdee && !dp ? fmt(T.tdee, 0) : "kcal"}" value="${dp ? fmt(dp.k, 0) : ""}"><button class="btn sm" data-act="nutDep">OK</button></span></div></div>`; })()}
     ${hasT ? `<div class="panel" style="margin-top:12px">${bar("Protéines", tot.p, T.p, "var(--brand)")}${bar("Glucides", tot.g, T.g, "var(--chalk)")}${bar("Lipides", tot.l, T.l, "var(--dust)")}</div>`
       : `<div class="grid3" style="margin-top:12px">${[["Protéines", tot.p], ["Glucides", tot.g], ["Lipides", tot.l]].map(([k, v]) => `<div class="panel" style="margin:0;padding:12px 14px"><p class="muted tiny">${k}</p><p class="show t-s" style="margin-top:2px">${fmt(v, 0)}<small style="font-size:.6em"> g</small></p></div>`).join("")}</div>`}
     <h2 class="h2">Ajouter</h2>
@@ -2142,11 +2147,11 @@ function nutGoalHtml(T){
     ${o === "compet" ? `<div class="grid2"><div><label for="nci">Limite de poids (kg)</label><input id="nci" inputmode="decimal" value="${esc(D.profil.nut_cible || (lim || ""))}" data-chg="prof" data-k="nut_cible"></div><div><label for="nda">Date de la pesée</label><input id="nda" type="date" value="${esc(toIso(D.profil.nut_date) || (nextComp() || {}).date || "")}" data-chg="prof" data-k="nut_date"></div></div>` : ""}
     <label for="nac">Activité</label><select id="nac" data-chg="prof" data-k="nut_activite">${NUT_ACT.map(([v, t]) => `<option value="${v}" ${v === (num(D.profil.nut_activite) || 1.55) ? "selected" : ""}>${t}</option>`).join("")}</select>
     ${!num(D.profil.taille_cm) || !ageNow() ? `<div class="grid2">${!num(D.profil.taille_cm) ? `<div><label for="nta">Taille (cm)</label><input id="nta" inputmode="numeric" data-chg="prof" data-k="taille_cm"></div>` : ""}${!ageNow() ? `<div><label for="nna">Date de naissance</label><input id="nna" type="date" data-chg="prof" data-k="naissance"></div>` : ""}</div>` : ""}
-    ${T.missing ? `<p class="muted small" style="margin-top:12px">${T.orDep ? "Note ta dépense du jour (ta montre) plus haut, ou indique " + T.missing.join(" et ") + " pour une estimation." : "Pour calculer tes besoins, il manque " + T.missing.join(", ") + "."}</p>` : `
-      <div class="${o === "suivi" ? "grid2" : "grid3"}" style="margin-top:14px"><div><p class="muted tiny">Métabolisme de base</p><p class="show t-s">${T.bmr ? fmt(T.bmr, 0) : "–"}</p></div><div><p class="muted tiny">Dépense du jour${T.dep ? " (montre)" : " (estimée)"}</p><p class="show t-s">${fmt(T.tdee, 0)}</p></div>${o === "suivi" ? "" : `<div><p class="muted tiny">Cible</p><p class="show t-s">${fmt(T.kcal, 0)}</p></div>`}</div>
+    ${T.missing ? `<p class="muted small" style="margin-top:12px">${o === "suivi" ? "" : "Pour calculer tes besoins, il manque " + T.missing.join(", ") + "."}</p>` : `
+      ${o === "suivi" ? `<p class="muted small" style="margin-top:12px">Tu suis simplement ce que tu manges. Choisis perte, prise ou compét pour avoir une cible.</p>` : `<div class="grid2" style="margin-top:14px"><div><p class="muted tiny">Métabolisme de base</p><p class="show t-s">${T.bmr ? fmt(T.bmr, 0) : "–"}</p></div><div><p class="muted tiny">Cible du jour</p><p class="show t-s">${fmt(T.kcal, 0)}<small style="font-size:.55em"> kcal</small></p></div></div>`}
       ${o !== "suivi" ? `<p class="small" style="margin-top:10px">Protéines ${fmt(T.p, 0)} g (${fmt(T.pk, 1)} g/kg) · Lipides ${fmt(T.l, 0)} g · Glucides ${fmt(T.g, 0)} g</p>` : ""}
       ${T.note ? `<p class="muted small" style="margin-top:8px">${esc(T.note)}</p>` : ""}${T.warn ? `<p class="small" style="margin-top:8px;font-weight:600">⚠ ${esc(T.warn)}</p>` : ""}
-      <details class="more" style="margin-top:12px"><summary class="small muted">Comment c'est calculé</summary><p class="muted tiny" style="margin-top:8px">${T.dep ? "Dépense : celle de ta montre pour ce jour. " : ""}Sans montre : formule de Mifflin-St Jeor × ton activité, 7 700 kcal par kg (approximation). Protéines : 1,8 g/kg, 2,2 g/kg en perte ; lipides : 25 % des calories, au moins 0,5 g/kg ; glucides : le reste. À ajuster après 2 à 3 semaines selon l'évolution réelle de ton poids.</p></details>`}
+      <details class="more" style="margin-top:12px"><summary class="small muted">Comment c'est calculé</summary><p class="muted tiny" style="margin-top:8px">Formule de Mifflin-St Jeor × ton activité, 7 700 kcal par kg (approximation). Protéines : 1,8 g/kg, 2,2 g/kg en perte ; lipides : 25 % des calories, au moins 0,5 g/kg ; glucides : le reste. À ajuster après 2 à 3 semaines selon l'évolution réelle de ton poids.</p></details>`}
   </div>`;
 }
 
@@ -2154,13 +2159,6 @@ function nutGoalHtml(T){
 async function nutEnsureTabs(){ if (D._nutTabs) return; if (typeof ensureTabs === "function") await ensureTabs(APP_ID); D._nutTabs = true; }
 Object.assign(ACT, {
   corpsTab:d => { corpsTab = d.k; corpsManual = D.today; rCorps(); },
-  nutDep:async () => { const k = num($("#ndep").value); if (!k || k < 800 || k > 9000) return toast("Indique la dépense du jour en kcal (ex. 3 200)", true);
-    const now = new Date(), h = nutDate === D.today ? String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0") : "", old = (D.depense || {})[nutDate];
-    try { if (!D._nutTabs && typeof ensureTabs === "function") { await ensureTabs(APP_ID); D._nutTabs = true; }
-      const row = [nutDate, Math.round(k), "saisie", h];
-      if (old && old._row) await putVals(APP_ID, `DEPENSE!A${old._row}:D${old._row}`, [row]);
-      else { const res = await appendVals(APP_ID, "DEPENSE!A1:D1", [row]), m = JSON.stringify(res || {}).match(/DEPENSE!A(\d+)/); D.depense[nutDate] = {_row:m ? +m[1] : 0}; }
-      Object.assign(D.depense[nutDate] || (D.depense[nutDate] = {}), {k:Math.round(k), src:"saisie", h}); saveCache(); rNutri(); toast("Dépense enregistrée"); } catch(e){ toast(errMsg(e), true); } },
   nutDay:d => { nutDate = addDays(nutDate || D.today, +d.d); if (nutDate > D.today) nutDate = D.today; nutPick = null; rNutri(); },
   nutPickFood:d => { const p = parseFoodLine(nutQ), f = searchFoods(p.txt)[+d.i]; if (!f) return; nutPick = {f, q:p.q || (p.n && f.por ? p.n * f.por : null), n:p.n}; offRes = null; nutRefresh(); setTimeout(() => { const q = $("#nq"); if (q) q.focus(); }, 50); },
   nutPickOff:d => { const f = offRes && offRes[+d.i]; if (!f) return; const p = parseFoodLine(nutQ); nutPick = {f, q:p.q, n:p.n, off:true}; nutRefresh(); },
@@ -2222,10 +2220,10 @@ async function saveWeight(v, dt, toRecap){
     hwDraft = null; const lim = catLimit(); toast(toRecap ? "Poids noté dans ta courbe et dans le récap de séance" : "Pesée enregistrée" + (lim && dt === D.today ? " · " + (v <= lim ? fmt(lim - v, 1) + " kg sous la limite" : fmt(v - lim, 1) + " kg au-dessus de la limite") : "")); saveCache(); render();
   } catch(e){ toast(errMsg(e) + ambig(e), true); }
 }
-async function addPR(l, c, r, d, n){
+async function addPR(l, c, r, d, n, rpe){
   const before = best(l);
-  try { await appendVals(APP_ID, "PR!A1:E1", [[d, l, c, r, n || ""]]);
-    D.prs.push({date:d, lift:l, charge:c, reps:r, note:n || ""}); D.prs.sort((a, b) => a.date < b.date ? -1 : 1); saveCache();
+  try { await appendVals(APP_ID, "PR!A1:F1", [[d, l, c, r, n || "", rpe || ""]]);
+    D.prs.push({date:d, lift:l, charge:c, reps:r, note:n || "", rpe:rpe || null}); D.prs.sort((a, b) => a.date < b.date ? -1 : 1); saveCache();
     const nb = best(l), isPr = r === 1 && nb !== null && (before === null || nb > before);
     firstPaint = true; render();
     if (isPr) { toast("Nouveau record : +" + fmt(nb - (before || 0)) + " kg en " + LNAME[l].toLowerCase()); const el = $("#liftbig"); if (el) el.classList.add("burst"); } else toast("PR enregistré");

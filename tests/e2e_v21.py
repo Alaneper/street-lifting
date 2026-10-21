@@ -112,7 +112,7 @@ with sync_playwright() as p:
     pg.evaluate(f"startLive({json.dumps(key)}, 0)"); pg.wait_for_timeout(300)
     check("séance : pas de double ouverture", pg.evaluate("document.querySelectorAll('.live').length") == 1)
     pg.evaluate("live = null; renderLayer(); store.del(ck('sl4-live'))")
-    check("version 21 affichée", pg.evaluate("APP_VER").startswith("21"))
+    check("version 21 ou plus", int(pg.evaluate("APP_VER").split(" ")[0]) >= 21)
     check("aucune erreur console", not errs, errs[:5])
     br.close()
 print("ÉCHECS :", fails)

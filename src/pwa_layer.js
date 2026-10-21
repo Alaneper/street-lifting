@@ -75,7 +75,7 @@ const TABS = {
   BLOCS:["Bloc","Lundi de la semaine 1","Note"],
   CHECKLIST:["Date compét","Élément","Fait"], BILAN:["Date","Bloc","Semaine","Sommeil","Plaisir","Motivation","Fatigue","Hydratation","Alimentation"],
   HISTORIQUE:["Prog","Onglet","Bloc","Début du bloc","Semaine","Séance","Jour","Ligne","Mouvement","Variation","Séries","Reps","Charge","RPE S1","RPE dernière","Commentaire athlète","Cycle"],
-  REPAS:["Date","Heure","Aliment","Source","Code","Quantité (g)","Kcal","Protéines (g)","Glucides (g)","Lipides (g)"], ALIMENTS:["Nom","Marque","Source","Code","Kcal /100 g","Protéines /100 g","Glucides /100 g","Lipides /100 g","Note"], DEPENSE:["Date","Kcal","Source","Heure"]
+  REPAS:["Date","Heure","Aliment","Source","Code","Quantité (g)","Kcal","Protéines (g)","Glucides (g)","Lipides (g)"], ALIMENTS:["Nom","Marque","Source","Code","Kcal /100 g","Protéines /100 g","Glucides /100 g","Lipides /100 g","Note"]
 };
 async function writeMany(id, data){ return gapi(API + id + "/values:batchUpdate", {method:"POST", body:JSON.stringify({valueInputOption:"RAW", data})}); }
 async function ensureTabs(id){
