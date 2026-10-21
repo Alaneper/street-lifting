@@ -47,7 +47,7 @@ with sync_playwright() as p:
     pg.fill("#prc", "121"); pg.fill("#prr", "1"); pg.select_option("#prpe", "8"); pg.click("[data-act=addPR]"); pg.wait_for_timeout(900)
     r = pg.evaluate(f"window.__sheets['{APP}'].PR.at(-1)")
     check("ajout d'un record : RPE enregistré dans le carnet", str(r[5]) == "8" and str(r[2]) == "121", r)
-    check("version 22", pg.evaluate("APP_VER").startswith("22"))
+    check("version 22 ou plus", int(pg.evaluate("APP_VER").split(" ")[0]) >= 22)
     check("aucune erreur console", not errs, errs[:5])
     br.close()
 print("ÉCHECS :", fails)

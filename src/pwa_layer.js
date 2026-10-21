@@ -89,7 +89,7 @@ async function createBook(p){
     sheets:Object.keys(TABS).map(t => ({properties:{title:t, gridProperties:{frozenRowCount:1}}}))})});
   const id = r.spreadsheetId;
   const prof = [["prenom",p.prenom],["sexe",p.sexe],["naissance",""],["taille_cm",p.taille || ""],["categorie",p.categorie],["coach_sheet_id",p.coach || ""],["bloc_actif",p.bloc || ""],["mu_acquis",p.mu || "NON"],
-    ["debut_street",p.debut || ""],["debut_coaching",p.debutCoach || ""]];
+    ["debut_street",p.debut || ""],["debut_coaching",p.debutCoach || ""],["pays",p.pays || "BE"]];
   const data = Object.keys(TABS).map(t => ({range:t + "!A1", values:[TABS[t]]}));
   data.push({range:"PROFIL!A2", values:prof});
   const prs = LIFTS.filter(l => num(p["pr_" + l])).map(l => [isoOf(new Date()), l, num(p["pr_" + l]), 1, p.coach && obPre ? "Max de la prog du coach" : "Saisi à l'inscription"]);
@@ -148,6 +148,7 @@ function onboard(step, why){
     <label for="obp">Prénom</label><input id="obp" autocomplete="given-name" value="${v(P.prenom)}">
     <div class="grid2"><div><label for="obs">Sexe (pour le RIS)</label><select id="obs"><option value="H">Homme</option><option value="F">Femme</option></select></div>
       <div><label for="obc">Catégorie</label><select id="obc">${[["Hommes", CATS_H], ["Femmes", CATS_F]].map(([g, L]) => `<optgroup label="${g}">${L.map(c => `<option value="${c}" ${c === (P.categorie || -80) && g === "Hommes" ? "selected" : ""}>${c > 0 ? "+" + c : c} kg</option>`).join("")}</optgroup>`).join("")}</select></div></div>
+    <label for="obpa">Pays</label><select id="obpa">${paysOptions("BE")}</select>
     <div class="grid2"><div><label for="obd">Début du street lifting</label><input id="obd" type="date"></div><div><label for="obw">Poids de corps (kg)</label><input id="obw" inputmode="decimal" placeholder="73,2" value="${v(P.poids)}"></div></div>
     <label>Tes PR actuels (kg de lest, laisse vide si tu ne sais pas)</label>
     <div class="grid2">${LIFTS.map(l => `<div><label for="obpr${l}" style="margin-top:0">${LNAME[l]}</label><input id="obpr${l}" inputmode="decimal" value="${v(P["pr_" + l])}"></div>`).join("")}</div>
@@ -181,7 +182,7 @@ Object.assign(ACT, {
   },
   obCreate:async () => {
     const p = {prenom:$("#obp").value.trim(), sexe:$("#obs").value, categorie:Number($("#obc").value), debut:$("#obd").value, poids:$("#obw").value, coach:idOf($("#obk").value),
-      taille:obPre && obPre.taille, bloc:$("#obbl") ? Number($("#obbl").value) : obPre && obPre.bloc, blocDate:$("#obb") ? $("#obb").value : ""};
+      taille:obPre && obPre.taille, pays:($("#obpa") || {}).value || "BE", bloc:$("#obbl") ? Number($("#obbl").value) : obPre && obPre.bloc, blocDate:$("#obb") ? $("#obb").value : ""};
     LIFTS.forEach(l => p["pr_" + l] = $("#obpr" + l).value);
     if (!p.prenom) return toast("Indique ton prénom", true);
     if ($("#obk").value.trim() && !p.coach) return toast("Le lien de la prog n'est pas reconnu", true);

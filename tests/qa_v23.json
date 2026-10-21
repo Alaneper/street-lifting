@@ -1,0 +1,286 @@
+{
+ "iphone/01-connexion": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "iphone/02-carnet": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "iphone/03-aujourdhui": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "iphone/04-prog": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "iphone/05-progres": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "iphone/06-corps-alimentation": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "iphone/07-corps-poids": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [
+   "INPUT"
+  ],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "iphone/08-compet": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "iphone/09-fiche-tractions": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "iphone/10-reglages": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "iphone/11-seance-pesee": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "iphone/12-seance-serie": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "iphone/13-seance-apres-validation": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "iphone/14-seance-repos": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "iphone/15-seance-bilan": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "iphone/console": [],
+ "ipad/01-connexion": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "ipad/02-carnet": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "ipad/03-aujourdhui": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "ipad/04-prog": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "ipad/05-progres": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "ipad/06-corps-alimentation": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "ipad/07-corps-poids": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [
+   "INPUT"
+  ],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "ipad/08-compet": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "ipad/09-fiche-tractions": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "ipad/10-reglages": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "ipad/11-seance-pesee": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "ipad/12-seance-serie": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "ipad/13-seance-apres-validation": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "ipad/14-seance-repos": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "ipad/15-seance-bilan": {
+  "cibles_moins_24": [],
+  "cibles_moins_44": [],
+  "debordements": [],
+  "textes_coupes": [],
+  "champs_zoom_ios": [],
+  "defilement_horizontal": false,
+  "axe": []
+ },
+ "ipad/console": [],
+ "_totaux": {
+  "cibles<24": 0,
+  "cibles<44": 0,
+  "debordements": 0,
+  "textes_coupes": 2,
+  "champs_zoom_ios": 0,
+  "axe": 0
+ }
+}

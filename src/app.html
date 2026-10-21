@@ -365,6 +365,21 @@ html,body{overflow-x:clip}body{margin-top:0}
 .tiles2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .tiles2>*{background:var(--deck);border-radius:16px;padding:14px;min-width:0;text-align:left}
 .tiles2 .show{font-size:30px;font-weight:800;margin-top:4px;line-height:1}
+/* Amis : podium et classement */
+.podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;align-items:end;gap:8px;margin-top:18px}
+.pod{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;text-align:center;width:100%}
+.pod .pav{width:52px;height:52px;border-radius:50%;background:var(--deck2);display:grid;place-items:center;font:800 22px var(--f-show);position:relative}
+.pod.p1 .pav{width:64px;height:64px;font-size:28px;box-shadow:0 0 0 2px var(--brand)}
+.pod.me .pav{box-shadow:0 0 0 2px var(--chalk)}
+.pod .pflag{position:absolute;right:-6px;bottom:-4px;font-style:normal;font-size:20px;line-height:1}
+.pod .pname{font:600 14px/1.2 var(--f-text);max-width:100%;overflow-wrap:anywhere}
+.pod .ptot{font:800 20px var(--f-show);font-variant-numeric:tabular-nums}.pod .ptot small{font-size:.6em}
+.pod .pblock{width:100%;border-radius:14px 14px 4px 4px;background:var(--deck2);display:grid;place-items:center;font:800 34px var(--f-show);color:var(--dust)}
+.pod.p1 .pblock{height:112px;background:var(--brand);color:#fff}.pod.p2 .pblock{height:84px}.pod.p3 .pblock{height:62px}
+.pod.empty{opacity:.45}
+.mepos{display:block;width:100%;text-align:left;background:var(--deck);border-radius:18px;padding:14px 16px;margin-top:14px;box-shadow:inset 0 0 0 1px var(--deck3)}
+.clrow .rk{width:28px;font:700 18px var(--f-show);color:var(--dust);flex:none}.clrow .cflag{font-size:20px;flex:none}
+.clrow.me{background:var(--deck);border-radius:14px;padding:13px 10px;margin:4px -10px;width:calc(100% + 20px);border-bottom:0}
 .emptycard{background:var(--deck);border-radius:18px;padding:22px 18px;text-align:center}
 .emptycard b{display:block;font:600 16px var(--f-text)}
 .emptycard p{font-size:14px;color:var(--dust);margin-top:6px;line-height:1.45}
@@ -407,7 +422,7 @@ html,body{overflow-x:clip}body{margin-top:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "22 · 21 oct. 2026";
+const APP_VER = "23 · 21 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];
 const LNAME = {MU:"Muscle-up", PULL:"Tractions", DIP:"Dips", SQUAT:"Squat", TOTAL:"Total"};
 const LCOL = {MU:"var(--mu)", PULL:"var(--pull)", DIP:"var(--dip)", SQUAT:"var(--squat)"};
@@ -980,7 +995,10 @@ function exercisePoints(){
     const s = S.find(z => z.bloc === x.bloc && z.semaine === x.semaine && z.seance === x.seance && (!x.date || !dateOf(z) || Math.abs(days(x.date, dateOf(z))) <= 14));
     const xe = s && s.exercices.find(z => "L" + z.row === x.note), xl = liftOf(x.ex.split(" · ")[0]);
     if (xe && /lastique|band|assist/i.test(String(xe.charge))) continue;
-    rows.push({sk: s ? s.key : "d" + x.date, comp:!!xl && (xe ? isCompEx(xe) : isCompVar(x.ex.split(" · ")[1] || "")), where:{bloc:x.bloc, sem:x.semaine, seance:x.seance, app:true}, bloc:x.bloc, sem:x.semaine, ex:x.ex, lift:liftOf(x.ex.split(" · ")[0]), date:x.date || (s && dateOf(s)), order:x.bloc ? rank(x.bloc) * 1000 + (num(x.semaine) || 0) * 10 + (s ? s.idx : 0) : 0, label:x.date ? dfr(x.date) : blocShort(x.bloc) + " S" + x.semaine, sets:x.sets, src:"carnet"});
+    /* séance notée dans l'app : RPE de la 1re série (et de la dernière) repris de la ligne de la prog */
+    let xs = x.sets; if (xe && xs && xs.length) { const r1 = num(xe.rpe1), rl = num(xe.rpeLast), okR = v => v && v >= 5 && v <= 10;
+      xs = xs.map((y, i) => i === 0 && okR(r1) ? {...y, rpe:r1} : i === xs.length - 1 && i > 0 && okR(rl) ? {...y, rpe:rl} : y); }
+    rows.push({sk: s ? s.key : "d" + x.date, comp:!!xl && (xe ? isCompEx(xe) : isCompVar(x.ex.split(" · ")[1] || "")), where:{bloc:x.bloc, sem:x.semaine, seance:x.seance, app:true}, bloc:x.bloc, sem:x.semaine, ex:x.ex, lift:liftOf(x.ex.split(" · ")[0]), date:x.date || (s && dateOf(s)), order:x.bloc ? rank(x.bloc) * 1000 + (num(x.semaine) || 0) * 10 + (s ? s.idx : 0) : 0, label:x.date ? dfr(x.date) : blocShort(x.bloc) + " S" + x.semaine, sets:xs, src:"carnet"});
   }
   const map = {};
   for (const r of rows) { const o = map[r.ex] = map[r.ex] || {key:r.ex, lift:r.lift, pts:{}}; const p = o.pts[r.sk] = o.pts[r.sk] || {sk:r.sk, date:r.date, order:r.order, label:r.label, bloc:r.bloc, sem:r.sem, rows:[], wh:[], comp:r.comp, src:r.src}; p.rows.push(r.sets); p.wh.push(r.where); if (r.src === "carnet") p.src = "carnet"; }
@@ -1015,9 +1033,9 @@ function repMaxes(sets){
 const RTS = [100, 97.8, 95.5, 93.9, 92.2, 90.7, 89.2, 87.8, 86.3, 85, 83.7, 82.4, 81.1, 79.9, 78.6, 77.4, 76.2, 75.1, 73.9];
 const rtsPct = x => { const i = Math.round((x - 1) * 2); return i >= 0 && i < RTS.length ? RTS[i] / 100 : null; };
 /* 1RM estimé d'une série : charge réelle (poids de corps + lest pour MU, tractions, dips) ÷ % de la table.
-   RPE pris en compte de 6 à 10 (toute la table RTS : 30 kg × 1 à RPE 6 ne vaut pas un 1RM de 30 kg). Sans RPE : série supposée à fond. */
+   RPE pris en compte de 5 à 10 (30 kg × 1 à RPE 6 ne vaut pas un 1RM de 30 kg). Sans RPE : série supposée à fond. */
 function e1rmOf(l, x){
-  const rir = x.rpe ? Math.min(4, Math.max(0, 10 - x.rpe)) : 0, xe = x.r + rir, pc = rtsPct(xe); if (!pc) return null;
+  const rir = x.rpe ? Math.min(5, Math.max(0, 10 - x.rpe)) : 0, xe = x.r + rir, pc = rtsPct(xe); if (!pc) return null;
   const w = BW_LIFTS.includes(l) ? bwAt(x.date || D.today) : 0; if (BW_LIFTS.includes(l) && !w) return null;
   return {v:x.r === 1 && !rir ? x.c : (x.c + w) / pc - w, xe};
 }
@@ -1641,7 +1659,7 @@ function rLiftPage(l){
     <p class="muted small" style="margin:-6px 0 8px">Pour une perf absente de ta prog : charge et nombre de reps. Elle compte dans le tableau des records et dans le 1RM estimé.</p>
     <div class="panel">
       <div class="grid2"><div><label for="prc" style="margin-top:0">${BW_LIFTS.includes(l) ? "Lest (kg)" : "Charge (kg)"}</label><input id="prc" inputmode="decimal"></div><div><label for="prr" style="margin-top:0">Reps</label><input id="prr" inputmode="numeric" value="1"></div></div>
-      <label for="prpe">RPE (facultatif)</label><select id="prpe"><option value="">Pas noté</option>${[6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10].map(v => `<option value="${v}">${fmt(v)}${v === 10 ? " (à fond)" : ""}</option>`).join("")}</select>
+      <label for="prpe">RPE (facultatif)</label><select id="prpe"><option value="">Pas noté</option>${[5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10].map(v => `<option value="${v}">${fmt(v)}${v === 10 ? " (à fond)" : ""}</option>`).join("")}</select>
       <label for="prd">Date</label><input id="prd" type="date" value="${D.today}">
       <label for="prn">Note</label><input id="prn" placeholder="Compét, entraînement…">
       <button class="btn" style="margin-top:14px" data-act="addPR" data-l="${l}">Ajouter le record</button>
@@ -1760,13 +1778,14 @@ function parseImport(raw){
    AGENDA ET MODE COMPÉT
    ===================================================================== */
 function rAgenda(){
+  if (agendaSeg === "amis") return rAmis();
   const t = D.today; if (!calMonth) { const n = nextComp(); calMonth = (n ? n.date : t).slice(0, 7); }
   const [y, m] = calMonth.split("-").map(Number), off = (new Date(y, m - 1, 1).getDay() + 6) % 7, n = Math.ceil((off + new Date(y, m, 0).getDate()) / 7) * 7;
   const byD = {}; S.forEach(s => { const d = dateOf(s); if (d) (byD[d] = byD[d] || []).push(s); });
   const cells = Array.from({length:n}, (_, i) => { const d = new Date(y, m - 1, 1 - off + i), iso = isoOf(d), c = D.comps.find(x => x.date === iso), ss = byD[iso];
     return `<div class="d ${d.getMonth() !== m - 1 ? "out" : ""} ${iso === t ? "today" : ""} ${c ? "comp" + (c.tbc ? " tbc" : "") : ""}" ${c ? `title="${esc(c.nom)}"` : ""}>${d.getDate()}${ss && !c ? `<i class="${ss.every(z => z.faite) ? "" : "todo"}"></i>` : ""}</div>`; }).join("");
   const nc = nextComp(), prep = nc && days(t, nc.date) <= 42, up = D.comps.filter(c => c.date >= t), past = D.comps.filter(c => c.date < t).reverse(), ec = armed && armed.edit ? D.comps.find(c => c.row === armed.edit) : null;
-  $("#v-agenda").innerHTML = `
+  $("#v-agenda").innerHTML = `${agendaSegHtml()}
     ${nc ? heroCard({small:`${esc(nc.nom)}${nc.tbc ? " · date à confirmer" : ""}`, big:days(t, nc.date) === 0 ? "Jour J" : "J−" + days(t, nc.date), sub:`${cap(dlong(nc.date))}${nc.lieu ? ", " + esc(nc.lieu) : ""}`}) : `<div class="emptycard" style="margin-top:14px"><b>Aucune compétition prévue</b><p>Ajoute ta prochaine compét plus bas : l'app compte les jours et prépare ta checklist.</p></div>`}
     ${prep ? prepHtml(nc) : ""}
     <h2 class="h2">${cap(MOIS_L[m - 1])} ${y}<span class="row" style="gap:6px"><button class="iconbtn" data-act="month" data-d="-1" aria-label="Mois précédent">‹</button><button class="iconbtn" data-act="month" data-d="1" aria-label="Mois suivant">›</button></span></h2>
@@ -1825,15 +1844,17 @@ function restPill(){
     <button class="rb" data-act="restAdd" data-s="-15" aria-label="Retirer 15 secondes">−15</button><button class="rb" data-act="restAdd" data-s="15" aria-label="Ajouter 15 secondes">+15</button><button class="go2" data-act="closeSheet">Passer</button></section>`;
 }
 function rSheet(){
+  if (sheet.startsWith("cl|")) return clInfoHtml(sheet.slice(3));
   if (sheet.startsWith("rm|")) { const [, l, n] = sheet.split("|"), N = +n;
     /* toutes les perfs à exactement N reps, regroupées par séance et par charge (les séries identiques d'une même ligne = une perf),
        avec leur RPE et leur date ; la plus lourde d'abord, à charge égale la plus facile (RPE le plus bas) */
     const G = new Map();
     for (const x of compSets(l).filter(x => x.r === N)) { const w = x.wh || {}, k = [x.src, x.date, x.ex || "", w.row || "", x.c].join("|");
       const g = G.get(k) || Object.assign({}, x, {n:0, rpes:[]}); g.n++; if (x.rpe) g.rpes.push(x.rpe); G.set(k, g); }
-    const L = [...G.values()].map(g => Object.assign(g, {rmin:g.rpes.length ? Math.min(...g.rpes) : null, rmax:g.rpes.length ? Math.max(...g.rpes) : null}))
-      .sort((a, b) => b.c - a.c || (a.rmin || 10) - (b.rmin || 10) || ((a.date || "") < (b.date || "") ? -1 : 1)).slice(0, 25);
-    const rpeTxt = g => g.rmin === null ? "RPE non noté" : g.rmin === g.rmax ? "RPE " + fmt(g.rmin) : "RPE " + fmt(g.rmin) + " → " + fmt(g.rmax);
+    const L = [...G.values()].map(g => Object.assign(g, {r1:g.rpes.length ? g.rpes[0] : null, rl:g.rpes.length > 1 ? g.rpes.at(-1) : null}))
+      .sort((a, b) => b.c - a.c || (a.r1 || 10) - (b.r1 || 10) || ((a.date || "") < (b.date || "") ? -1 : 1)).slice(0, 25);
+    /* RPE retenu pour un record : celui de la 1re série (choix d'Alane) ; la dernière est indiquée à côté */
+    const rpeTxt = g => g.r1 === null ? "RPE non noté" : "RPE " + fmt(g.r1) + (g.rl !== null && g.rl !== g.r1 ? " (dernière " + fmt(g.rl) + ")" : "");
     const line = x => { const w = x.wh || {};
       if (x.src === "PR") return x.coach ? "Max actuel écrit dans ta prog (case MAX ACTUELS)" : "PR enregistré le " + dfr(x.date);
       if (w.app) return "Noté dans l'app" + (x.date ? " le " + dfr(x.date) : "") + " · " + esc(blocLabel(x.bloc)) + ", semaine " + esc(x.sem);
@@ -1881,13 +1902,14 @@ function settingsHtml(){
     <div class="grid2"><div><label for="smu">Muscle-up acquis</label><select id="smu" data-chg="prof" data-k="mu_acquis"><option value="NON" ${muOn() ? "" : "selected"}>Non</option><option value="OUI" ${muOn() ? "selected" : ""}>Oui</option></select></div>
       <div><label for="ssx">Sexe (pour le RIS)</label><select id="ssx" data-chg="prof" data-k="sexe"><option value="H" ${sexe() === "H" ? "selected" : ""}>Homme</option><option value="F" ${sexe() === "F" ? "selected" : ""}>Femme</option></select></div></div>
     ${Object.keys(blocNames).length ? `<label for="sbl">Bloc en cours</label><select id="sbl" data-chg="blocActif"><option value="">Le dernier onglet de la prog</option>${progOrder.map(n => `<option value="${n}" ${n === chosenBloc() ? "selected" : ""}>${esc(blocLabel(n))}</option>`).join("")}</select>` : ""}
+    <label for="spays">Pays (pour le classement entre amis)</label><select id="spays" data-chg="prof" data-k="pays">${paysOptions(monPays())}</select>
     <label for="scat">Catégorie de poids</label><select id="scat" data-chg="prof" data-k="categorie">${catsFor(sexe()).map(c => `<option value="${c}" ${c === cat() ? "selected" : ""}>${c > 0 ? "+" + c : c} kg</option>`).join("")}</select>
     <div class="grid2"><div><label for="sdc">Début de la prog</label><input id="sdc" type="date" value="${D.profil.debut_coaching || ""}" data-chg="prof" data-k="debut_coaching"></div>
       <div><label for="sds">Début du street lifting</label><input id="sds" type="date" value="${D.profil.debut_street || ""}" data-chg="prof" data-k="debut_street"></div></div>
     <h2 class="h2" style="font-size:20px">Méthodes et sources</h2>
     <p class="src"><b style="color:var(--chalk)">RIS</b> : formule de Waris Radji et Mathieu Ardoin, édition 2026 (constantes publiées dans le code d'<a href="https://openstreetlifting.org" target="_blank" rel="noopener">OpenStreetlifting</a>). <a href="https://warisradji.com/ris/" target="_blank" rel="noopener">Calculateur officiel</a>.</p>
     <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Records</b> : <a href="https://rankings.officialstreetlifting.com/" target="_blank" rel="noopener">Official Streetlifting</a>, tableaux de records par catégorie, relevés le 20/10/2026. Record de Belgique : meilleure perf belge de ces tableaux.</p>
-    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">1RM estimé</b> : table RPE de Reactive Training Systems (Tuchscherer), la même que la colonne E1RM de ta prog : % du 1RM selon les reps et les reps en réserve (RIR = 10 − RPE, <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al., 2016</a>). Calcul sur la charge réelle (poids de corps + lest) pour muscle-up, tractions et dips. RPE pris en compte de 6 à 10, comme dans la table (au-delà de 4 reps en réserve, l'effort se juge mal : <a href="https://www.strongerbyscience.com/reps-in-reserve" target="_blank" rel="noopener">synthèse Stronger by Science</a>). Il part de ta série la plus lourde de 2 reps ou plus (à charge égale, la meilleure estimation ; un 1 rep à fond, c'est déjà ton PR) : une série légère à beaucoup de reps ne gonfle pas l'estimation. Séries de 10 reps au plus (<a href="https://researchconnect.suny.edu/en/publications/accuracy-of-prediction-equations-for-determining-one-repetition-m/" target="_blank" rel="noopener">Mayhew et al., 2008</a>).</p>
+    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">1RM estimé</b> : table RPE de Reactive Training Systems (Tuchscherer), la même que la colonne E1RM de ta prog : % du 1RM selon les reps et les reps en réserve (RIR = 10 − RPE, <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al., 2016</a>). Calcul sur la charge réelle (poids de corps + lest) pour muscle-up, tractions et dips. RPE pris en compte de 5 à 10 (plus on est loin de l'échec, moins l'effort se juge bien : <a href="https://www.strongerbyscience.com/reps-in-reserve" target="_blank" rel="noopener">synthèse Stronger by Science</a>). Il part de ta série la plus lourde de 2 reps ou plus (à charge égale, la meilleure estimation ; un 1 rep à fond, c'est déjà ton PR) : une série légère à beaucoup de reps ne gonfle pas l'estimation. Séries de 10 reps au plus (<a href="https://researchconnect.suny.edu/en/publications/accuracy-of-prediction-equations-for-determining-one-repetition-m/" target="_blank" rel="noopener">Mayhew et al., 2008</a>).</p>
     <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Aliments</b> : <a href="https://ciqual.anses.fr/" target="_blank" rel="noopener">table Ciqual 2025 de l'Anses</a> (Licence Ouverte), portions courantes de l'étude INCA3 ; produits de marque : <a href="https://world.openfoodfacts.org/" target="_blank" rel="noopener">Open Food Facts</a> (base collaborative, ODbL).</p>
     <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Besoins</b> : formule de Mifflin-St Jeor × activité. Rythmes : perte 0,5 à 1 % du poids par semaine (<a href="https://openrepository.aut.ac.nz/items/723f44d2-7c20-4214-ba62-987339099039/full" target="_blank" rel="noopener">Helms et al., 2014</a>), prise 0,25 à 0,5 % (<a href="https://www.mdpi.com/2075-4663/7/7/154" target="_blank" rel="noopener">Iraki et al., 2019</a>).</p>
     <p class="muted tiny" style="margin-top:14px">Version de l'app : ${APP_VER}</p>
@@ -2224,6 +2246,7 @@ async function addPR(l, c, r, d, n, rpe){
   const before = best(l);
   try { await appendVals(APP_ID, "PR!A1:F1", [[d, l, c, r, n || "", rpe || ""]]);
     D.prs.push({date:d, lift:l, charge:c, reps:r, note:n || "", rpe:rpe || null}); D.prs.sort((a, b) => a.date < b.date ? -1 : 1); saveCache();
+    if (clId()) clSync(true).catch(() => {});
     const nb = best(l), isPr = r === 1 && nb !== null && (before === null || nb > before);
     firstPaint = true; render();
     if (isPr) { toast("Nouveau record : +" + fmt(nb - (before || 0)) + " kg en " + LNAME[l].toLowerCase()); const el = $("#liftbig"); if (el) el.classList.add("burst"); } else toast("PR enregistré");
@@ -2244,6 +2267,118 @@ async function exportIcs(){
 }
 
 /* =====================================================================
+   AMIS : classement de tous les membres (un Google Sheet commun, sans serveur)
+   Chaque app y écrit sa ligne (records des 4 mouvements, total, RIS, pays) et lit celles des autres.
+   ===================================================================== */
+const CLASSEMENT_DEFAUT = "";   /* identifiant du classement commun, renseigné une fois créé */
+const CL_HEAD = ["Email","Prénom","Pays","Sexe","Catégorie","Muscle-up","Tractions","Dips","Squat","Total","RIS","Mis à jour"];
+const PAYS = ["BE","FR","LU","CH","NL","DE","ES","IT","PT","GB","IE","AT","PL","CZ","DK","SE","NO","FI","RO","BG","GR","HU","HR","RS","TR","UA","RU","MA","DZ","TN","SN","CI","CM","CD","CA","US","MX","BR","AR","CL","CO","AU","NZ","JP","KR","CN","IN","IL","LB","EG","ZA"];
+let agendaSeg = "compet", clErr = "", clBusy = null, CL = (() => { try { return store.get("sl-cl") || null; } catch(e){ return null; } })();
+const sheetIdOf = v => { const t = String(v || "").trim(), m = t.match(/\/d\/([a-zA-Z0-9_-]{15,})/); return m ? m[1] : (/^[a-zA-Z0-9_-]{15,}$/.test(t) ? t : ""); };
+const clId = () => (D && sheetIdOf(D.profil.classement_id)) || CLASSEMENT_DEFAUT;
+const clUrl = id => "https://docs.google.com/spreadsheets/d/" + id + "/edit";
+const myEmail = () => String((typeof cfg === "function" && cfg().email) || D.profil.email || "").toLowerCase();
+const monPays = () => (String(D.profil.pays || "BE").trim().toUpperCase().slice(0, 2)) || "BE";
+const flagOf = cc => /^[A-Z]{2}$/.test(cc || "") ? String.fromCodePoint(...[...cc].map(c => 0x1F1A5 + c.charCodeAt(0))) : "🏳️";
+const paysNom = cc => { try { return new Intl.DisplayNames(["fr"], {type:"region"}).of(cc) || cc; } catch(e){ return cc; } };
+const paysOptions = sel => PAYS.map(c => [c, paysNom(c)]).sort((a, b) => a[0] === "BE" ? -1 : b[0] === "BE" ? 1 : a[1].localeCompare(b[1], "fr"))
+  .map(([c, n]) => `<option value="${c}" ${c === sel ? "selected" : ""}>${flagOf(c)} ${esc(n)}</option>`).join("");
+const ordinal = n => n === 1 ? "1er" : n + "e";
+function myClRow(){
+  const t = total(), r = risOf(t, bw()), v = l => { const b = best(l); return b === null || b === undefined ? "" : b; };
+  return [myEmail(), D.profil.prenom || "", monPays(), sexe(), cat(), v("MU"), v("PULL"), v("DIP"), v("SQUAT"), t || "", r ? Math.round(r * 10) / 10 : "", D.today];
+}
+/* Lit le classement et, si besoin, met à jour ta ligne (seulement quand tes chiffres ont changé). */
+function clSync(push){
+  if (clBusy) return clBusy;
+  clBusy = (async () => {
+    const id = clId(); if (!id) return;
+    try {
+      const v = await getVals(id, "CLASSEMENT!A1:L2000");
+      const rows = v.slice(1).filter(r => String(r[0] || "").trim());
+      const me = myClRow(), em = me[0];
+      if (push && em) {
+        const i = rows.findIndex(r => String(r[0]).trim().toLowerCase() === em);
+        const same = i >= 0 && [1, 2, 3, 4].every(k => String(rows[i][k] ?? "").trim() === String(me[k])) && [5, 6, 7, 8, 9, 10].every(k => (num(rows[i][k]) ?? "") === (num(me[k]) ?? ""));
+        if (!same) {
+          if (i >= 0) await putVals(id, `CLASSEMENT!A${i + 2}:L${i + 2}`, [me]); else await appendVals(id, "CLASSEMENT!A1:L1", [me]);
+          if (i >= 0) rows[i] = me; else rows.push(me);
+        }
+      }
+      CL = {id, rows, at:Date.now()}; clErr = ""; try { store.set("sl-cl", CL); } catch(e){}
+    } catch(e){ clErr = e && (e.code === "forbidden" || e.code === "not_found" || e.code === "tool_error") ? e.code : errMsg(e); }
+  })().finally(() => { clBusy = null; });
+  return clBusy;
+}
+function clRows(){
+  const rows = CL && CL.id === clId() ? CL.rows : [];
+  return rows.map(r => ({email:String(r[0]).trim().toLowerCase(), nom:String(r[1] || "").trim() || "?", pays:String(r[2] || "").trim().toUpperCase(), sexe:String(r[3] || ""), cat:num(r[4]),
+      MU:num(r[5]), PULL:num(r[6]), DIP:num(r[7]), SQUAT:num(r[8]), total:num(r[9]) || 0, ris:num(r[10]), maj:toIso(r[11])}))
+    .sort((a, b) => b.total - a.total || (b.ris || 0) - (a.ris || 0) || a.nom.localeCompare(b.nom, "fr"));
+}
+const agendaSegHtml = () => `<div class="segc" style="margin:6px 0 4px">${[["compet", "Compét"], ["amis", "Amis"]].map(([k, t]) => `<button aria-pressed="${agendaSeg === k}" data-act="agSeg" data-k="${k}">${t}</button>`).join("")}</div>`;
+function rAmis(){
+  const el = $("#v-agenda"), seg = agendaSegHtml(), id = clId();
+  if (!id) {
+    el.innerHTML = seg + `<div class="emptycard" style="margin-top:14px"><b>Le classement entre amis</b><p>Un Google Sheet commun : chaque membre y envoie ses records et son total, l'app fait le podium. Une seule personne le crée, puis le partage avec l'adresse Google des autres (en Éditeur).</p>
+      ${typeof gapi === "function" ? `<button class="btn" style="margin-top:14px" data-act="clCreate">Créer le classement</button>` : ""}</div>
+      <label for="clk">On t'a envoyé un lien de classement ? Colle-le ici</label><input id="clk" type="url" placeholder="https://docs.google.com/spreadsheets/d/…" data-chg="clLink">`;
+    return;
+  }
+  if (clErr && !(CL && CL.id === id)) {
+    const acc = clErr === "forbidden" || clErr === "not_found";
+    el.innerHTML = seg + `<div class="emptycard" style="margin-top:14px"><b>${acc ? "Tu n'as pas encore accès au classement" : clErr === "tool_error" ? "Ce Google Sheet n'est pas un classement" : "Classement indisponible"}</b>
+      <p>${acc ? `Demande à la personne qui l'a créé de le partager avec <b style="color:var(--chalk)">${esc(myEmail() || "ton adresse Google")}</b> (Éditeur), puis réessaie.` : clErr === "tool_error" ? "Il lui manque l'onglet CLASSEMENT. Vérifie le lien." : esc(clErr)}</p>
+      <button class="btn ghost" style="margin-top:14px" data-act="clRetry">Réessayer</button></div>
+      <label for="clk">Changer de lien de classement</label><input id="clk" type="url" value="${esc(clUrl(id))}" data-chg="clLink">`;
+    return;
+  }
+  if (!(CL && CL.id === id)) { el.innerHTML = seg + `<div class="skel" style="height:240px;margin-top:14px"></div><div class="skel" style="height:120px;margin-top:12px"></div>`; clSync(true).then(() => { if (tab === "agenda" && agendaSeg === "amis") rAmis(); }); return; }
+  const R = clRows(), em = myEmail(), mi = R.findIndex(x => x.email === em), me = mi >= 0 ? R[mi] : null;
+  const pod = k => { const x = R[k]; const cls = "pod p" + (k + 1);
+    if (!x) return `<div class="${cls} empty"><span class="pav">·</span><b class="pname muted">—</b><span class="ptot muted">&nbsp;</span><div class="pblock"><span>${k + 1}</span></div></div>`;
+    return `<button class="${cls}${x.email === em ? " me" : ""}" data-act="clInfo" data-e="${esc(x.email)}" aria-label="${ordinal(k + 1)} : ${esc(x.nom)}, ${fmt(x.total)} kg"><span class="pav">${esc(x.nom[0].toUpperCase())}<i class="pflag">${flagOf(x.pays)}</i></span>
+      <b class="pname">${esc(x.nom)}</b><span class="ptot">${fmt(x.total)}<small> kg</small></span><div class="pblock"><span>${k + 1}</span></div></button>`; };
+  const rest = R.slice(3).map((x, i) => `<button class="vrow clrow${x.email === em ? " me" : ""}" data-act="clInfo" data-e="${esc(x.email)}"><span class="rk">${i + 4}</span><span class="cflag">${flagOf(x.pays)}</span><span class="grow"><b>${esc(x.nom)}</b></span><span class="val">${fmt(x.total)} kg</span></button>`).join("");
+  el.innerHTML = seg + `
+    <div class="podium" role="list" aria-label="Podium">${pod(1)}${pod(0)}${pod(2)}</div>
+    ${me ? `<button class="mepos" data-act="clInfo" data-e="${esc(me.email)}"><span class="muted small">Ta position</span><span class="row" style="gap:10px;margin-top:4px"><b class="show t-m">${ordinal(mi + 1)}</b><span class="muted">sur ${R.length}</span><span class="grow"></span><span class="show t-s">${fmt(me.total)}<small style="font-size:.6em"> kg</small></span></span></button>`
+      : `<p class="muted small" style="margin-top:14px">${em ? "Ta ligne arrive à la prochaine synchro." : "Ton adresse Google n'est pas encore connue : synchronise une fois."}</p>`}
+    ${rest ? `<h2 class="h2">Classement <span class="muted">au total</span></h2><div>${rest}</div>` : ""}
+    <p class="muted tiny" style="margin-top:14px">Classés au total (muscle-up compté s'il est acquis), puis au RIS en cas d'égalité. Mis à jour à chaque synchro.</p>
+    <details class="more" style="margin-top:14px"><summary class="small muted">Ajouter un ami</summary>
+      <p class="muted small" style="margin-top:8px">Ouvre le classement dans Google Sheets, touche Partager, ajoute son adresse Gmail en Éditeur. Envoie-lui ensuite le lien : il le colle dans l'onglet Amis de son app.</p>
+      <div class="grid2" style="margin-top:10px"><a class="btn ghost sm" href="${clUrl(id)}" target="_blank" rel="noopener">Ouvrir le classement</a><button class="btn ghost sm" data-act="clShare">Envoyer le lien</button></div></details>`;
+}
+function clInfoHtml(email){
+  const R = clRows(), i = R.findIndex(x => x.email === email), x = R[i]; if (!x) return `<p>Membre introuvable.</p><button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`;
+  const lift = (l, v) => vrow(LNAME[l], l === "MU" && v === null ? "pas encore acquis" : "", v === null ? "—" : fmt(v) + " kg", LCOL[l]);
+  return `<p class="muted">${ordinal(i + 1)} sur ${R.length} · ${flagOf(x.pays)} ${esc(paysNom(x.pays))}</p><p class="show t-l" style="margin-top:4px">${esc(x.nom)}</p>
+    <p class="muted small" style="margin-top:4px">${x.cat ? (x.cat > 0 ? "+" : "") + x.cat + " kg" : ""}${x.sexe ? " · " + (x.sexe === "F" ? "Femme" : "Homme") : ""}${x.maj ? " · mis à jour le " + dfr(x.maj) : ""}</p>
+    <div class="tiles2" style="margin-top:14px"><div><p class="muted small">Total</p><p class="show">${fmt(x.total)}<small style="font-size:.5em"> kg</small></p></div><div><p class="muted small">RIS</p><p class="show">${x.ris ? fmt(x.ris, 1) : "—"}</p></div></div>
+    <div style="margin-top:8px">${["MU", "PULL", "DIP", "SQUAT"].map(l => lift(l, x[l])).join("")}</div>
+    <button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`;
+}
+Object.assign(ACT, {
+  agSeg:d => { agendaSeg = d.k; window.scrollTo(0, 0); rAgenda(); },
+  clInfo:d => openSheet("cl|" + d.e),
+  clRetry:async () => { clErr = ""; rAmis(); await clSync(true); rAmis(); },
+  clCreate:async () => {
+    if (typeof gapi !== "function") return;
+    try { const r = await gapi(API, {method:"POST", body:JSON.stringify({properties:{title:"Street Lifting – Classement", locale:"fr_FR"}, sheets:[{properties:{title:"CLASSEMENT", gridProperties:{frozenRowCount:1}}}]})});
+      await putVals(r.spreadsheetId, "CLASSEMENT!A1:L1", [CL_HEAD]);
+      await CHG.prof({k:"classement_id"}, {value:r.spreadsheetId});
+      clErr = ""; await clSync(true); rAgenda(); toast("Classement créé : partage-le avec tes amis");
+    } catch(e){ toast(errMsg(e), true); }
+  },
+  clShare:async () => { const u = clUrl(clId()), txt = "Rejoins le classement Street Lifting : colle ce lien dans l'onglet Amis de l'app. " + u;
+    try { if (navigator.share) await navigator.share({title:"Classement Street Lifting", text:txt}); else { await navigator.clipboard.writeText(u); toast("Lien copié"); } } catch(e){} }
+});
+CHG.clLink = async (d, el) => { const id = sheetIdOf(el.value); if (!id) return toast("Ce lien de Google Sheet n'est pas reconnu", true);
+  await CHG.prof({k:"classement_id"}, {value:id}); clErr = ""; CL = null; rAmis(); await clSync(true); rAmis(); };
+{ const _prof = CHG.prof; CHG.prof = async (d, el) => { await _prof(d, el); if (["pays", "sexe", "categorie", "mu_acquis", "prenom"].includes(d.k) && clId()) clSync(true).catch(() => {}); }; }
+
+/* =====================================================================
    SYNCHRO ET DÉMARRAGE
    ===================================================================== */
 async function syncAll(silent){
@@ -2254,6 +2389,7 @@ async function syncAll(silent){
     await loadApp(); render();
     try { await loadCoach(cid0 && cid0 === coachId() ? pt : null); seanceErr = ""; } catch(e){ seanceErr = "Impossible de lire ta prog : " + errMsg(e); }
     lastSync = Date.now(); setDot(seanceErr ? "off" : "ok"); saveCache(); render();
+    if (clId()) clSync(true).then(() => { if (tab === "agenda" && agendaSeg === "amis" && !sheet) rAgenda(); }).catch(() => {});
     if (seanceErr && S.length) toast(seanceErr, true);
     if (!silent) toast("Données à jour");
     if (!seanceErr) ensureAllBlocs().then(() => { if (tab !== "seance" && !live) render(); }).catch(() => {});
