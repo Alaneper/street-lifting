@@ -5,6 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
+<meta name="sl-build" content="20261021124833">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -375,10 +376,11 @@ details>summary::-webkit-details-marker{display:none}
 /* Web app */
 body{padding-top:calc(env(safe-area-inset-top,0px) + 8px)}
 body.ob .tabs,body.ob .avatar,body.ob .topbar{display:none}
-.upd{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translateX(-50%);z-index:59;display:flex;align-items:center;gap:10px;background:var(--deck2);color:var(--chalk);
+.upd{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 76px);transform:translateX(-50%);z-index:19;display:flex;align-items:center;gap:10px;background:var(--deck2);color:var(--chalk);
   border:1px solid var(--deck3);border-radius:22px;padding:6px 6px 6px 16px;font:600 14px var(--f-text);box-shadow:0 10px 30px rgba(0,0,0,.45);animation:fade .2s;white-space:nowrap}
 .upd button{min-height:36px;padding:0 14px;border-radius:18px;background:var(--chalk);color:var(--floor);font:700 14px var(--f-text);position:relative}
 .upd button::after{content:"";position:absolute;inset:-4px}
+body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
 .ob{max-width:520px;margin:0 auto;padding-bottom:40px}
 .obbar{margin-top:12px}
 .obbar .plate{transform-box:fill-box;transform-origin:center;animation:obin .6s cubic-bezier(.2,.9,.2,1) both}
@@ -856,7 +858,16 @@ function parseBloc(v, sheet, bloc){
 const chosenBloc = () => { const n = num(D && D.profil.bloc_actif); return n && blocNames[n] ? n : null; };
 const activeBloc = () => { const c = chosenBloc(); if (c !== null && S.some(s => s.bloc === c)) return c; const b = [...new Set(S.map(s => s.bloc))].sort(byRank); return b.length ? b.at(-1) : null; };
 const nextSeance = () => { const b = activeBloc(); return b === null ? null : (S.find(s => s.bloc === b && !s.faite) || null); };
+/* Tout ou rien : si une lecture échoue (réseau perdu, quota, onglet renommé entre deux lectures),
+   la prog déjà affichée et le cache restent intacts. */
 async function loadCoach(preTabs){
+  const snap = {S, weekMeta, loaded:[...loadedBlocs], blocNames, progOrder, liveIds, archMeta, allLoaded};
+  try { await loadCoachAll(preTabs); }
+  catch(e){ S = snap.S; weekMeta = snap.weekMeta; loadedBlocs.clear(); snap.loaded.forEach(n => loadedBlocs.add(n));
+    blocNames = snap.blocNames; progOrder = snap.progOrder; liveIds = snap.liveIds; archMeta = snap.archMeta; allLoaded = snap.allLoaded; throw e; }
+}
+const badRange = e => e && (e.code === "tool_error" || e.code === "not_found");
+async function loadCoachAll(preTabs){
   await loadBlocList(preTabs);
   const nums = progOrder.slice().reverse();
   if (!nums.length) { seanceErr = "Aucun onglet « BLOC » trouvé dans la prog de ton coach."; return; }
@@ -865,8 +876,10 @@ async function loadCoach(preTabs){
   /* Bloc en cours + blocs déjà affichés : une seule requête au lieu d'une par bloc (données à jour plus vite). */
   const want = [...new Set([c !== null ? c : nums[0], ...keep])].filter(n => n !== null && blocNames[n]);
   if (typeof getMany === "function" && want.length > 1) {
-    const vals = await getMany(coachId(), want.map(n => q(blocNames[n]) + "!A1:CZ1000"));
-    for (let k = 0; k < want.length; k++) await loadBloc(want[k], vals[k] || []);
+    let vals = null;
+    try { vals = await getMany(coachId(), want.map(n => q(blocNames[n]) + "!A1:CZ1000")); } catch(e){ if (!badRange(e)) throw e; }
+    if (vals) for (let k = 0; k < want.length; k++) await loadBloc(want[k], vals[k] || []);
+    else for (const n of want) { try { await loadBloc(n); } catch(e){ if (!badRange(e)) throw e; } }   /* repli : un onglet illisible n'empêche pas les autres */
   }
   if (c !== null) { if (!loadedBlocs.has(c)) await loadBloc(c); }
   else for (const n of nums.slice(0, 3)) { if (!loadedBlocs.has(n)) await loadBloc(n); if (S.some(s => s.bloc === n)) break; }
@@ -1004,7 +1017,7 @@ function e1rmBest(l, sets){
   return all.reduce((a, x) => !a || x.v > a.v ? x : a, null); /* la plus haute de toutes les estimations (séries de 10 reps au plus) */
 }
 /* Date courte (sans l'année si c'est l'année en cours) : tient dans les cases du tableau des records. */
-const dShort = iso => iso && iso.slice(0, 4) === D.today.slice(0, 4) ? dfr(iso).slice(0, 5) : dfr(iso);
+const dShort = iso => !iso ? "" : iso.slice(0, 4) === D.today.slice(0, 4) ? dfr(iso).slice(0, 5) : MOIS[+iso.slice(5, 7) - 1] + " " + iso.slice(2, 4);
 const srcTxt = x => x.src === "PR" ? (x.coach ? "max de la prog" : (x.date ? dShort(x.date) : "") + " · PR") : x.src === "carnet" && !x.bloc ? (x.date ? dShort(x.date) : "") + " · noté"
   : (x.bloc !== undefined && x.bloc !== null ? blocShort(x.bloc) + " S" + x.sem : "") + (x.date ? " · " + dShort(x.date) : "");
 function repTableHtml(l){
@@ -1181,7 +1194,7 @@ function rSeance(){
         <label for="bd">Lundi de la semaine 1 du ${esc(blocLow(s.bloc))}</label><input id="bd" type="date" value="${st ? st.d : ""}" data-chg="blocDate" data-b="${s.bloc}"></details>
     </div>
 
-    ${heroCard({color:liftsOf(s)[0] ? LCOL[liftsOf(s)[0]] : "var(--brand)", small:`${d ? cap(dlong(d)) : esc(s.jour || "")} · ${esc(blocLow(s.bloc))}${s.semaine ? ", semaine " + esc(s.semaine) : ""}`, big:esc(s.seance), sub:s.faite ? "Faite" : s === ns ? "Prochaine séance" : d && d < D.today ? "Pas notée" : "À venir"})}
+    ${heroCard({color:liftsOf(s)[0] ? LCOL[liftsOf(s)[0]] : "var(--brand)", small:`${d ? cap(dlong(d)) : esc(s.jour || "")} · ${esc(blocLow(s.bloc))}${s.semaine ? ", semaine " + esc(s.semaine) : ""}`, big:esc(s.seance), sub:s.faite ? "Faite" : s === ns ? "Prochaine séance" : d && d < D.today && (!ns || S.indexOf(s) < S.indexOf(ns)) ? "Pas notée" : "À venir"})}
     <div class="list" style="margin-top:8px">${s.exercices.map((e, k) => {
       const l = liftOf(e.mouvement), key = exKey(e), o = pts.find(z => z.key === key), p = o && o.pts.find(z => z.label === blocShort(s.bloc) + " S" + s.semaine || (z.date && z.date === d));
       const done = D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
@@ -1406,7 +1419,7 @@ async function finishLive(){
     const pv = prevRowSets(s, +k), pt = pv ? sum(pv.sets.map(x => (num(x.c) || 0) * (x.r || 0))) : 0; if (pt <= 0) return;
     both.push(k); prevTon += pt; tonSame += t; });
   if (!both.length) { prevTon = null; tonSame = null; }
-  const recs = [...new Set(s.exercices.map(exKey))].map(k => { const o = pts.find(z => z.key === k); if (!o) return null; const cur = o.pts.find(p => p.sk === s.key), oth = o.pts.filter(p => p.sk !== s.key); if (!cur || !oth.length) return null; const prev = Math.max(...oth.map(p => p.e1rmBest)); return cur.e1rmBest > prev + .05 ? exName(o.key) + " : " + fmt(cur.e1rmBest, 1) + " kg (avant " + fmt(prev, 1) + ")" : null; }).filter(Boolean);
+  const recs = [...new Set(s.exercices.map(exKey))].map(k => { const o = pts.find(z => z.key === k); if (!o) return null; const cur = o.pts.find(p => p.sk === s.key), oth = o.pts.filter(p => p.sk !== s.key); if (!cur || !oth.length) return null; const prev = Math.max(...oth.map(p => p.e1rmBest)); return cur.e1rmBest > prev + .05 ? exName(o.key) + " : " + fmt(cur.e1rmBest, 1) + " kg (avant : " + fmt(prev, 1) + " kg)" : null; }).filter(Boolean);
   live.summary = {dur, ton, reps, sets:all.length, prevTon, tonSame, nSame:both.length, recs, repRecs:live.recs || []};
   store.del(ck("sl4-live")); try { wakeLock && wakeLock.release(); } catch(e){}
   openSheet("summary");
@@ -1713,7 +1726,7 @@ function rAgenda(){
     <h2 class="h2">${cap(MOIS_L[m - 1])} ${y}<span class="row" style="gap:6px"><button class="iconbtn" data-act="month" data-d="-1" aria-label="Mois précédent">‹</button><button class="iconbtn" data-act="month" data-d="1" aria-label="Mois suivant">›</button></span></h2>
     <div><div class="cal">${["L","M","M","J","V","S","D"].map(d => `<div class="dh">${d}</div>`).join("")}${cells}</div>
       <p class="muted tiny" style="margin-top:10px">Bleu : compétition. Point vert : séance faite, gris : séance prévue.</p></div>
-    <button class="btn line" style="margin-top:10px" data-act="ics">Ajouter au Calendrier</button>
+    <button class="btn line" style="margin-top:10px" data-act="ics">Mes compét dans le Calendrier</button>
     <h2 class="h2">Compétitions</h2>
     <div class="list">${up.concat(past).map(c => { const d = days(t, c.date); return `<div class="item"><span class="grow"><span class="ttl" style="display:block">${esc(c.nom)}</span><span class="muted small">${cap(dlong(c.date))}${c.lieu ? ", " + esc(c.lieu) : ""}${c.note ? ". " + esc(c.note) : ""}</span></span>
       <span class="stack" style="align-items:flex-end;gap:6px"><span class="pill ${c.tbc ? "warn" : d >= 0 ? "go" : ""}">${c.tbc ? "À confirmer" : d > 0 ? "J-" + d : d === 0 ? "Aujourd'hui" : "Passée"}</span>
@@ -1855,8 +1868,8 @@ async function drawShare(l){
    GRAPHIQUES (Chart.js)
    ===================================================================== */
 /* Chart.js est chargé en différé (premier affichage plus rapide) : les graphiques demandés avant sont dessinés dès qu'il est prêt. */
-const chartQ = [];
-document.addEventListener("DOMContentLoaded", () => chartQ.splice(0).forEach(f => f()));
+const chartQ = new Map(); let chartReady = false;
+document.addEventListener("DOMContentLoaded", () => { chartReady = true; chartQ.forEach(f => f()); chartQ.clear(); });
 const fmtK = v => Math.abs(v) >= 1000 ? Math.round(v).toLocaleString("fr-FR") : fmt(v, 1);
 function getCss(v){ const m = String(v).match(/var\((--[^)]+)\)/); return m ? getComputedStyle(document.documentElement).getPropertyValue(m[1]).trim() : v; }
 const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1872,7 +1885,7 @@ function opts(o = {}){
 }
 function lineChart(id, labels, sets, o = {}){
   const el = document.getElementById(id); if (!el) return;
-  if (typeof Chart === "undefined") return chartQ.push(() => lineChart(id, labels, sets, o));
+  if (typeof Chart === "undefined") { if (!chartReady) chartQ.set(id, () => lineChart(id, labels, sets, o)); return; }
   if (charts[id]) charts[id].destroy();
   const ctx = el.getContext("2d");
   charts[id] = new Chart(el, {type:"line", data:{labels, datasets:sets.map(s => {
@@ -1884,7 +1897,7 @@ function lineChart(id, labels, sets, o = {}){
 }
 function barChart(id, labels, sets, unit){
   const el = document.getElementById(id); if (!el) return;
-  if (typeof Chart === "undefined") return chartQ.push(() => barChart(id, labels, sets, unit));
+  if (typeof Chart === "undefined") { if (!chartReady) chartQ.set(id, () => barChart(id, labels, sets, unit)); return; }
   if (charts[id]) charts[id].destroy();
   const o = opts({legend:true, unit}); o.scales.x.stacked = true; o.scales.y.stacked = true;
   /* Infobulle : seulement les mouvements faits cette semaine-là, puis le total. */
@@ -2049,8 +2062,8 @@ function rNutri(){
   const rows = R.slice().sort((a, b) => (a.h || "") < (b.h || "") ? -1 : 1).map(x => `<div class="item" style="display:flex;gap:10px;align-items:center"><span class="muted small" style="width:42px">${esc(x.h || "")}</span><span class="grow"><span class="ttl" style="display:block">${esc(x.nom)}</span><span class="muted tiny">${fmt(x.q, 0)} g · P ${fmt(x.p, 1)} · G ${fmt(x.g, 1)} · L ${fmt(x.l, 1)}</span></span><b class="small">${fmt(x.k, 0)}</b><button class="iconbtn" data-act="nutDel" data-r="${x._row}" aria-label="Supprimer">×</button></div>`).join("");
   $("#v-corps").innerHTML = corpsSeg() + `
     <div class="row" style="margin-bottom:10px"><button class="iconbtn" data-act="nutDay" data-d="-1" aria-label="Jour précédent">‹</button><b>${nutDate === D.today ? "Aujourd'hui" : cap(dlong(nutDate))}</b><button class="iconbtn" data-act="nutDay" data-d="1" aria-label="Jour suivant" ${nutDate >= D.today ? "disabled" : ""}>›</button></div>
-    ${heroCard({small:hasT ? "Calories du jour" : "Calories du jour (suivi)", big:`${fmt(tot.k, 0)}<small>${hasT ? " / " + fmt(T.kcal, 0) : ""} kcal</small>`, sub:hasT ? (left >= 0 ? "reste " + fmt(left, 0) + " kcal" : fmt(-left, 0) + " kcal au-dessus") : R.length ? R.length + " aliment" + (R.length > 1 ? "s" : "") + " noté" + (R.length > 1 ? "s" : "") : "Rien de noté pour l'instant", deco:false})}
-    ${(() => { const dp = (D.depense || {})[nutDate]; return `<div class="panel" style="margin-top:12px"><div class="row"><span><b>Dépense du jour</b><br><span class="muted tiny">${dp ? (dp.src || "saisie") + (dp.h ? " · " + esc(dp.h) : "") : "Les kcal de ta montre ; sinon, l'app estime"}</span></span>
+    ${heroCard({small:hasT ? "Calories du jour" : "Calories du jour (suivi)", big:`${fmt(tot.k, 0)}<small>${hasT ? " / " + fmt(T.kcal, 0) : ""} kcal</small>`, sub:hasT ? (left >= 0 ? "reste " + fmt(left, 0) + " kcal" : fmt(-left, 0) + " kcal au-dessus") : R.length ? R.length + " aliment" + (R.length > 1 ? "s" : "") + " noté" + (R.length > 1 ? "s" : "") : "Aucun aliment noté", deco:false})}
+    ${(() => { const dp = (D.depense || {})[nutDate]; return `<div class="panel" style="margin-top:12px"><div class="row"><span><b>Dépense du jour</b><br><span class="muted tiny">${dp ? (dp.src || "saisie") + (dp.h ? " · " + esc(dp.h) : "") : "Kcal de ta montre, sinon estimation"}</span></span>
       <span class="row" style="gap:6px"><input id="ndep" inputmode="numeric" style="width:92px;text-align:right" placeholder="${T.tdee && !dp ? fmt(T.tdee, 0) : "kcal"}" value="${dp ? fmt(dp.k, 0) : ""}"><button class="btn sm" data-act="nutDep">OK</button></span></div></div>`; })()}
     ${hasT ? `<div class="panel" style="margin-top:12px">${bar("Protéines", tot.p, T.p, "var(--brand)")}${bar("Glucides", tot.g, T.g, "var(--chalk)")}${bar("Lipides", tot.l, T.l, "var(--dust)")}</div>`
       : `<div class="grid3" style="margin-top:12px">${[["Protéines", tot.p], ["Glucides", tot.g], ["Lipides", tot.l]].map(([k, v]) => `<div class="panel" style="margin:0;padding:12px 14px"><p class="muted tiny">${k}</p><p class="show t-s" style="margin-top:2px">${fmt(v, 0)}<small style="font-size:.6em"> g</small></p></div>`).join("")}</div>`}
@@ -2204,13 +2217,14 @@ const sheetUrl = id => "https://docs.google.com/spreadsheets/d/" + id + "/edit";
 const cfg = () => store.get("sl-cfg") || {};
 const setCfg = o => store.set("sl-cfg", Object.assign(cfg(), o));
 const auth = {
-  err:null,
+  err:null, leaving:false,
   get tok(){ const t = store.get("sl-tok"); return t && t.exp > Date.now() + 60000 ? t.t : null; },
   login(prompt){
     const st = Math.random().toString(36).slice(2); store.set("sl-state", st);
     const p = new URLSearchParams({client_id:CLIENT_ID, redirect_uri:location.origin + location.pathname, response_type:"token", scope:SCOPE, include_granted_scopes:"true", state:st});
     if (cfg().email) p.set("login_hint", cfg().email);
     if (prompt) p.set("prompt", prompt);
+    auth.leaving = true;   /* une mise à jour de l'app ne doit pas annuler ce passage chez Google */
     location.href = "https://accounts.google.com/o/oauth2/v2/auth?" + p;
   },
   fromHash(){
@@ -2407,7 +2421,8 @@ async function syncAll(silent){
     const cid0 = D && coachId(), pt = cid0 ? progTabs(cid0).catch(() => null) : null;
     await loadApp(); render();
     try { await loadCoach(cid0 && cid0 === coachId() ? pt : null); seanceErr = ""; } catch(e){ seanceErr = "Impossible de lire ta prog : " + errMsg(e); }
-    lastSync = Date.now(); setDot("ok"); saveCache(); render();
+    lastSync = Date.now(); setDot(seanceErr ? "off" : "ok"); saveCache(); render();
+    if (seanceErr && S.length) toast(seanceErr, true);
     if (!silent) toast("Données à jour");
     if (!seanceErr) ensureAllBlocs().then(() => { if (tab !== "seance" && !live) render(); }).catch(() => {});
   } catch(e){ setDot("off"); if (!D) fatal(errMsg(e)); else toast(errMsg(e), true); }
@@ -2449,7 +2464,7 @@ boot();
 const T0 = Date.now(); let touched = false, updShown = false;
 addEventListener("pointerdown", () => { touched = true; }, {once:true, capture:true});
 function newVersion(){
-  if (live || updShown) return;
+  if (live || updShown || auth.leaving) return;
   let last = 0; try { last = +sessionStorage.getItem("sl-upd") || 0; } catch(e){}
   if (!touched && Date.now() - T0 < 4000 && !sheet && !page && Date.now() - last > 60000) { try { sessionStorage.setItem("sl-upd", Date.now()); } catch(e){} return location.reload(); }
   updShown = true; const b = document.createElement("div"); b.className = "upd"; b.setAttribute("role", "status");
@@ -2458,9 +2473,7 @@ function newVersion(){
 }
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js").catch(() => {});
-  let hadCtl = !!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener("message", e => { if (e.data && e.data.type === "sl-update") newVersion(); });
-  navigator.serviceWorker.addEventListener("controllerchange", () => { if (hadCtl) newVersion(); hadCtl = true; });
 }
 </script>
 </body></html>

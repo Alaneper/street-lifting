@@ -30,20 +30,23 @@ head = """<!doctype html>
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
+<meta name="sl-build" content="__BUILD__">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
 <link rel="preconnect" href="https://sheets.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 """
 rep('<meta name="claude:viewport-fit-sides" content="cover">\n', "")
-s = head + s
+import time as _t
+s = head.replace("__BUILD__", _t.strftime("%Y%m%d%H%M%S", _t.gmtime())) + s
 rep("</style>\n\n<main", """/* Web app */
 body{padding-top:calc(env(safe-area-inset-top,0px) + 8px)}
 body.ob .tabs,body.ob .avatar,body.ob .topbar{display:none}
-.upd{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translateX(-50%);z-index:59;display:flex;align-items:center;gap:10px;background:var(--deck2);color:var(--chalk);
+.upd{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 76px);transform:translateX(-50%);z-index:19;display:flex;align-items:center;gap:10px;background:var(--deck2);color:var(--chalk);
   border:1px solid var(--deck3);border-radius:22px;padding:6px 6px 6px 16px;font:600 14px var(--f-text);box-shadow:0 10px 30px rgba(0,0,0,.45);animation:fade .2s;white-space:nowrap}
 .upd button{min-height:36px;padding:0 14px;border-radius:18px;background:var(--chalk);color:var(--floor);font:700 14px var(--f-text);position:relative}
 .upd button::after{content:"";position:absolute;inset:-4px}
+body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
 .ob{max-width:520px;margin:0 auto;padding-bottom:40px}
 .obbar{margin-top:12px}
 .obbar .plate{transform-box:fill-box;transform-origin:center;animation:obin .6s cubic-bezier(.2,.9,.2,1) both}
@@ -123,7 +126,7 @@ boot();
 const T0 = Date.now(); let touched = false, updShown = false;
 addEventListener("pointerdown", () => { touched = true; }, {once:true, capture:true});
 function newVersion(){
-  if (live || updShown) return;
+  if (live || updShown || auth.leaving) return;
   let last = 0; try { last = +sessionStorage.getItem("sl-upd") || 0; } catch(e){}
   if (!touched && Date.now() - T0 < 4000 && !sheet && !page && Date.now() - last > 60000) { try { sessionStorage.setItem("sl-upd", Date.now()); } catch(e){} return location.reload(); }
   updShown = true; const b = document.createElement("div"); b.className = "upd"; b.setAttribute("role", "status");
@@ -132,9 +135,7 @@ function newVersion(){
 }
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js").catch(() => {});
-  let hadCtl = !!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener("message", e => { if (e.data && e.data.type === "sl-update") newVersion(); });
-  navigator.serviceWorker.addEventListener("controllerchange", () => { if (hadCtl) newVersion(); hadCtl = true; });
 }
 """)
 s = s.rstrip() + "\n</body></html>\n"

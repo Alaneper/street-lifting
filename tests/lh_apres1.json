@@ -1,0 +1,40 @@
+{
+ "froid": {
+  "scores": {
+   "performance": 86,
+   "accessibility": 100,
+   "best-practices": 100
+  },
+  "FCP_s": 2.58,
+  "LCP_s": 3.6,
+  "TBT_ms": 0,
+  "CLS": 0.007,
+  "poids_ko": 582,
+  "echecs": [
+   "first-contentful-paint",
+   "largest-contentful-paint",
+   "unminified-css",
+   "unminified-javascript",
+   "unused-css-rules",
+   "unused-javascript",
+   "uses-text-compression"
+  ]
+ },
+ "chaud": {
+  "scores": {
+   "performance": 100,
+   "accessibility": 100,
+   "best-practices": 100
+  },
+  "FCP_s": 0.64,
+  "LCP_s": 0.86,
+  "TBT_ms": 0,
+  "CLS": 0.005,
+  "poids_ko": 0,
+  "echecs": [
+   "unminified-javascript",
+   "unused-css-rules",
+   "unused-javascript"
+  ]
+ }
+}

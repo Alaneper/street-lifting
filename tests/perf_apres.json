@@ -1,102 +1,102 @@
 {
  "appels_api_A_acces_valide": [
   [
-   57,
-   433,
+   47,
+   425,
    "1PLTt-6Qb7kdPXTornMlyJfiH-Pxo3V-2FPD-BkRW2LU?fields=sheets.properties.title"
   ],
   [
-   57,
-   434,
+   47,
+   425,
    "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values:batchGet?ranges=PROFIL!A1:C60&"
   ],
   [
-   57,
-   434,
+   47,
+   425,
    "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values/DEPENSE!A1:D5000"
   ],
   [
-   57,
-   434,
+   47,
+   425,
    "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values/REPAS!A1:J40000"
   ],
   [
-   57,
-   434,
+   47,
+   425,
    "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values/ALIMENTS!A1:I5000"
   ],
   [
-   57,
-   434,
+   47,
+   425,
    "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values/HISTORIQUE!A1:Q30000"
   ],
   [
-   443,
-   815,
+   430,
+   810,
    "1PLTt-6Qb7kdPXTornMlyJfiH-Pxo3V-2FPD-BkRW2LU/values:batchGet?ranges='BLOC 7'!A1:"
   ]
  ],
  "A_acces_valide": {
   "essais": [
    {
-    "fcp": 0.11,
-    "content": 0.1,
-    "fresh": 0.89,
-    "pages": 1
-   },
-   {
-    "fcp": 0.1,
-    "content": 0.1,
+    "fcp": 0.09,
+    "content": 0.09,
     "fresh": 0.87,
     "pages": 1
    },
    {
-    "fcp": 0.12,
-    "content": 0.0,
+    "fcp": 0.01,
+    "content": 0.1,
+    "fresh": 0.9,
+    "pages": 1
+   },
+   {
+    "fcp": 0.09,
+    "content": 0.07,
     "fresh": 0.86,
     "pages": 1
    }
   ],
   "médiane": {
-   "fcp": 0.11,
-   "content": 0.1,
+   "fcp": 0.09,
+   "content": 0.09,
    "fresh": 0.87
   }
  },
  "appels_api_B_acces_expire": [
   [
-   612,
-   990,
+   470,
+   841,
    "1PLTt-6Qb7kdPXTornMlyJfiH-Pxo3V-2FPD-BkRW2LU?fields=sheets.properties.title"
   ],
   [
-   612,
-   991,
+   470,
+   842,
    "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values:batchGet?ranges=PROFIL!A1:C60&"
   ],
   [
-   612,
-   991,
+   470,
+   842,
    "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values/DEPENSE!A1:D5000"
   ],
   [
-   612,
-   991,
+   470,
+   842,
    "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values/REPAS!A1:J40000"
   ],
   [
-   612,
-   991,
+   470,
+   842,
    "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values/ALIMENTS!A1:I5000"
   ],
   [
-   612,
-   991,
+   470,
+   842,
    "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA/values/HISTORIQUE!A1:Q30000"
   ],
   [
-   998,
-   1375,
+   851,
+   1225,
    "1PLTt-6Qb7kdPXTornMlyJfiH-Pxo3V-2FPD-BkRW2LU/values:batchGet?ranges='BLOC 7'!A1:"
   ]
  ],
@@ -104,27 +104,27 @@
   "essais": [
    {
     "fcp": 0.0,
-    "content": 0.13,
-    "fresh": 1.56,
-    "pages": 2
-   },
-   {
-    "fcp": 0.12,
-    "content": -0.0,
-    "fresh": 1.39,
+    "content": 0.07,
+    "fresh": 1.34,
     "pages": 2
    },
    {
     "fcp": 0.1,
-    "content": -0.0,
-    "fresh": 1.42,
+    "content": 0.09,
+    "fresh": 1.35,
+    "pages": 2
+   },
+   {
+    "fcp": 0.0,
+    "content": 0.09,
+    "fresh": 1.33,
     "pages": 2
    }
   ],
   "médiane": {
-   "fcp": 0.1,
-   "content": -0.0,
-   "fresh": 1.42
+   "fcp": 0.0,
+   "content": 0.09,
+   "fresh": 1.34
   }
  },
  "erreurs_console": [],

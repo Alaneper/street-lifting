@@ -11,13 +11,14 @@ const sheetUrl = id => "https://docs.google.com/spreadsheets/d/" + id + "/edit";
 const cfg = () => store.get("sl-cfg") || {};
 const setCfg = o => store.set("sl-cfg", Object.assign(cfg(), o));
 const auth = {
-  err:null,
+  err:null, leaving:false,
   get tok(){ const t = store.get("sl-tok"); return t && t.exp > Date.now() + 60000 ? t.t : null; },
   login(prompt){
     const st = Math.random().toString(36).slice(2); store.set("sl-state", st);
     const p = new URLSearchParams({client_id:CLIENT_ID, redirect_uri:location.origin + location.pathname, response_type:"token", scope:SCOPE, include_granted_scopes:"true", state:st});
     if (cfg().email) p.set("login_hint", cfg().email);
     if (prompt) p.set("prompt", prompt);
+    auth.leaving = true;   /* une mise à jour de l'app ne doit pas annuler ce passage chez Google */
     location.href = "https://accounts.google.com/o/oauth2/v2/auth?" + p;
   },
   fromHash(){
