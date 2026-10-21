@@ -67,7 +67,7 @@ Règles :
 
 ## 8. Comportements validés (21/10/2026)
 
-- 1RM estimé : à partir de la série la plus lourde (à charge égale, la meilleure estimation).
+- 1RM estimé : à partir de la série la plus lourde de 2 reps ou plus (à charge égale, la meilleure estimation ; un 1 rep est déjà le PR). Le RPE S1 de la prog s’applique à la 1re série.
 - Séance en cours : rouverte automatiquement à l'ouverture si elle date de moins de 3 h et n'a pas été fermée avec ×.
 - Corps s'ouvre sur Poids avant midi tant qu'on ne s'est pas pesé (sauf choix manuel pendant la session).
 
