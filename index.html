@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261022133916">
+<meta name="sl-build" content="20261022211354">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -448,7 +448,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "26 · 22 oct. 2026";
+const APP_VER = "27 · 22 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];
 const LNAME = {MU:"Muscle-up", PULL:"Tractions", DIP:"Dips", SQUAT:"Squat", TOTAL:"Total"};
 const LCOL = {MU:"var(--mu)", PULL:"var(--pull)", DIP:"var(--dip)", SQUAT:"var(--squat)"};
@@ -1330,13 +1330,17 @@ function initSets(s, e, k){
   const lg = D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
   if (lg) return lg.sets.map(x => ({c:x.c, r:x.r, done:true}));
   const nS = Math.min(12, num(e.series) || 1), bo = chargeGuess(e) === null ? backoffOf(s, e, k) : null, cg = bo ? bo.mid : chargeGuess(e);
-  const prev = exercisePoints().find(o => o.key === key), last = prev && prev.last;
+  /* Valeurs d'avant : exactement celles de la colonne « Précédent » (prevRowSets), jamais une autre source. */
+  const pvs = !lift ? prevRowSets(s, k) : null, last = pvs && pvs.sets && pvs.sets.length ? pvs : null;
+  const rg = String(e.reps).match(/^\s*(\d+)\s*[-–]\s*(\d+)\s*$/);
   let seq = null; if (/^\d+(\/\d+)+$/.test(String(e.reps).trim())) seq = String(e.reps).split("/").map(Number);
   const target = isNumTxt(e.reps) ? num(e.reps) : (String(e.reps).match(/^(\d+)\s*-\s*\d+$/) || [])[1];
   if (seq) { const out = []; for (let i = 0; i < nS; i++) seq.forEach(r => out.push({c:cg ?? (lift && BW_LIFTS.includes(lift) ? 0 : null), r, done:false})); return out; }
   return Array.from({length:nS}, (_, i) => {
-    const ls = last && !lift ? last.sets[Math.min(i, last.sets.length - 1)] : null;
-    return {c: cg ?? (ls ? ls.c : (lift && BW_LIFTS.includes(lift) ? 0 : null)), r: ls ? ls.r : (target ? +target : null), done:false};
+    const ls = last ? last.sets[Math.min(i, last.sets.length - 1)] : null;
+    /* reps : celles d'avant si elles tiennent dans la fourchette de la prog, sinon le bas de la fourchette */
+    const r = ls && ls.r ? (rg && (ls.r < +rg[1] || ls.r > +rg[2]) ? +rg[1] : ls.r) : (target ? +target : null);
+    return {c: cg ?? (ls ? ls.c : (lift && BW_LIFTS.includes(lift) ? 0 : null)), r, done:false};
   });
 }
 async function startLive(key, i){
@@ -1368,6 +1372,8 @@ function rLive(){
   const s = seanceByKey(live.key); if (!s) { live = null; return ""; }
   const k0 = live.i, bo0 = live.rows[k0] && live.rows[k0].bo ? backoffOf(s, s.exercices[k0], k0, live.rows) : null;
   if (bo0 && !live.rows[k0].dirty && !live.rows[k0].sets.some(x => x.done)) live.rows[k0].sets.forEach(x => x.c = bo0.mid);
+  { const r0 = live.rows[k0]; if (r0 && !r0.bo && !r0.dirty && !liftOf(s.exercices[k0].mouvement) && !r0.sets.some(x => x.done)) { const f = initSets(s, s.exercices[k0], k0);
+      if (f.length === r0.sets.length && f.every(x => !x.done) && f.some((x, i) => x.c !== r0.sets[i].c || x.r !== r0.sets[i].r)) r0.sets = f; } }
   const k = live.i, e = s.exercices[k], st = live.rows[k], l = liftOf(e.mouvement), renfo = norm(e.mouvement) === "RENFO", col = l ? LCOL[l] : "var(--chalk)";
   const prev = prevRowSets(s, k), nx = s.exercices[k + 1], nl = nx ? liftOf(nx.mouvement) : null;
   const el = Math.floor((Date.now() - live.start) / 60000), doneN = st.sets.filter(x => x.done).length, curJ = st.sets.findIndex(x => !x.done);
@@ -2064,7 +2070,11 @@ const ACT = {
       wk.vals = v; wk.draft = null; closeSheet(); toast("Bilan envoyé à ton coach"); render(); saveCache(); } catch(e){ toast(errMsg(e) + ambig(e), true); } }
 };
 const CHG = {
-  setC:(d, el) => { const st = live.rows[live.i]; st.sets[+d.j].c = el.value === "" ? null : num(el.value); st.dirty = true; persistLive(); },
+  setC:(d, el) => { const st = live.rows[live.i], j = +d.j, old = st.sets[j].c, nv = el.value === "" ? null : num(el.value); st.sets[j].c = nv; st.dirty = true;
+    /* les séries suivantes (pas encore faites) qui avaient la même charge suivent ; une charge modifiée à la main reste telle quelle */
+    if (nv !== null && old !== nv) for (let i = j + 1; i < st.sets.length; i++) if (!st.sets[i].done && st.sets[i].c === old) { st.sets[i].c = nv;
+      const inp = document.querySelector('[data-chg="setC"][data-j="' + i + '"]'); if (inp && inp !== el) inp.value = String(nv).replace(".", ","); }
+    persistLive(); },
   setR:(d, el) => { const st = live.rows[live.i]; st.sets[+d.j].r = el.value === "" ? null : Math.round(num(el.value)); st.dirty = true; persistLive(); },
   blocDate:async (d, el) => { const b = +d.b, v = toIso(el.value); if (!v) return; const i = raw.BL.findIndex((r, k) => k > 0 && num(r[0]) === b);
     try { if (i > 0) await putVals(APP_ID, `BLOCS!B${i + 1}`, [[v]]); else { await appendVals(APP_ID, "BLOCS!A1:C1", [[b, v, ""]]); raw.BL.push([b, v]); } D.blocs[b] = v; toast("Dates enregistrées : " + blocLabel(b)); saveCache(); render(); } catch(e){ toast(errMsg(e), true); } },

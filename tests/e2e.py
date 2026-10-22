@@ -20,6 +20,7 @@ def route(r):
             html = (P / "test-build.html").read_text().replace("<head>", "<head><script src='/mock.js'></script><script src='/shim.js'></script>", 1)
             return r.fulfill(body=html, content_type="text/html")
         return r.fulfill(path=str(P / f))
+    if "script.google.com/macros" in u: return r.fulfill(body='{"rows":[]}', content_type="application/json", headers={"Access-Control-Allow-Origin":"*"})   # service du classement (simulé)
     if u.endswith("/mock.js"): return r.fulfill(path=str(H / "mock.js"), content_type="text/javascript")
     if u.endswith("/shim.js"): return r.fulfill(path=str(H / "shim.js"), content_type="text/javascript")
     if "jszip" in u: return r.fulfill(path=str(B / "node_modules/jszip/dist/jszip.min.js"), content_type="text/javascript")

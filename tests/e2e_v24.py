@@ -128,7 +128,7 @@ with sync_playwright() as p:
     r = pg.evaluate("(() => { const s = document.querySelector('#spays'), o = [...s.options]; return [document.querySelector('label[for=spays]').textContent, o.length, s.value, o[0].textContent, o.some(x => [...x.textContent].some(ch => ch.codePointAt(0) >= 0x1F1E6 && ch.codePointAt(0) <= 0x1F1FF)), o.some(x => x.textContent === 'Japon')]; })()")
     check("pays : liste de tous les pays, sans drapeau, libellé « Pays »", r[0] == "Pays" and r[1] >= 240 and r[2] == "BE" and r[3] == "Belgique" and not r[4] and r[5], r)
     pg.evaluate("ACT.closeSheet()")
-    check("version 26", pg.evaluate("APP_VER").startswith("26"))
+    check("version 26 ou plus", int(pg.evaluate("APP_VER").split(" ")[0]) >= 26)
     check("aucune erreur console", not errs, errs[:5])
     br.close()
 print("ÉCHECS :", fails)
