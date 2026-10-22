@@ -17,3 +17,7 @@ Qui apparaît : toute personne qui ouvre l'app connectée à son compte Google (
 « utilisateurs test » dans Google Cloud peuvent se connecter). Une personne apparaît dès sa première synchro.
 Retirer quelqu'un : supprimer sa ligne dans l'onglet CLASSEMENT du fichier.
 Mettre à jour le code plus tard : Déployer → Gérer les déploiements → crayon → Version : nouvelle version (l'URL ne change pas).
+
+## Installé le 22/10/2026
+- Fichier : « Street Lifting – Classement » (Drive d'Alane), onglet CLASSEMENT.
+- Projet Apps Script déployé en application Web (exécuté en tant qu'Alane, accès : tout le monde) ; adresse inscrite dans `CLASSEMENT_URL` (src/app.html).

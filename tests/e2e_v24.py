@@ -36,6 +36,7 @@ with sync_playwright() as p:
 
     # ---------- 1. Classement automatique ----------
     pg.evaluate("setTab('agenda')"); pg.wait_for_timeout(200); pg.click("[data-act=agSeg][data-k=amis]"); pg.wait_for_timeout(200)
+    pg.evaluate("CLASSEMENT_URL = \"\"; CL = null; rAgenda()"); pg.wait_for_timeout(200)
     check("sans service : message d'attente, rien à saisir", "Rien à saisir" in pg.evaluate("document.querySelector('#v-agenda').textContent") and not pg.evaluate("!!document.querySelector('#v-agenda input')"))
     pg.evaluate("CLASSEMENT_URL = 'https://script.google.com/macros/s/TEST/exec'; CL = null; rAgenda()"); pg.wait_for_timeout(1500)
     check("mes records envoyés automatiquement avec ma connexion", POSTS and POSTS[-1]["token"] == "TOK" and POSTS[-1]["data"]["total"] == pg.evaluate("total() || 0"), POSTS[-1:] )
@@ -127,7 +128,7 @@ with sync_playwright() as p:
     r = pg.evaluate("(() => { const s = document.querySelector('#spays'), o = [...s.options]; return [document.querySelector('label[for=spays]').textContent, o.length, s.value, o[0].textContent, o.some(x => [...x.textContent].some(ch => ch.codePointAt(0) >= 0x1F1E6 && ch.codePointAt(0) <= 0x1F1FF)), o.some(x => x.textContent === 'Japon')]; })()")
     check("pays : liste de tous les pays, sans drapeau, libellé « Pays »", r[0] == "Pays" and r[1] >= 240 and r[2] == "BE" and r[3] == "Belgique" and not r[4] and r[5], r)
     pg.evaluate("ACT.closeSheet()")
-    check("version 25", pg.evaluate("APP_VER").startswith("25"))
+    check("version 26", pg.evaluate("APP_VER").startswith("26"))
     check("aucune erreur console", not errs, errs[:5])
     br.close()
 print("ÉCHECS :", fails)
