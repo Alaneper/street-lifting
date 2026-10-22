@@ -127,7 +127,7 @@ function prenomOf(title){
 function onboard(step, why){
   obStep = step; obErr = why || ""; document.body.classList.add("ob");
   document.querySelectorAll(".view").forEach(v => v.hidden = v.id !== "v-home");
-  const plates = `<div class="hero" style="margin-top:18px;min-height:150px">${DECO}<svg width="64" height="64" viewBox="0 0 40 40" aria-hidden="true" style="position:relative;background:#fff;border-radius:16px;padding:6px"><circle cx="20" cy="10.5" r="4.2" fill="#1F5FD0"/><path d="M7 17h26" stroke="#1F5FD0" stroke-width="3.6" stroke-linecap="round"/><path d="M11 17l4.5 9 4.5-3.5 4.5 3.5 4.5-9" stroke="#1F5FD0" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><p class="hu" style="margin-top:14px">Ta prog, tes records, ta prochaine compét.</p></div>`;
+  const plates = `<div class="hero" style="margin-top:18px;min-height:150px">${DECO}<svg width="64" height="64" viewBox="0 0 40 40" aria-hidden="true" style="position:relative;background:#fff;border-radius:16px;padding:6px"><circle cx="20" cy="10.5" r="4.2" fill="#1F5FD0"/><path d="M7 17h26" stroke="#1F5FD0" stroke-width="3.6" stroke-linecap="round"/><path d="M11 17l4.5 9 4.5-3.5 4.5 3.5 4.5-9" stroke="#1F5FD0" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><p class="hu" style="margin-top:14px">Ta prog, tes records, ta prochaine compétition.</p></div>`;
   const err = obErr ? `<p class="small" style="color:var(--bad);margin-top:12px">${esc(obErr)}</p>` : "";
   let h = "";
   if (step === "config") h = `<div class="empty"><p>L'identifiant Google de l'app n'est pas encore configuré.</p></div>`;

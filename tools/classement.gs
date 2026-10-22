@@ -1,3 +1,4 @@
+/** @OnlyCurrentDoc */
 /* Street Lifting · service du classement (Google Apps Script, gratuit).
    À installer une seule fois par Alane : voir docs/classement.md.
    Chaque app envoie ses records avec son jeton de connexion Google ; le service vérifie auprès de Google

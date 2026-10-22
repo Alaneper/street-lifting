@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261022061318">
+<meta name="sl-build" content="20261022093650">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -439,7 +439,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
   <button data-tab="seance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Prog</button>
   <button data-tab="prog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M5 16l4-5 3 3 7-8"/><path d="M15 6h4v4"/></svg>Progrès</button>
   <button data-tab="corps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><path d="M7.8 11a5.6 5.6 0 0 1 8.4 0"/><path d="M12 11l1.6-2.4"/></svg>Corps</button>
-  <button data-tab="agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 6h3a3 3 0 0 1-3 4M7 6H4a3 3 0 0 0 3 4"/></svg>Compét</button>
+  <button data-tab="agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 6h3a3 3 0 0 1-3 4M7 6H4a3 3 0 0 0 3 4"/></svg>Comp</button>
 </nav>
 
 <script>
@@ -448,7 +448,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "24 · 22 oct. 2026";
+const APP_VER = "25 · 22 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];
 const LNAME = {MU:"Muscle-up", PULL:"Tractions", DIP:"Dips", SQUAT:"Squat", TOTAL:"Total"};
 const LCOL = {MU:"var(--mu)", PULL:"var(--pull)", DIP:"var(--dip)", SQUAT:"var(--squat)"};
@@ -1077,9 +1077,9 @@ function repTableHtml(l){
       <p class="show t-m" style="margin-top:4px;color:${LCOL[l]}">${fmt(Math.floor(e.v * 4) / 4)}<small> kg${u}</small></p>
       <p class="muted small" style="margin-top:4px">D'après ${fmt(e.c)} kg × ${e.r}${e.rpe ? " à RPE " + fmt(e.rpe) : ""} (${esc(srcTxt(e))}).
       ${b !== null ? (e.v > b + .2 ? ` C'est ${fmt(e.v - b, 1)} kg au-dessus de ton PR (${fmt(b)}) : un potentiel, pas un acquis.` : ` Ton PR (${fmt(b)}) est déjà à ce niveau.`) : ""}</p></div>` : "";
-  return `<h2 class="h2">Records par répétitions <span class="muted">${LNAME[l].toLowerCase()} compét</span></h2>
+  return `<h2 class="h2">Records par répétitions <span class="muted">${LNAME[l].toLowerCase()} en compétition</span></h2>
     ${eh}<div class="rmgrid" style="margin-top:10px">${tiles}</div>
-    <p class="muted tiny" style="margin-top:8px">${BW_LIFTS.includes(l) ? "Lest en kg. " : ""}Charge la plus lourde faite pour exactement ce nombre de reps, sur tous tes blocs (mouvement de compét, sans pause ni tempo ni élastique) : lignes de ta prog avec un RPE, séances notées dans l'app et PR. Touche une case pour voir d'où vient la valeur. « — » : jamais fait.</p>`;
+    <p class="muted tiny" style="margin-top:8px">${BW_LIFTS.includes(l) ? "Lest en kg. " : ""}Charge la plus lourde faite pour exactement ce nombre de reps, sur tous tes blocs (mouvement de compétition, sans pause ni tempo ni élastique) : lignes de ta prog avec un RPE, séances notées dans l'app et PR. Touche une case pour voir d'où vient la valeur. « — » : jamais fait.</p>`;
 }
 const fmtSets = sets => { const c0 = sets[0].c; return sets.every(x => x.c === c0) ? fmt(c0) + " kg × " + sets.map(x => x.r).join(" · ") : sets.map(x => x.r + "@" + fmt(x.c)).join(" · "); };
 
@@ -1100,7 +1100,7 @@ let corpsManual = "";   /* jour où tu as choisi Alimentation/Poids toi-même */
 function setTab(t){
   if (t === "corps" && tab !== "corps" && !(D && corpsManual === D.today)) corpsTab = D && new Date().getHours() < 12 && !D.poids.some(p => p.date === D.today) ? "poids" : "nutri";
   tab = t;
-  const tn = $("#tabname"); if (tn) tn.textContent = {home:"Aujourd'hui", seance:"Prog", prog:"Progrès", corps:"Corps", agenda:"Compét"}[t] || "";
+  const tn = $("#tabname"); if (tn) tn.textContent = {home:"Aujourd'hui", seance:"Prog", prog:"Progrès", corps:"Corps", agenda:"Compétitions"}[t] || "";
   document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.tab === t ? "page" : "false"));
   document.querySelectorAll(".view").forEach(v => v.hidden = v.id !== "v-" + t);
   window.scrollTo(0, 0); render();
@@ -1555,7 +1555,7 @@ function weekHtml(){
     <div class="chips" style="margin-top:8px">${ws.map(w => `<button class="chip" aria-pressed="${w === sel.w}" data-act="pickWeek" data-b="${sel.b}" data-w="${esc(w)}">S${esc(w)}</button>`).join("")}</div>
     ${heroCard({small:`${esc(blocLabel(sel.b))} · semaine ${esc(sel.w)}${st ? " · " + dfr(st).slice(0, 5) + "–" + dfr(addDays(st, 6)).slice(0, 5) : ""}`, big:`${done}<small>/${ss.length}</small>`, sub:`${done > 1 ? "séances faites" : "séance faite"}${recs.length ? " · " + recs.length + " record" + (recs.length > 1 ? "s" : "") + " de reps" : ""}`, deco:false})}
     ${recs.length ? `<div class="list" style="margin-top:12px">${recs.map(r => vrow(`${LNAME[r.l]} · ${r.r} rep${r.r > 1 ? "s" : ""}`, r.first ? "première fois" : "nouveau record", kg(r.c), LCOL[r.l], `data-act="openLift" data-l="${r.l}"`)).join("")}</div>` : ""}
-    ${comp.length ? `<h3 class="h3">Mouvements de compét</h3><div class="list">${comp.map(({l, t}) => `<button class="item" data-act="openEx" data-k="${esc(t.o.key)}"><span class="d10" style="--c:${LCOL[l]}"></span><span class="grow"><span class="ttl" style="display:block">${LNAME[l]}</span><span class="muted small">${esc(setTxt(t.bestSet, l))} · 1RM est. ${fmt(t.top.e1rmBest, 1)}</span></span>${delta(t.d, " kg")}</button>`).join("")}</div>` : ""}
+    ${comp.length ? `<h3 class="h3">Mouvements de compétition</h3><div class="list">${comp.map(({l, t}) => `<button class="item" data-act="openEx" data-k="${esc(t.o.key)}"><span class="d10" style="--c:${LCOL[l]}"></span><span class="grow"><span class="ttl" style="display:block">${LNAME[l]}</span><span class="muted small">${esc(setTxt(t.bestSet, l))} · 1RM est. ${fmt(t.top.e1rmBest, 1)}</span></span>${delta(t.d, " kg")}</button>`).join("")}</div>` : ""}
     ${others.length ? `<h3 class="h3">Variantes et renfo</h3><div class="list">${others.map(x => `<button class="item" data-act="openEx" data-k="${esc(x.o.key)}"><span class="grow"><span class="ttl" style="display:block">${esc(exName(x.o.key))}</span><span class="muted small">${esc(fmtSets(x.top.sets))}</span></span>${delta(x.d === null ? null : x.d / (x.prev.e1rmBest || 1) * 100, " %")}</button>`).join("")}</div>` : ""}
     ${!items.length ? `<p class="muted small" style="margin-top:12px">Rien de noté cette semaine pour l'instant.</p>` : ""}
     ${bil && bil.length ? `<h3 class="h3">Ton bilan</h3><div class="chips">${bil.map(([k, v]) => `<span class="chip" aria-pressed="false">${k} ${fmt(v)}</span>`).join("")}</div>` : ""}
@@ -1578,7 +1578,7 @@ function rProg(){
   $("#v-prog").innerHTML = `
     ${heroCard({small:"Mon total", big:`${fmt(t)}<small>kg</small>`, sub:`RIS ${fmt(r, 1)} · objectif ${fmt(oT, 1)} kg`, extra:seg, deco:false})}
     <div class="tiles2" style="margin-top:12px"><div><p class="muted small">Total visé</p><p class="show">${fmt(oT, 2)}</p></div><div><p class="muted small">RIS visé</p><p class="show">${fmt(risOf(oT, bw()), 1)}</p></div></div>
-    <h2 class="h2">Mouvements de compét</h2>
+    <h2 class="h2">Mouvements de compétition</h2>
     <div>${["PULL","DIP","SQUAT","MU"].map(l => { const b = best(l), o = D.objectifs[l], lock = l === "MU" && !muOn();
       if (lock) return `<button class="vrow" data-act="openLift" data-l="${l}"><span class="d10" style="--c:transparent;box-shadow:inset 0 0 0 2px var(--mu)"></span><span class="grow"><b style="color:var(--steel-hi)">${LNAME[l]}</b></span><span class="muted small">à débloquer</span></button>`;
       return `<button class="liftrow" data-act="openLift" data-l="${l}"><span class="top"><span class="d10" style="--c:${LCOL[l]}"></span><b>${LNAME[l]}</b><span class="val">${kg(b)}</span></span>
@@ -1678,7 +1678,7 @@ function rLiftPage(l){
       <div class="grid2"><div><label for="prc" style="margin-top:0">${BW_LIFTS.includes(l) ? "Lest (kg)" : "Charge (kg)"}</label><input id="prc" inputmode="decimal"></div><div><label for="prr" style="margin-top:0">Reps</label><input id="prr" inputmode="numeric" value="1"></div></div>
       <label for="prpe">RPE (facultatif)</label><select id="prpe"><option value="">Pas noté</option>${[5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10].map(v => `<option value="${v}">${fmt(v)}${v === 10 ? " (à fond)" : ""}</option>`).join("")}</select>
       <label for="prd">Date</label><input id="prd" type="date" value="${D.today}">
-      <label for="prn">Note</label><input id="prn" placeholder="Compét, entraînement…">
+      <label for="prn">Note</label><input id="prn" placeholder="Compétition, entraînement…">
       <button class="btn" style="margin-top:14px" data-act="addPR" data-l="${l}">Ajouter le record</button>
     </div>
     ${hist.length ? `<div class="panel"><table>${hist.map(p => `<tr><td>${cap(dlong(p.date))}<div class="muted tiny">${esc(p.note)}</div></td><td><b>${fmt(p.charge)} kg</b>${p.reps > 1 ? " × " + p.reps : ""}</td></tr>`).join("")}</table></div>
@@ -1803,12 +1803,12 @@ function rAgenda(){
     return `<div class="d ${d.getMonth() !== m - 1 ? "out" : ""} ${iso === t ? "today" : ""} ${c ? "comp" + (c.tbc ? " tbc" : "") : ""}" ${c ? `title="${esc(c.nom)}"` : ""}>${d.getDate()}${ss && !c ? `<i class="${ss.every(z => z.faite) ? "" : "todo"}"></i>` : ""}</div>`; }).join("");
   const nc = nextComp(), prep = nc && days(t, nc.date) <= 42, up = D.comps.filter(c => c.date >= t), past = D.comps.filter(c => c.date < t).reverse(), ec = armed && armed.edit ? D.comps.find(c => c.row === armed.edit) : null;
   $("#v-agenda").innerHTML = `${agendaSegHtml()}
-    ${nc ? heroCard({small:`${esc(nc.nom)}${nc.tbc ? " · date à confirmer" : ""}`, big:days(t, nc.date) === 0 ? "Jour J" : "J−" + days(t, nc.date), sub:`${cap(dlong(nc.date))}${nc.lieu ? ", " + esc(nc.lieu) : ""}`}) : `<div class="emptycard" style="margin-top:14px"><b>Aucune compétition prévue</b><p>Ajoute ta prochaine compét plus bas : l'app compte les jours et prépare ta checklist.</p></div>`}
+    ${nc ? heroCard({small:`${esc(nc.nom)}${nc.tbc ? " · date à confirmer" : ""}`, big:days(t, nc.date) === 0 ? "Jour J" : "J−" + days(t, nc.date), sub:`${cap(dlong(nc.date))}${nc.lieu ? ", " + esc(nc.lieu) : ""}`}) : `<div class="emptycard" style="margin-top:14px"><b>Aucune compétition prévue</b><p>Ajoute ta prochaine compétition plus bas : l'app compte les jours et prépare ta checklist.</p></div>`}
     ${prep ? prepHtml(nc) : ""}
     <h2 class="h2">${cap(MOIS_L[m - 1])} ${y}<span class="row" style="gap:6px"><button class="iconbtn" data-act="month" data-d="-1" aria-label="Mois précédent">‹</button><button class="iconbtn" data-act="month" data-d="1" aria-label="Mois suivant">›</button></span></h2>
     <div><div class="cal">${["L","M","M","J","V","S","D"].map(d => `<div class="dh">${d}</div>`).join("")}${cells}</div>
       <p class="muted tiny" style="margin-top:10px">Bleu : compétition. Point blanc : séance faite ; cercle gris : séance prévue.</p></div>
-    <button class="btn line" style="margin-top:10px" data-act="ics">Mes compét dans le Calendrier</button>
+    <button class="btn line" style="margin-top:10px" data-act="ics">Ajouter au Calendrier</button>
     <h2 class="h2">Compétitions</h2>
     <div class="list">${up.concat(past).map(c => { const d = days(t, c.date); return `<div class="item"><span class="grow"><span class="ttl" style="display:block">${esc(c.nom)}</span><span class="muted small">${cap(dlong(c.date))}${c.lieu ? ", " + esc(c.lieu) : ""}${c.note ? ". " + esc(c.note) : ""}</span></span>
       <span class="stack" style="align-items:flex-end;gap:6px"><span class="pill ${c.tbc ? "warn" : d >= 0 ? "go" : ""}">${c.tbc ? "À confirmer" : d > 0 ? "J-" + d : d === 0 ? "Aujourd'hui" : "Passée"}</span>
@@ -1922,7 +1922,7 @@ function settingsHtml(){
     <div class="grid2"><div><label for="smu">Muscle-up acquis</label><select id="smu" data-chg="prof" data-k="mu_acquis"><option value="NON" ${muOn() ? "" : "selected"}>Non</option><option value="OUI" ${muOn() ? "selected" : ""}>Oui</option></select></div>
       <div><label for="ssx">Sexe (pour le RIS)</label><select id="ssx" data-chg="prof" data-k="sexe"><option value="H" ${sexe() === "H" ? "selected" : ""}>Homme</option><option value="F" ${sexe() === "F" ? "selected" : ""}>Femme</option></select></div></div>
     ${Object.keys(blocNames).length ? `<label for="sbl">Bloc en cours</label><select id="sbl" data-chg="blocActif"><option value="">Le dernier onglet de la prog</option>${progOrder.map(n => `<option value="${n}" ${n === chosenBloc() ? "selected" : ""}>${esc(blocLabel(n))}</option>`).join("")}</select>` : ""}
-    <label for="spays">Pays (pour le classement entre amis)</label><select id="spays" data-chg="prof" data-k="pays">${paysOptions(monPays())}</select>
+    <label for="spays">Pays</label><select id="spays" data-chg="prof" data-k="pays">${paysOptions(monPays())}</select>
     <label for="scat">Catégorie de poids</label><select id="scat" data-chg="prof" data-k="categorie">${catsFor(sexe()).map(c => `<option value="${c}" ${c === cat() ? "selected" : ""}>${c > 0 ? "+" + c : c} kg</option>`).join("")}</select>
     <div class="grid2"><div><label for="sdc">Début de la prog</label><input id="sdc" type="date" value="${D.profil.debut_coaching || ""}" data-chg="prof" data-k="debut_coaching"></div>
       <div><label for="sds">Début du street lifting</label><input id="sds" type="date" value="${D.profil.debut_street || ""}" data-chg="prof" data-k="debut_street"></div></div>
@@ -2085,7 +2085,7 @@ const CHG = {
    ===================================================================== */
 let corpsTab = "nutri", nutDate = null, FOODS = null, foodsLoading = null, nutQ = "", nutPick = null, offRes = null, offBusy = false, nutCreate = false;
 const NUT_ACT = [[1.375, "Peu actif (1 à 3 séances)"], [1.55, "Actif (4 à 5 séances)"], [1.725, "Très actif (6+ séances ou travail physique)"]];
-const NUT_OBJ = [["suivi", "Juste suivre ce que je mange"], ["maintien", "Garder mon poids"], ["perte", "Perdre du poids"], ["prise", "Prendre du poids"], ["compet", "Faire le poids pour une compét"]];
+const NUT_OBJ = [["suivi", "Juste suivre ce que je mange"], ["maintien", "Garder mon poids"], ["perte", "Perdre du poids"], ["prise", "Prendre du poids"], ["compet", "Faire le poids pour une compétition"]];
 const deacc = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/œ/g, "oe").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
 function loadFoods(){
   if (FOODS) return Promise.resolve(FOODS);
@@ -2201,7 +2201,7 @@ function nutGoalHtml(T){
     <label for="nac">Activité</label><select id="nac" data-chg="prof" data-k="nut_activite">${NUT_ACT.map(([v, t]) => `<option value="${v}" ${v === (num(D.profil.nut_activite) || 1.55) ? "selected" : ""}>${t}</option>`).join("")}</select>
     ${!num(D.profil.taille_cm) || !ageNow() ? `<div class="grid2">${!num(D.profil.taille_cm) ? `<div><label for="nta">Taille (cm)</label><input id="nta" inputmode="numeric" data-chg="prof" data-k="taille_cm"></div>` : ""}${!ageNow() ? `<div><label for="nna">Date de naissance</label><input id="nna" type="date" data-chg="prof" data-k="naissance"></div>` : ""}</div>` : ""}
     ${T.missing ? `<p class="muted small" style="margin-top:12px">${o === "suivi" ? "" : "Pour calculer tes besoins, il manque " + T.missing.join(", ") + "."}</p>` : `
-      ${o === "suivi" ? `<p class="muted small" style="margin-top:12px">Tu suis simplement ce que tu manges. Choisis perte, prise ou compét pour avoir une cible.</p>` : `<div class="grid2" style="margin-top:14px"><div><p class="muted tiny">Métabolisme de base</p><p class="show t-s">${T.bmr ? fmt(T.bmr, 0) : "–"}</p></div><div><p class="muted tiny">Cible du jour</p><p class="show t-s">${fmt(T.kcal, 0)}<small style="font-size:.55em"> kcal</small></p></div></div>`}
+      ${o === "suivi" ? `<p class="muted small" style="margin-top:12px">Tu suis simplement ce que tu manges. Choisis perte, prise ou compétition pour avoir une cible.</p>` : `<div class="grid2" style="margin-top:14px"><div><p class="muted tiny">Métabolisme de base</p><p class="show t-s">${T.bmr ? fmt(T.bmr, 0) : "–"}</p></div><div><p class="muted tiny">Cible du jour</p><p class="show t-s">${fmt(T.kcal, 0)}<small style="font-size:.55em"> kcal</small></p></div></div>`}
       ${o !== "suivi" ? `<p class="small" style="margin-top:10px">Protéines ${fmt(T.p, 0)} g (${fmt(T.pk, 1)} g/kg) · Lipides ${fmt(T.l, 0)} g · Glucides ${fmt(T.g, 0)} g</p>` : ""}
       ${T.note ? `<p class="muted small" style="margin-top:8px">${esc(T.note)}</p>` : ""}${T.warn ? `<p class="small" style="margin-top:8px;font-weight:600">⚠ ${esc(T.warn)}</p>` : ""}
       <details class="more" style="margin-top:12px"><summary class="small muted">Comment c'est calculé</summary><p class="muted tiny" style="margin-top:8px">Formule de Mifflin-St Jeor × ton activité, 7 700 kcal par kg (approximation). Protéines : 1,8 g/kg, 2,2 g/kg en perte ; lipides : 25 % des calories, au moins 0,5 g/kg ; glucides : le reste. À ajuster après 2 à 3 semaines selon l'évolution réelle de ton poids.</p></details>`}
@@ -2305,14 +2305,16 @@ async function exportIcs(){
    vérifie auprès de Google qui les envoie (jeton de connexion) et renvoie le classement. Personne n'a rien à saisir.
    ===================================================================== */
 let CLASSEMENT_URL = "";   /* adresse du service, renseignée une fois le service en ligne */
-const PAYS = ["BE","FR","LU","CH","NL","DE","ES","IT","PT","GB","IE","AT","PL","CZ","DK","SE","NO","FI","RO","BG","GR","HU","HR","RS","TR","UA","RU","MA","DZ","TN","SN","CI","CM","CD","CA","US","MX","BR","AR","CL","CO","AU","NZ","JP","KR","CN","IN","IL","LB","EG","ZA"];
+/* tous les pays (ISO 3166-1, noms français), pour savoir d'où vient chaque membre */
+const PAYS_FR = Object.fromEntries("AD:Andorre|AE:Émirats arabes unis|AF:Afghanistan|AG:Antigua-et-Barbuda|AI:Anguilla|AL:Albanie|AM:Arménie|AO:Angola|AR:Argentine|AS:Samoa américaines|AT:Autriche|AU:Australie|AW:Aruba|AX:Îles Åland|AZ:Azerbaïdjan|BA:Bosnie-Herzégovine|BB:Barbade|BD:Bangladesh|BE:Belgique|BF:Burkina Faso|BG:Bulgarie|BH:Bahreïn|BI:Burundi|BJ:Bénin|BL:Saint-Barthélemy|BM:Bermudes|BN:Brunei|BO:Bolivie|BQ:Pays-Bas caribéens|BR:Brésil|BS:Bahamas|BT:Bhoutan|BW:Botswana|BY:Biélorussie|BZ:Belize|CA:Canada|CC:Îles Cocos|CD:Congo-Kinshasa|CF:République centrafricaine|CG:Congo-Brazzaville|CH:Suisse|CI:Côte d’Ivoire|CK:Îles Cook|CL:Chili|CM:Cameroun|CN:Chine|CO:Colombie|CR:Costa Rica|CU:Cuba|CV:Cap-Vert|CW:Curaçao|CX:Île Christmas|CY:Chypre|CZ:Tchéquie|DE:Allemagne|DJ:Djibouti|DK:Danemark|DM:Dominique|DO:République dominicaine|DZ:Algérie|EC:Équateur|EE:Estonie|EG:Égypte|EH:Sahara occidental|ER:Érythrée|ES:Espagne|ET:Éthiopie|FI:Finlande|FJ:Fidji|FK:Îles Malouines|FM:Micronésie|FO:Îles Féroé|FR:France|GA:Gabon|GB:Royaume-Uni|GD:Grenade|GE:Géorgie|GF:Guyane française|GG:Guernesey|GH:Ghana|GI:Gibraltar|GL:Groenland|GM:Gambie|GN:Guinée|GP:Guadeloupe|GQ:Guinée équatoriale|GR:Grèce|GT:Guatemala|GU:Guam|GW:Guinée-Bissau|GY:Guyana|HK:R.A.S. chinoise de Hong Kong|HN:Honduras|HR:Croatie|HT:Haïti|HU:Hongrie|ID:Indonésie|IE:Irlande|IL:Israël|IM:Île de Man|IN:Inde|IO:Territoire britannique de l’océan Indien|IQ:Irak|IR:Iran|IS:Islande|IT:Italie|JE:Jersey|JM:Jamaïque|JO:Jordanie|JP:Japon|KE:Kenya|KG:Kirghizstan|KH:Cambodge|KI:Kiribati|KM:Comores|KN:Saint-Christophe-et-Niévès|KP:Corée du Nord|KR:Corée du Sud|KW:Koweït|KY:Îles Caïmans|KZ:Kazakhstan|LA:Laos|LB:Liban|LC:Sainte-Lucie|LI:Liechtenstein|LK:Sri Lanka|LR:Liberia|LS:Lesotho|LT:Lituanie|LU:Luxembourg|LV:Lettonie|LY:Libye|MA:Maroc|MC:Monaco|MD:Moldavie|ME:Monténégro|MF:Saint-Martin|MG:Madagascar|MH:Îles Marshall|MK:Macédoine du Nord|ML:Mali|MM:Myanmar (Birmanie)|MN:Mongolie|MO:R.A.S. chinoise de Macao|MP:Îles Mariannes du Nord|MQ:Martinique|MR:Mauritanie|MS:Montserrat|MT:Malte|MU:Maurice|MV:Maldives|MW:Malawi|MX:Mexique|MY:Malaisie|MZ:Mozambique|NA:Namibie|NC:Nouvelle-Calédonie|NE:Niger|NF:Île Norfolk|NG:Nigeria|NI:Nicaragua|NL:Pays-Bas|NO:Norvège|NP:Népal|NR:Nauru|NU:Niue|NZ:Nouvelle-Zélande|OM:Oman|PA:Panama|PE:Pérou|PF:Polynésie française|PG:Papouasie-Nouvelle-Guinée|PH:Philippines|PK:Pakistan|PL:Pologne|PM:Saint-Pierre-et-Miquelon|PN:Îles Pitcairn|PR:Porto Rico|PS:Territoires palestiniens|PT:Portugal|PW:Palaos|PY:Paraguay|QA:Qatar|RE:La Réunion|RO:Roumanie|RS:Serbie|RU:Russie|RW:Rwanda|SA:Arabie saoudite|SB:Îles Salomon|SC:Seychelles|SD:Soudan|SE:Suède|SG:Singapour|SH:Sainte-Hélène|SI:Slovénie|SJ:Svalbard et Jan Mayen|SK:Slovaquie|SL:Sierra Leone|SM:Saint-Marin|SN:Sénégal|SO:Somalie|SR:Suriname|SS:Soudan du Sud|ST:Sao Tomé-et-Principe|SV:Salvador|SX:Saint-Martin (partie néerlandaise)|SY:Syrie|SZ:Eswatini|TC:Îles Turques-et-Caïques|TD:Tchad|TG:Togo|TH:Thaïlande|TJ:Tadjikistan|TK:Tokelau|TL:Timor oriental|TM:Turkménistan|TN:Tunisie|TO:Tonga|TR:Turquie|TT:Trinité-et-Tobago|TV:Tuvalu|TW:Taïwan|TZ:Tanzanie|UA:Ukraine|UG:Ouganda|US:États-Unis|UY:Uruguay|UZ:Ouzbékistan|VA:État de la Cité du Vatican|VC:Saint-Vincent-et-les Grenadines|VE:Venezuela|VG:Îles Vierges britanniques|VI:Îles Vierges des États-Unis|VN:Viêt Nam|VU:Vanuatu|WF:Wallis-et-Futuna|WS:Samoa|YE:Yémen|YT:Mayotte|ZA:Afrique du Sud|ZM:Zambie|ZW:Zimbabwe|XK:Kosovo".split("|").map(x => x.split(":")));
+const PAYS = Object.keys(PAYS_FR);
 let agendaSeg = "compet", clErr = "", clBusy = null, CL = (c => c && Array.isArray(c.rows) && !(c.rows[0] && Array.isArray(c.rows[0])) && !c.id ? c : null)(store.get("sl-cl"));   /* ignore le format v23 */
 const clOn = () => !!CLASSEMENT_URL;
 const monPays = () => (String(D.profil.pays || "BE").trim().toUpperCase().slice(0, 2)) || "BE";
 const flagOf = cc => /^[A-Z]{2}$/.test(cc || "") ? String.fromCodePoint(...[...cc].map(c => 0x1F1A5 + c.charCodeAt(0))) : "🏳️";
-const paysNom = cc => { try { return new Intl.DisplayNames(["fr"], {type:"region"}).of(cc) || cc; } catch(e){ return cc; } };
+const paysNom = cc => PAYS_FR[cc] || (() => { try { return new Intl.DisplayNames(["fr"], {type:"region"}).of(cc) || cc; } catch(e){ return cc; } })();
 const paysOptions = sel => PAYS.map(c => [c, paysNom(c)]).sort((a, b) => a[0] === "BE" ? -1 : b[0] === "BE" ? 1 : a[1].localeCompare(b[1], "fr"))
-  .map(([c, n]) => `<option value="${c}" ${c === sel ? "selected" : ""}>${flagOf(c)} ${esc(n)}</option>`).join("");
+  .map(([c, n]) => `<option value="${c}" ${c === sel ? "selected" : ""}>${esc(n)}</option>`).join("");
 const ordinal = n => n === 1 ? "1er" : n + "e";
 function myStats(){
   const t = total(), r = risOf(t, bw()), v = l => { const b = best(l); return b === null || b === undefined ? null : b; };
@@ -2343,7 +2345,7 @@ function clRows(){
       total:num(r.total) || 0, ris:num(r.ris), maj:r.maj ? toIso(r.maj) : "", me:!!r.me}))
     .sort((a, b) => b.total - a.total || (b.ris || 0) - (a.ris || 0) || a.nom.localeCompare(b.nom, "fr"));
 }
-const agendaSegHtml = () => `<div class="segc" style="margin:6px 0 4px">${[["compet", "Compét"], ["amis", "Amis"]].map(([k, t]) => `<button aria-pressed="${agendaSeg === k}" data-act="agSeg" data-k="${k}">${t}</button>`).join("")}</div>`;
+const agendaSegHtml = () => `<div class="segc" style="margin:6px 0 4px">${[["compet", "Compétitions"], ["amis", "Amis"]].map(([k, t]) => `<button aria-pressed="${agendaSeg === k}" data-act="agSeg" data-k="${k}">${t}</button>`).join("")}</div>`;
 function rAmis(){
   const el = $("#v-agenda"), seg = agendaSegHtml();
   if (!clOn()) { el.innerHTML = seg + `<div class="emptycard" style="margin-top:14px"><b>Le classement arrive</b><p>Dès que le service du classement est en ligne, tous les membres de l'app y apparaissent automatiquement, avec leurs records et leur total. Rien à saisir.</p></div>`; return; }
@@ -2621,7 +2623,7 @@ function prenomOf(title){
 function onboard(step, why){
   obStep = step; obErr = why || ""; document.body.classList.add("ob");
   document.querySelectorAll(".view").forEach(v => v.hidden = v.id !== "v-home");
-  const plates = `<div class="hero" style="margin-top:18px;min-height:150px">${DECO}<svg width="64" height="64" viewBox="0 0 40 40" aria-hidden="true" style="position:relative;background:#fff;border-radius:16px;padding:6px"><circle cx="20" cy="10.5" r="4.2" fill="#1F5FD0"/><path d="M7 17h26" stroke="#1F5FD0" stroke-width="3.6" stroke-linecap="round"/><path d="M11 17l4.5 9 4.5-3.5 4.5 3.5 4.5-9" stroke="#1F5FD0" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><p class="hu" style="margin-top:14px">Ta prog, tes records, ta prochaine compét.</p></div>`;
+  const plates = `<div class="hero" style="margin-top:18px;min-height:150px">${DECO}<svg width="64" height="64" viewBox="0 0 40 40" aria-hidden="true" style="position:relative;background:#fff;border-radius:16px;padding:6px"><circle cx="20" cy="10.5" r="4.2" fill="#1F5FD0"/><path d="M7 17h26" stroke="#1F5FD0" stroke-width="3.6" stroke-linecap="round"/><path d="M11 17l4.5 9 4.5-3.5 4.5 3.5 4.5-9" stroke="#1F5FD0" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><p class="hu" style="margin-top:14px">Ta prog, tes records, ta prochaine compétition.</p></div>`;
   const err = obErr ? `<p class="small" style="color:var(--bad);margin-top:12px">${esc(obErr)}</p>` : "";
   let h = "";
   if (step === "config") h = `<div class="empty"><p>L'identifiant Google de l'app n'est pas encore configuré.</p></div>`;

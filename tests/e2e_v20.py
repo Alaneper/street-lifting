@@ -52,7 +52,7 @@ with sync_playwright() as p:
     # 5. Bouton du calendrier sur une ligne
     pg.evaluate("setTab('agenda')"); pg.wait_for_timeout(300)
     r = pg.evaluate("(() => { const b = document.querySelector('[data-act=ics]'); return [b.textContent, b.getBoundingClientRect().height]; })()")
-    check("compét : bouton du calendrier sur une ligne (390 px)", r[0] == "Mes compét dans le Calendrier" and r[1] <= 56, r)
+    check("compét : bouton du calendrier sur une ligne (390 px)", r[0] == "Ajouter au Calendrier" and r[1] <= 56, r)
     pg.set_viewport_size({"width":320, "height":700}); pg.wait_for_timeout(300)
     r = pg.evaluate("document.querySelector('[data-act=ics]').getBoundingClientRect().height")
     check("compét : bouton du calendrier sur une ligne (320 px)", r <= 56, r)
