@@ -1,14 +1,14 @@
-/** @OnlyCurrentDoc */
 /* Street Lifting · service du classement (Google Apps Script, gratuit).
    À installer une seule fois par Alane : voir docs/classement.md.
    Chaque app envoie ses records avec son jeton de connexion Google ; le service vérifie auprès de Google
    qui l'envoie (et que le jeton vient bien de l'app Street Lifting), range la ligne de cette personne,
    puis renvoie le classement de tout le monde, sans les adresses e-mail. */
 const CLIENT_ID = "592660864473-s7ek1c4i0iknvrnpsmdpi77l7bpr2k8c.apps.googleusercontent.com";
+const SHEET_ID = "1LnIqPu1p7j9Cr0CHUYSBBnstqhcxjQTeNNApjJW36EA";   /* fichier « Street Lifting – Classement » */
 const HEAD = ["Email", "Prénom", "Pays", "Sexe", "Catégorie", "Muscle-up", "Tractions", "Dips", "Squat", "Total", "RIS", "Mis à jour"];
 
 function feuille_(){
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = SpreadsheetApp.openById(SHEET_ID);
   let s = ss.getSheetByName("CLASSEMENT");
   if (!s) { s = ss.insertSheet("CLASSEMENT"); s.appendRow(HEAD); s.setFrozenRows(1); }
   return s;
