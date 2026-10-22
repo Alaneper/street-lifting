@@ -69,7 +69,7 @@ const dlr = {async save({filename, data}){
 
 /* ---------- Carnet de données : structure ---------- */
 const TABS = {
-  PROFIL:["Clé","Valeur","Note"], PR:["Date","Mouvement","Charge (kg)","Reps","Note"], POIDS:["Date","Poids (kg)","Note"],
+  PROFIL:["Clé","Valeur","Note"], PR:["Date","Mouvement","Charge (kg)","Reps","Note","RPE","Équipement"], POIDS:["Date","Poids (kg)","Note"],
   OBJECTIFS:["Mouvement","Objectif (kg)","Note"],
   COMPETITIONS:["Date","Nom","Lieu","Note","Statut"], SERIES:["Date","Bloc","Semaine","Séance","Exercice","Charge (kg)","Reps par série","Source","Note"],
   BLOCS:["Bloc","Lundi de la semaine 1","Note"],
@@ -89,11 +89,14 @@ async function createBook(p){
   const r = await gapi(API, {method:"POST", body:JSON.stringify({properties:{title:"Street Lifting – " + (p.prenom || "carnet"), locale:"fr_FR"},
     sheets:Object.keys(TABS).map(t => ({properties:{title:t, gridProperties:{frozenRowCount:1}}}))})});
   const id = r.spreadsheetId;
-  const prof = [["prenom",p.prenom],["sexe",p.sexe],["naissance",""],["taille_cm",p.taille || ""],["categorie",p.categorie],["coach_sheet_id",p.coach || ""],["bloc_actif",p.bloc || ""],["mu_acquis",p.mu || "NON"],
+  /* v28 : catégories automatiques d'après la pesée (modifiables dans les réglages) ; plus de « muscle-up acquis » */
+  const prof = [["prenom",p.prenom],["sexe",p.sexe],["naissance",p.naissance || ""],["taille_cm",p.taille || ""],["categorie",p.categorie],["categorie_auto","OUI"],["categorie_ipf_auto","OUI"],
+    ["disciplines",p.disciplines || "street"],["power_mode",p.power_mode || "classic"],["coach_sheet_id",p.coach || ""],["bloc_actif",p.bloc || ""],
     ["debut_street",p.debut || ""],["debut_coaching",p.debutCoach || ""],["pays",p.pays || "BE"]];
   const data = Object.keys(TABS).map(t => ({range:t + "!A1", values:[TABS[t]]}));
   data.push({range:"PROFIL!A2", values:prof});
-  const prs = LIFTS.filter(l => num(p["pr_" + l])).map(l => [isoOf(new Date()), l, num(p["pr_" + l]), 1, p.coach && obPre ? "Max de la prog du coach" : "Saisi à l'inscription"]);
+  const eqm = p.power_mode === "equipped" && /power/.test(p.disciplines || "");
+  const prs = ALL_LIFTS.filter(l => num(p["pr_" + l]) !== null && String(p["pr_" + l]).trim() !== "").map(l => [isoOf(new Date()), l, num(p["pr_" + l]), 1, p.coach && obPre ? "Max de la prog du coach" : "Saisi à l'inscription", "", eqm && POWER_LIFTS.includes(l) ? "EQ" : ""]);
   if (prs.length) data.push({range:"PR!A2", values:prs});
   if (num(p.poids)) data.push({range:"POIDS!A2", values:[[isoOf(new Date()), num(p.poids), ""]]});
   if (p.bloc && p.blocDate) data.push({range:"BLOCS!A2", values:[[p.bloc, p.blocDate, "saisi à l'inscription"]]});
@@ -107,7 +110,7 @@ let obStep = "login", obErr = "", obPre = null;
 function parseCoachProfile(v){
   const out = {}, cell = (r, c) => String((v[r] && v[r][c]) ?? "").trim();
   const numRight = (r, c) => { for (let k = c + 1; k <= c + 3; k++) { const t = cell(r, k); if (t !== "" && num(t) !== null) return num(t); } return null; };
-  const MAP = {MU:"MU", "MUSCLE UP":"MU", PU:"PULL", "PULL UP":"PULL", TRACTIONS:"PULL", DIPS:"DIP", DIP:"DIP", SQUAT:"SQUAT"};
+  const MAP = {MU:"MU", "MUSCLE UP":"MU", PU:"PULL", "PULL UP":"PULL", TRACTIONS:"PULL", DIPS:"DIP", DIP:"DIP", SQUAT:"SQUAT", BENCH:"BENCH", "BENCH PRESS":"BENCH", BP:"BENCH", DC:"BENCH", DEADLIFT:"DEADLIFT", DL:"DEADLIFT", SDT:"DEADLIFT"};
   for (let r = 0; r < v.length; r++) for (let c = 0; c < (v[r] || []).length; c++) {
     const t = norm(cell(r, c));
     if (t === "MAX ACTUELS" && out.max === undefined) { out.max = true;
@@ -144,26 +147,65 @@ function onboard(step, why){
     <div class="panel"><p style="font-weight:600">J'ai déjà un carnet</p><label for="oblink">Lien du Google Sheet</label><input id="oblink" type="url" placeholder="https://docs.google.com/spreadsheets/d/…">
       <button class="btn ghost" style="margin-top:12px" data-act="obLink">Utiliser ce carnet</button></div>${err}`;
   else if (step === "create") { const P = obPre || {}, v = x => x === undefined || x === null ? "" : esc(String(x).replace(".", ","));
-    h = `<p class="show t-m" style="margin-top:18px">Ton profil</p>
-    ${obPre ? `<p class="muted small" style="margin-top:6px">Rempli depuis ta prog${P.bloc ? " (onglet « " + esc(P.blocTitles[P.bloc].trim()) + " »)" : ""}. Vérifie et corrige si besoin.</p>` : ""}
+    const CK = `<span class="ck" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0A0B0D" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>`;
+    const dots = L => L.map(l => `<i style="--c:${LCOL[l]}"></i>`).join("");
+    h = `<p class="eyebrow" style="margin-top:18px">Création du carnet</p><h1 class="show t-l" style="margin-top:6px">Ton profil</h1>
+    <p class="muted" style="margin-top:8px">${obPre ? "Rempli depuis ta prog" + (P.bloc ? " (onglet « " + esc(P.blocTitles[P.bloc].trim()) + " »)" : "") + ". Vérifie et corrige si besoin." : "Quelques infos pour te placer dans la bonne catégorie et calculer ton score."}</p>
     <label for="obp">Prénom</label><input id="obp" autocomplete="given-name" value="${v(P.prenom)}">
-    <div class="grid2"><div><label for="obs">Sexe (pour le RIS)</label><select id="obs"><option value="H">Homme</option><option value="F">Femme</option></select></div>
-      <div><label for="obc">Catégorie</label><select id="obc">${[["Hommes", CATS_H], ["Femmes", CATS_F]].map(([g, L]) => `<optgroup label="${g}">${L.map(c => `<option value="${c}" ${c === (P.categorie || -80) && g === "Hommes" ? "selected" : ""}>${c > 0 ? "+" + c : c} kg</option>`).join("")}</optgroup>`).join("")}</select></div></div>
+
+    <h2 class="h2">Tes disciplines <span class="muted">une ou les deux</span></h2>
+    <div class="dgrid">
+      <button class="dcard" aria-pressed="true" data-act="obDisc" data-k="street">${CK}<span class="discs" aria-hidden="true">${dots(LIFTS)}</span><b>Street lifting</b><span class="sub">Muscle-up, tractions, dips, squat</span><span class="sc">Score RIS</span></button>
+      <button class="dcard" aria-pressed="false" data-act="obDisc" data-k="power">${CK}<span class="discs" aria-hidden="true">${dots(POWER_LIFTS)}</span><b>Powerlifting</b><span class="sub">Squat, Bench, Deadlift</span><span class="sc">Score IPF GL</span></button>
+    </div>
+    <div class="reveal" id="obpow" hidden><b style="font-size:15px">En powerlifting, tu tires</b>
+      <div class="segc" role="group" aria-label="Classic ou equipped" style="margin-top:10px"><button aria-pressed="true" data-act="obMode" data-k="classic">Classic</button><button aria-pressed="false" data-act="obMode" data-k="equipped">Equipped</button></div>
+      <p class="muted small" style="margin-top:8px">Equipped : combinaison et bandes. Le score n'est pas le même, tu pourras changer dans les réglages.</p></div>
+
+    <h2 class="h2">Toi</h2>
+    <label style="margin-top:0">Sexe</label>
+    <div class="segc" role="group" aria-label="Sexe" style="margin-top:0"><button aria-pressed="true" data-act="obSex" data-k="H">Homme</button><button aria-pressed="false" data-act="obSex" data-k="F">Femme</button></div>
+    <div class="grid2"><div><label for="obn">Date de naissance</label><input id="obn" type="date" data-inp="ob"></div><div><label for="obw">Poids de corps (kg)</label><input id="obw" inputmode="decimal" placeholder="73,2" value="${v(P.poids)}" data-inp="ob"></div></div>
     <label for="obpa">Pays</label><select id="obpa">${paysOptions("BE")}</select>
-    <div class="grid2"><div><label for="obd">Début du street lifting</label><input id="obd" type="date"></div><div><label for="obw">Poids de corps (kg)</label><input id="obw" inputmode="decimal" placeholder="73,2" value="${v(P.poids)}"></div></div>
-    <label>Tes PR actuels (kg de lest, laisse vide si tu ne sais pas)</label>
-    <div class="grid2">${LIFTS.map(l => `<div><label for="obpr${l}" style="margin-top:0">${LNAME[l]}</label><input id="obpr${l}" inputmode="decimal" value="${v(P["pr_" + l])}"></div>`).join("")}</div>
+
+    <h2 class="h2">Tes catégories <span class="pill">calculées pour toi</span></h2>
+    <div class="group" id="obcats"></div>
+    <p class="muted small" style="margin-top:10px">D'après ton poids et ta date de naissance. Tu pourras viser la catégorie du dessus ou du dessous dans les réglages.</p>
+
+    <h2 class="h2">Tes PR actuels <span class="muted">facultatif</span></h2>
+    <div class="grid2">${ALL_LIFTS.map(l => `<div data-lift="${l}"${LIFTS.includes(l) ? "" : " hidden"}><label for="obpr${l}" style="margin-top:0">${LNAME[l]}${BW_LIFTS.includes(l) ? " · lest" : ""}</label><input id="obpr${l}" inputmode="decimal" placeholder="kg" value="${v(P["pr_" + l])}"></div>`).join("")}</div>
+    <div class="grid2"><div><label for="obd">Début de la pratique</label><input id="obd" type="date"></div><div></div></div>
     <label for="obk">Lien de la prog de ton coach (facultatif)</label><input id="obk" type="url" placeholder="https://docs.google.com/spreadsheets/d/…" value="${P.coach ? sheetUrl(P.coach) : ""}">
     ${P.blocs && P.blocs.length ? `<label for="obbl">Ton bloc en cours</label><select id="obbl">${P.blocs.map(n => `<option value="${n}" ${n === P.bloc ? "selected" : ""}>${esc(/^\s*BLOC\s*\d+\s*$/i.test(P.blocTitles[n]) ? "Bloc " + n : P.blocTitles[n].trim())}</option>`).join("")}</select><p class="muted tiny" style="margin-top:6px">Choisis le bloc que tu fais en ce moment. Tu pourras le changer dans les réglages.</p>` : ""}
     ${P.bloc ? `<label for="obb">Lundi de la semaine 1 de ce bloc</label><input id="obb" type="date"><p class="muted tiny" style="margin-top:6px">Pour dater tes séances. Tu pourras le changer plus tard.</p>` : ""}
     <p class="muted tiny" style="margin-top:6px">La prog doit être partagée avec le compte Google avec lequel tu es connecté.</p>
-    <button class="btn" style="margin-top:20px" data-act="obCreate" id="obgo">Créer mon carnet</button>
+    <button class="btn" style="margin-top:28px" data-act="obCreate" id="obgo">Créer mon carnet</button>
     <button class="btn ghost" style="margin-top:10px" data-act="obStep" data-s="carnet">Retour</button>${err}`; }
   $("#v-home").innerHTML = `<div class="ob">${h}</div>`;
+  if (step === "create") obRefresh();
 }
+/* Inscription (maquette A) : disciplines, mode, sexe ; catégories recalculées en direct d'après le poids et la date de naissance */
+const obOn = k => { const b = document.querySelector(`[data-act=obDisc][data-k=${k}]`); return !!b && b.getAttribute("aria-pressed") === "true"; };
+const obSel = a => (document.querySelector(`[data-act=${a}][aria-pressed=true]`) || {dataset:{}}).dataset.k;
+function obRefresh(){
+  const st = obOn("street"), pw = obOn("power"), sx = obSel("obSex") || "H", w = num(($("#obw") || {}).value), b = ($("#obn") || {}).value || "";
+  const ages = ageCats(b, isoOf(new Date())), youth = ages.some(a => a === "SJ" || a === "JR");
+  const pp = $("#obpow"); if (pp) pp.hidden = !pw;
+  document.querySelectorAll("[data-lift]").forEach(e => { const l = e.dataset.lift; e.hidden = !((st && LIFTS.includes(l)) || (pw && POWER_LIFTS.includes(l))); });
+  const row = (t, s, val) => `<div class="catrow"><span class="grow"><b>${t}</b><span>${s}</span></span><span class="val"${/kg/.test(val) ? "" : ' style="font-size:22px"'}>${val}</span></div>`;
+  const kgv = c => c === null ? "—" : catTxt(c).replace(" kg", "<small>kg</small>");
+  const el = $("#obcats"); if (el) el.innerHTML = (st ? row("Street lifting", "Official Streetlifting", w ? kgv(catAuto(w, catsFor(sx))) : "—") : "")
+    + (pw ? row("Powerlifting", "IPF", w ? kgv(catAuto(w, catsIpfFor(sx, youth))) : "—") : "")
+    + row("Âge", ages.length > 1 ? ages.map(a => AGE_NAME[a]).join(" et ") : ages.length ? "Catégorie d'âge IPF" : b ? "Moins de 14 ans : pas de catégorie IPF" : "Ajoute ta date de naissance", ages.length ? AGE_NAME[ages[0]] : "—");
+}
+document.addEventListener("input", ev => { if (ev.target && ev.target.dataset && ev.target.dataset.inp === "ob") obRefresh(); });
 Object.assign(ACT, {
   obLogin:() => auth.login("select_account"),
   obStep:d => onboard(d.s),
+  obDisc:(d, el) => { const b = el.closest("[data-act]"), on = b.getAttribute("aria-pressed") === "true", other = d.k === "street" ? "power" : "street";
+    if (on && !obOn(other)) return toast("Choisis au moins une discipline", true); b.setAttribute("aria-pressed", String(!on)); obRefresh(); },
+  obMode:(d, el) => { document.querySelectorAll("[data-act=obMode]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.k === d.k))); },
+  obSex:(d, el) => { document.querySelectorAll("[data-act=obSex]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.k === d.k))); obRefresh(); },
   obLink:async () => { const id = idOf($("#oblink").value); if (!id) return onboard("carnet", "Ce lien ne ressemble pas à un lien de Google Sheet.");
     try { const t = await getTitles(id);
       if (!t.includes("PROFIL") && (t.some(x => /^\s*BLOC\s*\d+/i.test(x)) || (await progTabs(id)).order.length)) return onboard("carnet", "Ce lien est celui d'une prog de coach, pas d'un carnet. Colle-le plus haut, dans « Nouveau ici, avec une prog de coach ».");
@@ -182,9 +224,11 @@ Object.assign(ACT, {
     } catch(e){ b.disabled = false; b.textContent = "Tout remplir depuis ma prog"; toast("Prog inaccessible : " + errMsg(e), true); }
   },
   obCreate:async () => {
-    const p = {prenom:$("#obp").value.trim(), sexe:$("#obs").value, categorie:Number($("#obc").value), debut:$("#obd").value, poids:$("#obw").value, coach:idOf($("#obk").value),
+    const st = obOn("street"), pw = obOn("power"), sx = obSel("obSex") || "H", w = num($("#obw").value), nai = $("#obn").value || "";
+    const p = {prenom:$("#obp").value.trim(), sexe:sx, naissance:nai, disciplines:[st ? "street" : "", pw ? "power" : ""].filter(Boolean).join(","), power_mode:obSel("obMode") || "classic",
+      categorie:w ? catAuto(w, catsFor(sx)) : "", debut:$("#obd").value, poids:$("#obw").value, coach:idOf($("#obk").value),
       taille:obPre && obPre.taille, pays:($("#obpa") || {}).value || "BE", bloc:$("#obbl") ? Number($("#obbl").value) : obPre && obPre.bloc, blocDate:$("#obb") ? $("#obb").value : ""};
-    LIFTS.forEach(l => p["pr_" + l] = $("#obpr" + l).value);
+    ALL_LIFTS.forEach(l => { const e = $("#obpr" + l); p["pr_" + l] = e && !e.closest("[hidden]") ? e.value : ""; });
     if (!p.prenom) return toast("Indique ton prénom", true);
     if ($("#obk").value.trim() && !p.coach) return toast("Le lien de la prog n'est pas reconnu", true);
     const b = $("#obgo"); b.disabled = true; b.textContent = "Création…";

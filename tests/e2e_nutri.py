@@ -7,6 +7,7 @@ with sync_playwright() as p:
     pg.goto("http://app.local/sl/"); pg.wait_for_timeout(1000); pg.click("[data-act=obLogin]"); pg.wait_for_timeout(1500)
     pg.fill("#oblink", f"https://docs.google.com/spreadsheets/d/{APP}/edit"); pg.click("[data-act=obLink]"); pg.wait_for_timeout(4000)
     pg.click("[data-tab=corps]"); pg.wait_for_timeout(1500)
+    if pg.locator("#nutin").count() == 0: pg.click("[data-act=corpsTab][data-k=nutri]"); pg.wait_for_timeout(800)   # avant midi : Corps s'ouvre sur Poids
     for q, exp in [("250 g de pâtes sèches", 910), ("1 cordon bleu", 226), ("abricot 100g", 44.1), ("p", None)]:
         pg.fill("#nutin", q); pg.wait_for_timeout(400)
         sug = pg.locator("#nutdyn .item .ttl").all_inner_texts()[:5]

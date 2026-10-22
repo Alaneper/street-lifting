@@ -14,7 +14,8 @@ Règle d'or : un chiffre héros par écran, le reste en retrait.
 | `--faint` | #7D838C | texte effacé (séance faite, jours hors du mois) | 5,2:1 sur le fond, 4,7:1 sur `--deck` |
 | placeholder | #848A93 | texte d'exemple des champs | 4,6:1 sur `--deck2` |
 | `--brand` | #1F5FD0 | héros principal (J−X, total), compétitions | texte blanc 5,8:1 |
-| `--mu` `--pull` `--dip` `--squat` | #E3B341 #4C8DF6 #2BB673 #F0524A | **uniquement** pour désigner un mouvement | sur fond sombre : 10,1 / 6,1 / 7,5 / 5,6:1 |
+| `--mu` `--pull` `--dip` `--squat` | #E3B341 #4C8DF6 #2BB673 #F0524A | **uniquement** pour désigner un mouvement | sur fond sombre : 10,1 / 6,1 / 7,5 / 5,6
+| `--bench` `--deadlift` (v28) | #A78BFA #EC6FB0 | Bench et Deadlift (powerlifting) | sur fond sombre : 7,2 / 7,0:1 ; sur `--deck` : 6,5 / 6,3:1:1 |
 
 Règles :
 - une couleur de mouvement ne sert qu'à désigner ce mouvement. Les états sont neutres : hausse et « Monte la charge » en blanc, baisse en gris avec « − », séance faite en gris clair, fin du repos en bleu marque. Seule exception : le rouge `--bad` pour une vraie alerte (au-dessus de la limite de poids, échec de synchro) ;
@@ -84,3 +85,12 @@ Règles :
 ## 10. Contrôle qualité avant chaque publication
 
 `python3 tools/build.py` puis : `tests/e2e*.py`, `tests/unit.js`, `tests/qa.py` (captures 390 et 834 px, contrastes, cibles, débordements), `tests/perf.py` (ouverture), `tests/lh.py` (Lighthouse), `tests/apercu.py` (captures avec barre d'état d'iPhone). Numéro de version visible dans Réglages ; numéro de build dans `<meta name="sl-build">` (le service worker n'installe que des builds plus récents).
+
+
+## v28 · mode powerlifting (23/10/2026, maquette A choisie par Alane)
+- **Inscription « Ton profil »** : deux cartes de discipline (`.dcard`, cochée = filet blanc 2 px + pastille blanche), choix Classic / Equipped révélé seulement si Powerlifting est coché, sexe en segment, date de naissance et poids côte à côte, catégories recalculées en direct (`.group` + `.catrow`, chiffre en Barlow Condensed 30 px).
+- **Réglages** regroupés : Tes disciplines (interrupteurs `.sw` 51 × 31, toute la ligne `.prefrow` est la cible), Toi, Catégories (ligne → sélecteur), Classements entre amis, Mouvements suivis en plus (puces), Le reste.
+- **Sélecteur de catégorie** : interrupteur « Automatique » puis grille de catégories (`.catgrid`, cases 52 px, choisie = fond blanc).
+- **Deux disciplines** : un segment Street lifting / Powerlifting en haut de Progrès et de Comp › Amis ; l'accueil suit ce choix.
+- **Classement** : puces « Au RIS / Au IPF GL » et « Au total », puis filtre d'âge IPF.
+- Plus de réglage « muscle-up acquis » : le muscle-up s'affiche toujours, « — » tant qu'il n'y a pas de record (0 kg dans le total).

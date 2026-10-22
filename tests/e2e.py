@@ -73,7 +73,7 @@ with sync_playwright() as p:
     c = ctx(); pg = c.new_page(); watch(pg)
     pg.goto("http://app.local/sl/"); pg.wait_for_timeout(800); pg.click("[data-act=obLogin]"); pg.wait_for_timeout(1200)
     pg.click("[data-act=obStep][data-s=create]"); pg.wait_for_timeout(300)
-    pg.fill("#obp", "Noa"); pg.select_option("#obc", "-73"); pg.fill("#obd", "2025-09-01"); pg.fill("#obw", "70,4"); pg.fill("#obprSQUAT", "100"); pg.fill("#obprDIP", "30")
+    pg.fill("#obp", "Noa"); pg.fill("#obd", "2025-09-01"); pg.fill("#obw", "70,4"); pg.fill("#obprSQUAT", "100"); pg.fill("#obprDIP", "30")
     pg.fill("#obk", f"https://docs.google.com/spreadsheets/d/{COACH}/edit"); pg.screenshot(path=str(OUT/"8-create.png"), full_page=True)
     pg.click("[data-act=obCreate]"); pg.wait_for_timeout(4500); pg.screenshot(path=str(OUT/"9-new-home.png"), full_page=True)
     print("nouveau carnet:", pg.evaluate("Object.keys(window.__sheets).filter(k=>k.startsWith('NEW')).map(k=>window.__sheets[k].PROFIL.slice(0,4))"))

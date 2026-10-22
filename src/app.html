@@ -11,7 +11,7 @@
   color-scheme:dark;
   --floor:#0A0B0D; --deck:#16181C; --deck2:#1F2227; --deck3:#2A2E34; --seam:#1C1F24;
   --chalk:#FFFFFF; --dust:#8A9099; --faint:#7D838C; --steel:#8E9198; --steel-hi:#B4BAC2; --brand:#1F5FD0;
-  --mu:#E3B341; --pull:#4C8DF6; --dip:#2BB673; --squat:#F0524A;
+  --mu:#E3B341; --pull:#4C8DF6; --dip:#2BB673; --squat:#F0524A; --bench:#A78BFA; --deadlift:#EC6FB0;
   --go:#FFFFFF; --comp:#1F5FD0; --ok:#2BB673; --warn:#E3B341; --bad:#FF6F61;
   --f-show:"Barlow Condensed","Arial Narrow",sans-serif;
   --f-text:"Barlow",-apple-system,"Segoe UI",sans-serif;
@@ -396,6 +396,38 @@ html,body{overflow-x:clip}body{margin-top:0}
   .page>.wrap,.live>.wrap,.sheet>.wrap{max-width:680px}
 }
 @media (prefers-reduced-motion:reduce){*,*::before{animation:none!important;transition:none!important}}
+/* v28 : réglages regroupés, interrupteurs, catégories, cartes de discipline (maquette A) */
+.group{background:var(--deck2);border-radius:20px;padding:2px 16px;margin-top:8px}
+.ob .group,.view .group{background:var(--deck)}
+.prefrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--deck3);min-height:60px;width:100%;text-align:left}
+.prefrow:last-child{border-bottom:0}
+.prefrow .grow{flex:1;min-width:0}.prefrow .grow b{display:block;font:600 16px var(--f-text)}.prefrow .grow span{font-size:13px;color:var(--dust)}
+.sw{position:relative;width:51px;height:31px;border-radius:16px;background:var(--deck3);flex:none;transition:background .2s var(--ease)}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:25px;height:25px;border-radius:50%;background:var(--steel-hi);transition:transform .2s var(--ease)}
+[aria-checked="true"]>.sw{background:var(--chalk)}[aria-checked="true"]>.sw::after{transform:translateX(20px);background:var(--floor)}
+.catrow{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--deck3);width:100%;text-align:left;min-height:64px}
+.catrow:last-child{border-bottom:0}
+.catrow .grow{flex:1;min-width:0}.catrow .grow b{display:block;font:600 16px var(--f-text)}.catrow .grow span{font-size:13px;color:var(--dust)}
+.catrow .val{font:800 30px/1 var(--f-show);white-space:nowrap}.catrow .val small{font:700 15px var(--f-show);color:var(--dust);margin-left:2px}
+.chv{color:var(--faint);flex:none}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.dcard{position:relative;background:var(--deck);border-radius:20px;padding:14px;text-align:left;display:flex;flex-direction:column;gap:6px;min-height:150px;box-shadow:inset 0 0 0 1px var(--seam);transition:box-shadow .2s var(--ease)}
+.dcard[aria-pressed="true"]{box-shadow:inset 0 0 0 2px var(--chalk)}
+.dcard .ck{position:absolute;top:12px;right:12px;width:24px;height:24px;border-radius:50%;border:2px solid var(--deck3);display:grid;place-items:center}
+.dcard[aria-pressed="true"] .ck{background:var(--chalk);border-color:var(--chalk)}
+.dcard .ck svg{opacity:0}.dcard[aria-pressed="true"] .ck svg{opacity:1}
+.dcard .discs{display:flex;gap:4px;margin-bottom:6px}
+.dcard .discs i{width:14px;height:14px;border-radius:50%;background:var(--c);box-shadow:inset 0 0 0 3.5px color-mix(in srgb,var(--c) 55%,#000)}
+.dcard b{font:800 24px/.95 var(--f-show)}
+.dcard .sub{font-size:13px;color:var(--dust);line-height:1.35}
+.dcard .sc{margin-top:auto;font:600 12px var(--f-text);color:var(--steel-hi)}
+.reveal{margin-top:12px;padding:14px;border-radius:20px;background:var(--deck)}
+.reveal .segc{background:var(--floor)}
+.catgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.catgrid button{min-height:52px;border-radius:14px;background:var(--deck2);font:800 22px var(--f-show);color:var(--chalk)}
+.catgrid button[aria-pressed="true"]{background:var(--chalk);color:var(--floor)}
+.agechips{margin-top:10px}
+@media (prefers-reduced-motion:reduce){.sw,.sw::after,.dcard{transition:none}}
 </style>
 
 <main id="app">
@@ -424,10 +456,12 @@ html,body{overflow-x:clip}body{margin-top:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "27 · 22 oct. 2026";
-const LIFTS = ["MU","PULL","DIP","SQUAT"];
-const LNAME = {MU:"Muscle-up", PULL:"Tractions", DIP:"Dips", SQUAT:"Squat", TOTAL:"Total"};
-const LCOL = {MU:"var(--mu)", PULL:"var(--pull)", DIP:"var(--dip)", SQUAT:"var(--squat)"};
+const APP_VER = "28 · 23 oct. 2026";
+const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
+const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
+const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
+const LNAME = {MU:"Muscle-up", PULL:"Tractions", DIP:"Dips", SQUAT:"Squat", BENCH:"Bench", DEADLIFT:"Deadlift", TOTAL:"Total"};
+const LCOL = {MU:"var(--mu)", PULL:"var(--pull)", DIP:"var(--dip)", SQUAT:"var(--squat)", BENCH:"var(--bench)", DEADLIFT:"var(--deadlift)"};
 const BW_LIFTS = ["MU","PULL","DIP"];
 const RPE_OPTS = [5,6,6.5,7,7.5,8,8.5,9,9.5,10];
 const CATS_H = [-66,-73,-80,-87,-94,-101,101], CATS_F = [-52,-57,-63,-70,70];
@@ -505,6 +539,31 @@ const RIS = {
   H:{a:335.5625, k:556.1103380806655, b:0.10289374204365953, v:76.74125992622565, q:0.4973075488457353},
   F:{a:189.0625, k:281.8317115772956, b:0.28812554082125424, v:69.83492229989282, q:0.004337919108356886}
 };
+/* IPF GL Points : coefficient = 100 / (A − B·e^(−C·poids)), arrondi à 6 décimales, puis × total (arrondi à 6 décimales).
+   Coefficients IPF 2020, toujours les seuls publiés (powerlifting.sport › IPF GL Formula ; rapport « Models Evaluation I-2020 », annexe 1). */
+const GL = {H:{classic:[1199.72839, 1025.18162, 0.00921], equipped:[1236.25115, 1449.21864, 0.01644]},
+            F:{classic:[610.32796, 1045.59282, 0.03048], equipped:[758.63878, 949.31382, 0.02435]}};
+function glPoints(t, w, sx, mode){
+  if (!t || !w || w < (sx === "F" ? 35 : 40)) return null;
+  const [A, B, C] = GL[sx === "F" ? "F" : "H"][mode === "equipped" ? "equipped" : "classic"];
+  const coef = Math.round(100 / (A - B * Math.exp(-C * w)) * 1e6) / 1e6;
+  return Math.round(coef * t * 1e6) / 1e6;
+}
+/* Catégories de poids. Street : Official Streetlifting (règlement v1.6, octobre 2026). IPF : règlement technique en vigueur au 1er mars 2026,
+   −53 (hommes) et −43 (femmes) réservées aux sub-juniors et juniors. Dans les deux, un poids égal à la limite reste dans la catégorie. */
+const CATS_IPF_H = [-53,-59,-66,-74,-83,-93,-105,-120,120], CATS_IPF_F = [-43,-47,-52,-57,-63,-69,-76,-84,84];
+const catsIpfFor = (sx, youth) => (sx === "F" ? CATS_IPF_F : CATS_IPF_H).filter(c => youth || (c !== -53 && c !== -43));
+const catAuto = (w, list) => !w ? null : (list.find(c => c < 0 && w <= -c) ?? list.at(-1));
+/* Catégories d'âge IPF, comptées en année civile (sub-junior dès le jour des 14 ans). Open : dès l'année des 19 ans ; masters 3 et 4 exclus de l'open. */
+const AGE_NAME = {SJ:"Sub-junior", JR:"Junior", OPEN:"Open", M1:"Master 1", M2:"Master 2", M3:"Master 3", M4:"Master 4"};
+function ageCats(birth, today){
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(birth || "")) return [];
+  const by = +birth.slice(0, 4), a = +today.slice(0, 4) - by;
+  if (a <= 18) return today >= (by + 14) + birth.slice(4) ? ["SJ"] : [];
+  if (a <= 23) return ["JR", "OPEN"]; if (a <= 39) return ["OPEN"];
+  if (a <= 49) return ["M1", "OPEN"]; if (a <= 59) return ["M2", "OPEN"]; if (a <= 69) return ["M3"]; return ["M4"];
+}
+const catTxt = c => c === null || c === undefined ? "—" : (c > 0 ? "+" + c : String(c).replace("-", "−")) + " kg";
 
 /* =====================================================================
    ÉTAT
@@ -630,7 +689,7 @@ const getTitles = async id => ((await gs("get_spreadsheet", {spreadsheetId:id, f
    DONNÉES PERSO (Sheet « Street lifting app »)
    ===================================================================== */
 async function loadApp(){
-  const R = ["PROFIL!A1:C60","PR!A1:E3000","POIDS!A1:C10000","OBJECTIFS!A1:C60","COMPETITIONS!A1:E200","SERIES!A1:I10000","BLOCS!A1:C200","CHECKLIST!A1:C500","BILAN!A1:I1000"];
+  const R = ["PROFIL!A1:C60","PR!A1:G3000","POIDS!A1:C10000","OBJECTIFS!A1:C60","COMPETITIONS!A1:E200","SERIES!A1:I10000","BLOCS!A1:C200","CHECKLIST!A1:C500","BILAN!A1:I1000"];
   /* onglets ajoutés plus tard : lus en même temps, absents tolérés */
   const opt = r => getVals(APP_ID, r).catch(() => null);
   const [[P, PR, PO, OB, CO, SE, BL, CH, BI], [RPo, ALo, HIo, MRo]] = await Promise.all([Promise.all(R.map(r => getVals(APP_ID, r))), Promise.all(["REPAS!A1:J40000", "ALIMENTS!A1:I5000", "HISTORIQUE!A1:Q30000", "MES_REPAS!A1:I3000"].map(opt))]);
@@ -649,8 +708,8 @@ async function loadApp(){
   const profil = {};
   P.slice(1).forEach(r => { if (r[0]) profil[String(r[0]).trim()] = r[1] ?? ""; });
   ["debut_street","debut_coaching"].forEach(k => profil[k] = toIso(profil[k]));
-  const prs = PR.slice(1).map(r => ({date:toIso(r[0]), lift:norm(r[1]), charge:num(r[2]), reps:num(r[3]) || 1, note:r[4] || "", rpe:num(r[5]) || null}))
-    .filter(p => p.date && LIFTS.includes(p.lift) && p.charge !== null).sort((a, b) => a.date < b.date ? -1 : 1);
+  const prs = PR.slice(1).map(r => ({date:toIso(r[0]), lift:norm(r[1]), charge:num(r[2]), reps:num(r[3]) || 1, note:r[4] || "", rpe:num(r[5]) || null, eq:/^EQ/i.test(String(r[6] || "").trim())}))
+    .filter(p => p.date && ALL_LIFTS.includes(p.lift) && p.charge !== null).sort((a, b) => a.date < b.date ? -1 : 1);
   const pm = {}; PO.slice(1).forEach(r => { const d = toIso(r[0]), p = num(r[1]); if (d && p) pm[d] = p; });
   const poids = Object.keys(pm).sort().map(d => ({date:d, poids:pm[d]}));
   const objectifs = {}; OB.slice(1).forEach(r => { if (r[0]) objectifs[norm(r[0])] = num(r[1]); });
@@ -942,7 +1001,12 @@ function blocStart(b){
   return null;
 }
 function dateOf(s){ const st = blocStart(s.bloc); if (!st) return null; return addDays(st.d, ((num(s.semaine) || 1) - 1) * 7 + (JOUR_IDX[norm(s.jour)] ?? 0)); }
-function liftOf(m){ const x = norm(m); if (x.includes("MUSCLE")) return "MU"; if (x.includes("PULL") || x.includes("TRACTION")) return "PULL"; if (x.includes("DIP")) return "DIP"; if (x.includes("SQUAT")) return "SQUAT"; return null; }
+function liftOf(m){ const x = norm(m); if (x.includes("MUSCLE")) return "MU"; if (x.includes("PULL") || x.includes("TRACTION")) return "PULL"; if (x.includes("DIP")) return "DIP"; if (x.includes("SQUAT")) return "SQUAT";
+  /* v28 : Bench et Deadlift reconnus seulement si la personne les suit (powerlifting ou « mouvements suivis ») ; rien ne change en street lifting seul */
+  const y = x.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (D && liftOn("BENCH") && (/\bBENCH\b|DEVELOPPE COUCHE|^(BP|DC)$/.test(y)) && !/INCLIN|DECLIN|HALTERE|\bDB\b|DUMBBELL|MACHINE|SMITH|FLOOR/.test(y)) return "BENCH";
+  if (D && liftOn("DEADLIFT") && (/DEADLIFT|SOULEVE DE TERRE|^(SDT|DL)$/.test(y)) && !/ROMANIAN|ROUMAIN|STIFF|JAMBES TENDUES|\bRDL\b|SLDL|TRAP|HEX/.test(y)) return "DEADLIFT";
+  return null; }
 const exKey = e => norm(e.mouvement) === "RENFO" ? norm(e.variation) : norm(e.mouvement) + " · " + norm(e.variation);
 const exName = k => { const [a, b] = String(k).split(" · "); return b ? title(a) + " " + b.toLowerCase() : title(a); };
 const liftsOf = s => [...new Set(s.exercices.map(e => liftOf(e.mouvement)).filter(Boolean))];
@@ -952,15 +1016,43 @@ function todaySeance(){ const t = S.find(s => dateOf(s) === D.today); return t |
 /* =====================================================================
    CALCULS
    ===================================================================== */
-const muOn = () => norm(D.profil.mu_acquis) === "OUI";
-const cat = () => num(D.profil.categorie) || -80;
-const catLimit = () => cat() < 0 ? -cat() : null;
+/* Disciplines (v28) : clé PROFIL « disciplines » (street, power ou les deux). Absente : street lifting, comme avant. */
+const discs = () => { const s = String(D.profil.disciplines || "").toLowerCase(), p = /power/.test(s); return {street:/street/.test(s) || !p, power:p}; };
+const streetOn = () => discs().street, powerOn = () => discs().power;
+const mainDisc = () => streetOn() ? "street" : "power";
+const equipped = () => norm(D.profil.power_mode) === "EQUIPPED";
+const suivis = () => String(D.profil.suivis || "").toUpperCase().split(/[,;\s]+/).filter(l => ALL_LIFTS.includes(l));
+const shownLifts = () => ALL_LIFTS.filter(l => (streetOn() && LIFTS.includes(l)) || (powerOn() && POWER_LIFTS.includes(l)) || suivis().includes(l));
+const liftOn = l => shownLifts().includes(l);
 const sexe = () => norm(D.profil.sexe) === "F" ? "F" : "H";
 const bw = () => (D.poids.at(-1) || {}).poids || null;
+const birth = () => toIso(D.profil.naissance) || "";
+const myAges = () => ageCats(birth(), D.today);
+/* Catégorie street : celle du carnet. Réglée à la main par défaut quand elle existe déjà (aucun changement pour les carnets d'avant la v28). */
+const catAutoOn = k => { const v = norm(D.profil[k + "_auto"]); return v ? v === "OUI" : !(k === "categorie" && D.profil.categorie !== undefined && D.profil.categorie !== ""); };
+const cat = () => (catAutoOn("categorie") && catAuto(bw(), catsFor(sexe()))) || num(D.profil.categorie) || (sexe() === "F" ? -57 : -80);
+const catIpf = () => (catAutoOn("categorie_ipf") && catAuto(bw(), catsIpfFor(sexe(), myAges().some(a => a === "SJ" || a === "JR")))) || num(D.profil.categorie_ipf) || catAuto(bw() || 80, catsIpfFor(sexe(), false));
+const catOf = d => d === "power" ? catIpf() : cat();
+const catLimit = () => { const c = catOf(mainDisc()); return c < 0 ? -c : null; };
+const muOn = () => true;   /* v28 : le muscle-up s'affiche toujours (0 kg tant qu'il n'y a pas de record) */
 const bwAt = iso => { let v = null; for (const p of D.poids) { if (p.date <= iso) v = p.poids; else break; } return v ?? (D.poids[0] || {}).poids ?? null; };
 const risOf = (total, w) => { const c = RIS[sexe()]; if (!total || !w) return null; return total * 100 / (c.a + (c.k - c.a) / (1 + c.q * Math.exp(-c.b * (w - c.v)))); };
-function best(l){ if (l === "MU" && !muOn()) return null; const x = D.prs.filter(p => p.lift === l && p.reps === 1); return x.length ? Math.max(...x.map(p => p.charge)) : null; }
-const total = () => LIFTS.reduce((s, l) => s + (best(l) || 0), 0);
+/* Record 1 rep. Le squat equipped (combinaison, bandes) n'entre jamais dans le street lifting ni dans un total classic. */
+const classicOnly = p => !p.eq;
+function best(l, f){ const x = D.prs.filter(p => p.lift === l && p.reps === 1 && (!f || f(p))); return x.length ? Math.max(...x.map(p => p.charge)) : null; }
+const total = () => LIFTS.reduce((s, l) => s + (best(l, classicOnly) || 0), 0);
+const totalPower = () => POWER_LIFTS.reduce((s, l) => s + (best(l, equipped() ? null : classicOnly) || 0), 0);
+const glOf = (t, w) => glPoints(t, w, sexe(), equipped() ? "equipped" : "classic");
+const totalOf = d => d === "power" ? totalPower() : total();
+const scoreOf = (d, t, w) => d === "power" ? glOf(t, w) : risOf(t, w);
+const scoreName = d => d === "power" ? "IPF GL" : "RIS";
+const liftsOfDisc = d => d === "power" ? POWER_LIFTS : LIFTS;
+/* Quand on suit les deux disciplines, un segment choisit laquelle afficher (Progrès, Amis, total de l'accueil). Mémorisé sur le téléphone. */
+let discSel = store.get("sl-disc");
+const curDisc = () => streetOn() && powerOn() ? (discSel === "power" ? "power" : "street") : mainDisc();
+const discSegHtml = mt => streetOn() && powerOn() ? `<div class="segc" role="group" aria-label="Discipline affichée" style="margin-top:${mt ?? 6}px">${[["street", "Street lifting"], ["power", "Powerlifting"]].map(([k, t]) => `<button aria-pressed="${curDisc() === k}" data-act="discSel" data-k="${k}">${t}</button>`).join("")}</div>` : "";
+const goalOf = d => liftsOfDisc(d).reduce((a, l) => a + (D.objectifs[l] || best(l, d === "power" && equipped() ? null : classicOnly) || 0), 0);
+const totalSub = (d, t, w, g) => `${scoreName(d)} ${fmt(scoreOf(d, t, w), d === "power" ? 2 : 1)} · objectif ${fmt(g)} kg`;
 function bestSeries(l){ let m = -Infinity; const out = []; D.prs.filter(p => p.lift === l && p.reps === 1).forEach(p => { if (p.charge > m) { m = p.charge; out.push({date:p.date, v:m}); } }); return out; }
 const record = (type, l) => {
   const row = REC_OSL.find(r => r[0] === (sexe() === "F" ? "F" : "H") && +r[1] === cat() && r[2] === l); if (!row) return null;
@@ -1145,7 +1237,7 @@ function insight(){
   const nc = nextComp(), lim = catLimit(), w = bw();
   if (nc && lim && w && days(D.today, nc.date) <= 21 && w > lim) return `Il te reste ${fmt(w - lim, 1)} kg au-dessus de la limite des ${lim} kg, à ${days(D.today, nc.date)} jours de ${esc(nc.nom)}.`;
   let bestL = null;
-  for (const l of LIFTS) { const h = liftHistory(l).filter(p => p.src === "prog"); if (h.length < 2) continue;
+  for (const l of shownLifts()) { const h = liftHistory(l).filter(p => p.src === "prog"); if (h.length < 2) continue;
     const recent = h.at(-1), old = h.filter(p => p.date <= addDays(recent.date, -21)).at(-1); if (!old) continue;
     const d = recent.v - old.v; if (!bestL || d > bestL.d) bestL = {l, d, from:old.date}; }
   if (bestL && bestL.d > 0) return `Ton 1RM estimé en ${LNAME[bestL.l].toLowerCase()} a pris +${fmt(bestL.d, 1)} kg depuis le ${dshort(bestL.from)}, d'après les e1RM de ta prog.`;
@@ -1206,20 +1298,20 @@ function hwRefresh(){ const i = $("#hw"), v = num((i || {}).value), b = $("#hwbt
   if (b) b.textContent = "Noter" + (okW(v) ? " " + fmt(v, 1) + " kg" : ""); if (l && lim) l.textContent = okW(v) ? limTxt(v, lim) : ""; }
 function rHome(){
   if (document.activeElement && document.activeElement.id === "hw") return;   /* ne pas fermer le clavier pendant la saisie du poids */
-  const t = total(), r = risOf(t, bw()), ts = todaySeance(), ns = nextSeance(), sess = ts && !ts.faite ? ts : ns, nc = nextComp(), pw = D.poids.at(-1), weighed = pw && pw.date === D.today;
+  const cd = curDisc(), t = totalOf(cd), ts = todaySeance(), ns = nextSeance(), sess = ts && !ts.faite ? ts : ns, nc = nextComp(), pw = D.poids.at(-1), weighed = pw && pw.date === D.today;
   const bil = pendingBilan(), lv = store.get("sl4-live"), sessDate = sess && dateOf(sess), rem = remainingInBloc();
   const weekRef = sessDate && sessDate > addDays(D.today, 6 - (dObj(D.today).getDay() + 6) % 7) ? sessDate : D.today, wr = S.length ? weekRows(weekRef) : "";
   const jourBtn = sessDate ? (sessDate === D.today ? "d'aujourd'hui" : "de " + JOURS[dObj(sessDate).getDay()]) : "";
-  const tgt = LIFTS.reduce((a, l) => a + ((l === "MU" && !muOn()) ? 0 : (D.objectifs[l] || best(l) || 0)), 0);
+  const tgt = goalOf(cd), tsub = totalSub(cd, t, bw(), tgt), tsmall = cd === "power" && streetOn() ? "Mon total power" : "Mon total";
   const heroH = nc ? heroCard({small:`${esc(nc.nom)}, ${dlong(nc.date)}`, big:days(D.today, nc.date) === 0 ? "Jour J" : "J−" + days(D.today, nc.date), sub:[nc.tbc ? "date à confirmer" : "", rem ? `encore ${rem} séance${rem > 1 ? "s" : ""} dans le ${blocLow(activeBloc())}` : ""].filter(Boolean).join(" · "), act:`data-act="tab" data-t="agenda" role="button" tabindex="0"`})
-    : heroCard({small:"Mon total", big:`${fmt(t)}<small>kg</small>`, sub:`RIS ${fmt(r, 1)} · objectif ${fmt(tgt)} kg`, act:`data-act="tab" data-t="prog" role="button" tabindex="0"`});
+    : heroCard({small:tsmall, big:`${fmt(t)}<small>kg</small>`, sub:tsub, act:`data-act="tab" data-t="prog" role="button" tabindex="0"`});
   const left = `${heroH}${weighed ? "" : weighCard(pw)}
     <h2 class="h2">Cette semaine <span class="muted">${sess ? esc(blocLabel(sess.bloc)) + (sess.semaine ? ", semaine " + esc(sess.semaine) : "") : ""}</span></h2>
     ${S.length ? (wr || `<p class="muted small">Aucune séance datée cette semaine.</p>`) : `<div class="row" style="padding:14px 0"><span class="muted">${esc(seanceErr) || "Chargement de ta prog…"}</span>${seanceErr ? "" : `<div class="spin"></div>`}</div>`}
     ${sess ? `<button class="btn" style="margin-top:16px" data-act="startLive" data-k="${esc(sess.key)}">${lv && lv.key === sess.key ? "Reprendre la séance" : "Commencer la séance " + jourBtn}</button>` : ""}`;
-  const right = `${nc ? `<div class="desk-only">${heroCard({plain:true, small:"Mon total", big:`${fmt(t)}<small>kg</small>`, sub:`RIS ${fmt(r, 1)} · objectif ${fmt(tgt)} kg`})}</div>` : ""}
+  const right = `${nc ? `<div class="desk-only">${heroCard({plain:true, small:tsmall, big:`${fmt(t)}<small>kg</small>`, sub:tsub})}</div>` : ""}
     <h2 class="h2">Mes records</h2>
-    ${LIFTS.filter(l => l !== "MU" || muOn()).map(l => vrow(LNAME[l], D.objectifs[l] ? "objectif " + kg(D.objectifs[l]) : "pas encore d'objectif", kg(best(l)), LCOL[l], `data-act="openLift" data-l="${l}"`)).join("")}
+    ${shownLifts().map(l => vrow(LNAME[l], D.objectifs[l] ? "objectif " + kg(D.objectifs[l]) : "pas encore d'objectif", kg(best(l)), LCOL[l], `data-act="openLift" data-l="${l}"`)).join("")}
     ${bil ? `<h2 class="h2">Pour ton coach</h2>${vrow("Bilan de la semaine " + esc(bil.semaine), "sommeil, fatigue, motivation… en 30 secondes", "›", null, `data-act="bilan" data-w="${esc(bil.sheet + "|" + bil.semaine)}"`)}` : ""}`;
   $("#v-home").innerHTML = `<div class="homegrid"><div>${left}</div><div>${right}</div></div>`;
   firstPaint = false;
@@ -1304,8 +1396,8 @@ function backoffOf(s, e, k, liveRows){
 }
 /* Mouvement de compétition ou variante ? « COMP », vide, ou seulement de l'équipement (coudières, genouillères, raw, emom) = compét.
    Pause, tempo, iso, élastique, zercher, high pull… = variante. Un tempo noté (« 3/2/0 », « 2CT ») = variante. */
-const VARIANT_RE = /PAUS|TEMPO|ISO|ZERCHER|[ÉE]LAST|NEGAT|N[ÉE]GAT|EXCENT|PIRAM|PYRAM|HIGH ?PULL|HAUTE?|CHEST|DEAD ?STOP|STATO|BOX|PIN|PARTIEL|DEMI|SLOW|ASSIST|BULGAR|GOBELET|HACK|BELT|FRONT|SAFETY|SSB|LARSEN|SPOTTO|ARCHER|TYPEWRITER|L-?SIT|STRICT|KIPP/;
-const EQUIP_RE = /^(COMP|COMPET|COMPÉT|COMPETITION|COMPÉTITION|COUDI[ÈE]RES?|GENOUILL[ÈE]RES?|SLEEVES?|STRAPS?|RAW|EMOM|STANDARD|CLASSIQUE|NORMAL|PRISE|LARGEUR|D'ÉPAULE|D'EPAULE|ÉPAULES?|\d{1,2}RM|MAX|TEST)$/;
+const VARIANT_RE = /PAUS|TEMPO|ISO|ZERCHER|[ÉE]LAST|NEGAT|N[ÉE]GAT|EXCENT|PIRAM|PYRAM|HIGH ?PULL|HAUTE?|CHEST|DEAD ?STOP|STATO|BOX|PIN|PARTIEL|DEMI|SLOW|ASSIST|BULGAR|GOBELET|HACK|BELT|FRONT|SAFETY|SSB|LARSEN|SPOTTO|ARCHER|TYPEWRITER|L-?SIT|STRICT|KIPP|CLOSE|SERR[ÉE]|D[ÉE]FICIT|BLOCKS?|RACK ?PULL|FEET ?UP|TOUCH|T&G|SPOTO/;
+const EQUIP_RE = /^(COMP|COMPET|COMPÉT|COMPETITION|COMPÉTITION|COUDI[ÈE]RES?|GENOUILL[ÈE]RES?|SLEEVES?|STRAPS?|RAW|EMOM|STANDARD|CLASSIQUE|SUMO|CONV|CONVENTIONNEL|CONVENTIONAL|NORMAL|PRISE|LARGEUR|D'ÉPAULE|D'EPAULE|ÉPAULES?|\d{1,2}RM|MAX|TEST)$/;
 function isCompVar(v, tempo){
   const x = norm(v).replace(/[()]/g, " "); if (VARIANT_RE.test(x)) return false;
   if (tempo && /\d/.test(String(tempo))) return false;
@@ -1532,7 +1624,7 @@ function weekView(sel){
   }
   /* records de reps battus cette semaine (mouvements de compét, nombre de reps exact) */
   const recs = [];
-  for (const l of LIFTS) { const sets = compSets(l), inW = sets.filter(x => x.bloc === b && x.sem === w);
+  for (const l of shownLifts()) { const sets = compSets(l), inW = sets.filter(x => x.bloc === b && x.sem === w);
     const prior = sets.filter(x => !(x.bloc === b && x.sem === w) && (x.bloc !== undefined && x.bloc !== null ? wOrd(x.bloc, x.sem) < me : (x.date && ss.length && dateOf(ss[0]) ? x.date < dateOf(ss[0]) : false)));
     for (const x of inW) { const pb = Math.max(-1, ...prior.filter(y => y.r === x.r).map(y => y.c)); if (x.c > pb && !recs.some(r => r.l === l && r.r === x.r && r.c >= x.c)) recs.push({l, r:x.r, c:x.c, first:pb < 0}); } }
   return {ss, items, recs};
@@ -1543,7 +1635,7 @@ function weekHtml(){
   const blocs = progOrder.filter(b => S.some(s => s.bloc === b && s.faite)).concat(progOrder.filter(b => b === activeBloc())).filter((b, i, a) => a.indexOf(b) === i).sort(byRank).reverse();
   const ws = weeksOfBloc(sel.b), {ss, items, recs} = weekView(sel), done = ss.filter(s => s.faite).length, st = dateOf(ss[0] || {});
   const wk = weekMeta[(ss[0] || {}).sheet + "|" + sel.w], bil = wk && BILAN_CRIT.filter(k => wk.vals[k]).map(k => [k, wk.vals[k]]);
-  const comp = LIFTS.map(l => { const L = items.filter(x => x.o.lift === l && x.comp); if (!L.length) return null; const t = L.reduce((a, x) => x.top.e1rmBest > a.top.e1rmBest ? x : a, L[0]); return {l, t}; }).filter(Boolean);
+  const comp = shownLifts().map(l => { const L = items.filter(x => x.o.lift === l && x.comp); if (!L.length) return null; const t = L.reduce((a, x) => x.top.e1rmBest > a.top.e1rmBest ? x : a, L[0]); return {l, t}; }).filter(Boolean);
   const others = items.filter(x => !x.comp).sort((a, b) => (b.o.lift ? 1 : 0) - (a.o.lift ? 1 : 0));
   const delta = (d, u) => d === null ? `<span class="muted small">1re fois</span>` : `<span class="small" style="color:${d > .05 ? "var(--chalk)" : "var(--dust)"}">${d > .05 ? "+" : ""}${fmt(d, 1).replace("-", "−")}${u}</span>`;
   const setTxt = (x, l) => `${fmt(x.c)} kg × ${x.r}${x.rpe ? " @" + fmt(x.rpe) : ""}`;
@@ -1558,8 +1650,8 @@ function weekHtml(){
     <p class="muted tiny" style="margin-top:8px">Écart comparé à la dernière fois que tu as fait le même exercice avant cette semaine.</p>`;
 }
 function rProg(){
-  const t = total(), r = risOf(t, bw());
-  const oT = LIFTS.reduce((s, l) => s + ((l === "MU" && !muOn()) ? 0 : (D.objectifs[l] || best(l) || 0)), 0);
+  const cd = curDisc(), t = totalOf(cd), r = scoreOf(cd, t, bw()), bf = cd === "power" && equipped() ? null : classicOnly;
+  const oT = goalOf(cd), sd = cd === "power" ? 2 : 1;
   let exHtml = `<div class="empty"><div class="spin"></div><p class="small">Lecture de tout l'historique de ta prog…</p></div>`;
   if (allLoaded) {
     const ab = activeBloc(), cur = new Set(S.filter(s => s.bloc === ab).flatMap(s => s.exercices.map(exKey)));
@@ -1570,13 +1662,13 @@ function rProg(){
     exHtml = `${now.length ? `<div class="list">${now.map(rowEx).join("")}</div>` : `<p class="muted small">Aucune performance notée pour les exercices du ${esc(blocLow(ab))}. Lance une séance pour commencer.</p>`}
       ${old.length ? `<details style="margin-top:14px"><summary class="small muted">Anciens exercices (${old.length})</summary><div class="list" style="margin-top:6px">${old.map(rowEx).join("")}</div></details>` : ""}`;
   } else ensureAllBlocs().then(() => { if (tab === "prog") rProg(); }).catch(() => {});
-  const seg = `<div class="seg3">${["SQUAT","DIP","PULL","MU"].filter(l => best(l)).map((l, i) => `<i style="width:${(best(l) / (oT || 1) * 100).toFixed(1)}%;background:rgba(255,255,255,${[1, .75, .55, .4][i]})"></i>`).join("")}</div>`;
+  const seg = `<div class="seg3">${(cd === "power" ? ["DEADLIFT","SQUAT","BENCH"] : ["SQUAT","DIP","PULL","MU"]).filter(l => best(l, bf)).map((l, i) => `<i style="width:${(best(l, bf) / (oT || 1) * 100).toFixed(1)}%;background:rgba(255,255,255,${[1, .75, .55, .4][i]})"></i>`).join("")}</div>`;
   $("#v-prog").innerHTML = `
-    ${heroCard({small:"Mon total", big:`${fmt(t)}<small>kg</small>`, sub:`RIS ${fmt(r, 1)} · objectif ${fmt(oT, 1)} kg`, extra:seg, deco:false})}
-    <div class="tiles2" style="margin-top:12px"><div><p class="muted small">Total visé</p><p class="show">${fmt(oT, 2)}</p></div><div><p class="muted small">RIS visé</p><p class="show">${fmt(risOf(oT, bw()), 1)}</p></div></div>
+    ${discSegHtml(10)}
+    ${heroCard({small:cd === "power" ? `Mon total power · ${equipped() ? "equipped" : "classic"}` : "Mon total", big:`${fmt(t)}<small>kg</small>`, sub:`${scoreName(cd)} ${fmt(r, sd)} · objectif ${fmt(oT, 1)} kg`, extra:seg, deco:false})}
+    <div class="tiles2" style="margin-top:12px"><div><p class="muted small">Total visé</p><p class="show">${fmt(oT, 2)}</p></div><div><p class="muted small">${scoreName(cd)} visé</p><p class="show">${fmt(scoreOf(cd, oT, bw()), sd)}</p></div></div>
     <h2 class="h2">Mouvements de compétition</h2>
-    <div>${["PULL","DIP","SQUAT","MU"].map(l => { const b = best(l), o = D.objectifs[l], lock = l === "MU" && !muOn();
-      if (lock) return `<button class="vrow" data-act="openLift" data-l="${l}"><span class="d10" style="--c:transparent;box-shadow:inset 0 0 0 2px var(--mu)"></span><span class="grow"><b style="color:var(--steel-hi)">${LNAME[l]}</b></span><span class="muted small">à débloquer</span></button>`;
+    <div>${(cd === "power" ? POWER_LIFTS : ["PULL","DIP","SQUAT","MU"]).map(l => { const b = best(l, bf), o = D.objectifs[l];
       return `<button class="liftrow" data-act="openLift" data-l="${l}"><span class="top"><span class="d10" style="--c:${LCOL[l]}"></span><b>${LNAME[l]}</b><span class="val">${kg(b)}</span></span>
         <span class="bar" style="display:block;--c:${LCOL[l]}"><i style="width:${o && b ? pct(b, o) : 0}%"></i></span>
         <span class="meta"><span>${o ? "objectif " + kg(o) : "pas encore d'objectif"}</span><span>${o && b !== null ? (o <= b ? "atteint" : "encore " + fmt(o - b, 2) + " kg") : ""}</span></span></button>`; }).join("")}</div>
@@ -1636,18 +1728,18 @@ function volumeHtml(){
 }
 function drawVolume(){
   const W = volumeWeeks(); if (!W.length) return;
-  const ls = LIFTS.filter(l => W.some(w => w.t[l]));
+  const ls = ALL_LIFTS.filter(l => W.some(w => w.t[l]));
   barChart("c-vol", W.map(w => w.label), ls.map(l => ({label:LNAME[l], data:W.map(w => Math.round(w.t[l])), color:getCss(LCOL[l])})), " kg");
 }
 
 /* ---------- Fiche mouvement ---------- */
 function rLiftPage(l){
   const b = best(l), o = D.objectifs[l];
-  const hist = D.prs.filter(p => p.lift === l).slice().reverse(), nr = record("NR BE", l), wr = record("WR", l), lock = l === "MU" && !muOn();
+  const hist = D.prs.filter(p => p.lift === l).slice().reverse(), nr = record("NR BE", l), wr = record("WR", l), lock = false, oslRec = LIFTS.includes(l) && streetOn();
   return `<div class="page" role="dialog" aria-label="${LNAME[l]}"><div class="wrap">
     <div class="pagebar"><button class="iconbtn" data-act="closePage" aria-label="Retour"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button>
       <span class="row" style="gap:8px;font-weight:700"><span class="disc" style="--c:${LCOL[l]}"></span>${LNAME[l]}</span><span style="width:44px" aria-hidden="true"></span></div>
-    ${heroCard({color:LCOL[l], small:`${LNAME[l]} · record perso${!lock && hist.length ? " · " + dlong(D.prs.filter(p => p.lift === l && p.reps === 1).sort((a, c) => c.charge - a.charge)[0]?.date || hist[0].date) : ""}`, big:lock ? "—" : `${fmt(b)}<small>kg</small>`, sub:!lock && BW_LIFTS.includes(l) && bw() ? fmt(b + bw(), 1) + " kg avec ton poids de corps" : (lock ? "à débloquer" : "")})}
+    ${heroCard({color:LCOL[l], small:`${LNAME[l]} · record perso${!lock && hist.length ? " · " + dlong(D.prs.filter(p => p.lift === l && p.reps === 1).sort((a, c) => c.charge - a.charge)[0]?.date || hist[0].date) : ""}`, big:b === null ? "—" : `${fmt(b)}<small>kg</small>`, sub:b === null ? (LIFTS.includes(l) && streetOn() ? "Pas encore de record : 0 kg dans ton total" : "Pas encore de record") : BW_LIFTS.includes(l) && bw() ? fmt(b + bw(), 1) + " kg avec ton poids de corps" : ""})}
     ${lock ? "" : repTableHtml(l)}
     ${lock ? `<div class="panel" style="margin-top:16px"><p>Ton muscle-up n'est pas encore acquis. Active-le dans les réglages dès que tu l'as, il entrera dans ton total.</p><button class="btn ghost" style="margin-top:12px" data-act="settings">Ouvrir les réglages</button></div>` : `
 
@@ -1662,11 +1754,12 @@ function rLiftPage(l){
     <div class="chips">${[["1rm","Tes PR"],["e1rm","e1RM de la prog"]].map(([k, t]) => `<button class="chip" aria-pressed="${liftMetric === k}" data-act="liftMetric" data-k="${k}" data-l="${l}">${t}</button>`).join("")}</div>
     <div class="panel" style="margin-top:10px"><canvas id="c-lift" aria-label="Historique"></canvas></div>
 
-    <h2 class="h2">Face aux records <span class="muted">${cat()} kg</span></h2>
+    ${oslRec ? `    <h2 class="h2">Face aux records <span class="muted">${cat()} kg</span></h2>
     <div>${(() => { const top = Math.max(b || 0, ...[nr, wr].filter(Boolean).map(x => x.valeur)) || 1;
       return `<div class="rec" style="margin-top:0"><div class="row"><b>Toi</b><b>${fmt(b)}</b></div><div class="bar" style="--c:${LCOL[l]}"><i style="width:${(b || 0) / top * 100}%"></i></div></div>`
         + [["Record de Belgique", nr], ["Record du monde", wr]].map(([lab, x]) => x ? `<div class="rec"><div class="row"><span>${lab} · ${esc(x.detenteur)}</span><span style="color:var(--steel-hi)">${fmt(x.valeur)}</span></div><div class="bar" style="--c:#5B5F67"><i style="width:${x.valeur / top * 100}%"></i></div></div>` : `<p class="muted small rec">${lab} : ${lab.includes("Belgique") ? "aucune perf belge dans les tableaux publiés." : "pas de record dans cette catégorie."}</p>`).join(""); })()}
-      <p class="muted tiny" style="margin-top:12px">Source : <a href="https://rankings.officialstreetlifting.com/records/${sexe() === "F" ? "female" : "male"}/classes/${cat() > 0 ? "+" + cat() : cat()}kg" target="_blank" rel="noopener">Official Streetlifting, records ${sexe() === "F" ? "femmes" : "hommes"} ${cat() > 0 ? "+" + cat() : cat()} kg</a> (relevé du 20/10/2026). Record de Belgique : meilleure perf belge de leurs tableaux.</p></div>
+      <p class="muted tiny" style="margin-top:12px">Source : <a href="https://rankings.officialstreetlifting.com/records/${sexe() === "F" ? "female" : "male"}/classes/${cat() > 0 ? "+" + cat() : cat()}kg" target="_blank" rel="noopener">Official Streetlifting, records ${sexe() === "F" ? "femmes" : "hommes"} ${cat() > 0 ? "+" + cat() : cat()} kg</a> (relevé du 20/10/2026). Record de Belgique : meilleure perf belge de leurs tableaux.</p></div>` : `<h2 class="h2">Face aux records</h2>
+    <p class="muted small">Records IPF de Belgique et du monde : pas encore affichés. L'app n'utilise que des listes officielles et datées, et aucune n'est publiée sous une forme que l'app peut reprendre pour l'instant.</p>`}
 
     <h2 class="h2">Ajouter un record</h2>
     <p class="muted small" style="margin:-6px 0 8px">Pour une perf absente de ta prog : charge et nombre de reps. Elle compte dans le tableau des records et dans le 1RM estimé.</p>
@@ -1801,6 +1894,10 @@ function rAgenda(){
   $("#v-agenda").innerHTML = `${agendaSegHtml()}
     ${nc ? heroCard({small:`${esc(nc.nom)}${nc.tbc ? " · date à confirmer" : ""}`, big:days(t, nc.date) === 0 ? "Jour J" : "J−" + days(t, nc.date), sub:`${cap(dlong(nc.date))}${nc.lieu ? ", " + esc(nc.lieu) : ""}`}) : `<div class="emptycard" style="margin-top:14px"><b>Aucune compétition prévue</b><p>Ajoute ta prochaine compétition plus bas : l'app compte les jours et prépare ta checklist.</p></div>`}
     ${prep ? prepHtml(nc) : ""}
+    ${powerOn() ? `<h2 class="h2">Tes catégories</h2><div class="group" style="background:var(--deck)">
+      ${streetOn() ? `<button class="catrow" data-act="catPick" data-k="street"><span class="grow"><b>Street lifting</b><span>Official Streetlifting</span></span><span class="val">${catTxt(cat()).replace(" kg", "<small>kg</small>")}</span>${CHEV}</button>` : ""}
+      <button class="catrow" data-act="catPick" data-k="power"><span class="grow"><b>Powerlifting</b><span>IPF · ${equipped() ? "equipped" : "classic"}</span></span><span class="val">${catTxt(catIpf()).replace(" kg", "<small>kg</small>")}</span>${CHEV}</button>
+      <div class="catrow"><span class="grow"><b>Âge</b><span>${birth() ? (myAges().length ? myAges().map(a => AGE_NAME[a]).join(" et ") : "Moins de 14 ans") : "Date de naissance à ajouter dans les réglages"}</span></span><span class="val" style="font-size:22px">${myAges().length ? AGE_NAME[myAges()[0]] : "—"}</span></div></div>` : ""}
     <h2 class="h2">${cap(MOIS_L[m - 1])} ${y}<span class="row" style="gap:6px"><button class="iconbtn" data-act="month" data-d="-1" aria-label="Mois précédent">‹</button><button class="iconbtn" data-act="month" data-d="1" aria-label="Mois suivant">›</button></span></h2>
     <div><div class="cal">${["L","M","M","J","V","S","D"].map(d => `<div class="dh">${d}</div>`).join("")}${cells}</div>
       <p class="muted tiny" style="margin-top:10px">Bleu : compétition. Point blanc : séance faite ; cercle gris : séance prévue.</p></div>
@@ -1819,7 +1916,7 @@ function rAgenda(){
     </div>`;
 }
 function prepHtml(c){
-  const lim = catLimit(), wt = weightTrend(), proj = wt ? wt.at(c.date) : null, ch = D.checks.filter(x => x.date === c.date), att = LIFTS.filter(l => l !== "MU" || muOn());
+  const lim = catLimit(), wt = weightTrend(), proj = wt ? wt.at(c.date) : null, ch = D.checks.filter(x => x.date === c.date)
   return `<h2 class="h2">Préparation</h2>
     <div class="panel">
       <p style="font-weight:700">Pesée</p>
@@ -1843,9 +1940,9 @@ function renderLayer(){
   if (page) h += page.type === "lift" ? rLiftPage(page.l) : rExPage(page.k);
   if (sheet === "rest") h += restPill();
   else if (sheet) h += `<div class="scrim" data-act="closeSheet"></div><div class="sheet" role="dialog"><div class="wrap"><div class="grab"></div>${rSheet()}</div></div>`;
-  const keepScroll = document.querySelector(".page, .live"), st = keepScroll ? keepScroll.scrollTop : 0;
+  const keepScroll = document.querySelector(".page, .live, .sheet"), ksel = keepScroll ? "." + keepScroll.classList[0] : "", st = keepScroll ? keepScroll.scrollTop : 0;
   $("#layer").innerHTML = h;
-  const nw = document.querySelector(".page, .live"); if (nw && keepScroll) { nw.style.animation = "none"; nw.scrollTop = st; }
+  const nw = ksel && document.querySelector(ksel); if (nw && keepScroll) { nw.style.animation = "none"; nw.scrollTop = st; const sc = nw.previousElementSibling; if (ksel === ".sheet" && sc && sc.classList.contains("scrim")) sc.style.animation = "none"; }
   document.body.style.overflow = (live || page) ? "hidden" : "";
   if (page && page.type === "lift") drawLiftCharts(page.l);
   if (page && page.type === "ex") drawExChart(page.k);
@@ -1858,6 +1955,7 @@ function restPill(){
 }
 function rSheet(){
   if (sheet.startsWith("cl|")) return clInfoHtml(sheet.slice(3));
+  if (sheet.startsWith("cat|")) return catPickHtml(sheet.slice(4));
   if (sheet === "meal") return mealSaveHtml();
   if (sheet === "meals") return mealsHtml();
   if (sheet.startsWith("rm|")) { const [, l, n] = sheet.split("|"), N = +n;
@@ -1911,19 +2009,52 @@ function rSheet(){
 })();
 function openSheet(s){ sheet = s; renderLayer(); if (s.startsWith("share|")) drawShare(s.slice(6)); }
 function closeSheet(){ if (sheet === "pdc" && live) { live.pdc = true; persistLive(); } sheet = null; renderLayer(); }
+const CHEV = `<svg class="chv" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>`;
+const swRow = (title, sub, on, act) => `<button class="prefrow" role="switch" aria-checked="${on}" ${act}><span class="grow"><b>${title}</b>${sub ? `<span>${sub}</span>` : ""}</span><span class="sw" aria-hidden="true"></span></button>`;
+const ageTxt = () => { const a = myAges(); return a.length ? a.map(x => AGE_NAME[x]).join(" et ") : ""; };
+/* Réglages (maquette A, choix d'Alane du 22/10) : disciplines, catégories, classements, puis le reste. */
 function settingsHtml(){
-  const t = lastSync ? new Date(lastSync) : null;
+  const t = lastSync ? new Date(lastSync) : null, st = streetOn(), pw = powerOn(), b = birth();
+  const clv = k => norm(D.profil["classement_" + k]) !== "NON";
+  const extra = ALL_LIFTS.filter(l => !((st && LIFTS.includes(l)) || (pw && POWER_LIFTS.includes(l))));
   return `<div class="row"><p class="show t-m">Réglages</p><button class="btn sm ghost" data-act="sync">Synchroniser</button></div>
     <p class="muted small" style="margin-top:4px">${t ? "Synchronisé à " + String(t.getHours()).padStart(2, "0") + ":" + String(t.getMinutes()).padStart(2, "0") : "Pas encore synchronisé"}. L'app relit tes Sheets à chaque ouverture.</p>
-    <div class="grid2"><div><label for="smu">Muscle-up acquis</label><select id="smu" data-chg="prof" data-k="mu_acquis"><option value="NON" ${muOn() ? "" : "selected"}>Non</option><option value="OUI" ${muOn() ? "selected" : ""}>Oui</option></select></div>
-      <div><label for="ssx">Sexe (pour le RIS)</label><select id="ssx" data-chg="prof" data-k="sexe"><option value="H" ${sexe() === "H" ? "selected" : ""}>Homme</option><option value="F" ${sexe() === "F" ? "selected" : ""}>Femme</option></select></div></div>
-    ${Object.keys(blocNames).length ? `<label for="sbl">Bloc en cours</label><select id="sbl" data-chg="blocActif"><option value="">Le dernier onglet de la prog</option>${progOrder.map(n => `<option value="${n}" ${n === chosenBloc() ? "selected" : ""}>${esc(blocLabel(n))}</option>`).join("")}</select>` : ""}
-    <label for="spays">Pays</label><select id="spays" data-chg="prof" data-k="pays">${paysOptions(monPays())}</select>
-    <label for="scat">Catégorie de poids</label><select id="scat" data-chg="prof" data-k="categorie">${catsFor(sexe()).map(c => `<option value="${c}" ${c === cat() ? "selected" : ""}>${c > 0 ? "+" + c : c} kg</option>`).join("")}</select>
+
+    <h2 class="h2">Tes disciplines</h2>
+    <div class="group">${swRow("Street lifting", "Muscle-up, tractions, dips, squat · score RIS", st, `data-act="discToggle" data-k="street"`)}${swRow("Powerlifting", "Squat, Bench, Deadlift · score IPF GL", pw, `data-act="discToggle" data-k="power"`)}
+      ${pw ? `<div class="prefrow" style="display:block;padding:14px 0"><b style="font:600 16px var(--f-text)">En powerlifting, tu tires</b>
+        <div class="segc" role="group" aria-label="Classic ou equipped" style="background:var(--floor);margin-top:10px">${[["CLASSIC", "Classic"], ["EQUIPPED", "Equipped"]].map(([k, x]) => `<button aria-pressed="${(equipped() ? "EQUIPPED" : "CLASSIC") === k}" data-act="powerMode" data-k="${k}">${x}</button>`).join("")}</div>
+        <p class="muted small" style="margin-top:8px">Equipped : combinaison et bandes. Le score IPF GL n'est pas le même.</p></div>` : ""}</div>
+
+    <h2 class="h2">Toi</h2>
+    <label style="margin-top:0">Sexe</label>
+    <div class="segc" role="group" aria-label="Sexe" style="margin-top:0;background:var(--deck2)">${[["H", "Homme"], ["F", "Femme"]].map(([k, x]) => `<button aria-pressed="${sexe() === k}" data-act="sexSet" data-k="${k}">${x}</button>`).join("")}</div>
+    <div class="grid2"><div><label for="snai">Date de naissance</label><input id="snai" type="date" value="${b}" data-chg="birth"></div>
+      <div><label for="spays">Pays</label><select id="spays" data-chg="prof" data-k="pays">${paysOptions(monPays())}</select></div></div>
+
+    <h2 class="h2">Catégories</h2>
+    <div class="group">
+      ${st ? `<button class="catrow" data-act="catPick" data-k="street" data-from="settings"><span class="grow"><b>Street lifting</b><span>${catAutoOn("categorie") ? "Auto d'après ta pesée" : "Choisie à la main"}</span></span><span class="val">${catTxt(cat()).replace(" kg", "<small>kg</small>")}</span>${CHEV}</button>` : ""}
+      ${pw ? `<button class="catrow" data-act="catPick" data-k="power" data-from="settings"><span class="grow"><b>Powerlifting</b><span>${catAutoOn("categorie_ipf") ? "Auto d'après ta pesée" : "Choisie à la main"}</span></span><span class="val">${catTxt(catIpf()).replace(" kg", "<small>kg</small>")}</span>${CHEV}</button>` : ""}
+      <div class="catrow"><span class="grow"><b>Âge</b><span>${b ? (ageTxt() ? "Catégories IPF, d'après ta date de naissance" : "Moins de 14 ans : pas de catégorie IPF") : "Ajoute ta date de naissance plus haut"}</span></span><span class="val" style="font-size:22px">${esc(myAges().length ? AGE_NAME[myAges()[0]] : "—")}</span></div>
+    </div>
+
+    <h2 class="h2">Classements entre amis</h2>
+    <div class="group">${st ? swRow("Apparaître en street", "Ton total et ton RIS", clv("street"), `data-act="clVis" data-k="street"`) : ""}${pw ? swRow("Apparaître en powerlifting", "Ton total et tes points IPF GL", clv("power"), `data-act="clVis" data-k="power"`) : ""}</div>
+    <p class="muted small" style="margin-top:10px">Ta date de naissance reste dans ton carnet : le classement n'affiche que ta catégorie d'âge.</p>
+
+    ${extra.length ? `<h2 class="h2">Mouvements suivis en plus <span class="muted">sans total</span></h2>
+    <div class="chips" style="flex-wrap:wrap">${extra.map(l => `<button class="chip" aria-pressed="${suivis().includes(l)}" data-act="suiviToggle" data-l="${l}">${suivis().includes(l) ? "" : "+ "}${LNAME[l]}</button>`).join("")}</div>
+    <p class="muted small" style="margin-top:8px">Leurs records et leur 1RM estimé sont gardés, sans compter dans un total.</p>` : ""}
+
+    <h2 class="h2">Le reste</h2>
+    ${Object.keys(blocNames).length ? `<label for="sbl" style="margin-top:0">Bloc en cours</label><select id="sbl" data-chg="blocActif"><option value="">Le dernier onglet de la prog</option>${progOrder.map(n => `<option value="${n}" ${n === chosenBloc() ? "selected" : ""}>${esc(blocLabel(n))}</option>`).join("")}</select>` : ""}
     <div class="grid2"><div><label for="sdc">Début de la prog</label><input id="sdc" type="date" value="${D.profil.debut_coaching || ""}" data-chg="prof" data-k="debut_coaching"></div>
-      <div><label for="sds">Début du street lifting</label><input id="sds" type="date" value="${D.profil.debut_street || ""}" data-chg="prof" data-k="debut_street"></div></div>
+      <div><label for="sds">${st ? "Début du street lifting" : "Début de la muscu"}</label><input id="sds" type="date" value="${D.profil.debut_street || ""}" data-chg="prof" data-k="debut_street"></div></div>
     <h2 class="h2" style="font-size:20px">Méthodes et sources</h2>
     <p class="src"><b style="color:var(--chalk)">RIS</b> : formule de Waris Radji et Mathieu Ardoin, édition 2026 (constantes publiées dans le code d'<a href="https://openstreetlifting.org" target="_blank" rel="noopener">OpenStreetlifting</a>). <a href="https://warisradji.com/ris/" target="_blank" rel="noopener">Calculateur officiel</a>.</p>
+    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">IPF GL</b> : formule officielle de l'IPF, coefficients 2020 toujours en vigueur (<a href="https://www.powerlifting.sport/rules/codes/info/ipf-formula" target="_blank" rel="noopener">IPF GL Formula</a>). Classic ou equipped selon ton réglage.</p>
+    <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Catégories</b> : street lifting, <a href="https://www.officialstreetlifting.com/s/OSL_OFFICIAL_RULEBOOK_2026_v16.pdf" target="_blank" rel="noopener">règlement Official Streetlifting v1.6</a> (octobre 2026) ; powerlifting et âges, <a href="https://www.powerlifting.sport/rules/codes/info/technical-rules" target="_blank" rel="noopener">règlement technique IPF</a> en vigueur depuis le 1er mars 2026. Un poids égal à la limite reste dans la catégorie ; les âges se comptent en année civile.</p>
     <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Records</b> : <a href="https://rankings.officialstreetlifting.com/" target="_blank" rel="noopener">Official Streetlifting</a>, tableaux de records par catégorie, relevés le 20/10/2026. Record de Belgique : meilleure perf belge de ces tableaux.</p>
     <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">1RM estimé</b> : table RPE de Reactive Training Systems (Tuchscherer), la même que la colonne E1RM de ta prog : % du 1RM selon les reps et les reps en réserve (RIR = 10 − RPE, <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al., 2016</a>). Calcul sur la charge réelle (poids de corps + lest) pour muscle-up, tractions et dips. RPE pris en compte de 5 à 10 (plus on est loin de l'échec, moins l'effort se juge bien : <a href="https://www.strongerbyscience.com/reps-in-reserve" target="_blank" rel="noopener">synthèse Stronger by Science</a>). Il part de ta série la plus lourde de 2 reps ou plus (à charge égale, la meilleure estimation ; un 1 rep à fond, c'est déjà ton PR) : une série légère à beaucoup de reps ne gonfle pas l'estimation. Séries de 10 reps au plus (<a href="https://researchconnect.suny.edu/en/publications/accuracy-of-prediction-equations-for-determining-one-repetition-m/" target="_blank" rel="noopener">Mayhew et al., 2008</a>).</p>
     <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">Aliments</b> : <a href="https://ciqual.anses.fr/" target="_blank" rel="noopener">table Ciqual 2025 de l'Anses</a> (Licence Ouverte), portions courantes de l'étude INCA3 ; produits de marque : <a href="https://world.openfoodfacts.org/" target="_blank" rel="noopener">Open Food Facts</a> (base collaborative, ODbL).</p>
@@ -2272,12 +2403,13 @@ async function saveWeight(v, dt, toRecap){
 }
 async function addPR(l, c, r, d, n, rpe){
   const before = best(l);
-  try { await appendVals(APP_ID, "PR!A1:F1", [[d, l, c, r, n || "", rpe || ""]]);
-    D.prs.push({date:d, lift:l, charge:c, reps:r, note:n || "", rpe:rpe || null}); D.prs.sort((a, b) => a.date < b.date ? -1 : 1); saveCache();
+  const eq = powerOn() && equipped() && POWER_LIFTS.includes(l);   /* perf faite en equipped : notée « EQ » en colonne G */
+  try { await appendVals(APP_ID, "PR!A1:G1", [[d, l, c, r, n || "", rpe || "", eq ? "EQ" : ""]]);
+    D.prs.push({date:d, lift:l, charge:c, reps:r, note:n || "", rpe:rpe || null, eq}); D.prs.sort((a, b) => a.date < b.date ? -1 : 1); saveCache();
     if (clOn()) clSync().catch(() => {});
     const nb = best(l), isPr = r === 1 && nb !== null && (before === null || nb > before);
     firstPaint = true; render();
-    if (isPr) { toast("Nouveau record : +" + fmt(nb - (before || 0)) + " kg en " + LNAME[l].toLowerCase()); const el = $("#liftbig"); if (el) el.classList.add("burst"); } else toast("PR enregistré");
+    if (isPr) { toast(before === null ? "Premier record en " + LNAME[l].toLowerCase() + " : " + fmt(nb) + " kg" : "Nouveau record : +" + fmt(nb - before) + " kg en " + LNAME[l].toLowerCase()); const el = $("#liftbig"); if (el) el.classList.add("burst"); } else toast("PR enregistré");
   } catch(e){ toast(errMsg(e) + ambig(e), true); }
 }
 async function doImport(){
@@ -2312,8 +2444,12 @@ const paysOptions = sel => PAYS.map(c => [c, paysNom(c)]).sort((a, b) => a[0] ==
   .map(([c, n]) => `<option value="${c}" ${c === sel ? "selected" : ""}>${esc(n)}</option>`).join("");
 const ordinal = n => n === 1 ? "1er" : n + "e";
 function myStats(){
-  const t = total(), r = risOf(t, bw()), v = l => { const b = best(l); return b === null || b === undefined ? null : b; };
-  return {prenom:D.profil.prenom || "", pays:monPays(), sexe:sexe(), cat:cat(), MU:v("MU"), PULL:v("PULL"), DIP:v("DIP"), SQUAT:v("SQUAT"), total:t || 0, ris:r ? Math.round(r * 10) / 10 : null};
+  const t = total(), r = risOf(t, bw()), v = (l, f) => { const b = best(l, f); return b === null || b === undefined ? null : b; };
+  const pf = equipped() ? null : classicOnly, tp = totalPower(), g = glOf(tp, bw()), vis = k => norm(D.profil["classement_" + k]) !== "NON";
+  /* v28 : seule la catégorie d'âge est envoyée, jamais la date de naissance */
+  return {prenom:D.profil.prenom || "", pays:monPays(), sexe:sexe(), cat:cat(), MU:v("MU", classicOnly), PULL:v("PULL", classicOnly), DIP:v("DIP", classicOnly), SQUAT:v("SQUAT", classicOnly), total:t || 0, ris:r ? Math.round(r * 10) / 10 : null,
+    disc:discStr(streetOn(), powerOn()), BENCH:v("BENCH", pf), DEADLIFT:v("DEADLIFT", pf), SQUATP:v("SQUAT", pf), totalp:tp || 0, gl:g ? Math.round(g * 100) / 100 : null, mode:equipped() ? "equipped" : "classic",
+    catp:powerOn() ? catIpf() : null, age:myAges().join(","), vs:streetOn() && vis("street"), vp:powerOn() && vis("power")};
 }
 /* Envoie tes records (le service reconnaît ton compte Google) et récupère le classement de tout le monde. */
 function clSync(){
@@ -2335,10 +2471,20 @@ function clSync(){
   })().finally(() => { clBusy = null; });
   return clBusy;
 }
-function clRows(){
-  return ((CL && CL.rows) || []).map((r, k) => ({k, nom:String(r.nom || "").trim() || "?", pays:String(r.pays || "").toUpperCase(), sexe:r.sexe, cat:num(r.cat), MU:num(r.MU), PULL:num(r.PULL), DIP:num(r.DIP), SQUAT:num(r.SQUAT),
-      total:num(r.total) || 0, ris:num(r.ris), maj:r.maj ? toIso(r.maj) : "", me:!!r.me}))
-    .sort((a, b) => b.total - a.total || (b.ris || 0) - (a.ris || 0) || a.nom.localeCompare(b.nom, "fr"));
+/* Classements séparés (v28) : street au RIS, powerlifting aux points IPF GL ; tri au total possible. Filtre par catégorie d'âge IPF. */
+let clSort = "score", clAge = "";
+function clRows(d){
+  d = d || curDisc();
+  const all = ((CL && CL.rows) || []).map((r, k) => { const disc = String(r.disc || "street");
+    return {k, nom:String(r.nom || "").trim() || "?", pays:String(r.pays || "").toUpperCase(), sexe:r.sexe, cat:num(r.cat), MU:num(r.MU), PULL:num(r.PULL), DIP:num(r.DIP), SQUAT:num(r.SQUAT),
+      ris:num(r.ris), maj:r.maj ? toIso(r.maj) : "", me:!!r.me, disc, BENCH:num(r.BENCH), DEADLIFT:num(r.DEADLIFT), SQUATP:num(r.SQUATP) ?? num(r.SQUAT), totalp:num(r.totalp) || 0, gl:num(r.gl),
+      mode:String(r.mode || "classic"), catp:num(r.catp), ages:String(r.age || "").split(",").filter(Boolean),
+      vs:r.vs === undefined || r.vs === "" ? /street/.test(disc) : r.vs === true || r.vs === "OUI", vp:r.vp === true || r.vp === "OUI", totalS:num(r.total) || 0}; });
+  return all.filter(x => d === "power" ? x.vp && /power/.test(x.disc) : x.vs)
+    .filter(x => !clAge || x.ages.includes(clAge))
+    .map(x => Object.assign(x, d === "power" ? {total:x.totalp, score:x.gl} : {total:x.totalS, score:x.ris}))
+    .sort((a, b) => clSort === "total" ? b.total - a.total || (b.score || 0) - (a.score || 0) || a.nom.localeCompare(b.nom, "fr")
+      : (b.score || 0) - (a.score || 0) || b.total - a.total || a.nom.localeCompare(b.nom, "fr"));
 }
 const agendaSegHtml = () => `<div class="segc" style="margin:6px 0 4px">${[["compet", "Compétitions"], ["amis", "Amis"]].map(([k, t]) => `<button aria-pressed="${agendaSeg === k}" data-act="agSeg" data-k="${k}">${t}</button>`).join("")}</div>`;
 function rAmis(){
@@ -2347,35 +2493,84 @@ function rAmis(){
   if (!CL) { el.innerHTML = seg + (clErr ? `<div class="emptycard" style="margin-top:14px"><b>Classement indisponible</b><p>${esc(clErr)}</p><button class="btn ghost" style="margin-top:14px" data-act="clRetry">Réessayer</button></div>`
       : `<div class="skel" style="height:240px;margin-top:14px"></div><div class="skel" style="height:120px;margin-top:12px"></div>`);
     if (!clErr) clSync().then(() => { if (tab === "agenda" && agendaSeg === "amis") rAmis(); }); return; }
-  const R = clRows(), mi = R.findIndex(x => x.me), me = mi >= 0 ? R[mi] : null;
+  const cd = curDisc(), R = clRows(cd), mi = R.findIndex(x => x.me), me = mi >= 0 ? R[mi] : null, sn = scoreName(cd), sd = cd === "power" ? 2 : 1;
+  const big = x => clSort === "total" ? `${fmt(x.total)}<small> kg</small>` : x.score ? fmt(x.score, sd) : "—";
+  const lab = x => clSort === "total" ? `${fmt(x.total)} kg` : x.score ? `${sn} ${fmt(x.score, sd)}` : "pas de score";
+  const agesHere = Object.keys(AGE_NAME).filter(a => clRows(cd).length && ((CL && CL.rows) || []).some(r => String(r.age || "").split(",").includes(a)));
   const pod = k => { const x = R[k], cls = "pod p" + (k + 1);
     if (!x) return `<div class="${cls} empty"><span class="pav">·</span><b class="pname muted">—</b><span class="ptot muted">&nbsp;</span><div class="pblock"><span>${k + 1}</span></div></div>`;
-    return `<button class="${cls}${x.me ? " me" : ""}" data-act="clInfo" data-k="${x.k}" aria-label="${ordinal(k + 1)} : ${esc(x.nom)}, ${fmt(x.total)} kg"><span class="pav">${esc(x.nom[0].toUpperCase())}<i class="pflag">${flagOf(x.pays)}</i></span>
-      <b class="pname">${esc(x.nom)}</b><span class="ptot">${fmt(x.total)}<small> kg</small></span><div class="pblock"><span>${k + 1}</span></div></button>`; };
-  const rest = R.slice(3).map((x, i) => `<button class="vrow clrow${x.me ? " me" : ""}" data-act="clInfo" data-k="${x.k}"><span class="rk">${i + 4}</span><span class="cflag">${flagOf(x.pays)}</span><span class="grow"><b>${esc(x.nom)}</b></span><span class="val">${fmt(x.total)} kg</span></button>`).join("");
-  el.innerHTML = seg + `
-    <div class="podium" role="list" aria-label="Podium">${pod(1)}${pod(0)}${pod(2)}</div>
-    ${me ? `<button class="mepos" data-act="clInfo" data-k="${me.k}"><span class="muted small">Ta position</span><span class="row" style="gap:10px;margin-top:4px"><b class="show t-m">${ordinal(mi + 1)}</b><span class="muted">sur ${R.length}</span><span class="grow"></span><span class="show t-s">${fmt(me.total)}<small style="font-size:.6em"> kg</small></span></span></button>`
-      : `<p class="muted small" style="margin-top:14px">Tu apparais au classement à ta prochaine synchro.</p>`}
-    ${rest ? `<h2 class="h2">Classement <span class="muted">au total</span></h2><div>${rest}</div>` : ""}
+    return `<button class="${cls}${x.me ? " me" : ""}" data-act="clInfo" data-k="${x.k}" aria-label="${ordinal(k + 1)} : ${esc(x.nom)}, ${lab(x)}"><span class="pav">${esc(x.nom[0].toUpperCase())}<i class="pflag">${flagOf(x.pays)}</i></span>
+      <b class="pname">${esc(x.nom)}</b><span class="ptot">${big(x)}</span><div class="pblock"><span>${k + 1}</span></div></button>`; };
+  const rest = R.slice(3).map((x, i) => `<button class="vrow clrow${x.me ? " me" : ""}" data-act="clInfo" data-k="${x.k}"><span class="rk">${i + 4}</span><span class="cflag">${flagOf(x.pays)}</span><span class="grow"><b>${esc(x.nom)}</b></span><span class="val">${clSort === "total" ? fmt(x.total) + " kg" : x.score ? fmt(x.score, sd) : "—"}</span></button>`).join("");
+  const chips = `<div class="chips" style="margin-top:10px">${[["score", "Au " + sn], ["total", "Au total"]].map(([k, t]) => `<button class="chip" aria-pressed="${clSort === k}" data-act="clSort" data-k="${k}">${t}</button>`).join("")}
+    ${agesHere.length ? `<span aria-hidden="true" style="width:1px;background:var(--seam);margin:6px 2px"></span>` + [["", "Tous les âges"]].concat(agesHere.map(a => [a, AGE_NAME[a]])).map(([k, t]) => `<button class="chip" aria-pressed="${clAge === k}" data-act="clAge" data-k="${k}">${t}</button>`).join("") : ""}</div>`;
+  el.innerHTML = seg + discSegHtml(10) + chips + (R.length ? `
+    <div class="podium" role="list" aria-label="Podium">${pod(1)}${pod(0)}${pod(2)}</div>` : `<div class="emptycard" style="margin-top:14px"><b>Personne ici pour l'instant</b><p>${clAge ? "Aucun membre dans cette catégorie d'âge." : cd === "power" ? "Les membres en powerlifting apparaissent dès leur prochaine synchro." : "Les membres apparaissent dès leur prochaine synchro."}</p></div>`) + `
+    ${me ? `<button class="mepos" data-act="clInfo" data-k="${me.k}"><span class="muted small">Ta position</span><span class="row" style="gap:10px;margin-top:4px"><b class="show t-m">${ordinal(mi + 1)}</b><span class="muted">sur ${R.length}</span><span class="grow"></span><span class="show t-s">${big(me).replace("<small>", '<small style="font-size:.6em">')}</span></span></button>`
+      : `<p class="muted small" style="margin-top:14px">${(cd === "power" ? powerOn() && norm(D.profil.classement_power) === "NON" : norm(D.profil.classement_street) === "NON") ? "Tu t'es retiré de ce classement (Réglages)." : "Tu apparais au classement à ta prochaine synchro."}</p>`}
+    ${rest ? `<h2 class="h2">Classement <span class="muted">${clSort === "total" ? "au total" : "au " + sn}</span></h2><div>${rest}</div>` : ""}
     ${clErr ? `<p class="muted small" style="margin-top:12px">${esc(clErr)} Dernier classement reçu affiché.</p>` : ""}
-    <p class="muted tiny" style="margin-top:14px">Tous les membres de l'app, classés au total (muscle-up compté s'il est acquis), puis au RIS en cas d'égalité. Mis à jour à chaque synchro, sans rien saisir.</p>`;
+    <p class="muted tiny" style="margin-top:14px">${cd === "power" ? "Membres en powerlifting, classés aux points IPF GL (classic et equipped ont chacun leur formule). Total : squat, bench, deadlift." : "Membres en street lifting, classés au RIS, qui compare les totaux quel que soit le poids de corps. Total : muscle-up, tractions, dips, squat."} Mis à jour à chaque synchro, sans rien saisir. Chacun peut se retirer dans ses réglages.</p>`;
 }
 function clInfoHtml(k){
-  const R = clRows(), i = R.findIndex(x => x.k === +k), x = R[i]; if (!x) return `<p>Membre introuvable.</p><button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`;
-  const lift = (l, v) => vrow(LNAME[l], l === "MU" && v === null ? "pas encore acquis" : "", v === null ? "—" : fmt(v) + " kg", LCOL[l]);
+  const cd = curDisc(), R = clRows(cd), i = R.findIndex(x => x.k === +k), x = R[i]; if (!x) return `<p>Membre introuvable.</p><button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`;
+  const lift = (l, v) => vrow(LNAME[l], "", v === null ? "—" : fmt(v) + " kg", LCOL[l]);
   return `<p class="muted">${ordinal(i + 1)} sur ${R.length} · ${flagOf(x.pays)} ${esc(paysNom(x.pays))}</p><p class="show t-l" style="margin-top:4px">${esc(x.nom)}${x.me ? ` <span class="muted small">(toi)</span>` : ""}</p>
-    <p class="muted small" style="margin-top:4px">${x.cat ? (x.cat > 0 ? "+" : "") + x.cat + " kg" : ""}${x.sexe ? " · " + (x.sexe === "F" ? "Femme" : "Homme") : ""}${x.maj ? " · mis à jour le " + dfr(x.maj) : ""}</p>
-    <div class="tiles2" style="margin-top:14px"><div><p class="muted small">Total</p><p class="show">${fmt(x.total)}<small style="font-size:.5em"> kg</small></p></div><div><p class="muted small">RIS</p><p class="show">${x.ris ? fmt(x.ris, 1) : "—"}</p></div></div>
-    <div style="margin-top:8px">${["MU", "PULL", "DIP", "SQUAT"].map(l => lift(l, x[l])).join("")}</div>
+    <p class="muted small" style="margin-top:4px">${[cd === "power" ? (x.catp ? catTxt(x.catp) + " IPF" : "") + (x.mode === "equipped" ? " · equipped" : " · classic") : (x.cat ? catTxt(x.cat) : ""), x.ages.length ? x.ages.map(a => AGE_NAME[a]).join(", ") : "", x.sexe ? (x.sexe === "F" ? "Femme" : "Homme") : "", x.maj ? "mis à jour le " + dfr(x.maj) : ""].filter(Boolean).join(" · ")}</p>
+    <div class="tiles2" style="margin-top:14px"><div><p class="muted small">Total</p><p class="show">${fmt(x.total)}<small style="font-size:.5em"> kg</small></p></div><div><p class="muted small">${scoreName(cd)}</p><p class="show">${x.score ? fmt(x.score, cd === "power" ? 2 : 1) : "—"}</p></div></div>
+    <div style="margin-top:8px">${(cd === "power" ? POWER_LIFTS : ["MU", "PULL", "DIP", "SQUAT"]).map(l => lift(l, cd === "power" && l === "SQUAT" ? x.SQUATP : x[l])).join("")}</div>
     <button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`;
 }
 Object.assign(ACT, {
   agSeg:d => { agendaSeg = d.k; window.scrollTo(0, 0); rAgenda(); },
   clInfo:d => openSheet("cl|" + d.k),
+  clSort:d => { clSort = d.k; rAmis(); },
+  clAge:d => { clAge = d.k; rAmis(); },
   clRetry:async () => { clErr = ""; rAmis(); await clSync(); rAmis(); }
 });
 { const _prof = CHG.prof; CHG.prof = async (d, el) => { await _prof(d, el); if (["pays", "sexe", "categorie", "mu_acquis", "prenom"].includes(d.k) && clOn()) clSync().catch(() => {}); }; }
+
+/* =====================================================================
+   PROFIL SPORTIF (v28) : disciplines, catégories, classements
+   ===================================================================== */
+async function profSet(pairs, msg){
+  try {
+    for (const [k, val] of pairs) { const i = raw.P.findIndex((r, j) => j > 0 && String(r[0]).trim() === k);
+      if (i > 0) { await putVals(APP_ID, `PROFIL!B${i + 1}`, [[val]]); raw.P[i][1] = val; } else { await appendVals(APP_ID, "PROFIL!A1:C1", [[k, val, ""]]); raw.P.push([k, val]); }
+      D.profil[k] = val; }
+    saveCache(); if (msg) toast(msg); render();
+    if (clOn()) clSync().catch(() => {});
+  } catch(e){ toast(errMsg(e), true); }
+}
+const discStr = (st, pw) => [st ? "street" : "", pw ? "power" : ""].filter(Boolean).join(",");
+/* Choix d'une catégorie : automatique (d'après la dernière pesée) ou à la main, pour viser celle du dessus ou du dessous. */
+function catPickHtml(arg){
+  const [k, from] = arg.split("|"), pw = k === "power", key = pw ? "categorie_ipf" : "categorie", auto = catAutoOn(key), cur = pw ? catIpf() : cat();
+  const list = pw ? catsIpfFor(sexe(), myAges().some(a => a === "SJ" || a === "JR")) : catsFor(sexe()), w = bw();
+  return `<p class="show t-m">${pw ? "Catégorie powerlifting" : "Catégorie street lifting"}</p>
+    <p class="muted small" style="margin-top:6px">${pw ? "Catégories IPF" : "Catégories Official Streetlifting"} ${sexe() === "F" ? "femmes" : "hommes"}. Un poids égal à la limite reste dans la catégorie.</p>
+    <div class="group" style="margin-top:14px">${swRow("Automatique", w ? `D'après ta dernière pesée : ${fmt(w, 1)} kg → ${catTxt(catAuto(w, list))}` : "Dès ta première pesée", auto, `data-act="catAuto" data-k="${k}"`)}</div>
+    <p class="muted small" style="margin-top:14px">Ou choisis-la toi-même :</p>
+    <div class="catgrid">${list.map(c => `<button aria-pressed="${!auto && c === cur}" data-act="catSet" data-k="${k}" data-c="${c}" aria-label="${catTxt(c)}">${c > 0 ? "+" + c : String(c).replace("-", "−")}</button>`).join("")}</div>
+    <button class="btn" style="margin-top:20px" data-act="${from === "settings" ? "settings" : "closeSheet"}">${from === "settings" ? "Retour aux réglages" : "Terminé"}</button>`;
+}
+Object.assign(ACT, {
+  discSel:d => { discSel = d.k; store.set("sl-disc", d.k); render(); },
+  discToggle:d => { const st = streetOn(), pw = powerOn(), ns = d.k === "street" ? !st : st, np = d.k === "power" ? !pw : pw;
+    if (!ns && !np) return toast("Garde au moins une discipline", true);
+    const pairs = [["disciplines", discStr(ns, np)]];
+    /* passage au powerlifting : catégorie IPF placée automatiquement d'après la pesée, modifiable ensuite */
+    profSet(pairs, np && !pw ? "Powerlifting ajouté" : ns && !st ? "Street lifting ajouté" : "Discipline retirée"); },
+  powerMode:d => profSet([["power_mode", d.k === "EQUIPPED" ? "equipped" : "classic"]], d.k === "EQUIPPED" ? "Powerlifting equipped" : "Powerlifting classic"),
+  sexSet:d => profSet([["sexe", d.k]], "Réglage enregistré"),
+  catPick:d => openSheet("cat|" + d.k + (d.from ? "|" + d.from : "")),
+  catAuto:d => { const key = d.k === "power" ? "categorie_ipf" : "categorie", on = catAutoOn(key);
+    profSet(on ? [[key + "_auto", "NON"], [key, String(d.k === "power" ? catIpf() : cat())]] : [[key + "_auto", "OUI"]], on ? "Catégorie à la main" : "Catégorie automatique"); },
+  catSet:d => { const key = d.k === "power" ? "categorie_ipf" : "categorie"; profSet([[key, String(d.c)], [key + "_auto", "NON"]], "Catégorie " + catTxt(+d.c)); },
+  clVis:d => { const k = "classement_" + d.k, on = norm(D.profil[k]) !== "NON"; profSet([[k, on ? "NON" : "OUI"]], on ? "Retiré du classement " + (d.k === "power" ? "powerlifting" : "street") : "Visible dans le classement"); },
+  suiviToggle:d => { const cur = suivis(), n = cur.includes(d.l) ? cur.filter(x => x !== d.l) : cur.concat(d.l); profSet([["suivis", n.join(",")]], cur.includes(d.l) ? LNAME[d.l] + " n'est plus suivi" : LNAME[d.l] + " suivi"); }
+});
+CHG.birth = (d, el) => { const v = toIso(el.value); if (!v || v > D.today) return toast("Date de naissance non valable", true); profSet([["naissance", v]], "Date de naissance enregistrée"); };
 
 /* =====================================================================
    REPAS ENREGISTRÉS : un repas habituel (aliments + quantités) s'ajoute en un toucher

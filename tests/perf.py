@@ -9,12 +9,12 @@ Scénarios :
 Mesures : premier affichage (FCP), contenu visible (données affichées), données à jour (synchro finie).
 Usage : python3 tests/perf.py [étiquette]   → écrit tests/perf_<étiquette>.json
 """
-import sys, json, time, gzip, threading, pathlib, shutil, tempfile, re
+import os, sys, json, time, gzip, threading, pathlib, shutil, tempfile, re
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from playwright.sync_api import sync_playwright
 
 H = pathlib.Path(__file__).resolve().parent; P = H.parent
-B = pathlib.Path("/tmp/claude-0/-home-claude/a112c60f-9639-549a-a0f9-bbd91e82e76a/scratchpad/bench")
+B = pathlib.Path(os.environ.get("BENCH_DEPS", "/tmp/claude-0/-home-claude/a112c60f-9639-549a-a0f9-bbd91e82e76a/scratchpad/bench"))
 LABEL = sys.argv[1] if len(sys.argv) > 1 else "run"
 RTT, BW = 0.150, 1.6e6 / 8
 API_LAT, GOOGLE_LAT = 350, 0.400

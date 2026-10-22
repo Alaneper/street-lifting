@@ -43,8 +43,8 @@ with sync_playwright() as p:
 
     # 4. Réglages : Non / Oui à l'écran, valeurs NON / OUI conservées dans le carnet
     pg.evaluate("ACT.settings()"); pg.wait_for_timeout(400)
-    r = pg.evaluate("[...document.querySelectorAll('#smu option')].map(o => o.textContent + '=' + o.value)")
-    check("réglages : « Non/Oui » affichés, valeurs NON/OUI", r == ["Non=NON", "Oui=OUI"], r)
+    # v28 : plus de réglage « muscle-up acquis » (le muscle-up s'affiche toujours)
+    check("réglages : plus de « muscle-up acquis »", pg.locator("#smu").count() == 0 and "acquis" not in pg.evaluate("document.querySelector('.sheet').textContent"))
     r = pg.evaluate("[...document.querySelectorAll('.sheet a.btn')].map(a => getComputedStyle(a).textDecorationLine)")
     check("réglages : « Ouvrir mon carnet » sans soulignement", r and all(x == "none" for x in r), r)
     pg.evaluate("ACT.closeSheet()")

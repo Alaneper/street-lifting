@@ -19,4 +19,27 @@ eq("noms", ["SCAPULAR CAR'S","RDL","STEATED DB OHP","HIP TRUST BAR","45° BACK E
 const P = (d, v) => ({date:d, e1rm:v});
 eq("tendance 4 sem.", Math.round(trend4w([P("2026-08-01",50),P("2026-09-20",60),P("2026-10-01",62),P("2026-10-15",66)])), 10);
 eq("aberrant ignoré", Math.round(trend4w([P("2026-09-01",60),P("2026-09-20",600),P("2026-10-15",66)])), 10);
+/* v28 · IPF GL : exemples officiels du PDF IPF 2020 (coefficient et points), puis valeurs de contrôle */
+eq("GL exemple IPF (H equipped 92,04 kg, 1035)", glPoints(1035, 92.04, "H", "equipped"), 112.855365);
+eq("GL H classic 80 kg 600", glPoints(600, 80, "H", "classic").toFixed(2), "84.62");
+eq("GL H classic 87 kg 600", glPoints(600, 87, "H", "classic").toFixed(2), "81.12");
+eq("GL F classic 63 kg 400", glPoints(400, 63, "F", "classic").toFixed(2), "87.51");
+eq("GL F equipped 63 kg 500", glPoints(500, 63, "F", "equipped").toFixed(2), "90.27");
+eq("GL sous 40 kg (H) : pas de points", glPoints(300, 39.9, "H", "classic"), null);
+/* catégories : la limite appartient à la catégorie */
+eq("street 80,00 → −80", catAuto(80, CATS_H), -80);
+eq("street 80,01 → −87", catAuto(80.01, CATS_H), -87);
+eq("street 120 → +101", catAuto(120, CATS_H), 101);
+eq("IPF 83,00 → −83", catAuto(83, catsIpfFor("H", false)), -83);
+eq("IPF 52 kg adulte → −59", catAuto(52, catsIpfFor("H", false)), -59);
+eq("IPF 52 kg junior → −53", catAuto(52, catsIpfFor("H", true)), -53);
+eq("IPF F 84,01 → +84", catAuto(84.01, catsIpfFor("F", false)), 84);
+/* âges IPF en année civile */
+eq("2004 en 2026 → Junior + Open", ageCats("2004-03-14", "2026-10-23"), ["JR","OPEN"]);
+eq("2008 en 2026 → Sub-junior", ageCats("2008-12-31", "2026-01-01"), ["SJ"]);
+eq("14 ans pas encore atteints", ageCats("2012-12-01", "2026-10-23"), []);
+eq("14 ans atteints", ageCats("2012-10-01", "2026-10-23"), ["SJ"]);
+eq("1986 en 2026 → Master 1 + Open", ageCats("1986-06-01", "2026-10-23"), ["M1","OPEN"]);
+eq("1966 en 2026 → Master 3 seul", ageCats("1966-06-01", "2026-10-23"), ["M3"]);
+eq("1956 en 2026 → Master 4", ageCats("1956-06-01", "2026-10-23"), ["M4"]);
 process.exit(fails ? 1 : 0);`);

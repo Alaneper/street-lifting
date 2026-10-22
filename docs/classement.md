@@ -21,3 +21,9 @@ Mettre à jour le code plus tard : Déployer → Gérer les déploiements → cr
 ## Installé le 22/10/2026
 - Fichier : « Street Lifting – Classement » (Drive d'Alane), onglet CLASSEMENT.
 - Projet Apps Script déployé en application Web (exécuté en tant qu'Alane, accès : tout le monde) ; adresse inscrite dans `CLASSEMENT_URL` (src/app.html).
+
+
+## v28 (23/10/2026) : classement powerlifting
+Le code du service a changé (`tools/classement.gs`) : colonnes powerlifting ajoutées à la fin, visibilité par discipline, catégorie d'âge (jamais la date de naissance).
+À faire une fois : ouvrir le projet Apps Script, remplacer tout le code par le nouveau fichier, Enregistrer, puis Déployer → Gérer les déploiements → crayon → Version : nouvelle version → Déployer. L'adresse ne change pas.
+Tant que ce n'est pas fait, l'app fonctionne mais le classement powerlifting reste vide.
