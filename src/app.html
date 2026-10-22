@@ -361,7 +361,9 @@ html,body{overflow-x:clip}body{margin-top:0}
 .segc button[aria-pressed="true"]{background:var(--deck2);color:#fff}
 .segc button::after{content:"";position:absolute;inset:-3px 0}
 .rmgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.rm{background:var(--deck);border-radius:14px;padding:10px 12px;min-width:0}.rm .rpe-at{font:600 13px var(--f-text);color:var(--dust);margin-left:4px}.rm .show{font-size:24px;margin:2px 0}.rm.off .show{color:var(--faint)}.rm .tiny{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rm{background:var(--deck);border-radius:14px;padding:10px 12px;min-width:0}.rm .rpe-at{font:600 13px var(--f-text);color:var(--dust);margin-left:4px}.rm .vid-at{font-size:11px;color:var(--chalk);margin-left:6px;vertical-align:4px}
+.vid{margin-top:12px;background:var(--deck2);border-radius:16px;padding:12px}.vid video{width:100%;max-height:60vh;border-radius:12px;background:#000;display:block;margin-top:8px}
+.mealsel .check-row[aria-checked="true"] span{color:inherit;text-decoration:none}.mealsel .check-row[aria-checked="true"] span.muted{color:var(--dust)}.rm .show{font-size:24px;margin:2px 0}.rm.off .show{color:var(--faint)}.rm .tiny{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tiles2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .tiles2>*{background:var(--deck);border-radius:16px;padding:14px;min-width:0;text-align:left}
 .tiles2 .show{font-size:30px;font-weight:800;margin-top:4px;line-height:1}
@@ -422,7 +424,7 @@ html,body{overflow-x:clip}body{margin-top:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "23 · 21 oct. 2026";
+const APP_VER = "24 · 22 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];
 const LNAME = {MU:"Muscle-up", PULL:"Tractions", DIP:"Dips", SQUAT:"Squat", TOTAL:"Total"};
 const LCOL = {MU:"var(--mu)", PULL:"var(--pull)", DIP:"var(--dip)", SQUAT:"var(--squat)"};
@@ -631,13 +633,18 @@ async function loadApp(){
   const R = ["PROFIL!A1:C60","PR!A1:E3000","POIDS!A1:C10000","OBJECTIFS!A1:C60","COMPETITIONS!A1:E200","SERIES!A1:I10000","BLOCS!A1:C200","CHECKLIST!A1:C500","BILAN!A1:I1000"];
   /* onglets ajoutés plus tard : lus en même temps, absents tolérés */
   const opt = r => getVals(APP_ID, r).catch(() => null);
-  const [[P, PR, PO, OB, CO, SE, BL, CH, BI], [RPo, ALo, HIo]] = await Promise.all([Promise.all(R.map(r => getVals(APP_ID, r))), Promise.all(["REPAS!A1:J40000", "ALIMENTS!A1:I5000", "HISTORIQUE!A1:Q30000"].map(opt))]);
+  const [[P, PR, PO, OB, CO, SE, BL, CH, BI], [RPo, ALo, HIo, MRo]] = await Promise.all([Promise.all(R.map(r => getVals(APP_ID, r))), Promise.all(["REPAS!A1:J40000", "ALIMENTS!A1:I5000", "HISTORIQUE!A1:Q30000", "MES_REPAS!A1:I3000"].map(opt))]);
   raw = {P, OB, BL, CH};
   let repas = [], aliments = [], nutTabs = false;
   try { const RP = RPo, AL = ALo; if (!RP || !AL) throw 0; nutTabs = true;
     repas = RP.map((r, i) => ({_row:i + 1, date:toIso(r[0]), h:String(r[1] || ""), nom:String(r[2] || ""), q:num(r[5]) || 0, k:num(r[6]) || 0, p:num(r[7]) || 0, g:num(r[8]) || 0, l:num(r[9]) || 0})).slice(1).filter(x => x.date && x.nom);
     aliments = AL.slice(1).filter(r => r[0] && num(r[4]) !== null).map(r => ({nom:String(r[0]), marque:String(r[1] || ""), src:String(r[2] || "perso"), code:String(r[3] || ""), k:num(r[4]), p:num(r[5]) || 0, g:num(r[6]) || 0, l:num(r[7]) || 0}));
   } catch(e){ repas = (D && D.repas) || []; aliments = (D && D.aliments) || []; }
+  /* repas enregistrés : une ligne par aliment, regroupées par nom de repas */
+  let mesRepas = {};
+  if (MRo) MRo.slice(1).forEach((r, i) => { const n = String(r[0] || "").trim(); if (!n || !String(r[1] || "").trim()) return;
+    (mesRepas[n] = mesRepas[n] || []).push({_row:i + 2, nom:String(r[1]), q:num(r[4]) || 0, k:num(r[5]) || 0, p:num(r[6]) || 0, g:num(r[7]) || 0, l:num(r[8]) || 0}); });
+  else mesRepas = (D && D.mesRepas) || {};
   try { if (!HIo) throw 0; ARCH = HIo.map((r, i) => ({_row:i + 1, r})).slice(1).filter(x => x.r[0] && x.r[1]); archTab = true; } catch(e){ ARCH = []; archTab = false; }
   const profil = {};
   P.slice(1).forEach(r => { if (r[0]) profil[String(r[0]).trim()] = r[1] ?? ""; });
@@ -654,7 +661,7 @@ async function loadApp(){
   const blocs = {}; BL.slice(1).forEach(r => { const n = num(r[0]), d = toIso(r[1]); if (n && d) blocs[n] = d; });
   const checks = CH.map((r, i) => ({row:i + 1, date:toIso(r[0]), item:String(r[1] || "").trim(), done:/^(true|vrai|oui|1|x)$/i.test(String(r[2] || "").trim())})).slice(1).filter(x => x.date && x.item);
   const bilans = BI.slice(1).map(r => ({date:toIso(r[0]), bloc:num(r[1]), semaine:String(r[2] ?? "").trim(), v:BILAN_CRIT.map((_, i) => num(r[3 + i]))})).filter(b => b.bloc);
-  D = {profil, prs, poids, objectifs, comps, series, blocs, checks, bilans, repas, aliments, _nutTabs:nutTabs, today:isoOf(new Date())};
+  D = {profil, prs, poids, objectifs, comps, series, blocs, checks, bilans, repas, aliments, mesRepas, _mrTab:!!MRo, _nutTabs:nutTabs, today:isoOf(new Date())};
 }
 
 /* =====================================================================
@@ -1055,7 +1062,7 @@ const srcTxt = x => x.src === "PR" ? (x.coach ? "max de la prog" : (x.date ? dSh
 function repTableHtml(l){
   if (!allLoaded) return `<h2 class="h2">Records par répétitions</h2><div class="empty"><div class="spin"></div><p class="small">Lecture de tous tes blocs…</p></div>`;
   const sets = compSets(l), rm = repMaxes(sets), e = e1rmBest(l, sets), b = best(l), u = BW_LIFTS.includes(l) ? " de lest" : "";
-  const tiles = rm.map(({n, b:x}) => `<div class="rm${x ? "" : " off"}" role="button" tabindex="0" data-act="${x ? "rmInfo" : "rmAdd"}" data-l="${l}" data-n="${n}"><p class="muted tiny">${n} rep${n > 1 ? "s" : ""}</p><p class="show">${x ? fmt(x.c) : "—"}${x && x.rpe ? `<small class="rpe-at">@${fmt(x.rpe)}</small>` : ""}</p><p class="muted tiny">${x ? esc(srcTxt(x)) : "ajouter"}</p></div>`).join("");
+  const tiles = rm.map(({n, b:x}) => `<div class="rm${x ? "" : " off"}" role="button" tabindex="0" data-act="${x ? "rmInfo" : "rmAdd"}" data-l="${l}" data-n="${n}"><p class="muted tiny">${n} rep${n > 1 ? "s" : ""}</p><p class="show">${x ? fmt(x.c) : "—"}${x && x.rpe ? `<small class="rpe-at">@${fmt(x.rpe)}</small>` : ""}${VIDX[l + "|" + n] ? `<small class="vid-at" aria-label="${VIDX[l + "|" + n]} vidéo${VIDX[l + "|" + n] > 1 ? "s" : ""}">▶</small>` : ""}</p><p class="muted tiny">${x ? esc(srcTxt(x)) : "ajouter"}</p></div>`).join("");
   const eh = e ? `<div class="panel" style="margin-top:0"><p class="muted small">1RM estimé</p>
       <p class="show t-m" style="margin-top:4px;color:${LCOL[l]}">${fmt(Math.floor(e.v * 4) / 4)}<small> kg${u}</small></p>
       <p class="muted small" style="margin-top:4px">D'après ${fmt(e.c)} kg × ${e.r}${e.rpe ? " à RPE " + fmt(e.rpe) : ""} (${esc(srcTxt(e))}).
@@ -1845,6 +1852,8 @@ function restPill(){
 }
 function rSheet(){
   if (sheet.startsWith("cl|")) return clInfoHtml(sheet.slice(3));
+  if (sheet === "meal") return mealSaveHtml();
+  if (sheet === "meals") return mealsHtml();
   if (sheet.startsWith("rm|")) { const [, l, n] = sheet.split("|"), N = +n;
     /* toutes les perfs à exactement N reps, regroupées par séance et par charge (les séries identiques d'une même ligne = une perf),
        avec leur RPE et leur date ; la plus lourde d'abord, à charge égale la plus facile (RPE le plus bas) */
@@ -1860,7 +1869,8 @@ function rSheet(){
       if (w.app) return "Noté dans l'app" + (x.date ? " le " + dfr(x.date) : "") + " · " + esc(blocLabel(x.bloc)) + ", semaine " + esc(x.sem);
       return `${esc(String(w.sheet || blocLabel(x.bloc)).trim())}${w.archived ? " (historique)" : ""} · semaine ${esc(x.sem)} · ${esc(w.seance || "")} · ligne ${w.row || "?"}<br>Prog : « ${esc(String(w.charge || "").trim() || "–")} »${x.rng ? `, reps « ${esc(x.rng)} » (compté ${x.r})` : ""}${String(w.com || "").trim() ? ", ton commentaire : « " + esc(String(w.com).trim()) + " »" : ""}${String(w.rpe1 || "").trim() || String(w.rpeLast || "").trim() ? ", RPE " + esc([w.rpe1, w.rpeLast].filter(v => String(v || "").trim()).join(" / ")) : ""}`; };
     return `<p class="show t-m">${LNAME[l]} · ${N} rep${N > 1 ? "s" : ""}</p><p class="muted small" style="margin-top:4px">Toutes tes perfs à exactement ${N} rep${N > 1 ? "s" : ""}, avec leur RPE et leur date : la plus lourde d'abord ; à charge égale, la plus facile (RPE le plus bas). La première est ton record.</p>
-      ${L.length ? `<div class="list" style="margin-top:12px">${L.map((x, i) => `<div class="item" style="display:block"><div class="row"><b>${fmt(x.c)} kg${BW_LIFTS.includes(l) ? " de lest" : ""}${x.n > 1 ? ` <span class="muted small">× ${x.n} séries</span>` : ""}</b><span class="pill${i === 0 ? " go" : ""}">${i === 0 ? "record · " : ""}${rpeTxt(x)}</span></div><p class="small" style="margin-top:4px">${x.date ? cap(dlong(x.date)) + " " + x.date.slice(0, 4) : "Date inconnue"}${x.ex ? " · " + esc(exName(x.ex)) : ""}</p><p class="muted tiny" style="margin-top:2px">${line(x)}</p></div>`).join("")}</div>` : `<p class="muted small" style="margin-top:12px">Aucune série à ${N} reps trouvée.</p>`}
+      ${vidSectionHtml(l, N, L[0])}
+      ${L.length ? `<h2 class="h2">Toutes tes perfs</h2>` : ""}${L.length ? `<div class="list" style="margin-top:12px">${L.map((x, i) => `<div class="item" style="display:block"><div class="row"><b>${fmt(x.c)} kg${BW_LIFTS.includes(l) ? " de lest" : ""}${x.n > 1 ? ` <span class="muted small">× ${x.n} séries</span>` : ""}</b><span class="pill${i === 0 ? " go" : ""}">${i === 0 ? "record · " : ""}${rpeTxt(x)}</span></div><p class="small" style="margin-top:4px">${x.date ? cap(dlong(x.date)) + " " + x.date.slice(0, 4) : "Date inconnue"}${x.ex ? " · " + esc(exName(x.ex)) : ""}</p><p class="muted tiny" style="margin-top:2px">${line(x)}</p></div>`).join("")}</div>` : `<p class="muted small" style="margin-top:12px">Aucune série à ${N} reps trouvée.</p>`}
       <p class="muted tiny" style="margin-top:10px">Une valeur fausse ? Corrige la ligne indiquée dans ta prog (charge réelle dans « Commentaire athlète », ou RPE « échec » si la série est ratée), puis synchronise. Une perf manquante ? Ajoute-la en bas de la fiche, « Ajouter un record ».</p>
       <button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`; }
   if (sheet === "rest") return `<div id="restbox" class="timer"><svg viewBox="0 0 220 220"><circle cx="110" cy="110" r="100" fill="none" stroke="var(--deck2)" stroke-width="10"/><circle id="restring" cx="110" cy="110" r="100" fill="none" stroke="var(--chalk)" stroke-width="10" stroke-linecap="round" stroke-dasharray="628" stroke-dashoffset="0" style="transition:stroke-dashoffset .25s linear"/></svg>
@@ -2073,12 +2083,17 @@ function loadFoods(){
 const STAPLES = ["pomme de terre","poulet","pates seches","riz blanc","oeuf","pain","banane","pomme","flocons d avoine","lait","yaourt","fromage blanc","skyr","thon","saumon","boeuf","steak hache","jambon","dinde","haricot","lentille","pois chiche","brocoli","carotte","tomate","courgette","epinard","haricot vert","patate douce","avocat","amande","noix","beurre de cacahuete","huile d olive","beurre","miel","chocolat","fraise","orange","kiwi","mangue","raisin","poire","semoule","quinoa","cereales","muesli","emmental","mozzarella","creme fraiche","sucre","confiture","compote","petits pois","mais","concombre","salade","oignon","champignon","porc","cabillaud","crevette","tofu","whey"].map((s, i) => [s, 40 - i * 0.5]);
 const persoFoods = () => (D.aliments || []).map(a => ({...a, n:deacc(a.nom + " " + (a.marque || ""))}));
 /* Recherche : chaque mot tapé doit commencer un mot du nom ; le 1er mot du nom, les noms courts et les aliments courants (portion INCA3 connue) passent devant. */
+/* mots courants absents des noms de la table Ciqual */
+const FOOD_SYN = [[/\bviandes? hachees?\b/g, "boeuf steak hache"], [/\bhache(e|es|s)\b/g, "hache"], [/\b(blanc|filet|escalope)s? de poulet\b/g, "poulet filet"],
+  [/\b(blanc|filet|escalope)s? de dinde\b/g, "dinde filet"], [/\bspaghettis?\b/g, "pates"], [/\bpatates?\b/g, "pomme de terre"]];
+const stem = x => x.length > 3 ? x.replace(/(s|x)$/, "") : x;
 function searchFoods(q, max){
-  const t = deacc(q).split(" ").filter(w => w && !/^(de|d|du|des|la|le|les|l|a|au|aux|en|et)$/.test(w)); if (!t.length) return [];
+  let qq = deacc(q); for (const [re, to] of FOOD_SYN) qq = qq.replace(re, to);
+  const t = qq.split(" ").filter(w => w && !/^(de|d|du|des|la|le|les|l|a|au|aux|en|et)$/.test(w)); if (!t.length) return [];
   const pool = persoFoods().concat(FOODS || []), out = [];
   for (const f of pool) {
     const w = f.n.split(" "); let ok = true, sc = 0;
-    for (const x of t) { const i = w.findIndex(y => y.startsWith(x)); if (i < 0) { ok = false; break; } sc += i === 0 ? 30 : i < 3 ? 12 : 4; if (w[i] === x) sc += 6; }
+    for (const x of t) { const sx = stem(x), i = w.findIndex(y => y.startsWith(x) || y.startsWith(sx)); if (i < 0) { ok = false; break; } sc += i === 0 ? 30 : i < 3 ? 12 : 4; if (w[i] === x || stem(w[i]) === sx) sc += 6; }
     if (!ok) continue;
     sc -= f.n.length / 6; if (f.por) sc += 8;
     for (const [st, b] of STAPLES) if (f.n.startsWith(st)) { sc += b * (t.join(" ").length <= 3 ? 4 : .4); break; } if (f.src !== "ciqual") sc += 25; if (/prelev|martinique|guadeloupe|reunion|guyane|mayotte/.test(f.n)) sc -= 20;
@@ -2138,9 +2153,10 @@ function rNutri(){
     <h2 class="h2">Ajouter</h2>
     <input id="nutin" placeholder="Ex. riz, 250 g de pâtes sèches, 1 cordon bleu" value="${esc(nutQ)}" autocomplete="off" data-inp="nutQ">
     ${!FOODS ? `<p class="muted small" style="margin-top:8px" id="nutload">Chargement de la table des aliments…</p>` : ""}
+    ${Object.keys(D.mesRepas || {}).length ? `<div class="chips meals" style="margin-top:10px">${Object.entries(D.mesRepas).map(([n, L]) => `<button class="chip" data-act="mealAdd" data-n="${esc(n)}" aria-label="Ajouter le repas ${esc(n)}">${esc(n)} <span class="muted">${fmt(sum(L.map(x => x.k)), 0)} kcal</span></button>`).join("")}<button class="chip" data-act="mealsManage">Mes repas</button></div>` : ""}
     <div id="nutdyn">${nutDyn()}</div>
     <h2 class="h2">${nutDate === D.today ? "Mangé aujourd'hui" : "Mangé ce jour-là"} <span class="muted">${R.length}</span></h2>
-    ${rows ? `<div class="list">${rows}</div>` : `<p class="muted small">Rien de noté pour l'instant. Pèse, tape le nom, ajoute.</p>`}
+    ${rows ? `<div class="list">${rows}</div><button class="btn ghost" style="margin-top:10px" data-act="mealSave">Enregistrer comme repas</button>` : `<p class="muted small">Rien de noté pour l'instant. Pèse, tape le nom, ajoute.</p>`}
     ${nutGoalHtml(T)}`;
 }
 function nutDyn(){
@@ -2199,7 +2215,7 @@ Object.assign(ACT, {
     } catch(e){ toast(errMsg(e), true); }
   },
   nutDel:async d => { const r = +d.r; if (!r) return; try { await putVals(APP_ID, `REPAS!A${r}:J${r}`, [["", "", "", "", "", "", "", "", "", ""]]); D.repas = D.repas.filter(x => x._row !== r); saveCache(); rNutri(); } catch(e){ toast(errMsg(e), true); } },
-  nutOff:async () => {
+  nutOff:async d => {
     const q = parseFoodLine(nutQ).txt; if (!q || offBusy) return; offBusy = true; nutRefresh();
     try {
       /* Recherche plein texte « Search-a-licious » (recommandée par Open Food Facts), sinon l'ancienne API */
@@ -2210,7 +2226,7 @@ Object.assign(ACT, {
       offRes = list.map(p => { const n = p.nutriments || {}, k = n["energy-kcal_100g"] ?? (n.energy_100g ? n.energy_100g / 4.184 : null);
         return {src:"off", code:p.code, nom:p.product_name_fr || p.product_name || "", marque:(Array.isArray(p.brands) ? p.brands[0] || "" : String(p.brands || "").split(",")[0]).trim(), k, p:n.proteins_100g, g:n.carbohydrates_100g, l:n.fat_100g}; })
         .filter(f => f.nom && f.k !== null && f.k !== undefined && f.p !== undefined && f.g !== undefined && f.l !== undefined);
-    } catch(e){ toast("Recherche de marque impossible (connexion ?)", true); offRes = null; }
+    } catch(e){ if (!(d && d.auto)) toast("Recherche de marque impossible (connexion ?)", true); offRes = null; }
     offBusy = false; nutRefresh();
   },
   nutCreateSave:async () => {
@@ -2226,7 +2242,9 @@ async function saveFood(f){
 }
 /* saisie : suggestions au fil de la frappe */
 document.addEventListener("input", ev => { const t = ev.target; if (t && t.dataset.inp === "hw") return hwRefresh(); if (!t || t.dataset.inp !== "nutQ") return; nutQ = t.value; nutPick = null; offRes = null; nutCreate = false;
-  clearTimeout(t._h); t._h = setTimeout(nutRefresh, 80); });
+  clearTimeout(t._h); t._h = setTimeout(nutRefresh, 80);
+  /* moins de 3 résultats dans la table : les produits de marque (Open Food Facts) sont cherchés tout seuls */
+  clearTimeout(t._o); t._o = setTimeout(() => { const q = parseFoodLine(nutQ).txt; if (FOODS && q && q.length >= 3 && !nutPick && !offRes && searchFoods(q).length < 3 && navigator.onLine !== false) ACT.nutOff({auto:1}); }, 900); });
 document.addEventListener("keydown", ev => { if (ev.key === "Enter" && ev.target && ev.target.id === "nq") { ev.preventDefault(); ACT.nutAdd(); } });
 
 document.addEventListener("click", ev => { const t = ev.target.closest("[data-act]"); if (!t || t.disabled) return; const f = ACT[t.dataset.act]; if (f) { ev.preventDefault(); f(t.dataset, t, ev); } });
@@ -2246,7 +2264,7 @@ async function addPR(l, c, r, d, n, rpe){
   const before = best(l);
   try { await appendVals(APP_ID, "PR!A1:F1", [[d, l, c, r, n || "", rpe || ""]]);
     D.prs.push({date:d, lift:l, charge:c, reps:r, note:n || "", rpe:rpe || null}); D.prs.sort((a, b) => a.date < b.date ? -1 : 1); saveCache();
-    if (clId()) clSync(true).catch(() => {});
+    if (clOn()) clSync().catch(() => {});
     const nb = best(l), isPr = r === 1 && nb !== null && (before === null || nb > before);
     firstPaint = true; render();
     if (isPr) { toast("Nouveau record : +" + fmt(nb - (before || 0)) + " kg en " + LNAME[l].toLowerCase()); const el = $("#liftbig"); if (el) el.classList.add("burst"); } else toast("PR enregistré");
@@ -2267,93 +2285,74 @@ async function exportIcs(){
 }
 
 /* =====================================================================
-   AMIS : classement de tous les membres (un Google Sheet commun, sans serveur)
-   Chaque app y écrit sa ligne (records des 4 mouvements, total, RIS, pays) et lit celles des autres.
+   AMIS : classement automatique de tous les membres de l'app.
+   Un petit service gratuit (Google Apps Script, sur le compte d'Alane) reçoit les records de chaque app,
+   vérifie auprès de Google qui les envoie (jeton de connexion) et renvoie le classement. Personne n'a rien à saisir.
    ===================================================================== */
-const CLASSEMENT_DEFAUT = "";   /* identifiant du classement commun, renseigné une fois créé */
-const CL_HEAD = ["Email","Prénom","Pays","Sexe","Catégorie","Muscle-up","Tractions","Dips","Squat","Total","RIS","Mis à jour"];
+let CLASSEMENT_URL = "";   /* adresse du service, renseignée une fois le service en ligne */
 const PAYS = ["BE","FR","LU","CH","NL","DE","ES","IT","PT","GB","IE","AT","PL","CZ","DK","SE","NO","FI","RO","BG","GR","HU","HR","RS","TR","UA","RU","MA","DZ","TN","SN","CI","CM","CD","CA","US","MX","BR","AR","CL","CO","AU","NZ","JP","KR","CN","IN","IL","LB","EG","ZA"];
-let agendaSeg = "compet", clErr = "", clBusy = null, CL = (() => { try { return store.get("sl-cl") || null; } catch(e){ return null; } })();
-const sheetIdOf = v => { const t = String(v || "").trim(), m = t.match(/\/d\/([a-zA-Z0-9_-]{15,})/); return m ? m[1] : (/^[a-zA-Z0-9_-]{15,}$/.test(t) ? t : ""); };
-const clId = () => (D && sheetIdOf(D.profil.classement_id)) || CLASSEMENT_DEFAUT;
-const clUrl = id => "https://docs.google.com/spreadsheets/d/" + id + "/edit";
-const myEmail = () => String((typeof cfg === "function" && cfg().email) || D.profil.email || "").toLowerCase();
+let agendaSeg = "compet", clErr = "", clBusy = null, CL = (c => c && Array.isArray(c.rows) && !(c.rows[0] && Array.isArray(c.rows[0])) && !c.id ? c : null)(store.get("sl-cl"));   /* ignore le format v23 */
+const clOn = () => !!CLASSEMENT_URL;
 const monPays = () => (String(D.profil.pays || "BE").trim().toUpperCase().slice(0, 2)) || "BE";
 const flagOf = cc => /^[A-Z]{2}$/.test(cc || "") ? String.fromCodePoint(...[...cc].map(c => 0x1F1A5 + c.charCodeAt(0))) : "🏳️";
 const paysNom = cc => { try { return new Intl.DisplayNames(["fr"], {type:"region"}).of(cc) || cc; } catch(e){ return cc; } };
 const paysOptions = sel => PAYS.map(c => [c, paysNom(c)]).sort((a, b) => a[0] === "BE" ? -1 : b[0] === "BE" ? 1 : a[1].localeCompare(b[1], "fr"))
   .map(([c, n]) => `<option value="${c}" ${c === sel ? "selected" : ""}>${flagOf(c)} ${esc(n)}</option>`).join("");
 const ordinal = n => n === 1 ? "1er" : n + "e";
-function myClRow(){
-  const t = total(), r = risOf(t, bw()), v = l => { const b = best(l); return b === null || b === undefined ? "" : b; };
-  return [myEmail(), D.profil.prenom || "", monPays(), sexe(), cat(), v("MU"), v("PULL"), v("DIP"), v("SQUAT"), t || "", r ? Math.round(r * 10) / 10 : "", D.today];
+function myStats(){
+  const t = total(), r = risOf(t, bw()), v = l => { const b = best(l); return b === null || b === undefined ? null : b; };
+  return {prenom:D.profil.prenom || "", pays:monPays(), sexe:sexe(), cat:cat(), MU:v("MU"), PULL:v("PULL"), DIP:v("DIP"), SQUAT:v("SQUAT"), total:t || 0, ris:r ? Math.round(r * 10) / 10 : null};
 }
-/* Lit le classement et, si besoin, met à jour ta ligne (seulement quand tes chiffres ont changé). */
-function clSync(push){
+/* Envoie tes records (le service reconnaît ton compte Google) et récupère le classement de tout le monde. */
+function clSync(){
   if (clBusy) return clBusy;
   clBusy = (async () => {
-    const id = clId(); if (!id) return;
+    if (!clOn()) return;
+    const tok = typeof auth !== "undefined" ? auth.tok : null;
     try {
-      const v = await getVals(id, "CLASSEMENT!A1:L2000");
-      const rows = v.slice(1).filter(r => String(r[0] || "").trim());
-      const me = myClRow(), em = me[0];
-      if (push && em) {
-        const i = rows.findIndex(r => String(r[0]).trim().toLowerCase() === em);
-        const same = i >= 0 && [1, 2, 3, 4].every(k => String(rows[i][k] ?? "").trim() === String(me[k])) && [5, 6, 7, 8, 9, 10].every(k => (num(rows[i][k]) ?? "") === (num(me[k]) ?? ""));
-        if (!same) {
-          if (i >= 0) await putVals(id, `CLASSEMENT!A${i + 2}:L${i + 2}`, [me]); else await appendVals(id, "CLASSEMENT!A1:L1", [me]);
-          if (i >= 0) rows[i] = me; else rows.push(me);
-        }
-      }
-      CL = {id, rows, at:Date.now()}; clErr = ""; try { store.set("sl-cl", CL); } catch(e){}
-    } catch(e){ clErr = e && (e.code === "forbidden" || e.code === "not_found" || e.code === "tool_error") ? e.code : errMsg(e); }
+      /* requête « simple » (texte brut, sans en-tête) : pas de pré-vérification CORS, acceptée par Apps Script */
+      const r = tok ? await fetch(CLASSEMENT_URL, {method:"POST", body:JSON.stringify({token:tok, data:myStats()})}) : await fetch(CLASSEMENT_URL);
+      const j = await r.json();
+      if (j.error) throw new Error(j.error === "auth" ? "Connexion Google à renouveler pour le classement." : "Classement : " + j.error);
+      /* sans jeton, le service ne sait pas qui tu es : on garde la ligne « toi » de la dernière fois */
+      const prevMe = CL && CL.rows ? (CL.rows.find(x => x.me) || {}).nom : null;
+      const rows = Array.isArray(j.rows) ? j.rows : [];
+      if (!tok && prevMe && !rows.some(x => x.me)) { const m = rows.find(x => x.nom === prevMe); if (m) m.me = true; }
+      CL = {rows, at:Date.now()}; clErr = ""; store.set("sl-cl", CL);
+    } catch(e){ clErr = (e && e.message && /Classement|Connexion/.test(e.message)) ? e.message : "Classement injoignable pour l'instant."; }
   })().finally(() => { clBusy = null; });
   return clBusy;
 }
 function clRows(){
-  const rows = CL && CL.id === clId() ? CL.rows : [];
-  return rows.map(r => ({email:String(r[0]).trim().toLowerCase(), nom:String(r[1] || "").trim() || "?", pays:String(r[2] || "").trim().toUpperCase(), sexe:String(r[3] || ""), cat:num(r[4]),
-      MU:num(r[5]), PULL:num(r[6]), DIP:num(r[7]), SQUAT:num(r[8]), total:num(r[9]) || 0, ris:num(r[10]), maj:toIso(r[11])}))
+  return ((CL && CL.rows) || []).map((r, k) => ({k, nom:String(r.nom || "").trim() || "?", pays:String(r.pays || "").toUpperCase(), sexe:r.sexe, cat:num(r.cat), MU:num(r.MU), PULL:num(r.PULL), DIP:num(r.DIP), SQUAT:num(r.SQUAT),
+      total:num(r.total) || 0, ris:num(r.ris), maj:r.maj ? toIso(r.maj) : "", me:!!r.me}))
     .sort((a, b) => b.total - a.total || (b.ris || 0) - (a.ris || 0) || a.nom.localeCompare(b.nom, "fr"));
 }
 const agendaSegHtml = () => `<div class="segc" style="margin:6px 0 4px">${[["compet", "Compét"], ["amis", "Amis"]].map(([k, t]) => `<button aria-pressed="${agendaSeg === k}" data-act="agSeg" data-k="${k}">${t}</button>`).join("")}</div>`;
 function rAmis(){
-  const el = $("#v-agenda"), seg = agendaSegHtml(), id = clId();
-  if (!id) {
-    el.innerHTML = seg + `<div class="emptycard" style="margin-top:14px"><b>Le classement entre amis</b><p>Un Google Sheet commun : chaque membre y envoie ses records et son total, l'app fait le podium. Une seule personne le crée, puis le partage avec l'adresse Google des autres (en Éditeur).</p>
-      ${typeof gapi === "function" ? `<button class="btn" style="margin-top:14px" data-act="clCreate">Créer le classement</button>` : ""}</div>
-      <label for="clk">On t'a envoyé un lien de classement ? Colle-le ici</label><input id="clk" type="url" placeholder="https://docs.google.com/spreadsheets/d/…" data-chg="clLink">`;
-    return;
-  }
-  if (clErr && !(CL && CL.id === id)) {
-    const acc = clErr === "forbidden" || clErr === "not_found";
-    el.innerHTML = seg + `<div class="emptycard" style="margin-top:14px"><b>${acc ? "Tu n'as pas encore accès au classement" : clErr === "tool_error" ? "Ce Google Sheet n'est pas un classement" : "Classement indisponible"}</b>
-      <p>${acc ? `Demande à la personne qui l'a créé de le partager avec <b style="color:var(--chalk)">${esc(myEmail() || "ton adresse Google")}</b> (Éditeur), puis réessaie.` : clErr === "tool_error" ? "Il lui manque l'onglet CLASSEMENT. Vérifie le lien." : esc(clErr)}</p>
-      <button class="btn ghost" style="margin-top:14px" data-act="clRetry">Réessayer</button></div>
-      <label for="clk">Changer de lien de classement</label><input id="clk" type="url" value="${esc(clUrl(id))}" data-chg="clLink">`;
-    return;
-  }
-  if (!(CL && CL.id === id)) { el.innerHTML = seg + `<div class="skel" style="height:240px;margin-top:14px"></div><div class="skel" style="height:120px;margin-top:12px"></div>`; clSync(true).then(() => { if (tab === "agenda" && agendaSeg === "amis") rAmis(); }); return; }
-  const R = clRows(), em = myEmail(), mi = R.findIndex(x => x.email === em), me = mi >= 0 ? R[mi] : null;
-  const pod = k => { const x = R[k]; const cls = "pod p" + (k + 1);
+  const el = $("#v-agenda"), seg = agendaSegHtml();
+  if (!clOn()) { el.innerHTML = seg + `<div class="emptycard" style="margin-top:14px"><b>Le classement arrive</b><p>Dès que le service du classement est en ligne, tous les membres de l'app y apparaissent automatiquement, avec leurs records et leur total. Rien à saisir.</p></div>`; return; }
+  if (!CL) { el.innerHTML = seg + (clErr ? `<div class="emptycard" style="margin-top:14px"><b>Classement indisponible</b><p>${esc(clErr)}</p><button class="btn ghost" style="margin-top:14px" data-act="clRetry">Réessayer</button></div>`
+      : `<div class="skel" style="height:240px;margin-top:14px"></div><div class="skel" style="height:120px;margin-top:12px"></div>`);
+    if (!clErr) clSync().then(() => { if (tab === "agenda" && agendaSeg === "amis") rAmis(); }); return; }
+  const R = clRows(), mi = R.findIndex(x => x.me), me = mi >= 0 ? R[mi] : null;
+  const pod = k => { const x = R[k], cls = "pod p" + (k + 1);
     if (!x) return `<div class="${cls} empty"><span class="pav">·</span><b class="pname muted">—</b><span class="ptot muted">&nbsp;</span><div class="pblock"><span>${k + 1}</span></div></div>`;
-    return `<button class="${cls}${x.email === em ? " me" : ""}" data-act="clInfo" data-e="${esc(x.email)}" aria-label="${ordinal(k + 1)} : ${esc(x.nom)}, ${fmt(x.total)} kg"><span class="pav">${esc(x.nom[0].toUpperCase())}<i class="pflag">${flagOf(x.pays)}</i></span>
+    return `<button class="${cls}${x.me ? " me" : ""}" data-act="clInfo" data-k="${x.k}" aria-label="${ordinal(k + 1)} : ${esc(x.nom)}, ${fmt(x.total)} kg"><span class="pav">${esc(x.nom[0].toUpperCase())}<i class="pflag">${flagOf(x.pays)}</i></span>
       <b class="pname">${esc(x.nom)}</b><span class="ptot">${fmt(x.total)}<small> kg</small></span><div class="pblock"><span>${k + 1}</span></div></button>`; };
-  const rest = R.slice(3).map((x, i) => `<button class="vrow clrow${x.email === em ? " me" : ""}" data-act="clInfo" data-e="${esc(x.email)}"><span class="rk">${i + 4}</span><span class="cflag">${flagOf(x.pays)}</span><span class="grow"><b>${esc(x.nom)}</b></span><span class="val">${fmt(x.total)} kg</span></button>`).join("");
+  const rest = R.slice(3).map((x, i) => `<button class="vrow clrow${x.me ? " me" : ""}" data-act="clInfo" data-k="${x.k}"><span class="rk">${i + 4}</span><span class="cflag">${flagOf(x.pays)}</span><span class="grow"><b>${esc(x.nom)}</b></span><span class="val">${fmt(x.total)} kg</span></button>`).join("");
   el.innerHTML = seg + `
     <div class="podium" role="list" aria-label="Podium">${pod(1)}${pod(0)}${pod(2)}</div>
-    ${me ? `<button class="mepos" data-act="clInfo" data-e="${esc(me.email)}"><span class="muted small">Ta position</span><span class="row" style="gap:10px;margin-top:4px"><b class="show t-m">${ordinal(mi + 1)}</b><span class="muted">sur ${R.length}</span><span class="grow"></span><span class="show t-s">${fmt(me.total)}<small style="font-size:.6em"> kg</small></span></span></button>`
-      : `<p class="muted small" style="margin-top:14px">${em ? "Ta ligne arrive à la prochaine synchro." : "Ton adresse Google n'est pas encore connue : synchronise une fois."}</p>`}
+    ${me ? `<button class="mepos" data-act="clInfo" data-k="${me.k}"><span class="muted small">Ta position</span><span class="row" style="gap:10px;margin-top:4px"><b class="show t-m">${ordinal(mi + 1)}</b><span class="muted">sur ${R.length}</span><span class="grow"></span><span class="show t-s">${fmt(me.total)}<small style="font-size:.6em"> kg</small></span></span></button>`
+      : `<p class="muted small" style="margin-top:14px">Tu apparais au classement à ta prochaine synchro.</p>`}
     ${rest ? `<h2 class="h2">Classement <span class="muted">au total</span></h2><div>${rest}</div>` : ""}
-    <p class="muted tiny" style="margin-top:14px">Classés au total (muscle-up compté s'il est acquis), puis au RIS en cas d'égalité. Mis à jour à chaque synchro.</p>
-    <details class="more" style="margin-top:14px"><summary class="small muted">Ajouter un ami</summary>
-      <p class="muted small" style="margin-top:8px">Ouvre le classement dans Google Sheets, touche Partager, ajoute son adresse Gmail en Éditeur. Envoie-lui ensuite le lien : il le colle dans l'onglet Amis de son app.</p>
-      <div class="grid2" style="margin-top:10px"><a class="btn ghost sm" href="${clUrl(id)}" target="_blank" rel="noopener">Ouvrir le classement</a><button class="btn ghost sm" data-act="clShare">Envoyer le lien</button></div></details>`;
+    ${clErr ? `<p class="muted small" style="margin-top:12px">${esc(clErr)} Dernier classement reçu affiché.</p>` : ""}
+    <p class="muted tiny" style="margin-top:14px">Tous les membres de l'app, classés au total (muscle-up compté s'il est acquis), puis au RIS en cas d'égalité. Mis à jour à chaque synchro, sans rien saisir.</p>`;
 }
-function clInfoHtml(email){
-  const R = clRows(), i = R.findIndex(x => x.email === email), x = R[i]; if (!x) return `<p>Membre introuvable.</p><button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`;
+function clInfoHtml(k){
+  const R = clRows(), i = R.findIndex(x => x.k === +k), x = R[i]; if (!x) return `<p>Membre introuvable.</p><button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`;
   const lift = (l, v) => vrow(LNAME[l], l === "MU" && v === null ? "pas encore acquis" : "", v === null ? "—" : fmt(v) + " kg", LCOL[l]);
-  return `<p class="muted">${ordinal(i + 1)} sur ${R.length} · ${flagOf(x.pays)} ${esc(paysNom(x.pays))}</p><p class="show t-l" style="margin-top:4px">${esc(x.nom)}</p>
+  return `<p class="muted">${ordinal(i + 1)} sur ${R.length} · ${flagOf(x.pays)} ${esc(paysNom(x.pays))}</p><p class="show t-l" style="margin-top:4px">${esc(x.nom)}${x.me ? ` <span class="muted small">(toi)</span>` : ""}</p>
     <p class="muted small" style="margin-top:4px">${x.cat ? (x.cat > 0 ? "+" : "") + x.cat + " kg" : ""}${x.sexe ? " · " + (x.sexe === "F" ? "Femme" : "Homme") : ""}${x.maj ? " · mis à jour le " + dfr(x.maj) : ""}</p>
     <div class="tiles2" style="margin-top:14px"><div><p class="muted small">Total</p><p class="show">${fmt(x.total)}<small style="font-size:.5em"> kg</small></p></div><div><p class="muted small">RIS</p><p class="show">${x.ris ? fmt(x.ris, 1) : "—"}</p></div></div>
     <div style="margin-top:8px">${["MU", "PULL", "DIP", "SQUAT"].map(l => lift(l, x[l])).join("")}</div>
@@ -2361,22 +2360,122 @@ function clInfoHtml(email){
 }
 Object.assign(ACT, {
   agSeg:d => { agendaSeg = d.k; window.scrollTo(0, 0); rAgenda(); },
-  clInfo:d => openSheet("cl|" + d.e),
-  clRetry:async () => { clErr = ""; rAmis(); await clSync(true); rAmis(); },
-  clCreate:async () => {
-    if (typeof gapi !== "function") return;
-    try { const r = await gapi(API, {method:"POST", body:JSON.stringify({properties:{title:"Street Lifting – Classement", locale:"fr_FR"}, sheets:[{properties:{title:"CLASSEMENT", gridProperties:{frozenRowCount:1}}}]})});
-      await putVals(r.spreadsheetId, "CLASSEMENT!A1:L1", [CL_HEAD]);
-      await CHG.prof({k:"classement_id"}, {value:r.spreadsheetId});
-      clErr = ""; await clSync(true); rAgenda(); toast("Classement créé : partage-le avec tes amis");
+  clInfo:d => openSheet("cl|" + d.k),
+  clRetry:async () => { clErr = ""; rAmis(); await clSync(); rAmis(); }
+});
+{ const _prof = CHG.prof; CHG.prof = async (d, el) => { await _prof(d, el); if (["pays", "sexe", "categorie", "mu_acquis", "prenom"].includes(d.k) && clOn()) clSync().catch(() => {}); }; }
+
+/* =====================================================================
+   REPAS ENREGISTRÉS : un repas habituel (aliments + quantités) s'ajoute en un toucher
+   ===================================================================== */
+let mealSel = null;
+async function mealEnsureTab(){ if (D._mrTab) return; if (typeof ensureTabs === "function") await ensureTabs(APP_ID); D._mrTab = true; }
+function mealSaveHtml(){
+  const R = dayRows(nutDate); if (!mealSel) mealSel = new Set(R.map(x => x._row));
+  return `<p class="show t-m">Enregistrer comme repas</p><p class="muted small" style="margin-top:4px">Coche les aliments du repas et donne-lui un nom : la prochaine fois, un toucher l'ajoute en entier.</p>
+    <label for="mname">Nom du repas</label><input id="mname" placeholder="Ex. haché-haricots, petit-déj" maxlength="40" autocomplete="off">
+    <div class="list mealsel" style="margin-top:10px">${R.map(x => `<button class="check-row" role="checkbox" aria-checked="${mealSel.has(x._row)}" data-act="mealTick" data-r="${x._row}"><span class="box">✓</span><span class="grow">${esc(x.nom)} <span class="muted small">${fmt(x.q, 0)} g · ${fmt(x.k, 0)} kcal</span></span></button>`).join("")}</div>
+    <button class="btn" style="margin-top:14px" data-act="mealSaveGo">Enregistrer</button>`;
+}
+function mealsHtml(){
+  const M = D.mesRepas || {};
+  return `<p class="show t-m">Mes repas</p>${Object.keys(M).length ? `<div class="list" style="margin-top:10px">${Object.entries(M).map(([n, L]) => `<div class="item" style="display:flex;gap:10px;align-items:center"><span class="grow"><span style="display:block;font-weight:600">${esc(n)}</span><span class="muted tiny">${L.map(x => esc(x.nom.split(",")[0]) + " " + fmt(x.q, 0) + " g").join(" · ")}</span></span><b class="small">${fmt(sum(L.map(x => x.k)), 0)} kcal</b><button class="iconbtn" data-act="mealDel" data-n="${esc(n)}" aria-label="Supprimer ${esc(n)}">×</button></div>`).join("")}</div>` : `<p class="muted small" style="margin-top:8px">Aucun repas enregistré.</p>`}
+    <p class="muted tiny" style="margin-top:10px">Pour créer un repas : note ses aliments du jour, puis « Enregistrer comme repas » sous la liste.</p>
+    <button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`;
+}
+const blankRow = n => [Array(n).fill("")];
+Object.assign(ACT, {
+  mealSave:() => { mealSel = null; openSheet("meal"); },
+  mealTick:d => { const r = +d.r, keep = ($("#mname") || {}).value || ""; mealSel.has(r) ? mealSel.delete(r) : mealSel.add(r); renderLayer(); const i = $("#mname"); if (i) i.value = keep; },
+  mealSaveGo:async () => {
+    const n = (($("#mname") || {}).value || "").trim(), L = dayRows(nutDate).filter(x => mealSel && mealSel.has(x._row));
+    if (!n) return toast("Donne un nom au repas", true); if (!L.length) return toast("Coche au moins un aliment", true);
+    try { await mealEnsureTab();
+      const old = (D.mesRepas || {})[n];
+      if (old) for (const x of old) if (x._row) await putVals(APP_ID, `MES_REPAS!A${x._row}:I${x._row}`, blankRow(9));   /* même nom : on remplace */
+      const res = await appendVals(APP_ID, "MES_REPAS!A1:I1", L.map(x => [n, x.nom, "repas", "", r1(x.q), r1(x.k), r1(x.p), r1(x.g), r1(x.l)]));
+      const m = JSON.stringify(res || {}).match(/MES_REPAS!A(\d+)/), r0 = m ? +m[1] : 0;
+      (D.mesRepas = D.mesRepas || {})[n] = L.map((x, i) => ({_row:r0 ? r0 + i : 0, nom:x.nom, q:x.q, k:x.k, p:x.p, g:x.g, l:x.l}));
+      mealSel = null; saveCache(); closeSheet(); rNutri(); toast("Repas « " + n + " » enregistré");
     } catch(e){ toast(errMsg(e), true); }
   },
-  clShare:async () => { const u = clUrl(clId()), txt = "Rejoins le classement Street Lifting : colle ce lien dans l'onglet Amis de l'app. " + u;
-    try { if (navigator.share) await navigator.share({title:"Classement Street Lifting", text:txt}); else { await navigator.clipboard.writeText(u); toast("Lien copié"); } } catch(e){} }
+  mealAdd:async (d, b) => {
+    const L = (D.mesRepas || {})[d.n]; if (!L || !L.length || (b && b.disabled)) return; if (b) b.disabled = true;
+    const now = new Date(), h = nutDate === D.today ? String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0") : "";
+    try { await nutEnsureTabs();
+      const res = await appendVals(APP_ID, "REPAS!A1:J1", L.map(x => [nutDate, h, x.nom, "repas", "", r1(x.q), r1(x.k), r1(x.p), r1(x.g), r1(x.l)]));
+      const m = JSON.stringify(res || {}).match(/REPAS!A(\d+)/), r0 = m ? +m[1] : 0;
+      L.forEach((x, i) => D.repas.push({_row:r0 ? r0 + i : 0, date:nutDate, h, nom:x.nom, q:x.q, k:x.k, p:x.p, g:x.g, l:x.l}));
+      saveCache(); rNutri(); toast(d.n + " ajouté : " + fmt(sum(L.map(x => x.k)), 0) + " kcal");
+    } catch(e){ toast(errMsg(e), true); if (b) b.disabled = false; }
+  },
+  mealsManage:() => openSheet("meals"),
+  mealDel:async d => { const L = (D.mesRepas || {})[d.n]; if (!L) return;
+    try { for (const x of L) if (x._row) await putVals(APP_ID, `MES_REPAS!A${x._row}:I${x._row}`, blankRow(9));
+      delete D.mesRepas[d.n]; saveCache(); renderLayer(); rNutri(); toast("Repas supprimé"); } catch(e){ toast(errMsg(e), true); } }
 });
-CHG.clLink = async (d, el) => { const id = sheetIdOf(el.value); if (!id) return toast("Ce lien de Google Sheet n'est pas reconnu", true);
-  await CHG.prof({k:"classement_id"}, {value:id}); clErr = ""; CL = null; rAmis(); await clSync(true); rAmis(); };
-{ const _prof = CHG.prof; CHG.prof = async (d, el) => { await _prof(d, el); if (["pays", "sexe", "categorie", "mu_acquis", "prenom"].includes(d.k) && clId()) clSync(true).catch(() => {}); }; }
+
+/* =====================================================================
+   VIDÉOS DES RECORDS : gardées sur ce téléphone (IndexedDB), autant qu'on veut par nombre de reps.
+   Rien n'est remplacé : chaque vidéo ajoutée s'ajoute aux précédentes.
+   ===================================================================== */
+let VIDX = {}, VIDL = null, vidUrls = [], vidDraft = null, vidDel = null;
+function vidDb(){ return new Promise((ok, ko) => { const r = indexedDB.open("sl-videos", 1);
+  r.onupgradeneeded = () => { const db = r.result; if (!db.objectStoreNames.contains("meta")) db.createObjectStore("meta", {keyPath:"id"}); if (!db.objectStoreNames.contains("blob")) db.createObjectStore("blob"); };
+  r.onsuccess = () => ok(r.result); r.onerror = () => ko(r.error); }); }
+/* une transaction = des requêtes lancées d'un coup (pas d'attente au milieu : Safari ferme la transaction) */
+async function vidTx(stores, mode, fn){ const db = await vidDb(); return new Promise((ok, ko) => { let out; const t = db.transaction(stores, mode);
+  const r = fn(t); if (r && "onsuccess" in r) r.onsuccess = () => { out = r.result; };
+  t.oncomplete = () => ok(out); t.onerror = () => ko(t.error); t.onabort = () => ko(t.error); }); }
+async function vidLoad(){ try { VIDL = await vidTx(["meta"], "readonly", t => t.objectStore("meta").getAll()) || []; } catch(e){ VIDL = []; }
+  VIDX = {}; VIDL.forEach(m => { const k = m.lift + "|" + m.reps; VIDX[k] = (VIDX[k] || 0) + 1; }); return VIDL; }
+function vidSectionHtml(l, N, top){
+  if (!VIDL) { vidLoad().then(() => { if (sheet === "rm|" + l + "|" + N) renderLayer(); }); return `<h2 class="h2">Vidéos</h2><div class="skel" style="height:60px"></div>`; }
+  const key = l + "|" + N, list = VIDL.filter(m => m.lift + "|" + m.reps === key).sort((a, b) => (b.date || "").localeCompare(a.date || "") || b.id - a.id);
+  if (list.length) setTimeout(vidHydrate, 0);
+  const items = list.map(m => `<div class="vid"><div class="row"><b>${fmt(m.c)} kg${m.rpe ? ` <span class="muted small">@${fmt(m.rpe)}</span>` : ""}</b><span class="muted small">${m.date ? dfr(m.date) : ""}</span></div>
+      <video controls playsinline preload="metadata" data-vsrc="${m.id}"></video>
+      <div class="row" style="margin-top:6px"><button class="link small" data-act="vidSave" data-id="${m.id}">Enregistrer dans Photos</button><button class="link small" style="color:var(--bad)" data-act="vidDel" data-id="${m.id}">${vidDel === m.id ? "Confirmer la suppression" : "Supprimer"}</button></div></div>`).join("");
+  const rp = top ? (top.r1 || top.rpe || null) : null;
+  const draft = vidDraft && vidDraft.key === key ? `<div class="panel" style="margin-top:12px"><p style="font-weight:600">Nouvelle vidéo · ${fmt(vidDraft.file.size / 1048576, 0) || "< 1"} Mo</p>
+      <div class="grid2"><div><label for="vc">Charge (kg)</label><input id="vc" inputmode="decimal" value="${top ? fmt(top.c) : ""}"></div><div><label for="vr">RPE</label><select id="vr"><option value="">Pas noté</option>${[5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10].map(v => `<option value="${v}" ${rp === v ? "selected" : ""}>${fmt(v)}</option>`).join("")}</select></div></div>
+      <label for="vd">Date</label><input id="vd" type="date" value="${top && top.date ? top.date : D.today}">
+      <button class="btn" style="margin-top:12px" data-act="vidAddGo">Enregistrer la vidéo</button><button class="btn ghost" style="margin-top:8px" data-act="vidCancel">Annuler</button></div>` : "";
+  return `<h2 class="h2">Vidéos <span class="muted">${list.length || ""}</span></h2>${items || `<p class="muted small">Ajoute la vidéo de ta perf pour la revoir et voir tes progrès. Tu peux en garder autant que tu veux : une nouvelle ne remplace jamais l'ancienne.</p>`}${draft}
+    ${draft ? "" : `<label class="btn ghost" style="margin-top:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative">Ajouter une vidéo<input type="file" accept="video/*" data-chg="vidPick" data-k="${key}" aria-label="Choisir une vidéo" style="position:absolute;inset:0;opacity:0;width:100%;cursor:pointer"></label>`}
+    <p class="muted tiny" style="margin-top:8px">Les vidéos restent sur ce téléphone, pas dans Google : si tu supprimes l'app, elles partent avec. « Enregistrer dans Photos » en garde une copie.</p>`;
+}
+async function vidBlob(id){ const v = await vidTx(["blob"], "readonly", t => t.objectStore("blob").get(id)); return v && v.buf ? new Blob([v.buf], {type:v.type}) : v; }
+async function vidHydrate(){
+  const els = [...document.querySelectorAll("video[data-vsrc]")].filter(v => !v.src); if (!els.length) return;
+  vidUrls.forEach(u => URL.revokeObjectURL(u)); vidUrls = [];
+  for (const v of els) { try { const b = await vidBlob(+v.dataset.vsrc); if (b) { const u = URL.createObjectURL(b); vidUrls.push(u); v.src = u; } } catch(e){} }
+}
+CHG.vidPick = (d, el) => { const f = el.files && el.files[0]; if (!f) return; if (f.type && !/^video\//.test(f.type)) return toast("Ce fichier n'est pas une vidéo", true); vidDraft = {key:d.k, file:f}; renderLayer(); };
+async function vidPut(meta, file){
+  try { await vidTx(["meta", "blob"], "readwrite", t => { t.objectStore("blob").put(file, meta.id); return t.objectStore("meta").put(meta); }); }
+  catch(e){ if (e && e.name === "QuotaExceededError") throw e;   /* vieux Safari : pas de fichier dans IndexedDB, on range ses octets */
+    const buf = await file.arrayBuffer(); await vidTx(["meta", "blob"], "readwrite", t => { t.objectStore("blob").put({buf, type:file.type || "video/mp4"}, meta.id); return t.objectStore("meta").put(meta); }); }
+}
+Object.assign(ACT, {
+  vidCancel:() => { vidDraft = null; renderLayer(); },
+  vidAddGo:async (d, b) => {
+    if (!vidDraft || (b && b.disabled)) return; const [l, n] = vidDraft.key.split("|"), c = num(($("#vc") || {}).value);
+    if (c === null) return toast("Indique la charge", true); if (b) { b.disabled = true; b.textContent = "Enregistrement…"; }
+    const meta = {id:Date.now(), lift:l, reps:+n, c, rpe:num(($("#vr") || {}).value), date:($("#vd") || {}).value || D.today, type:vidDraft.file.type || "", size:vidDraft.file.size};
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+      await vidPut(meta, vidDraft.file); vidDraft = null; await vidLoad(); renderLayer(); render(); toast("Vidéo enregistrée");
+    } catch(e){ if (b) { b.disabled = false; b.textContent = "Enregistrer la vidéo"; }
+      toast(e && e.name === "QuotaExceededError" ? "Plus assez de place sur le téléphone pour cette vidéo." : "Vidéo non enregistrée. Réessaie.", true); }
+  },
+  vidDel:async d => { const id = +d.id; if (vidDel !== id) { vidDel = id; return renderLayer(); }
+    try { await vidTx(["meta", "blob"], "readwrite", t => { t.objectStore("blob").delete(id); return t.objectStore("meta").delete(id); }); vidDel = null; await vidLoad(); renderLayer(); render(); toast("Vidéo supprimée"); }
+    catch(e){ toast("Suppression impossible", true); } },
+  vidSave:async d => { try { const b = await vidBlob(+d.id); if (!b) return;
+      const ext = /quicktime/.test(b.type) ? "mov" : ((b.type || "video/mp4").split("/")[1] || "mp4"), f = new File([b], "record-" + d.id + "." + ext, {type:b.type || "video/mp4"});
+      if (navigator.canShare && navigator.canShare({files:[f]})) await navigator.share({files:[f]}); else toast("Enregistrement dans Photos indisponible ici", true); } catch(e){} }
+});
+vidLoad().catch(() => {});
 
 /* =====================================================================
    SYNCHRO ET DÉMARRAGE
@@ -2389,7 +2488,7 @@ async function syncAll(silent){
     await loadApp(); render();
     try { await loadCoach(cid0 && cid0 === coachId() ? pt : null); seanceErr = ""; } catch(e){ seanceErr = "Impossible de lire ta prog : " + errMsg(e); }
     lastSync = Date.now(); setDot(seanceErr ? "off" : "ok"); saveCache(); render();
-    if (clId()) clSync(true).then(() => { if (tab === "agenda" && agendaSeg === "amis" && !sheet) rAgenda(); }).catch(() => {});
+    if (clOn()) clSync().then(() => { if (tab === "agenda" && agendaSeg === "amis" && !sheet) rAgenda(); }).catch(() => {});
     if (seanceErr && S.length) toast(seanceErr, true);
     if (!silent) toast("Données à jour");
     if (!seanceErr) ensureAllBlocs().then(() => { if (tab !== "seance" && !live) render(); }).catch(() => {});

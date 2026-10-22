@@ -1,4 +1,4 @@
-# Street Lifting · mini guide de design (v21, 21/10/2026)
+# Street Lifting · mini guide de design (v24, 22/10/2026)
 
 Références : l'épuré de Whoop, le logo de Hevy, la rigueur de Garmin. Ambiance compétitive et puissante, jamais « jeu vidéo ».
 Règle d'or : un chiffre héros par écran, le reste en retrait.
@@ -70,6 +70,10 @@ Règles :
 - 1RM estimé : à partir de la série la plus lourde de 2 reps ou plus (à charge égale, la meilleure estimation ; un 1 rep est déjà le PR). Le RPE S1 de la prog s’applique à la 1re série.
 - Séance en cours : rouverte automatiquement à l'ouverture si elle date de moins de 3 h et n'a pas été fermée avec ×.
 - Corps s'ouvre sur Poids avant midi tant qu'on ne s'est pas pesé (sauf choix manuel pendant la session).
+
+- Classement (Compét → Amis) : automatique. Podium 2-1-3, ta position en dessous, liste dès le 4e ; aucune adresse e-mail affichée (v24).
+- Repas enregistrés : « Enregistrer comme repas » sous la liste du jour ; un bouton par repas sous « Ajouter » l'ajoute en un toucher (v24).
+- Vidéos des records : dans la fiche d'un record (n reps), autant de vidéos que voulu, jamais remplacées ; gardées sur le téléphone, copie possible dans Photos (v24).
 
 ## 9. Textes
 
