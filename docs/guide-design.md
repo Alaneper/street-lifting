@@ -71,12 +71,13 @@ Règles :
 - Séance en cours : rouverte automatiquement à l'ouverture si elle date de moins de 3 h et n'a pas été fermée avec ×.
 - Corps s'ouvre sur Poids avant midi tant qu'on ne s'est pas pesé (sauf choix manuel pendant la session).
 
-- Classement (Compét → Amis) : automatique. Podium 2-1-3, ta position en dessous, liste dès le 4e ; aucune adresse e-mail affichée (v24).
+- Classement (Comp → Amis) : automatique. Podium 2-1-3, ta position en dessous, liste dès le 4e ; aucune adresse e-mail affichée (v24).
 - Repas enregistrés : « Enregistrer comme repas » sous la liste du jour ; un bouton par repas sous « Ajouter » l'ajoute en un toucher (v24).
 - Vidéos des records : dans la fiche d'un record (n reps), autant de vidéos que voulu, jamais remplacées ; gardées sur le téléphone, copie possible dans Photos (v24).
 
 ## 9. Textes
 
+- « Compétition » toujours écrit en entier ; seule l'étiquette de l'onglet est abrégée en « Comp » (choix d'Alane, 22/10). Pays : liste de tous les pays, noms seuls, sans drapeau.
 - Français, tutoiement, phrases courtes, pas de jargon sans explication (RIR, e1RM expliqués dans « Méthodes et sources »).
 - Aucune donnée inventée : chaque chiffre vient du carnet, de la prog du coach ou d'une source citée (Official Streetlifting, Ciqual, Open Food Facts, RTS).
 
