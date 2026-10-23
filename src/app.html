@@ -472,7 +472,7 @@ html,body{overflow-x:clip}body{margin-top:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "37 · 23 oct. 2026";
+const APP_VER = "38 · 23 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -1570,7 +1570,7 @@ function rLive(){
   const isBW = l && BW_LIFTS.includes(l), name = renfo ? title(e.variation) : l ? LNAME[l] + " " + title(e.variation).toLowerCase() : title(e.mouvement);
   const pv = j => { if (!prev) return "–"; const p = prev.sets[Math.min(j, prev.sets.length - 1)]; return p ? fmt(p.c) + " × " + p.r : "–"; };
   const rc0 = rpeCible(e), inT = v => rc0 && rc0.hi !== null && v <= rc0.hi && (rc0.lo === null || v >= rc0.lo);
-  const rpeRow = (f, lab) => `<div><h2 class="h2">${lab} <span class="muted">pour ton coach</span></h2><div class="rpe">${RPE_OPTS.map(v => `<button class="${inT(v) ? "tgt" : ""}" aria-pressed="${st[f] === v}" data-act="rpe" data-f="${f}" data-v="${v}">${fmt(v)}</button>`).join("")}</div></div>`;
+  const rpeRow = (f, lab) => `<div><h2 class="h2">${lab} <span class="muted">pour ton coach</span> <button class="chip" style="min-height:32px;padding:4px 10px;font-size:12px" data-act="rpeInfo" aria-label="C'est quoi le RPE ?">?</button></h2><div class="rpe">${RPE_OPTS.map(v => `<button class="${inT(v) ? "tgt" : ""}" aria-pressed="${st[f] === v}" data-act="rpe" data-f="${f}" data-v="${v}">${fmt(v)}</button>`).join("")}</div></div>`;
   return `<div class="live ${sheet === "rest" ? "resting" : ""}" role="dialog" aria-label="Séance en cours"><div class="wrap">
     <div class="livehead"><button class="iconbtn" data-act="closeLive" aria-label="Fermer la séance"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <div style="text-align:center"><p class="small" style="font-weight:700">${esc(s.seance)}</p><p class="muted tiny">${el} min · exercice ${k + 1} sur ${s.exercices.length}</p></div>
@@ -2063,7 +2063,21 @@ function restPill(){
     <div style="flex:1;min-width:0"><p class="small" style="font-weight:600;opacity:.7" id="resttitle">Repos</p><p class="show" id="restval">0:00</p></div>
     <button class="rb" data-act="restAdd" data-s="-15" aria-label="Retirer 15 secondes">−15</button><button class="rb" data-act="restAdd" data-s="15" aria-label="Ajouter 15 secondes">+15</button><button class="go2" data-act="closeSheet">Passer</button></section>`;
 }
+function rpeInfoHtml(){
+  const rows = [[10, "Impossible d'en faire une de plus", "0"], [9, "Encore 1 rep possible", "1"], [8, "Encore 2 reps possibles", "2"], [7, "Encore 3 reps possibles", "3"], [6, "Encore 4 reps possibles", "4"]];
+  return `<p class="show t-m">C'est quoi le RPE ?</p>
+    <p class="muted small" style="margin-top:6px">RPE veut dire « Rate of Perceived Exertion » : l'effort ressenti sur une série, de 1 à 10. En musculation, on le relie au nombre de répétitions qu'il te restait en réserve à la fin de la série.</p>
+    <div class="list" style="margin-top:14px">${rows.map(([v, t, r]) => `<div class="item" style="display:flex;gap:12px;align-items:center"><b style="font:800 26px var(--f-show);width:34px">${v}</b><span class="grow">${t}</span><span class="muted small">${r} en réserve</span></div>`).join("")}</div>
+    <h2 class="h2" style="font-size:18px">Comment le noter</h2>
+    <p class="small" style="margin-top:4px">Juste après ta série, demande-toi : « combien de reps en plus aurais-je pu faire, sans craquer la technique ? » Retire ce nombre de 10. Pas besoin d'être précis : une demi-note d'écart ne change rien.</p>
+    <h2 class="h2" style="font-size:18px">À quoi ça sert dans l'app</h2>
+    <p class="small" style="margin-top:4px">Pour estimer ton 1RM, pour voir si une charge était trop légère ou trop lourde, et pour régler les charges de ton bloc suivant. Sans RPE noté, l'app ne change pas tes charges.</p>
+    <p class="muted small" style="margin-top:10px">Plus la série est longue ou éloignée de l'échec, plus il est difficile de juger l'effort : le RPE est le plus fiable sur des séries courtes et proches de l'échec.</p>
+    <p class="src" style="margin-top:10px">Échelle : <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al., 2016</a> (RIR = 10 − RPE). Synthèse : <a href="https://www.strongerbyscience.com/reps-in-reserve" target="_blank" rel="noopener">Stronger by Science</a>.</p>
+    <button class="btn" style="margin-top:16px" data-act="closeSheet">Compris</button>`;
+}
 function rSheet(){
+  if (sheet === "rpeinfo") return rpeInfoHtml();
   if (sheet.startsWith("cl|")) return clInfoHtml(sheet.slice(3));
   if (sheet.startsWith("cat|")) return catPickHtml(sheet.slice(4));
   if (sheet === "meal") return mealSaveHtml();
@@ -2162,6 +2176,8 @@ function settingsHtml(){
     ${Object.keys(blocNames).length ? `<label for="sbl" style="margin-top:0">Bloc en cours</label><select id="sbl" data-chg="blocActif"><option value="">Le dernier onglet de la prog</option>${progOrder.map(n => `<option value="${n}" ${n === chosenBloc() ? "selected" : ""}>${esc(blocLabel(n))}</option>`).join("")}</select>` : ""}
     <div class="grid2"><div><label for="sdc">Début de la prog</label><input id="sdc" type="date" value="${D.profil.debut_coaching || ""}" data-chg="prof" data-k="debut_coaching"></div>
       <div><label for="sds">${st ? "Début du street lifting" : "Début de la muscu"}</label><input id="sds" type="date" value="${D.profil.debut_street || ""}" data-chg="prof" data-k="debut_street"></div></div>
+    <h2 class="h2" style="font-size:20px">Aide</h2>
+    <button class="btn ghost" data-act="rpeInfo">C'est quoi le RPE ?</button>
     <h2 class="h2" style="font-size:20px">Méthodes et sources</h2>
     <p class="src"><b style="color:var(--chalk)">RIS</b> : formule de Waris Radji et Mathieu Ardoin, édition 2026 (constantes publiées dans le code d'<a href="https://openstreetlifting.org" target="_blank" rel="noopener">OpenStreetlifting</a>). <a href="https://warisradji.com/ris/" target="_blank" rel="noopener">Calculateur officiel</a>.</p>
     <p class="src" style="margin-top:8px"><b style="color:var(--chalk)">IPF GL</b> : formule officielle de l'IPF, coefficients 2020 toujours en vigueur (<a href="https://www.powerlifting.sport/rules/codes/info/ipf-formula" target="_blank" rel="noopener">IPF GL Formula</a>). Classic ou equipped selon ton réglage.</p>
@@ -2868,6 +2884,8 @@ function impRule(load, rpe, big){
     return {load:n, why:"RPE 10 ou échec : −" + f(load - n).replace(" kg", "") + " kg", cls:"down"}; }
   return {load, why:"RPE " + String(rpe).replace(".", ",") + " : inchangée", cls:"same"};
 }
+/* Gros groupes musculaires (ACSM : pourcentage plus élevé) : jambes et fessiers, mouvements complets du bas du corps. Le reste (haut du corps, isolation) : pourcentage plus faible. */
+const impBig = (name, cat) => cat === "squat" || cat === "deadlift" || /squat|presse|press\s*(?:a|à)\s*cuisse|leg\s*press|hack|fente|lunge|split|hip\s*thrust|pouss[ée]e de hanche|soulev|deadlift|roumain|rdl|good\s*morning|bulgare|step\s*up/i.test(String(name || ""));
 function impNextBlock(){
   const ab = activeBloc(); if (ab === null) return null;
   const ws = weeksOfBloc(ab), logged = ws.filter(w => S.some(z => z.bloc === ab && z.semaine === w && z.faite)), w0 = (logged.length ? logged : ws).at(-1);
@@ -2876,7 +2894,7 @@ function impNextBlock(){
   const days = tpl.map(z => { const sub = String(z.seance || "").replace(/^s[ée]ance\s*\d+\s*[–-]\s*/i, "").replace(/^s[ée]ance\s*\d+$/i, "").trim();
     return {label:z.jour || "Jour", sub, notes:[], exos:z.exercices.map(e => {
       const c = ProgImport.canon(e.mouvement), bw = BW_LIFTS.includes(liftOf(e.mouvement)), g = chargeGuess(e), pctM = String(e.charge || "").match(/(\d+(?:[.,]\d+)?)\s*%/);
-      const big = c.cat === "squat" || c.cat === "deadlift", r = impRule(g, rpeOf(e), big), notes = [e.variation, e.coach].filter(Boolean);
+      const big = impBig(e.mouvement, c.cat), r = impRule(g, rpeOf(e), big), notes = [e.variation, e.coach].filter(Boolean);
       const load = g !== null ? {kind:bw ? "lest" : "abs", v:r.load, u:"kg"} : pctM ? {kind:"pct", v:num(pctM[1])} : null;
       if (g === null && !pctM && String(e.charge || "").trim()) notes.push("Charge d'origine : " + String(e.charge).trim());
       const it = String(e.intensite || "").match(/^\s*(?:rpe\s*)?(\d+(?:[.,]\d+)?)\s*$/i);
@@ -2919,7 +2937,7 @@ function rImpPage(){
       <div class="chips" style="margin-top:8px;flex-wrap:wrap"><span class="chip impchip">${r.weeks.length} semaine${r.weeks.length > 1 ? "s" : ""}</span><span class="chip impchip">${w.days.filter(d => d.exos.length).length} jours</span><span class="chip impchip">${ex.length} exercices</span>
       <span class="chip impchip ${unk ? "warn" : "ok"}">${ex.length - unk}/${ex.length} reconnus</span></div></div>
       <label for="impstart" style="margin-top:12px">Début du programme (un lundi)</label><input id="impstart" type="date" value="${esc(imp.start || "")}" data-chg="impStart">
-      ${imp.mode === "next" ? (() => { const ex = impExos().filter(x => x.why), c = k => ex.filter(x => x.whyCls === k).length; return `<div class="imptip" style="border-color:var(--brand)"><b>Règle par défaut</b> : ${c("up")} charge${c("up") > 1 ? "s" : ""} augmentée${c("up") > 1 ? "s" : ""}, ${c("same")} inchangée${c("same") > 1 ? "s" : ""}, ${c("down")} réduite${c("down") > 1 ? "s" : ""}. Charge +2,5 % (+5 % squat et soulevé) si ton dernier RPE est ≤ 8 ; inchangée entre 8,5 et 9,5 ; −5 % si RPE 10 ou échec. La fourchette de 2 à 10 % vient de l'<a href="https://doi.org/10.1249/MSS.0b013e3181915670" target="_blank" rel="noopener">ACSM (Ratamess et al., 2009)</a>, le RPE de <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al. (2016)</a>. Les seuils et les pas sont un choix prudent de l'app, pas une règle publiée : corrige avec ✎.</div>`; })() : `<div class="imptip">Rien n'est enregistré pour l'instant. Touche <b>✎</b> pour corriger un exercice, une série ou une charge.</div>`}
+      ${imp.mode === "next" ? (() => { const ex = impExos().filter(x => x.why), c = k => ex.filter(x => x.whyCls === k).length; return `<div class="imptip" style="border-color:var(--brand)"><b>Règle par défaut</b> : ${c("up")} charge${c("up") > 1 ? "s" : ""} augmentée${c("up") > 1 ? "s" : ""}, ${c("same")} inchangée${c("same") > 1 ? "s" : ""}, ${c("down")} réduite${c("down") > 1 ? "s" : ""}. Charge +2,5 % (+5 % pour les gros groupes musculaires du bas du corps : squat, soulevé, presse, fentes, hip thrust…) si ton dernier RPE est ≤ 8 ; inchangée entre 8,5 et 9,5 ; −5 % si RPE 10 ou échec. <a href="#" data-act="rpeInfo">C'est quoi le RPE ?</a> La fourchette de 2 à 10 % vient de l'<a href="https://doi.org/10.1249/MSS.0b013e3181915670" target="_blank" rel="noopener">ACSM (Ratamess et al., 2009)</a>, le RPE de <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al. (2016)</a>. Les seuils et les pas sont un choix prudent de l'app, pas une règle publiée : corrige avec ✎.</div>`; })() : `<div class="imptip">Rien n'est enregistré pour l'instant. Touche <b>✎</b> pour corriger un exercice, une série ou une charge.</div>`}
       ${r.weeks.length > 1 ? `<div class="chips" style="margin-bottom:10px;overflow-x:auto">${r.weeks.map((x, i) => `<button class="chip" aria-pressed="${i === imp.week}" data-act="impWeek" data-w="${i}">${esc(x.label)}</button>`).join("")}</div>` : ""}
       ${w.days.map((d, di) => !d.exos.length ? "" : `<div class="panel impday"><div class="row"><b>${esc(d.label)}</b><span class="muted small">${d.sub ? esc(d.sub) + " · " : ""}${d.exos.length} exos</span></div>
         ${d.exos.map((x, ei) => { const key = imp.week + "." + di + "." + ei, open = imp.edit === key, lc = {squat:"SQUAT", bench:"BENCH", deadlift:"DEADLIFT", pull:"PULL", dip:"DIP", mu:"MU"}[x.cat];
@@ -2964,6 +2982,7 @@ Object.assign(ACT, {
   },
   impNext:() => { const b = impNextBlock(); if (!b) return toast("Pas encore de séance à reprendre dans ton bloc", true);
     imp = Object.assign(impNew(), {mode:"next", res:b.res, title:b.title, start:b.start, step:2}); sheet = null; page = {type:"imp"}; renderLayer(); },
+  rpeInfo:() => openSheet("rpeinfo"),
   impWeek:d => { imp.week = +d.w; imp.edit = null; renderLayer(); },
   impEdit:d => { imp.edit = imp.edit === d.k ? null : d.k; renderLayer(); },
   impDel:d => { const [w, di, ei] = d.k.split(".").map(Number); imp.res.weeks[w].days[di].exos.splice(ei, 1); imp.edit = null;
