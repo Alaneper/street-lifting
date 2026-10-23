@@ -455,8 +455,10 @@
   const GRID_MARK = "Street Lifting · programme";
   const WEEKDAY = /^(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)$/i;
   const fmtN = n => String(Math.round(n * 100) / 100).replace(".", ",");
-  function toGrid(res, dateTxt) {
-    const rows = [["", GRID_MARK + (dateTxt ? " · importé le " + dateTxt : "")], ["", "Programme importé avec l'app Street Lifting. Tu peux modifier les cases : l'app les relit."], []];
+  function toGrid(res, dateTxt, title) {
+    const nd = res.weeks.reduce((a, w) => a + w.days.filter(d => d.exos.length).length, 0), ne = res.weeks.reduce((a, w) => a + w.days.reduce((b, d) => b + d.exos.length, 0), 0);
+    const rows = [["", "STREET LIFTING\n" + (title || "Mon programme"), "", "", "", "", "", "", "", (dateTxt ? "Importé le " + dateTxt + "\n" : "") + nd + " séance" + (nd > 1 ? "s" : "") + " · " + ne + " exercice" + (ne > 1 ? "s" : "")],
+      ["", GRID_MARK + " importé avec l'app. Les colonnes en couleur (RPE, commentaire, poids de corps) se remplissent pendant la séance ; tu peux modifier toutes les cases, l'app les relit."], []];
     res.weeks.forEach((w, wi) => {
       rows.push(["SEMAINE", String(wi + 1)]);
       let nd = 0;
@@ -485,7 +487,7 @@
             rows.push([x.canon || x.name, "", String(g.sets), reps, charge, inten, "", "", com.join(" · "), ""]);
           });
         });
-        rows.push(["Bilan de séance", "", "Poids de corps"]);
+        rows.push(["Bilan de séance", "Poids de corps", ""]);
         (d.notes || []).forEach(n => rows.push(["Remarque", n]));
         rows.push([]);
       });
@@ -496,7 +498,62 @@
     return rows;
   }
 
-  const api = { parseProgram, parseWorkbook, canon, fmtGroup, toGrid, GRID_MARK, _readExo: readExo };
+  // Mise en forme de l'onglet (maquette A choisie par Alane le 23/10 : sombre comme l'app, logo, couleur de chaque mouvement).
+  // Renvoie les requêtes Google Sheets (batchUpdate) pour l'onglet sheetId ; noFont : sans police Barlow (repli).
+  const CAT_COL = { squat: "#F0524A", bench: "#A78BFA", deadlift: "#EC6FB0", pull: "#4C8DF6", dip: "#2BB673", mu: "#E3B341" };
+  const C = { floor: "#0A0B0D", deck: "#16181C", deck2: "#1F2227", deck3: "#2A2E34", seam: "#1C1F24", inbg: "#14171B", recap: "#111317", chalk: "#FFFFFF", dust: "#8A9099", steel: "#B4BAC2", brand: "#1F5FD0", warn: "#E3B341" };
+  const WIDTHS = [200, 110, 64, 56, 90, 110, 90, 120, 200, 170];
+  const INPUT_COLS = [6, 7, 9];
+  function sheetStyle(rows, sheetId, noFont) {
+    const rgb = h => ({ red: parseInt(h.slice(1, 3), 16) / 255, green: parseInt(h.slice(3, 5), 16) / 255, blue: parseInt(h.slice(5, 7), 16) / 255 });
+    const R = [], n = rows.length, NC = 10;
+    const rng = (r0, r1, c0, c1) => ({ sheetId, startRowIndex: r0, endRowIndex: r1, startColumnIndex: c0, endColumnIndex: c1 });
+    const tf = (o = {}) => { const t = { foregroundColor: rgb(o.c || C.chalk), fontSize: o.size || 10, bold: !!o.b }; if (!noFont) t.fontFamily = o.f || "Barlow"; return t; };
+    const fmt = (range, o) => R.push({ repeatCell: { range, cell: { userEnteredFormat: { backgroundColor: rgb(o.bg || C.floor), textFormat: tf(o), horizontalAlignment: o.al || "LEFT", verticalAlignment: "MIDDLE", wrapStrategy: o.wrap ? "WRAP" : "OVERFLOW_CELL" } }, fields: "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment,wrapStrategy)" } });
+    const h = (r0, r1, px) => R.push({ updateDimensionProperties: { range: { sheetId, dimension: "ROWS", startIndex: r0, endIndex: r1 }, properties: { pixelSize: px }, fields: "pixelSize" } });
+    const line = (c, w) => ({ style: w || "SOLID", color: rgb(c) });
+    R.push({ updateSheetProperties: { properties: { sheetId, tabColor: rgb(C.brand), gridProperties: { hideGridlines: true, frozenRowCount: 2 } }, fields: "tabColor,gridProperties.hideGridlines,gridProperties.frozenRowCount" } });
+    WIDTHS.forEach((px, i) => R.push({ updateDimensionProperties: { range: { sheetId, dimension: "COLUMNS", startIndex: i, endIndex: i + 1 }, properties: { pixelSize: px }, fields: "pixelSize" } }));
+    fmt(rng(0, n + 20, 0, NC + 4), {});                                  // fond sombre partout
+    h(0, n + 20, 26);
+    // Bandeau : logo (A1), STREET LIFTING + nom (B1), date et volume (J1)
+    fmt(rng(0, 1, 0, NC), { bg: C.brand });
+    R.push({ mergeCells: { range: rng(0, 1, 1, 9), mergeType: "MERGE_ALL" } });
+    const t1 = String(rows[0][1] || ""), cut = t1.indexOf("\n") + 1;
+    R.push({ updateCells: { range: rng(0, 1, 1, 2), rows: [{ values: [{ userEnteredValue: { stringValue: t1 }, textFormatRuns: [{ startIndex: 0, format: tf({ size: 8, b: true }) }, { startIndex: cut, format: tf({ size: 22, b: true, f: "Barlow Condensed" }) }],
+      userEnteredFormat: { backgroundColor: rgb(C.brand), verticalAlignment: "MIDDLE", wrapStrategy: "WRAP" } }] }], fields: "userEnteredValue,textFormatRuns,userEnteredFormat(backgroundColor,verticalAlignment,wrapStrategy)" } });
+    fmt(rng(0, 1, 9, 10), { bg: C.brand, al: "RIGHT", size: 9, wrap: true });
+    h(0, 1, 72);
+    fmt(rng(1, 2, 0, NC), { bg: C.deck, c: C.steel, size: 9 });
+    R.push({ mergeCells: { range: rng(1, 2, 1, NC), mergeType: "MERGE_ALL" } });
+    h(1, 2, 30); h(2, 3, 10);
+    for (let i = 3; i < n; i++) {
+      const r = rows[i] || [], a = String(r[0] || "");
+      if (!r.length || !a) { h(i, i + 1, 10); continue; }
+      if (a === "SEMAINE") { fmt(rng(i, i + 1, 0, NC), { size: 12, b: true, f: "Barlow Condensed" }); h(i, i + 1, 32);
+        R.push({ updateBorders: { range: rng(i, i + 1, 0, NC), top: line(C.brand, "SOLID_MEDIUM") } }); }
+      else if (a === "JOUR") { fmt(rng(i, i + 1, 0, NC), { bg: C.deck, c: C.dust, size: 9 }); fmt(rng(i, i + 1, 1, 2), { bg: C.deck, b: true, size: 11 }); }
+      else if (/^Séance /.test(a)) { fmt(rng(i, i + 1, 0, NC), { bg: C.deck, b: true, size: 11 }); h(i, i + 1, 30); }
+      else if (a === "Exercice") { fmt(rng(i, i + 1, 0, NC), { bg: C.deck2, c: C.dust, b: true, size: 8 }); INPUT_COLS.forEach(c => fmt(rng(i, i + 1, c, c + 1), { bg: C.deck3, b: true, size: 8 }));
+        fmt(rng(i, i + 1, 2, 5), { bg: C.deck2, c: C.dust, b: true, size: 8, al: "CENTER" }); h(i, i + 1, 28); }
+      else if (a === "Bilan de séance") { fmt(rng(i, i + 1, 0, NC), { bg: C.recap, c: C.dust, size: 9 }); fmt(rng(i, i + 1, 2, 3), { bg: C.inbg, b: true, al: "CENTER" }); }
+      else if (a === "Remarque") fmt(rng(i, i + 1, 0, NC), { c: C.steel, size: 9 });
+      else {
+        const cat = canon(a).cat, col = CAT_COL[cat] || "#8E9198";
+        fmt(rng(i, i + 1, 0, 1), { b: true, size: 11 });
+        fmt(rng(i, i + 1, 2, 5), { b: true, size: 11, al: "CENTER" });
+        fmt(rng(i, i + 1, 5, 6), { c: C.warn, b: true });
+        fmt(rng(i, i + 1, 8, 9), { c: C.steel, size: 9 });
+        INPUT_COLS.forEach(c => fmt(rng(i, i + 1, c, c + 1), { bg: C.inbg, al: c === 9 ? "LEFT" : "CENTER", b: c !== 9 }));
+        R.push({ updateBorders: { range: rng(i, i + 1, 0, NC), bottom: line(C.seam), innerVertical: line(C.seam) } });
+        R.push({ updateBorders: { range: rng(i, i + 1, 0, 1), left: line(col, "SOLID_THICK") } });
+        h(i, i + 1, 30);
+      }
+    }
+    return R;
+  }
+
+  const api = { parseProgram, parseWorkbook, canon, fmtGroup, toGrid, GRID_MARK, sheetStyle, _readExo: readExo };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.ProgImport = api;
 })(typeof window !== "undefined" ? window : globalThis);

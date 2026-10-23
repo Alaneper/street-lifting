@@ -16,7 +16,9 @@
     let mm;
     if ((mm = path.match(/^\/([^/]+)\/values:batchGet$/))) return J({valueRanges:await Promise.all(u.searchParams.getAll("ranges").map(r => call("get_values", {spreadsheetId:mm[1], range:r})))});
     if ((mm = path.match(/^\/([^/]+)\/values:batchUpdate$/))) { for (const d of body.data) await call("update_values", {spreadsheetId:mm[1], range:d.range, values:d.values}); return J({}); }
-    if ((mm = path.match(/^\/([^/]+):batchUpdate$/))) { body.requests.forEach(r => window.__sheets[mm[1]][r.addSheet.properties.title] = [[]]); return J({}); }
+    if ((mm = path.match(/^\/([^/]+):batchUpdate$/))) { (window.__req = window.__req || []).push(...body.requests);
+      const replies = body.requests.map(r => { if (!r.addSheet) return {}; window.__sheets[mm[1]][r.addSheet.properties.title] = [[]]; return {addSheet:{properties:{sheetId:4242, title:r.addSheet.properties.title}}}; });
+      return J({replies}); }
     if ((mm = path.match(/^\/([^/]+)\/values\/(.+):append$/))) return J(await call("append_values", {spreadsheetId:mm[1], range:mm[2], values:body.values}));
     if ((mm = path.match(/^\/([^/]+)\/values\/(.+)$/))) {
       if (!window.__sheets[mm[1]]) return new Response("{}", {status:404});

@@ -34,12 +34,26 @@ with sync_playwright() as p:
     check("Squat : deux lignes (3×5 à 100 puis 2×3 à 110)", [e[3] for e in lun[3] if e[0] == "Squat"] == ["100", "110"], lun[3])
     check("« @8 » lu comme RPE 8 (pas comme 8 kg)", [e for e in lun[3] if e[0] == "legs press"][0][3:5] == ["", "RPE 8"], lun[3])
     r = pg.evaluate("""(() => { const g = ProgImport.toGrid(ProgImport.parseProgram("LUNDI\\nsquat 4x5 100kg"), "23/10/2026"); const flat = g.flat().join("|");
-      const noMark = g.slice(3); return {mark:String(g[0][1]).startsWith("Street Lifting"), noCoachLabels:!/MOUVEMENT|RÉPÉTITIONS|INTENSITÉ CIBLE|RECAP|COMMENTAIRE DU COACH/.test(flat),
+      const noMark = g.slice(3); return {mark:String(g[1][1]).startsWith("Street Lifting · programme"), noCoachLabels:!/MOUVEMENT|RÉPÉTITIONS|INTENSITÉ CIBLE|RECAP|COMMENTAIRE DU COACH/.test(flat),
         otherTab:progInfo([["Exercice","Séries","Reps"],["Squat","4","5"]]).prog, otherCoach:progInfo([["MOUVEMENT","SÉRIES"],["Squat","4"]]).prog}; })()""")
     check("onglet importé : marqueur « Street Lifting · programme » en tête", r["mark"] is True, r)
     check("onglet importé : aucun libellé du modèle du coach (MOUVEMENT, RECAP, INTENSITÉ CIBLE…)", r["noCoachLabels"] is True, r)
     check("un autre onglet « Exercice / Séries / Reps » sans marqueur n'est pas pris pour une prog (rien ne change pour les coachs)", r["otherTab"] is False, r)
     check("le modèle du coach est toujours reconnu", r["otherCoach"] is True, r)
+    # 2b. v36 : mise en forme (maquette A) envoyée à Google, poids de corps lu dans la bonne case
+    r = pg.evaluate(f"""(async () => {{ window.__req = []; const res = ProgImport.parseProgram("{TXT}"); const g = ProgImport.toGrid(res, "23/10/2026", "Test style");
+      await addProgTab(APP_ID, "Test style", g); const q = window.__req, k = t => q.filter(x => x[t]).length, b = parseBloc(g, "Test style", 1);
+      const flat = JSON.stringify(q);
+      return {{add:k("addSheet"), rep:k("repeatCell"), bord:k("updateBorders"), merge:k("mergeCells"), runs:k("updateCells"), dims:k("updateDimensionProperties"),
+        props:k("updateSheetProperties"), font:flat.includes('"fontFamily":"Barlow"'), brand:flat.includes('"red":0.12156862745098039'), squatRed:flat.includes('"red":0.9411764705882353'),
+        written:(window.__sheets[APP_ID]["Test style"] || []).length, pdcCol:b.seances[0].pdcCol, pdc:b.seances[0].pdc, recapRow:b.seances[0].recapRow, title:g[0][1], mark:g[1][1].slice(0, 26)}}; }})()""")
+    check("mise en forme envoyée : fond, couleurs, bordures, fusions, largeurs, onglet", r["add"] == 1 and r["rep"] > 20 and r["bord"] > 5 and r["merge"] == 2 and r["runs"] == 1 and r["dims"] > 15 and r["props"] == 1, r)
+    check("police Barlow, bleu de la marque, rouge du squat", r["font"] and r["brand"] and r["squatRed"], r)
+    check("contenu écrit dans le carnet", r["written"] > 10, r)
+    check("titre « STREET LIFTING » + nom du programme en B1, marqueur en B2", r["title"] == "STREET LIFTING\nTest style" and r["mark"] == "Street Lifting · programme", r)
+    check("poids de corps : saisi dans la case vide à droite du libellé (colonne C)", r["recapRow"] > 0 and r["pdcCol"] == 3 and r["pdc"] == "", r)
+    r = pg.evaluate("""(() => { const g = ProgImport.toGrid(ProgImport.parseProgram("LUNDI\\nsquat 4x5 100"), "", "x"); return [ProgImport.sheetStyle(g, 7, true).some(q => JSON.stringify(q).includes("fontFamily")), ProgImport.sheetStyle(g, 7, false).length]; })()""")
+    check("repli sans police (si Google refuse Barlow)", r[0] is False and r[1] > 10, r)
     # 3. parcours complet sans prog de coach
     pg.evaluate("D.profil.coach_sheet_id = ''; saveCache(); render(); openSheet('settings')"); pg.wait_for_timeout(300)
     check("sans prog : bouton « Ajouter mon programme » dans les réglages", pg.evaluate("!!document.querySelector('[data-act=impOpen]')"))
@@ -91,7 +105,7 @@ with sync_playwright() as p:
     pg.evaluate("k => { window.__sheets[k] = {'BLOC 1': [['x']], 'PROFIL': [['y']]}; imp = impNew(); page = {type:'imp'}; renderLayer(); }", LK); pg.wait_for_timeout(200)
     pg.fill("#implink", "https://docs.google.com/spreadsheets/d/1abcdefghijklmnopqrstuvwxyz0123456789/edit"); pg.click("[data-act=impLink]"); pg.wait_for_timeout(400)
     check("Sheet de coach (onglets BLOC) : orienté vers Réglages, pas importé", pg.evaluate("imp.step === 1"))
-    check("version 33 ou plus", float(pg.evaluate("APP_VER").split(" ")[0]) >= 35)
+    check("version 33 ou plus", float(pg.evaluate("APP_VER").split(" ")[0]) >= 36)
     check("aucune erreur console", not [e for e in errs if "Failed to load resource" not in e], errs[:4])
     br.close()
 print("ÉCHECS :", fails if fails else "aucun"); import sys; sys.exit(1 if fails else 0)

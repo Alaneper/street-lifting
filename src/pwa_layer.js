@@ -91,12 +91,12 @@ async function ensureTabs(id){
 async function addProgTab(id, title, rows){
   const r = await gapi(API + id + ":batchUpdate", {method:"POST", body:JSON.stringify({requests:[{addSheet:{properties:{title}}}]})});
   await writeMany(id, [{range:q(title) + "!A1", values:rows.map(r => r.map(v => String(v ?? "")))}]);
-  /* Logo de l'app en A1 (échec sans conséquence : le programme est déjà écrit) */
-  try {
-    const sid = r.replies && r.replies[0] && r.replies[0].addSheet.properties.sheetId;
-    await gapi(API + id + "/values:batchUpdate", {method:"POST", body:JSON.stringify({valueInputOption:"USER_ENTERED", data:[{range:q(title) + "!A1", values:[['=IMAGE("' + location.origin + location.pathname.replace(/[^/]*$/, "") + 'icon-192.png";4;60;60)']]}]})});
-    if (sid !== undefined) await gapi(API + id + ":batchUpdate", {method:"POST", body:JSON.stringify({requests:[{updateDimensionProperties:{range:{sheetId:sid, dimension:"ROWS", startIndex:0, endIndex:1}, properties:{pixelSize:64}, fields:"pixelSize"}}, {updateDimensionProperties:{range:{sheetId:sid, dimension:"COLUMNS", startIndex:0, endIndex:1}, properties:{pixelSize:90}, fields:"pixelSize"}}]})});
-  } catch(e){ console.warn("logo", e); }
+  /* Logo de l'app en A1, puis mise en forme (maquette A). Un échec ici n'empêche rien : le programme est déjà écrit. */
+  const sid = r && r.replies && r.replies[0] && r.replies[0].addSheet ? r.replies[0].addSheet.properties.sheetId : undefined;
+  try { await gapi(API + id + "/values:batchUpdate", {method:"POST", body:JSON.stringify({valueInputOption:"USER_ENTERED", data:[{range:q(title) + "!A1", values:[['=IMAGE("' + location.origin + location.pathname.replace(/[^/]*$/, "") + 'icon-192.png";4;56;56)']]}]})}); } catch(e){ console.warn("logo", e); }
+  if (sid === undefined) return;
+  const style = noFont => gapi(API + id + ":batchUpdate", {method:"POST", body:JSON.stringify({requests:ProgImport.sheetStyle(rows, sid, noFont)})});
+  try { await style(false); } catch(e){ try { await style(true); } catch(e2){ console.warn("mise en forme", e2); } }
 }
 async function createBook(p){
   const r = await gapi(API, {method:"POST", body:JSON.stringify({properties:{title:"Street Lifting – " + (p.prenom || "carnet"), locale:"fr_FR"},
