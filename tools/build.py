@@ -67,6 +67,8 @@ rep("const coachId = () => D.profil.coach_sheet_id;", "const coachId = () => idO
 rep('"sl4-cache"', 'ck("sl4-cache")', 2)
 n = s.count('"sl4-live"'); s = s.replace('"sl4-live"', 'ck("sl4-live")'); assert n >= 4, n
 rep('window.claude?.use("downloads").catch(() => null)', "Promise.resolve(dlr)", 2)
+_pi = (HERE / "prog_import.js").read_text()
+rep("/*__PROG_IMPORT__*/", _pi)
 layer = (HERE / "pwa_layer.js").read_text().replace("__CLIENT_ID__", CLIENT_ID)
 
 # 3. Messages d'erreur propres à la web app

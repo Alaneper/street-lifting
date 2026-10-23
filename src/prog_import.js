@@ -90,7 +90,7 @@
     if ((m = t.match(/[àa@]\s*-\s*(\d+(?:[.,]\d+)?)\s*%/))) return { kind: "rel", v: -num(m[1]) };
     if ((m = t.match(/@\s*\+\s*(\d+(?:[.,]\d+)?)\s*(kg|lbs?)?/i))) return { kind: "lest", v: num(m[1]), u: (m[2] || "kg").replace(/s$/, "") };
     if ((m = t.match(/(?:^|\s)\+\s*(\d+(?:[.,]\d+)?)\s*(?:(kg|lbs?)\b|(?=\s*(?:$|[,:;)(\/]|\d)))/i))) return { kind: "lest", v: num(m[1]), u: (m[2] || "kg").replace(/s$/, "") };
-    if ((m = t.match(/@\s*(\d+(?:[.,]\d+)?)(?![\d.,]|\s*%)\s*(kg|lbs?)?/i)) && !/rpe\s*$/i.test(t.slice(0, m.index))) return { kind: "abs", v: num(m[1]), u: (m[2] || "kg").replace(/s$/, "") };
+    if ((m = t.match(/@\s*(\d+(?:[.,]\d+)?)(?![\d.,]|\s*%)\s*(kg|lbs?)?/i)) && !/rpe\s*$/i.test(t.slice(0, m.index)) && (m[2] || num(m[1]) > 10)) return { kind: "abs", v: num(m[1]), u: (m[2] || "kg").replace(/s$/, "") };
     if ((m = t.match(/(\d+(?:[.,]\d+)?)\s*(kg|lbs?)\b/i))) return { kind: "abs", v: num(m[1]), u: m[2].toLowerCase().replace(/s$/, "") };
     if ((m = t.match(/(?:\s|^)[àa]\s+(\d{2,3}(?:[.,]\d+)?)(?![\d.,]|\s*%)/))) return { kind: "abs", v: num(m[1]), u: "kg" };
     if ((m = t.match(/(?<![\d.,])(\d+(?:[.,]\d+)?)\s*%/))) return { kind: "pct", v: num(m[1]) };
@@ -139,7 +139,7 @@
     });
     let name = s.slice(0, hits[0].i).replace(/\s+(@\s*)?\d+(?:[.,]\d+)?\s*%\s*([:\-—–]\s*)?$/, "").replace(/\s\+\s*\d+(?:[.,]\d+)?\s*(kg|lbs?)?/gi, "").replace(/\d+(?:[.,]\d+)?\s*(kg|lbs?)?\s*$/i, "")
       .replace(/(\s|^)(puis|then|et|ensuite)\s*$/i, "").replace(/[:\-—–,@(]+\s*$/, "").trim();
-    const rpe = (s.match(/rpe\s*(\d+(?:[.,]\d+)?(?:\s*-\s*\d+(?:[.,]\d+)?)?)/i) || [])[1] || null;
+    const rpe = (s.match(/rpe\s*(\d+(?:[.,]\d+)?(?:\s*-\s*\d+(?:[.,]\d+)?)?)/i) || s.match(/@\s*(10|[5-9](?:[.,]5)?)(?![\d.,]|\s*(?:%|kg|lbs?))/i) || [])[1] || null;
     const tempo = (s.match(/tempo\s*(\d-\d-[\dx](?:-\d)?)/i) || [])[1] || null;
     const side = /\/\s*(jambe|bras|c[oô]t[ée])|par bras|chaque bras|\/\s*leg|per side/i.test(s);
     return { name, groups: hits.map(h => ({ ...h.g, load: h.load || null, amrap: !!h.amrap })), rpe, tempo, side };
@@ -447,7 +447,54 @@
     return res;
   }
 
-  const api = { parseProgram, parseWorkbook, canon, fmtGroup, _readExo: readExo };
+
+  // Tableau prêt à écrire dans un onglet, au format lu par l'app (semaines, jours, séances, en-tête MOUVEMENT) : résultat de l'import → lignes de cellules.
+  // Charge : kg ou lest en nombre ; lb converties en kg ; % et RPE vont dans « INTENSITÉ CIBLE », le reste (tempo, back-off, remarques) dans « COMMENTAIRE DU COACH ».
+  const GRID_HEAD = ["MOUVEMENT", "VARIATION", "SÉRIES", "RÉPÉTITIONS", "CHARGE", "INTENSITÉ CIBLE", "RPE S1", "RPE DERNIÈRE SÉRIE", "COMMENTAIRE DU COACH", "COMMENTAIRE ATHLÈTE"];
+  const WEEKDAY = /^(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)$/i;
+  const fmtN = n => String(Math.round(n * 100) / 100).replace(".", ",");
+  function toGrid(res) {
+    const rows = [];
+    res.weeks.forEach((w, wi) => {
+      rows.push(["SEMAINE", String(wi + 1)]);
+      let nd = 0;
+      w.days.forEach(d => {
+        if (!d.exos.length) return;
+        nd++;
+        rows.push(["JOUR", d.label]);
+        const sub = d.sub || (WEEKDAY.test(d.label) ? "" : d.label);
+        rows.push(["Séance " + nd + (sub ? " – " + sub : "")]);
+        rows.push(GRID_HEAD.slice());
+        d.exos.forEach(x => {
+          const groups = x.groups.length ? x.groups : [{ sets: "", reps: "", load: null }];
+          groups.forEach((g, gi) => {
+            const L = g.load, com = [];
+            let charge = "", inten = "";
+            if (L) {
+              if (L.kind === "abs" && L.u === "lb") { charge = fmtN(L.v * 0.45359237); com.push(L.v + " lb"); }
+              else if (L.kind === "abs" || L.kind === "lest") charge = fmtN(L.v);
+              else if (L.kind === "pct") inten = L.v + "%";
+              else if (L.kind === "rel") com.push("Back-off " + String(L.v).replace("-", "−") + " % du top set");
+            }
+            if (gi === 0 && x.rpe) { const r = isNaN(+String(x.rpe).replace(",", ".")) ? String(x.rpe) : fmtN(+String(x.rpe).replace(",", ".")); if (inten) com.push("Intensité " + inten); inten = "RPE " + r; }
+            if (gi === 0 && x.tempo) com.push("Tempo " + x.tempo);
+            if (gi === 0 && x.note) com.push(x.note);
+            const reps = g.reps === "max" ? "max" : String(g.reps) + (g.amrap ? "+" : "");
+            rows.push([x.canon || x.name, "", String(g.sets), reps, charge, inten, "", "", com.join(" · "), ""]);
+          });
+        });
+        rows.push(["RECAP", "", "POIDS DE CORPS"]);
+        (d.notes || []).forEach(n => rows.push(["Remarque", n]));
+        rows.push([]);
+      });
+      (w.notes || []).forEach(n => rows.push(["Remarque", n]));
+      rows.push([]);
+    });
+    (res.notes || []).forEach(n => rows.push(["Remarque", n]));
+    return rows;
+  }
+
+  const api = { parseProgram, parseWorkbook, canon, fmtGroup, toGrid, _readExo: readExo };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.ProgImport = api;
 })(typeof window !== "undefined" ? window : globalThis);

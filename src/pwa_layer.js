@@ -87,6 +87,11 @@ async function ensureTabs(id){
   await gapi(API + id + ":batchUpdate", {method:"POST", body:JSON.stringify({requests:miss.map(t => ({addSheet:{properties:{title:t}}}))})});
   await writeMany(id, miss.map(t => ({range:t + "!A1", values:[TABS[t]]})));
 }
+/* Nouvel onglet (programme importé) dans le carnet : création puis écriture groupée. */
+async function addProgTab(id, title, rows){
+  await gapi(API + id + ":batchUpdate", {method:"POST", body:JSON.stringify({requests:[{addSheet:{properties:{title}}}]})});
+  await writeMany(id, [{range:q(title) + "!A1", values:rows.map(r => r.map(v => String(v ?? "")))}]);
+}
 async function createBook(p){
   const r = await gapi(API, {method:"POST", body:JSON.stringify({properties:{title:"Street Lifting – " + (p.prenom || "carnet"), locale:"fr_FR"},
     sheets:Object.keys(TABS).map(t => ({properties:{title:t, gridProperties:{frozenRowCount:1}}}))})});
