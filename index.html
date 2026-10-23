@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261023070414">
+<meta name="sl-build" content="20261023080134">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -480,7 +480,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "29 · 23 oct. 2026";
+const APP_VER = "30 · 23 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -592,7 +592,7 @@ const catTxt = c => c === null || c === undefined ? "—" : (c > 0 ? "+" + c : S
 /* =====================================================================
    ÉTAT
    ===================================================================== */
-let D = null, S = [], blocNames = {}, weekMeta = {}, raw = {};
+let D = null, S = [], blocNames = {}, weekMeta = {};
 let tab = "home", sel = null, page = null, sheet = null, live = null, rest = null;
 let progSel = null, prRange = "all", pwRange = "3m", exMetric = "e1rm", calMonth = null, armed = null, importRows = null, liftMetric = "1rm";
 let lastSync = 0, syncing = false, seanceErr = "", allLoaded = false, loadingAll = null, firstPaint = true, wakeLock = null;
@@ -698,12 +698,63 @@ const store = {
 /* =====================================================================
    DONNÉES PERSO (Sheet « Street lifting app »)
    ===================================================================== */
+/* =====================================================================
+   STORE : le SEUL endroit où l'app lit et écrit ses données (règle « prêt pour la vraie application »).
+   Aujourd'hui : carnet Google Sheets. Demain : base de données (Supabase / Firebase) : on remplace ce bloc, pas l'interface.
+   L'interface n'écrit jamais « Onglet!A1:C1 » ; les « _row » qu'elle garde sont des identifiants opaques d'enregistrement.
+   ===================================================================== */
+const Store = (() => {
+  const LAST = {PROFIL:"C", PR:"G", POIDS:"C", OBJECTIFS:"C", COMPETITIONS:"E", SERIES:"I", BLOCS:"C", CHECKLIST:"C", BILAN:"I", HISTORIQUE:"Q", REPAS:"J", ALIMENTS:"I", MES_REPAS:"I"};
+  let cache = {P:[], OB:[], BL:[]};   /* lignes brutes des tableaux clé/valeur, pour retrouver la bonne ligne à modifier */
+  const endCol = (from, n) => String.fromCharCode(from.charCodeAt(0) + n - 1);
+  /* ajoute des enregistrements ; renvoie l'identifiant du premier (0 si inconnu) */
+  const add = async (tab, rows) => { const res = await appendVals(APP_ID, tab + "!A1:" + LAST[tab] + "1", rows), m = JSON.stringify(res || {}).match(new RegExp(tab + "!A(\\d+)")); return m ? +m[1] : 0; };
+  /* modifie un enregistrement (à partir de la colonne « from ») */
+  const set = (tab, id, values, from = "A") => putVals(APP_ID, tab + "!" + from + id + (values.length > 1 ? ":" + endCol(from, values.length) + id : ""), [values]);
+  const clear = (tab, id) => set(tab, id, Array(LAST[tab].charCodeAt(0) - 64).fill(""));
+  /* clé/valeur : modifie si la clé existe, sinon ajoute */
+  const upsert = async (tab, key, match, values, from, row) => { const i = cache[key].findIndex((r, j) => j > 0 && match(r));
+    if (i > 0) { await set(tab, i + 1, values, from); return; } await add(tab, [row]); cache[key].push(row.slice(0, 2)); };
+  return {
+    /* lecture : tout le carnet d'un coup (onglets ajoutés plus tard : absents tolérés) */
+    async readAll(){
+      const R = ["PROFIL!A1:C60","PR!A1:G3000","POIDS!A1:C10000","OBJECTIFS!A1:C60","COMPETITIONS!A1:E200","SERIES!A1:I10000","BLOCS!A1:C200","CHECKLIST!A1:C500","BILAN!A1:I1000"];
+      const opt = r => getVals(APP_ID, r).catch(() => null);
+      const res = await Promise.all([getMany(APP_ID, R), Promise.all(["REPAS!A1:J40000", "ALIMENTS!A1:I5000", "HISTORIQUE!A1:Q30000", "MES_REPAS!A1:I3000"].map(opt))]);
+      const [P, , , OB, , , BL] = res[0]; cache = {P, OB, BL};
+      return res;
+    },
+    ensureTabs: () => ensureTabs(APP_ID),
+    get canArchive(){ return typeof writeMany === "function"; },   /* le carnet accepte les écritures groupées (archive des blocs) */
+    profil:{ set:(k, val) => upsert("PROFIL", "P", r => String(r[0]).trim() === k, [val], "B", [k, val, ""]) },
+    objectifs:{ set:(label, v, note) => upsert("OBJECTIFS", "OB", r => norm(r[0]) === label, [v ?? "", note], "B", [label, v ?? "", ""]) },
+    blocs:{ setDate:(b, iso) => upsert("BLOCS", "BL", r => num(r[0]) === b, [iso], "B", [b, iso, ""]) },
+    poids:{ add:rows => add("POIDS", rows) },
+    prs:{ add:row => add("PR", [row]) },
+    series:{ add:row => add("SERIES", [row]), update:(id, row) => set("SERIES", id, row) },
+    competitions:{ add:row => add("COMPETITIONS", [row]), update:(id, row) => set("COMPETITIONS", id, row), remove:id => clear("COMPETITIONS", id) },
+    checklist:{ add:rows => add("CHECKLIST", rows), setDone:(id, done) => set("CHECKLIST", id, [done ? "TRUE" : "FALSE"], "C") },
+    bilan:{ add:row => add("BILAN", [row]) },
+    repas:{ add:rows => add("REPAS", rows), remove:id => clear("REPAS", id) },
+    aliments:{ add:row => add("ALIMENTS", [row]) },
+    mesRepas:{ add:rows => add("MES_REPAS", rows), remove:id => clear("MES_REPAS", id) },
+    /* archive des blocs passés : modifications groupées (par paquets de 200) puis ajouts */
+    history:{
+      async save(updates, news){
+        for (let i = 0; i < updates.length; i += 200) await writeMany(APP_ID, updates.slice(i, i + 200).map(u => ({range:"HISTORIQUE!A" + u.id + ":Q" + u.id, values:[u.values]})));
+        return news.length ? add("HISTORIQUE", news) : 0;
+      }
+    },
+    /* prog du coach (autre carnet, lecture + écriture de cellules précises) */
+    coach:{
+      readBloc:name => getVals(coachId(), q(name) + "!A1:CZ1000"),
+      setCell:(sheet, col, row, val) => putVals(coachId(), q(sheet) + "!" + colL(col) + row, [[val]])
+    }
+  };
+})();
+
 async function loadApp(){
-  const R = ["PROFIL!A1:C60","PR!A1:G3000","POIDS!A1:C10000","OBJECTIFS!A1:C60","COMPETITIONS!A1:E200","SERIES!A1:I10000","BLOCS!A1:C200","CHECKLIST!A1:C500","BILAN!A1:I1000"];
-  /* onglets ajoutés plus tard : lus en même temps, absents tolérés */
-  const opt = r => getVals(APP_ID, r).catch(() => null);
-  const [[P, PR, PO, OB, CO, SE, BL, CH, BI], [RPo, ALo, HIo, MRo]] = await Promise.all([getMany(APP_ID, R), Promise.all(["REPAS!A1:J40000", "ALIMENTS!A1:I5000", "HISTORIQUE!A1:Q30000", "MES_REPAS!A1:I3000"].map(opt))]);
-  raw = {P, OB, BL, CH};
+  const [[P, PR, PO, OB, CO, SE, BL, CH, BI], [RPo, ALo, HIo, MRo]] = await Store.readAll();
   let repas = [], aliments = [], nutTabs = false;
   try { const RP = RPo, AL = ALo; if (!RP || !AL) throw 0; nutTabs = true;
     repas = RP.map((r, i) => ({_row:i + 1, date:toIso(r[0]), h:String(r[1] || ""), nom:String(r[2] || ""), q:num(r[5]) || 0, k:num(r[6]) || 0, p:num(r[7]) || 0, g:num(r[8]) || 0, l:num(r[9]) || 0})).slice(1).filter(x => x.date && x.nom);
@@ -837,7 +888,7 @@ function mergeArchive(){
 }
 /* Recopie dans HISTORIQUE les exercices faits (RPE ou commentaire) des blocs encore présents dans la prog. */
 async function archiveSync(){
-  if (archBusy || !allLoaded || typeof writeMany !== "function" || !coachId()) return; archBusy = true;
+  if (archBusy || !allLoaded || !Store.canArchive || !coachId()) return; archBusy = true;
   try {
     const prog = coachId(), news = [], upd = []; matchCycles();
     for (const b of progOrder) { if (!liveIds.has(b)) continue;
@@ -848,12 +899,11 @@ async function archiveSync(){
         for (const e of s.exercices) { if (num(e.rpe1) === null && num(e.rpeLast) === null && !String(e.commentaire || "").trim()) continue;
           const row = [prog, tab, blocBase(b), L, s.semaine, s.seance, s.jour || "", String(e.row), e.mouvement, e.variation, e.series, e.reps, e.charge, e.rpe1, e.rpeLast, e.commentaire, cid].map(v => String(v ?? ""));
           const old = byKey[s.semaine + "|" + e.row];
-          if (!old) news.push(row); else if (AS(old.r).join("\u0001") !== AS(row).join("\u0001")) { if (old._row) upd.push({range:"HISTORIQUE!A" + old._row + ":Q" + old._row, values:[row]}); old.r = row; } } } }
+          if (!old) news.push(row); else if (AS(old.r).join("\u0001") !== AS(row).join("\u0001")) { if (old._row) upd.push({id:old._row, values:row}); old.r = row; } } } }
     if (!news.length && !upd.length) return;
-    if (!archTab) { await ensureTabs(APP_ID); archTab = true; }
-    for (let i = 0; i < upd.length; i += 200) await writeMany(APP_ID, upd.slice(i, i + 200));
-    if (news.length) { const res = await appendVals(APP_ID, "HISTORIQUE!A1:Q1", news), m = JSON.stringify(res || {}).match(/HISTORIQUE!A(\d+)/); let r0 = m ? +m[1] : 0;
-      news.forEach(r => ARCH.push({_row:r0 ? r0++ : 0, r})); }
+    if (!archTab) { await Store.ensureTabs(); archTab = true; }
+    let r0 = await Store.history.save(upd, news);
+    news.forEach(r => ARCH.push({_row:r0 ? r0++ : 0, r}));
     saveCache();
   } catch(e){ console.warn("historique", e); } finally { archBusy = false; }
 }
@@ -867,7 +917,7 @@ const blocLow = b => isNamed(b) ? "« " + blocNames[b].trim() + " »" : "bloc " 
 const blocShort = b => { const t = String(blocNames[b] || "").trim(), m = t.match(NUM_RE), base = m ? "B" + m[1] : t ? t.split(/\s+/)[0].slice(0, 10) : "B" + b;
   return archMeta[b] && archMeta[b].start ? base + "·" + archMeta[b].start.slice(5, 7) + "/" + archMeta[b].start.slice(2, 4) : base; };
 async function loadBloc(n, pre){
-  const v = pre || await getVals(coachId(), q(blocNames[n]) + "!A1:CZ1000");
+  const v = pre || await Store.coach.readBloc(blocNames[n]);
   const {seances, weeks} = parseBloc(v, blocNames[n], n);
   fixJours(seances);
   S = S.filter(s => s.bloc !== n).concat(seances);
@@ -1451,7 +1501,7 @@ async function startLive(key, i){
   const tw = D.poids.find(p => p.date === D.today);
   if (!live.pdc && s.recapRow && tw) {   /* déjà pesé (carte du matin) : le poids part directement dans le récap du coach */
     live.pdc = true; persistLive(); renderLayer();
-    putVals(coachId(), q(s.sheet) + "!" + colL(s.pdcCol) + s.recapRow, [[tw.poids]]).then(() => { s.pdc = String(tw.poids); }).catch(() => {});
+    Store.coach.setCell(s.sheet, s.pdcCol, s.recapRow, tw.poids).then(() => { s.pdc = String(tw.poids); }).catch(() => {});
   } else if (!live.pdc && s.recapRow) openSheet("pdc"); else renderLayer();
 }
 function persistLive(){ if (live) { live.at = Date.now(); store.set(ck("sl4-live"), live); } }
@@ -1575,14 +1625,14 @@ async function saveRow(k){
       const ex = D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
       if (ex && !ex._row) await loadApp();
       const ex2 = ex && D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
-      if (ex2 && ex2._row) { await putVals(APP_ID, `SERIES!A${ex2._row}:I${ex2._row}`, [row]); ex2.sets = done; ex2.note = "L" + e.row; ex2.date = D.today; }
-      else { const res = await appendVals(APP_ID, "SERIES!A1:I1", [row]), m = JSON.stringify(res || {}).match(/SERIES!A(\d+)/);
-        D.series.push({_row:m ? +m[1] : 0, date:D.today, bloc:s.bloc, semaine:s.semaine, seance:s.seance, ex:key, charge:row[5], sets:done, note:"L" + e.row}); }
+      if (ex2 && ex2._row) { await Store.series.update(ex2._row, row); ex2.sets = done; ex2.note = "L" + e.row; ex2.date = D.today; }
+      else { const id = await Store.series.add(row);
+        D.series.push({_row:id, date:D.today, bloc:s.bloc, semaine:s.semaine, seance:s.seance, ex:key, charge:row[5], sets:done, note:"L" + e.row}); }
       const asPresc = isNumTxt(e.reps) && done.length === (num(e.series) || 0) && done.every(x => x.r === num(e.reps));
-      if (s.cols.commentaire && (!e.commentaire || repsOnly(e.commentaire)) && (norm(e.mouvement) === "RENFO" || !asPresc)) { const t = done.map(x => x.r).join(","); await putVals(coachId(), q(s.sheet) + "!" + colL(s.cols.commentaire) + e.row, [[t]]); e.commentaire = t; }
+      if (s.cols.commentaire && (!e.commentaire || repsOnly(e.commentaire)) && (norm(e.mouvement) === "RENFO" || !asPresc)) { const t = done.map(x => x.r).join(","); await Store.coach.setCell(s.sheet, s.cols.commentaire, e.row, t); e.commentaire = t; }
     }
     for (const f of ["rpe1","rpeLast"]) if (st[f] !== null && st[f] !== undefined && st[f] !== num(e[f]) && s.cols[f]) {
-      await putVals(coachId(), q(s.sheet) + "!" + colL(s.cols[f]) + e.row, [[st[f]]]); e[f] = String(st[f]).replace(".", ","); s.faite = true; }
+      await Store.coach.setCell(s.sheet, s.cols[f], e.row, st[f]); e[f] = String(st[f]).replace(".", ","); s.faite = true; }
     st.dirty = false; persistLive(); saveCache(); return true;
   } catch(err){ toast(errMsg(err) + ambig(err), true); return false; }
 }
@@ -2185,21 +2235,21 @@ const ACT = {
   editComp:d => { armed = {edit:+d.r}; rAgenda(); document.getElementById("cpn").scrollIntoView({behavior:"smooth", block:"center"}); },
   cancelEdit:() => { armed = null; rAgenda(); },
   delComp:async d => { const r = +d.r; if (!armed || armed.del !== r) { armed = {del:r}; rAgenda(); setTimeout(() => { if (armed && armed.del === r) { armed = null; if (tab === "agenda") rAgenda(); } }, 4000); return; }
-    armed = null; try { await putVals(APP_ID, `COMPETITIONS!A${r}:E${r}`, [["", "", "", "", ""]]); toast("Compétition supprimée"); await loadApp(); rAgenda(); } catch(e){ toast(errMsg(e), true); } },
+    armed = null; try { await Store.competitions.remove(r); toast("Compétition supprimée"); await loadApp(); rAgenda(); } catch(e){ toast(errMsg(e), true); } },
   saveComp:async () => { const nom = $("#cpn").value.trim(), date = $("#cpd").value; if (!nom || !date) return toast("Indique au moins un nom et une date", true);
     const row = [date, nom, $("#cpl").value.trim(), $("#cpx").value.trim(), $("#cps").value], ed = armed && armed.edit;
-    try { if (ed) await putVals(APP_ID, `COMPETITIONS!A${ed}:E${ed}`, [row]); else await appendVals(APP_ID, "COMPETITIONS!A1:E1", [row]);
+    try { if (ed) await Store.competitions.update(ed, row); else await Store.competitions.add(row);
       toast(ed ? "Compétition modifiée" : "Compétition ajoutée"); armed = null; calMonth = date.slice(0, 7); await loadApp(); saveCache(); rAgenda(); } catch(e){ toast(errMsg(e) + ambig(e), true); } },
   ics:() => exportIcs(),
-  check:async d => { const x = D.checks.find(c => c.row === +d.r); if (!x) return; x.done = !x.done; rAgenda(); try { await putVals(APP_ID, `CHECKLIST!C${x.row}`, [[x.done ? "TRUE" : "FALSE"]]); } catch(e){ x.done = !x.done; rAgenda(); toast(errMsg(e), true); } },
-  initChecks:async d => { try { await appendVals(APP_ID, "CHECKLIST!A1:C1", CHECK_DEFAULT.map(i => [d.d, i, "FALSE"])); await loadApp(); rAgenda(); } catch(e){ toast(errMsg(e), true); } },
-  addCheck:async d => { const t = $("#newcheck").value.trim(); if (!t) return; try { await appendVals(APP_ID, "CHECKLIST!A1:C1", [[d.d, t, "FALSE"]]); await loadApp(); rAgenda(); } catch(e){ toast(errMsg(e), true); } },
+  check:async d => { const x = D.checks.find(c => c.row === +d.r); if (!x) return; x.done = !x.done; rAgenda(); try { await Store.checklist.setDone(x.row, x.done); } catch(e){ x.done = !x.done; rAgenda(); toast(errMsg(e), true); } },
+  initChecks:async d => { try { await Store.checklist.add(CHECK_DEFAULT.map(i => [d.d, i, "FALSE"])); await loadApp(); rAgenda(); } catch(e){ toast(errMsg(e), true); } },
+  addCheck:async d => { const t = $("#newcheck").value.trim(); if (!t) return; try { await Store.checklist.add([[d.d, t, "FALSE"]]); await loadApp(); rAgenda(); } catch(e){ toast(errMsg(e), true); } },
   bilan:d => { const wk = weekMeta[d.w]; if (wk) wk.draft = {}; openSheet("bilan|" + d.w); },
   score:(d) => { const wk = weekMeta[sheet.slice(6)]; wk.draft = wk.draft || {}; wk.draft[d.k] = +d.v; renderLayer(); },
   saveBilan:async () => { const wk = weekMeta[sheet.slice(6)], v = Object.assign({}, wk.vals, wk.draft || {});
     if (!BILAN_CRIT.every(k => v[k])) return toast("Note les 6 critères", true);
-    try { for (const k of BILAN_CRIT) if (wk.rows[k] && v[k] !== wk.vals[k]) await putVals(coachId(), q(wk.sheet) + "!" + colL(wk.col) + wk.rows[k], [[v[k]]]);
-      await appendVals(APP_ID, "BILAN!A1:I1", [[D.today, wk.bloc, wk.semaine, ...BILAN_CRIT.map(k => v[k])]]);
+    try { for (const k of BILAN_CRIT) if (wk.rows[k] && v[k] !== wk.vals[k]) await Store.coach.setCell(wk.sheet, wk.col, wk.rows[k], v[k]);
+      await Store.bilan.add([D.today, wk.bloc, wk.semaine, ...BILAN_CRIT.map(k => v[k])]);
       wk.vals = v; wk.draft = null; closeSheet(); toast("Bilan envoyé à ton coach"); render(); saveCache(); } catch(e){ toast(errMsg(e) + ambig(e), true); } }
 };
 const CHG = {
@@ -2209,13 +2259,13 @@ const CHG = {
       const inp = document.querySelector('[data-chg="setC"][data-j="' + i + '"]'); if (inp && inp !== el) inp.value = String(nv).replace(".", ","); }
     persistLive(); },
   setR:(d, el) => { const st = live.rows[live.i]; st.sets[+d.j].r = el.value === "" ? null : Math.round(num(el.value)); st.dirty = true; persistLive(); },
-  blocDate:async (d, el) => { const b = +d.b, v = toIso(el.value); if (!v) return; const i = raw.BL.findIndex((r, k) => k > 0 && num(r[0]) === b);
-    try { if (i > 0) await putVals(APP_ID, `BLOCS!B${i + 1}`, [[v]]); else { await appendVals(APP_ID, "BLOCS!A1:C1", [[b, v, ""]]); raw.BL.push([b, v]); } D.blocs[b] = v; toast("Dates enregistrées : " + blocLabel(b)); saveCache(); render(); } catch(e){ toast(errMsg(e), true); } },
-  setObj:async (d, el) => { const l = d.l, v = num(el.value), i = raw.OB.findIndex((r, k) => k > 0 && norm(r[0]) === l);
-    try { if (i > 0) await putVals(APP_ID, `OBJECTIFS!B${i + 1}:C${i + 1}`, [[v ?? "", "Défini dans l'app le " + dfr(D.today)]]); else { await appendVals(APP_ID, "OBJECTIFS!A1:C1", [[l, v ?? "", ""]]); raw.OB.push([l, v]); }
+  blocDate:async (d, el) => { const b = +d.b, v = toIso(el.value); if (!v) return;
+    try { await Store.blocs.setDate(b, v); D.blocs[b] = v; toast("Dates enregistrées : " + blocLabel(b)); saveCache(); render(); } catch(e){ toast(errMsg(e), true); } },
+  setObj:async (d, el) => { const l = d.l, v = num(el.value);
+    try { await Store.objectifs.set(l, v, "Défini dans l'app le " + dfr(D.today));
       D.objectifs[l] = v; toast("Objectif enregistré"); saveCache(); renderLayer(); } catch(e){ toast(errMsg(e), true); } },
-  prof:async (d, el) => { const k = d.k, val = k === "categorie" ? Number(el.value) : el.value, i = raw.P.findIndex((r, j) => j > 0 && String(r[0]).trim() === k);
-    try { if (i > 0) await putVals(APP_ID, `PROFIL!B${i + 1}`, [[val]]); else { await appendVals(APP_ID, "PROFIL!A1:C1", [[k, val, ""]]); raw.P.push([k, val]); }
+  prof:async (d, el) => { const k = d.k, val = k === "categorie" ? Number(el.value) : el.value;
+    try { await Store.profil.set(k, val);
       D.profil[k] = /^(date_|debut_)/.test(k) ? toIso(val) : val; toast("Réglage enregistré"); saveCache(); render(); } catch(e){ toast(errMsg(e), true); } },
   blocActif:async (d, el) => { const n = num(el.value);
     try { if (n && !loadedBlocs.has(n)) { toast("Chargement : " + blocLabel(n) + "…"); await loadBloc(n); } } catch(e){ return toast(errMsg(e), true); }
@@ -2352,7 +2402,7 @@ function nutGoalHtml(T){
 }
 
 /* ---------- Actions ---------- */
-async function nutEnsureTabs(){ if (D._nutTabs) return; if (typeof ensureTabs === "function") await ensureTabs(APP_ID); D._nutTabs = true; }
+async function nutEnsureTabs(){ if (D._nutTabs) return; await Store.ensureTabs(); D._nutTabs = true; }
 Object.assign(ACT, {
   corpsTab:d => { corpsTab = d.k; corpsManual = D.today; rCorps(); },
   nutDay:d => { nutDate = addDays(nutDate || D.today, +d.d); if (nutDate > D.today) nutDate = D.today; nutPick = null; rNutri(); },
@@ -2367,12 +2417,12 @@ Object.assign(ACT, {
     try { await nutEnsureTabs();
       if (nutPick.off && !(D.aliments || []).some(a => a.code === f.code && a.src === "off")) await saveFood(f);
       const row = [nutDate, h, f.nom + (f.marque ? " (" + f.marque + ")" : ""), f.src, f.code || "", r1(q), r1(m.k), r1(m.p), r1(m.g), r1(m.l)];
-      const res = await appendVals(APP_ID, "REPAS!A1:J1", [row]), mm = JSON.stringify(res || {}).match(/REPAS!A(\d+)/);
-      D.repas.push({_row:mm ? +mm[1] : 0, date:nutDate, h, nom:row[2], q, k:m.k, p:m.p, g:m.g, l:m.l});
+      const id = await Store.repas.add([row]);
+      D.repas.push({_row:id, date:nutDate, h, nom:row[2], q, k:m.k, p:m.p, g:m.g, l:m.l});
       nutPick = null; nutQ = ""; offRes = null; saveCache(); toast(fmt(m.k, 0) + " kcal ajoutées"); rNutri();
     } catch(e){ toast(errMsg(e), true); }
   },
-  nutDel:async d => { const r = +d.r; if (!r) return; try { await putVals(APP_ID, `REPAS!A${r}:J${r}`, [["", "", "", "", "", "", "", "", "", ""]]); D.repas = D.repas.filter(x => x._row !== r); saveCache(); rNutri(); } catch(e){ toast(errMsg(e), true); } },
+  nutDel:async d => { const r = +d.r; if (!r) return; try { await Store.repas.remove(r); D.repas = D.repas.filter(x => x._row !== r); saveCache(); rNutri(); } catch(e){ toast(errMsg(e), true); } },
   nutOff:async d => {
     const q = parseFoodLine(nutQ).txt; if (!q || offBusy) return; offBusy = true; nutRefresh();
     try {
@@ -2395,7 +2445,7 @@ Object.assign(ACT, {
 });
 const r1 = x => Math.round(x * 10) / 10;
 async function saveFood(f){
-  await appendVals(APP_ID, "ALIMENTS!A1:I1", [[f.nom, f.marque || "", f.src, f.code || "", r1(f.k), r1(f.p || 0), r1(f.g || 0), r1(f.l || 0), ""]]);
+  await Store.aliments.add([f.nom, f.marque || "", f.src, f.code || "", r1(f.k), r1(f.p || 0), r1(f.g || 0), r1(f.l || 0), ""]);
   (D.aliments = D.aliments || []).push({...f});
 }
 /* saisie : suggestions au fil de la frappe */
@@ -2412,16 +2462,16 @@ document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click
 /* ---------- Écritures ---------- */
 async function saveWeight(v, dt, toRecap){
   try {
-    await appendVals(APP_ID, "POIDS!A1:C1", [[dt, v, toRecap ? "séance" : ""]]);
+    await Store.poids.add([[dt, v, toRecap ? "séance" : ""]]);
     D.poids = D.poids.filter(p => p.date !== dt).concat([{date:dt, poids:v}]).sort((a, b) => a.date < b.date ? -1 : 1);
-    if (toRecap && live) { const s = seanceByKey(live.key); if (s && s.recapRow) { await putVals(coachId(), q(s.sheet) + "!" + colL(s.pdcCol) + s.recapRow, [[v]]); s.pdc = String(v); } }
+    if (toRecap && live) { const s = seanceByKey(live.key); if (s && s.recapRow) { await Store.coach.setCell(s.sheet, s.pdcCol, s.recapRow, v); s.pdc = String(v); } }
     hwDraft = null; const lim = catLimit(); toast(toRecap ? "Poids noté dans ta courbe et dans le récap de séance" : "Pesée enregistrée" + (lim && dt === D.today ? " · " + (v <= lim ? fmt(lim - v, 1) + " kg sous la limite" : fmt(v - lim, 1) + " kg au-dessus de la limite") : "")); saveCache(); render();
   } catch(e){ toast(errMsg(e) + ambig(e), true); }
 }
 async function addPR(l, c, r, d, n, rpe){
   const before = best(l);
   const eq = powerOn() && equipped() && POWER_LIFTS.includes(l);   /* perf faite en equipped : notée « EQ » en colonne G */
-  try { await appendVals(APP_ID, "PR!A1:G1", [[d, l, c, r, n || "", rpe || "", eq ? "EQ" : ""]]);
+  try { await Store.prs.add([d, l, c, r, n || "", rpe || "", eq ? "EQ" : ""]);
     D.prs.push({date:d, lift:l, charge:c, reps:r, note:n || "", rpe:rpe || null, eq}); D.prs.sort((a, b) => a.date < b.date ? -1 : 1); saveCache();
     if (clOn()) clSync().catch(() => {});
     const nb = best(l), isPr = r === 1 && nb !== null && (before === null || nb > before);
@@ -2431,7 +2481,7 @@ async function addPR(l, c, r, d, n, rpe){
 }
 async function doImport(){
   if (!importRows || !importRows.length) return; const b = $("#impb"); b.disabled = true;
-  try { for (let i = 0; i < importRows.length; i += 500) { b.textContent = `Import ${Math.min(i + 500, importRows.length)}/${importRows.length}`; await appendVals(APP_ID, "POIDS!A1:C1", importRows.slice(i, i + 500).map(r => [r[0], r[1], "import"])); }
+  try { for (let i = 0; i < importRows.length; i += 500) { b.textContent = `Import ${Math.min(i + 500, importRows.length)}/${importRows.length}`; await Store.poids.add(importRows.slice(i, i + 500).map(r => [r[0], r[1], "import"])); }
     toast(importRows.length + " pesées importées"); importRows = null; await loadApp(); pwRange = "all"; saveCache(); rCorps(); } catch(e){ toast(errMsg(e) + ambig(e), true); b.disabled = false; }
 }
 async function exportIcs(){
@@ -2552,9 +2602,7 @@ Object.assign(ACT, {
    ===================================================================== */
 async function profSet(pairs, msg){
   try {
-    for (const [k, val] of pairs) { const i = raw.P.findIndex((r, j) => j > 0 && String(r[0]).trim() === k);
-      if (i > 0) { await putVals(APP_ID, `PROFIL!B${i + 1}`, [[val]]); raw.P[i][1] = val; } else { await appendVals(APP_ID, "PROFIL!A1:C1", [[k, val, ""]]); raw.P.push([k, val]); }
-      D.profil[k] = val; }
+    for (const [k, val] of pairs) { await Store.profil.set(k, val); D.profil[k] = val; }
     saveCache(); if (msg) toast(msg); render();
     if (clOn()) clSync().catch(() => {});
   } catch(e){ toast(errMsg(e), true); }
@@ -2593,7 +2641,7 @@ CHG.birth = (d, el) => { const v = toIso(el.value); if (!v || v > D.today) retur
    REPAS ENREGISTRÉS : un repas habituel (aliments + quantités) s'ajoute en un toucher
    ===================================================================== */
 let mealSel = null;
-async function mealEnsureTab(){ if (D._mrTab) return; if (typeof ensureTabs === "function") await ensureTabs(APP_ID); D._mrTab = true; }
+async function mealEnsureTab(){ if (D._mrTab) return; await Store.ensureTabs(); D._mrTab = true; }
 function mealSaveHtml(){
   const R = dayRows(nutDate); if (!mealSel) mealSel = new Set(R.map(x => x._row));
   return `<p class="show t-m">Enregistrer comme repas</p><p class="muted small" style="margin-top:4px">Coche les aliments du repas et donne-lui un nom : la prochaine fois, un toucher l'ajoute en entier.</p>
@@ -2607,7 +2655,6 @@ function mealsHtml(){
     <p class="muted tiny" style="margin-top:10px">Pour créer un repas : note ses aliments du jour, puis « Enregistrer comme repas » sous la liste.</p>
     <button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`;
 }
-const blankRow = n => [Array(n).fill("")];
 Object.assign(ACT, {
   mealSave:() => { mealSel = null; openSheet("meal"); },
   mealTick:d => { const r = +d.r, keep = ($("#mname") || {}).value || ""; mealSel.has(r) ? mealSel.delete(r) : mealSel.add(r); renderLayer(); const i = $("#mname"); if (i) i.value = keep; },
@@ -2616,9 +2663,8 @@ Object.assign(ACT, {
     if (!n) return toast("Donne un nom au repas", true); if (!L.length) return toast("Coche au moins un aliment", true);
     try { await mealEnsureTab();
       const old = (D.mesRepas || {})[n];
-      if (old) for (const x of old) if (x._row) await putVals(APP_ID, `MES_REPAS!A${x._row}:I${x._row}`, blankRow(9));   /* même nom : on remplace */
-      const res = await appendVals(APP_ID, "MES_REPAS!A1:I1", L.map(x => [n, x.nom, "repas", "", r1(x.q), r1(x.k), r1(x.p), r1(x.g), r1(x.l)]));
-      const m = JSON.stringify(res || {}).match(/MES_REPAS!A(\d+)/), r0 = m ? +m[1] : 0;
+      if (old) for (const x of old) if (x._row) await Store.mesRepas.remove(x._row);   /* même nom : on remplace */
+      const r0 = await Store.mesRepas.add(L.map(x => [n, x.nom, "repas", "", r1(x.q), r1(x.k), r1(x.p), r1(x.g), r1(x.l)]));
       (D.mesRepas = D.mesRepas || {})[n] = L.map((x, i) => ({_row:r0 ? r0 + i : 0, nom:x.nom, q:x.q, k:x.k, p:x.p, g:x.g, l:x.l}));
       mealSel = null; saveCache(); closeSheet(); rNutri(); toast("Repas « " + n + " » enregistré");
     } catch(e){ toast(errMsg(e), true); }
@@ -2627,15 +2673,14 @@ Object.assign(ACT, {
     const L = (D.mesRepas || {})[d.n]; if (!L || !L.length || (b && b.disabled)) return; if (b) b.disabled = true;
     const now = new Date(), h = nutDate === D.today ? String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0") : "";
     try { await nutEnsureTabs();
-      const res = await appendVals(APP_ID, "REPAS!A1:J1", L.map(x => [nutDate, h, x.nom, "repas", "", r1(x.q), r1(x.k), r1(x.p), r1(x.g), r1(x.l)]));
-      const m = JSON.stringify(res || {}).match(/REPAS!A(\d+)/), r0 = m ? +m[1] : 0;
+      const r0 = await Store.repas.add(L.map(x => [nutDate, h, x.nom, "repas", "", r1(x.q), r1(x.k), r1(x.p), r1(x.g), r1(x.l)]));
       L.forEach((x, i) => D.repas.push({_row:r0 ? r0 + i : 0, date:nutDate, h, nom:x.nom, q:x.q, k:x.k, p:x.p, g:x.g, l:x.l}));
       saveCache(); rNutri(); toast(d.n + " ajouté : " + fmt(sum(L.map(x => x.k)), 0) + " kcal");
     } catch(e){ toast(errMsg(e), true); if (b) b.disabled = false; }
   },
   mealsManage:() => openSheet("meals"),
   mealDel:async d => { const L = (D.mesRepas || {})[d.n]; if (!L) return;
-    try { for (const x of L) if (x._row) await putVals(APP_ID, `MES_REPAS!A${x._row}:I${x._row}`, blankRow(9));
+    try { for (const x of L) if (x._row) await Store.mesRepas.remove(x._row);
       delete D.mesRepas[d.n]; saveCache(); renderLayer(); rNutri(); toast("Repas supprimé"); } catch(e){ toast(errMsg(e), true); } }
 });
 
