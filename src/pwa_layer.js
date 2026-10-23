@@ -1,5 +1,7 @@
 /* =====================================================================
    ACCÈS AUX DONNÉES : API Google Sheets, connexion Google, aucun serveur
+   Ce fichier est l'ADAPTATEUR GOOGLE de la bêta (connexion, création et choix du carnet, lecture/écriture Sheets).
+   À la migration vers la vraie application, il est remplacé en bloc ; l'app n'y accède que via Store, Account et Ranking (src/app.html).
    ===================================================================== */
 const CLIENT_ID = "__CLIENT_ID__";
 const SCOPE = "https://www.googleapis.com/auth/spreadsheets email";

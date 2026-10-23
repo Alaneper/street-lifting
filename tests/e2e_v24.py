@@ -78,7 +78,7 @@ with sync_playwright() as p:
     check("2 aliments notés", pg.evaluate("dayRows(nutDate).length") == k0 + 2)
     pg.click("[data-act=mealSave]"); pg.wait_for_timeout(300)
     # ne garder que les 2 derniers
-    pg.evaluate("(() => { const R = dayRows(nutDate); mealSel = new Set(R.slice(-2).map(x => x._row)); renderLayer(); })()")
+    pg.evaluate("(() => { const R = dayRows(nutDate); mealSel = new Set(R.slice(-2).map(x => x.id)); renderLayer(); })()")
     pg.fill("#mname", "Haché-haricots"); pg.click("[data-act=mealSaveGo]"); pg.wait_for_timeout(900)
     rows = pg.evaluate(f"window.__sheets['{APP}'].MES_REPAS")
     check("repas enregistré dans le carnet (onglet MES_REPAS)", rows and rows[0][0] == "Repas" and sum(1 for x in rows[1:] if x[0] == "Haché-haricots") == 2, rows)

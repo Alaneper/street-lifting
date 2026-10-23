@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261023080134">
+<meta name="sl-build" content="20261023081210">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -480,7 +480,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "30 · 23 oct. 2026";
+const APP_VER = "31 · 23 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -701,8 +701,12 @@ const store = {
 /* =====================================================================
    STORE : le SEUL endroit où l'app lit et écrit ses données (règle « prêt pour la vraie application »).
    Aujourd'hui : carnet Google Sheets. Demain : base de données (Supabase / Firebase) : on remplace ce bloc, pas l'interface.
-   L'interface n'écrit jamais « Onglet!A1:C1 » ; les « _row » qu'elle garde sont des identifiants opaques d'enregistrement.
+   L'interface n'écrit jamais « Onglet!A1:C1 » ; chaque enregistrement porte un « id » opaque.
    ===================================================================== */
+/* Compte de la personne : point d'entrée unique (aujourd'hui la connexion Google de pwa_layer.js ; demain les comptes de la base de données). */
+const Account = {
+  token(){ return typeof auth !== "undefined" ? auth.tok : null; }
+};
 const Store = (() => {
   const LAST = {PROFIL:"C", PR:"G", POIDS:"C", OBJECTIFS:"C", COMPETITIONS:"E", SERIES:"I", BLOCS:"C", CHECKLIST:"C", BILAN:"I", HISTORIQUE:"Q", REPAS:"J", ALIMENTS:"I", MES_REPAS:"I"};
   let cache = {P:[], OB:[], BL:[]};   /* lignes brutes des tableaux clé/valeur, pour retrouver la bonne ligne à modifier */
@@ -721,8 +725,33 @@ const Store = (() => {
       const R = ["PROFIL!A1:C60","PR!A1:G3000","POIDS!A1:C10000","OBJECTIFS!A1:C60","COMPETITIONS!A1:E200","SERIES!A1:I10000","BLOCS!A1:C200","CHECKLIST!A1:C500","BILAN!A1:I1000"];
       const opt = r => getVals(APP_ID, r).catch(() => null);
       const res = await Promise.all([getMany(APP_ID, R), Promise.all(["REPAS!A1:J40000", "ALIMENTS!A1:I5000", "HISTORIQUE!A1:Q30000", "MES_REPAS!A1:I3000"].map(opt))]);
-      const [P, , , OB, , , BL] = res[0]; cache = {P, OB, BL};
-      return res;
+      const [[P, PR, PO, OB, CO, SE, BL, CH, BI], [RP, AL, HI, MR]] = res; cache = {P, OB, BL};
+      /* chaque enregistrement modifiable reçoit un « id » opaque (aujourd'hui : son numéro de ligne) */
+      const profil = {};
+      P.slice(1).forEach(r => { if (r[0]) profil[String(r[0]).trim()] = r[1] ?? ""; });
+      ["debut_street","debut_coaching"].forEach(k => profil[k] = toIso(profil[k]));
+      const prs = PR.slice(1).map(r => ({date:toIso(r[0]), lift:norm(r[1]), charge:num(r[2]), reps:num(r[3]) || 1, note:r[4] || "", rpe:num(r[5]) || null, eq:/^EQ/i.test(String(r[6] || "").trim())}))
+        .filter(p => p.date && ALL_LIFTS.includes(p.lift) && p.charge !== null).sort((a, b) => a.date < b.date ? -1 : 1);
+      const pm = {}; PO.slice(1).forEach(r => { const d = toIso(r[0]), p = num(r[1]); if (d && p) pm[d] = p; });
+      const poids = Object.keys(pm).sort().map(d => ({date:d, poids:pm[d]}));
+      const objectifs = {}; OB.slice(1).forEach(r => { if (r[0]) objectifs[norm(r[0])] = num(r[1]); });
+      const comps = CO.map((r, i) => ({id:i + 1, date:toIso(r[0]), nom:String(r[1] || "").trim(), lieu:String(r[2] || "").trim(), note:String(r[3] || "").trim(), tbc:/confirmer/i.test(r[4] || "")}))
+        .slice(1).filter(c => c.date && c.nom).sort((a, b) => a.date < b.date ? -1 : 1);
+      const series = SE.map((r, i) => ({id:i + 1, date:toIso(r[0]), bloc:num(r[1]), semaine:String(r[2] ?? "").trim(), seance:String(r[3] ?? "").trim(), ex:norm(r[4]), charge:num(r[5]), sets:parseSets(r[6], num(r[5])), note:String(r[8] || "")}))
+        .slice(1).filter(x => x.ex && x.sets);
+      const blocs = {}; BL.slice(1).forEach(r => { const n = num(r[0]), d = toIso(r[1]); if (n && d) blocs[n] = d; });
+      const checks = CH.map((r, i) => ({id:i + 1, date:toIso(r[0]), item:String(r[1] || "").trim(), done:/^(true|vrai|oui|1|x)$/i.test(String(r[2] || "").trim())})).slice(1).filter(x => x.date && x.item);
+      const bilans = BI.slice(1).map(r => ({date:toIso(r[0]), bloc:num(r[1]), semaine:String(r[2] ?? "").trim(), v:BILAN_CRIT.map((_, i) => num(r[3 + i]))})).filter(b => b.bloc);
+      /* onglets ajoutés plus tard : null = onglet absent */
+      const nut = !!(RP && AL);
+      const repas = nut ? RP.map((r, i) => ({id:i + 1, date:toIso(r[0]), h:String(r[1] || ""), nom:String(r[2] || ""), q:num(r[5]) || 0, k:num(r[6]) || 0, p:num(r[7]) || 0, g:num(r[8]) || 0, l:num(r[9]) || 0})).slice(1).filter(x => x.date && x.nom) : null;
+      const aliments = nut ? AL.slice(1).filter(r => r[0] && num(r[4]) !== null).map(r => ({nom:String(r[0]), marque:String(r[1] || ""), src:String(r[2] || "perso"), code:String(r[3] || ""), k:num(r[4]), p:num(r[5]) || 0, g:num(r[6]) || 0, l:num(r[7]) || 0})) : null;
+      let mesRepas = null;
+      if (MR) { mesRepas = {}; MR.slice(1).forEach((r, i) => { const n = String(r[0] || "").trim(); if (!n || !String(r[1] || "").trim()) return;
+        (mesRepas[n] = mesRepas[n] || []).push({id:i + 2, nom:String(r[1]), q:num(r[4]) || 0, k:num(r[5]) || 0, p:num(r[6]) || 0, g:num(r[7]) || 0, l:num(r[8]) || 0}); }); }
+      /* archive des blocs : format propre à l'archive (une ligne = un exercice d'une séance passée) */
+      const archive = HI ? HI.map((r, i) => ({id:i + 1, r})).slice(1).filter(x => x.r[0] && x.r[1]) : null;
+      return {profil, prs, poids, objectifs, comps, series, blocs, checks, bilans, repas, aliments, mesRepas, archive};
     },
     ensureTabs: () => ensureTabs(APP_ID),
     get canArchive(){ return typeof writeMany === "function"; },   /* le carnet accepte les écritures groupées (archive des blocs) */
@@ -747,6 +776,11 @@ const Store = (() => {
     },
     /* prog du coach (autre carnet, lecture + écriture de cellules précises) */
     coach:{
+      titles:id => getTitles(id),
+      /* aperçu des onglets (pour reconnaître ceux qui contiennent une prog), par paquets */
+      peek:(id, names) => getMany(id, names.map(t => q(t) + "!A1:CZ400")),
+      get canBatch(){ return typeof getMany === "function"; },
+      readBlocs:names => getMany(coachId(), names.map(t => q(t) + "!A1:CZ1000")),
       readBloc:name => getVals(coachId(), q(name) + "!A1:CZ1000"),
       setCell:(sheet, col, row, val) => putVals(coachId(), q(sheet) + "!" + colL(col) + row, [[val]])
     }
@@ -754,34 +788,19 @@ const Store = (() => {
 })();
 
 async function loadApp(){
-  const [[P, PR, PO, OB, CO, SE, BL, CH, BI], [RPo, ALo, HIo, MRo]] = await Store.readAll();
-  let repas = [], aliments = [], nutTabs = false;
-  try { const RP = RPo, AL = ALo; if (!RP || !AL) throw 0; nutTabs = true;
-    repas = RP.map((r, i) => ({_row:i + 1, date:toIso(r[0]), h:String(r[1] || ""), nom:String(r[2] || ""), q:num(r[5]) || 0, k:num(r[6]) || 0, p:num(r[7]) || 0, g:num(r[8]) || 0, l:num(r[9]) || 0})).slice(1).filter(x => x.date && x.nom);
-    aliments = AL.slice(1).filter(r => r[0] && num(r[4]) !== null).map(r => ({nom:String(r[0]), marque:String(r[1] || ""), src:String(r[2] || "perso"), code:String(r[3] || ""), k:num(r[4]), p:num(r[5]) || 0, g:num(r[6]) || 0, l:num(r[7]) || 0}));
-  } catch(e){ repas = (D && D.repas) || []; aliments = (D && D.aliments) || []; }
-  /* repas enregistrés : une ligne par aliment, regroupées par nom de repas */
-  let mesRepas = {};
-  if (MRo) MRo.slice(1).forEach((r, i) => { const n = String(r[0] || "").trim(); if (!n || !String(r[1] || "").trim()) return;
-    (mesRepas[n] = mesRepas[n] || []).push({_row:i + 2, nom:String(r[1]), q:num(r[4]) || 0, k:num(r[5]) || 0, p:num(r[6]) || 0, g:num(r[7]) || 0, l:num(r[8]) || 0}); });
-  else mesRepas = (D && D.mesRepas) || {};
-  try { if (!HIo) throw 0; ARCH = HIo.map((r, i) => ({_row:i + 1, r})).slice(1).filter(x => x.r[0] && x.r[1]); archTab = true; } catch(e){ ARCH = []; archTab = false; }
-  const profil = {};
-  P.slice(1).forEach(r => { if (r[0]) profil[String(r[0]).trim()] = r[1] ?? ""; });
-  ["debut_street","debut_coaching"].forEach(k => profil[k] = toIso(profil[k]));
-  const prs = PR.slice(1).map(r => ({date:toIso(r[0]), lift:norm(r[1]), charge:num(r[2]), reps:num(r[3]) || 1, note:r[4] || "", rpe:num(r[5]) || null, eq:/^EQ/i.test(String(r[6] || "").trim())}))
-    .filter(p => p.date && ALL_LIFTS.includes(p.lift) && p.charge !== null).sort((a, b) => a.date < b.date ? -1 : 1);
-  const pm = {}; PO.slice(1).forEach(r => { const d = toIso(r[0]), p = num(r[1]); if (d && p) pm[d] = p; });
-  const poids = Object.keys(pm).sort().map(d => ({date:d, poids:pm[d]}));
-  const objectifs = {}; OB.slice(1).forEach(r => { if (r[0]) objectifs[norm(r[0])] = num(r[1]); });
-  const comps = CO.map((r, i) => ({row:i + 1, date:toIso(r[0]), nom:String(r[1] || "").trim(), lieu:String(r[2] || "").trim(), note:String(r[3] || "").trim(), tbc:/confirmer/i.test(r[4] || "")}))
-    .slice(1).filter(c => c.date && c.nom).sort((a, b) => a.date < b.date ? -1 : 1);
-  const series = SE.map((r, i) => ({_row:i + 1, date:toIso(r[0]), bloc:num(r[1]), semaine:String(r[2] ?? "").trim(), seance:String(r[3] ?? "").trim(), ex:norm(r[4]), charge:num(r[5]), sets:parseSets(r[6], num(r[5])), note:String(r[8] || "")}))
-    .slice(1).filter(x => x.ex && x.sets);
-  const blocs = {}; BL.slice(1).forEach(r => { const n = num(r[0]), d = toIso(r[1]); if (n && d) blocs[n] = d; });
-  const checks = CH.map((r, i) => ({row:i + 1, date:toIso(r[0]), item:String(r[1] || "").trim(), done:/^(true|vrai|oui|1|x)$/i.test(String(r[2] || "").trim())})).slice(1).filter(x => x.date && x.item);
-  const bilans = BI.slice(1).map(r => ({date:toIso(r[0]), bloc:num(r[1]), semaine:String(r[2] ?? "").trim(), v:BILAN_CRIT.map((_, i) => num(r[3 + i]))})).filter(b => b.bloc);
-  D = {profil, prs, poids, objectifs, comps, series, blocs, checks, bilans, repas, aliments, mesRepas, _mrTab:!!MRo, _nutTabs:nutTabs, today:isoOf(new Date())};
+  const x = await Store.readAll();
+  /* onglet absent (carnet ancien) : on garde ce qu'on avait déjà */
+  const nutTabs = x.repas !== null, mrTab = x.mesRepas !== null;
+  if (x.archive) { ARCH = x.archive; archTab = true; } else { ARCH = []; archTab = false; }
+  D = {profil:x.profil, prs:x.prs, poids:x.poids, objectifs:x.objectifs, comps:x.comps, series:x.series, blocs:x.blocs, checks:x.checks, bilans:x.bilans,
+    repas:nutTabs ? x.repas : (D && D.repas) || [], aliments:nutTabs ? x.aliments : (D && D.aliments) || [], mesRepas:mrTab ? x.mesRepas : (D && D.mesRepas) || {},
+    _mrTab:mrTab, _nutTabs:nutTabs, today:isoOf(new Date())};
+}
+/* cache d'une version ≤ 30 : « _row » / « row » deviennent « id » */
+function migrateIds(){
+  const fix = o => { if (o && o.id === undefined) { if (o._row !== undefined) { o.id = o._row; delete o._row; } else if (o.row !== undefined) { o.id = o.row; delete o.row; } } };
+  if (D) { [D.repas, D.series, D.comps, D.checks].forEach(L => (L || []).forEach(fix)); Object.values(D.mesRepas || {}).forEach(L => (L || []).forEach(fix)); }
+  (ARCH || []).forEach(fix);
 }
 
 /* =====================================================================
@@ -816,12 +835,12 @@ const weekLabel = w => { const m = String(w || "").trim().match(/^(\d+)\s*\/\s*\
 const NUM_RE = /^\s*B(?:LOC)?\s*[-_.]?\s*(\d{1,2})(?!\d)/i;
 function hashId(t){ let h = 5381; for (const ch of t) h = (h * 33 + ch.charCodeAt(0)) >>> 0; return 100 + h % 900; }
 async function progTabs(id){
-  const titles = await getTitles(id), sig = "v3|" + titles.join("|"), ck = "sl-prog:" + id, c = store.get(ck);
+  const titles = await Store.coach.titles(id), sig = "v3|" + titles.join("|"), ck = "sl-prog:" + id, c = store.get(ck);
   let info = c && c.sig === sig ? c.info : null;
   if (!info) {
     info = {};
     const others = titles.filter(t => !BLOC_RE.test(t) && !CARNET_TABS.has(t.trim()));
-    for (let i = 0; i < others.length; i += 4) { const part = others.slice(i, i + 4), vals = await getMany(id, part.map(t => q(t) + "!A1:CZ400")); part.forEach((t, j) => info[t] = progInfo(vals[j] || [])); }
+    for (let i = 0; i < others.length; i += 4) { const part = others.slice(i, i + 4), vals = await Store.coach.peek(id, part); part.forEach((t, j) => info[t] = progInfo(vals[j] || [])); }
     store.set(ck, {sig, info});
   }
   const used = new Set(titles.map(t => (t.match(BLOC_RE) || [])[1]).filter(Boolean).map(Number)), names = {}, order = [];
@@ -899,11 +918,11 @@ async function archiveSync(){
         for (const e of s.exercices) { if (num(e.rpe1) === null && num(e.rpeLast) === null && !String(e.commentaire || "").trim()) continue;
           const row = [prog, tab, blocBase(b), L, s.semaine, s.seance, s.jour || "", String(e.row), e.mouvement, e.variation, e.series, e.reps, e.charge, e.rpe1, e.rpeLast, e.commentaire, cid].map(v => String(v ?? ""));
           const old = byKey[s.semaine + "|" + e.row];
-          if (!old) news.push(row); else if (AS(old.r).join("\u0001") !== AS(row).join("\u0001")) { if (old._row) upd.push({id:old._row, values:row}); old.r = row; } } } }
+          if (!old) news.push(row); else if (AS(old.r).join("\u0001") !== AS(row).join("\u0001")) { if (old.id) upd.push({id:old.id, values:row}); old.r = row; } } } }
     if (!news.length && !upd.length) return;
     if (!archTab) { await Store.ensureTabs(); archTab = true; }
     let r0 = await Store.history.save(upd, news);
-    news.forEach(r => ARCH.push({_row:r0 ? r0++ : 0, r}));
+    news.forEach(r => ARCH.push({id:r0 ? r0++ : 0, r}));
     saveCache();
   } catch(e){ console.warn("historique", e); } finally { archBusy = false; }
 }
@@ -1022,9 +1041,9 @@ async function loadCoachAll(preTabs){
   const c = chosenBloc();
   /* Bloc en cours + blocs déjà affichés : une seule requête au lieu d'une par bloc (données à jour plus vite). */
   const want = [...new Set([c !== null ? c : nums[0], ...keep])].filter(n => n !== null && blocNames[n]);
-  if (typeof getMany === "function" && want.length > 1) {
+  if (Store.coach.canBatch && want.length > 1) {
     let vals = null;
-    try { vals = await getMany(coachId(), want.map(n => q(blocNames[n]) + "!A1:CZ1000")); } catch(e){ if (!badRange(e)) throw e; }
+    try { vals = await Store.coach.readBlocs(want.map(n => blocNames[n])); } catch(e){ if (!badRange(e)) throw e; }
     if (vals) for (let k = 0; k < want.length; k++) await loadBloc(want[k], vals[k] || []);
     else for (const n of want) { try { await loadBloc(n); } catch(e){ if (!badRange(e)) throw e; } }   /* repli : un onglet illisible n'empêche pas les autres */
   }
@@ -1041,7 +1060,7 @@ function ensureAllBlocs(){
     /* les blocs restants sont lus par paquets de 4 en une seule requête (batchGet) */
     const todo = progOrder.filter(n => liveIds.has(n) && !loadedBlocs.has(n));
     for (let i = 0; i < todo.length; i += 4) { const part = todo.slice(i, i + 4);
-      const vals = typeof getMany === "function" ? await getMany(coachId(), part.map(n => q(blocNames[n]) + "!A1:CZ1000")) : null;
+      const vals = Store.coach.canBatch ? await Store.coach.readBlocs(part.map(n => blocNames[n])) : null;
       for (let k = 0; k < part.length; k++) await loadBloc(part[k], vals ? vals[k] || [] : null); }
     allLoaded = true; loadingAll = null; mergeArchive(); saveCache(); archiveSync();
   })().catch(e => { loadingAll = null; throw e; });
@@ -1233,7 +1252,7 @@ function saveCache(){ if (D) store.set(ck("sl4-cache"), {D, S, blocNames, progOr
 function loadCache(){
   const c = store.get(ck("sl4-cache")); if (!c || !c.D) return false;
   D = c.D; D.today = isoOf(new Date()); S = c.S || []; blocNames = c.blocNames || {}; progOrder = c.progOrder || Object.keys(blocNames).map(Number).sort((x, y) => x - y); liveIds = new Set(c.liveIds || progOrder); archMeta = c.archMeta || {}; ARCH = c.ARCH || []; weekMeta = c.weekMeta || {};
-  S.forEach(s => loadedBlocs.add(s.bloc)); allLoaded = !!c.all; return true;
+  S.forEach(s => loadedBlocs.add(s.bloc)); allLoaded = !!c.all; migrateIds(); return true;
 }
 
 /* =====================================================================
@@ -1623,11 +1642,11 @@ async function saveRow(k){
       const sameC = done.every(x => x.c === done[0].c), setsTxt = sameC ? done.map(x => x.r).join(", ") : done.map(x => x.r + "@" + String(x.c)).join(", ");
       const row = [D.today, s.bloc, s.semaine, s.seance, key, Math.max(...done.map(x => x.c)), setsTxt, "app", "L" + e.row];
       const ex = D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
-      if (ex && !ex._row) await loadApp();
+      if (ex && !ex.id) await loadApp();
       const ex2 = ex && D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
-      if (ex2 && ex2._row) { await Store.series.update(ex2._row, row); ex2.sets = done; ex2.note = "L" + e.row; ex2.date = D.today; }
+      if (ex2 && ex2.id) { await Store.series.update(ex2.id, row); ex2.sets = done; ex2.note = "L" + e.row; ex2.date = D.today; }
       else { const id = await Store.series.add(row);
-        D.series.push({_row:id, date:D.today, bloc:s.bloc, semaine:s.semaine, seance:s.seance, ex:key, charge:row[5], sets:done, note:"L" + e.row}); }
+        D.series.push({id:id, date:D.today, bloc:s.bloc, semaine:s.semaine, seance:s.seance, ex:key, charge:row[5], sets:done, note:"L" + e.row}); }
       const asPresc = isNumTxt(e.reps) && done.length === (num(e.series) || 0) && done.every(x => x.r === num(e.reps));
       if (s.cols.commentaire && (!e.commentaire || repsOnly(e.commentaire)) && (norm(e.mouvement) === "RENFO" || !asPresc)) { const t = done.map(x => x.r).join(","); await Store.coach.setCell(s.sheet, s.cols.commentaire, e.row, t); e.commentaire = t; }
     }
@@ -1952,7 +1971,7 @@ function rAgenda(){
   const byD = {}; S.forEach(s => { const d = dateOf(s); if (d) (byD[d] = byD[d] || []).push(s); });
   const cells = Array.from({length:n}, (_, i) => { const d = new Date(y, m - 1, 1 - off + i), iso = isoOf(d), c = D.comps.find(x => x.date === iso), ss = byD[iso];
     return `<div class="d ${d.getMonth() !== m - 1 ? "out" : ""} ${iso === t ? "today" : ""} ${c ? "comp" + (c.tbc ? " tbc" : "") : ""}" ${c ? `title="${esc(c.nom)}"` : ""}>${d.getDate()}${ss && !c ? `<i class="${ss.every(z => z.faite) ? "" : "todo"}"></i>` : ""}</div>`; }).join("");
-  const nc = nextComp(), prep = nc && days(t, nc.date) <= 42, up = D.comps.filter(c => c.date >= t), past = D.comps.filter(c => c.date < t).reverse(), ec = armed && armed.edit ? D.comps.find(c => c.row === armed.edit) : null;
+  const nc = nextComp(), prep = nc && days(t, nc.date) <= 42, up = D.comps.filter(c => c.date >= t), past = D.comps.filter(c => c.date < t).reverse(), ec = armed && armed.edit ? D.comps.find(c => c.id === armed.edit) : null;
   $("#v-agenda").innerHTML = `${agendaSegHtml()}
     ${nc ? heroCard({small:`${esc(nc.nom)}${nc.tbc ? " · date à confirmer" : ""}`, big:days(t, nc.date) === 0 ? "Jour J" : "J−" + days(t, nc.date), sub:`${cap(dlong(nc.date))}${nc.lieu ? ", " + esc(nc.lieu) : ""}`}) : `<div class="emptycard" style="margin-top:14px"><b>Aucune compétition prévue</b><p>Ajoute ta prochaine compétition plus bas : l'app compte les jours et prépare ta checklist.</p></div>`}
     ${prep ? prepHtml(nc) : ""}
@@ -1967,7 +1986,7 @@ function rAgenda(){
     <h2 class="h2">Compétitions</h2>
     <div class="list">${up.concat(past).map(c => { const d = days(t, c.date); return `<div class="item"><span class="grow"><span class="ttl" style="display:block">${esc(c.nom)}</span><span class="muted small">${cap(dlong(c.date))}${c.lieu ? ", " + esc(c.lieu) : ""}${c.note ? ". " + esc(c.note) : ""}</span></span>
       <span class="stack" style="align-items:flex-end;gap:6px"><span class="pill ${c.tbc ? "warn" : d >= 0 ? "go" : ""}">${c.tbc ? "À confirmer" : d > 0 ? "J-" + d : d === 0 ? "Aujourd'hui" : "Passée"}</span>
-      <span class="row" style="gap:12px"><button class="link small" data-act="editComp" data-r="${c.row}">Modifier</button><button class="link small" style="color:var(--bad)" data-act="delComp" data-r="${c.row}">${armed && armed.del === c.row ? "Confirmer" : "Supprimer"}</button></span></span></div>`; }).join("") || `<p class="muted small">Aucune compétition.</p>`}</div>
+      <span class="row" style="gap:12px"><button class="link small" data-act="editComp" data-r="${c.id}">Modifier</button><button class="link small" style="color:var(--bad)" data-act="delComp" data-r="${c.id}">${armed && armed.del === c.id ? "Confirmer" : "Supprimer"}</button></span></span></div>`; }).join("") || `<p class="muted small">Aucune compétition.</p>`}</div>
     <h2 class="h2">${ec ? "Modifier la compétition" : "Ajouter une compétition"}</h2>
     <div class="panel">
       <label for="cpn" style="margin-top:0">Nom</label><input id="cpn" value="${esc(ec ? ec.nom : "")}" placeholder="Championnat de Belgique">
@@ -1987,7 +2006,7 @@ function prepHtml(c){
     </div>
     <div class="panel">
       <div class="row"><p style="font-weight:600">Checklist</p><span class="muted small">${ch.filter(x => x.done).length}/${ch.length}</span></div>
-      ${ch.length ? `<div style="margin-top:6px">${ch.map(x => `<button class="check-row" role="checkbox" aria-checked="${x.done}" data-act="check" data-r="${x.row}"><span class="box"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M5 12l5 5 9-10"/></svg></span><span>${esc(x.item)}</span></button>`).join("")}</div>`
+      ${ch.length ? `<div style="margin-top:6px">${ch.map(x => `<button class="check-row" role="checkbox" aria-checked="${x.done}" data-act="check" data-r="${x.id}"><span class="box"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M5 12l5 5 9-10"/></svg></span><span>${esc(x.item)}</span></button>`).join("")}</div>`
         : `<button class="btn ghost" style="margin-top:12px" data-act="initChecks" data-d="${c.date}">Créer la checklist</button>`}
       ${ch.length ? `<div class="grid2" style="margin-top:10px;grid-template-columns:1fr auto"><input id="newcheck" placeholder="Ajouter un élément"><button class="btn sm" data-act="addCheck" data-d="${c.date}">Ajouter</button></div>` : ""}
     </div>`;
@@ -2241,7 +2260,7 @@ const ACT = {
     try { if (ed) await Store.competitions.update(ed, row); else await Store.competitions.add(row);
       toast(ed ? "Compétition modifiée" : "Compétition ajoutée"); armed = null; calMonth = date.slice(0, 7); await loadApp(); saveCache(); rAgenda(); } catch(e){ toast(errMsg(e) + ambig(e), true); } },
   ics:() => exportIcs(),
-  check:async d => { const x = D.checks.find(c => c.row === +d.r); if (!x) return; x.done = !x.done; rAgenda(); try { await Store.checklist.setDone(x.row, x.done); } catch(e){ x.done = !x.done; rAgenda(); toast(errMsg(e), true); } },
+  check:async d => { const x = D.checks.find(c => c.id === +d.r); if (!x) return; x.done = !x.done; rAgenda(); try { await Store.checklist.setDone(x.id, x.done); } catch(e){ x.done = !x.done; rAgenda(); toast(errMsg(e), true); } },
   initChecks:async d => { try { await Store.checklist.add(CHECK_DEFAULT.map(i => [d.d, i, "FALSE"])); await loadApp(); rAgenda(); } catch(e){ toast(errMsg(e), true); } },
   addCheck:async d => { const t = $("#newcheck").value.trim(); if (!t) return; try { await Store.checklist.add([[d.d, t, "FALSE"]]); await loadApp(); rAgenda(); } catch(e){ toast(errMsg(e), true); } },
   bilan:d => { const wk = weekMeta[d.w]; if (wk) wk.draft = {}; openSheet("bilan|" + d.w); },
@@ -2352,7 +2371,7 @@ function rNutri(){
   const R = dayRows(nutDate), tot = R.reduce((a, x) => ({k:a.k + x.k, p:a.p + x.p, g:a.g + x.g, l:a.l + x.l}), {k:0, p:0, g:0, l:0}), T = nutTargets(nutDate);
   const hasT = T.kcal && T.obj !== "suivi", left = hasT ? T.kcal - tot.k : null;
   const bar = (lab, v, tg, col) => `<div style="margin-top:12px"><div class="row small"><span>${lab}</span><span><b>${fmt(v, 0)}</b>${tg ? ` / ${fmt(tg, 0)} g` : " g"}</span></div><div class="bar" style="--c:${col}"><i style="width:${tg ? Math.min(100, v / tg * 100) : 0}%"></i></div></div>`;
-  const rows = R.slice().sort((a, b) => (a.h || "") < (b.h || "") ? -1 : 1).map(x => `<div class="item" style="display:flex;gap:10px;align-items:center"><span class="muted small" style="width:42px">${esc(x.h || "")}</span><span class="grow"><span class="ttl" style="display:block">${esc(x.nom)}</span><span class="muted tiny">${fmt(x.q, 0)} g · P ${fmt(x.p, 1)} · G ${fmt(x.g, 1)} · L ${fmt(x.l, 1)}</span></span><b class="small">${fmt(x.k, 0)}</b><button class="iconbtn" data-act="nutDel" data-r="${x._row}" aria-label="Supprimer">×</button></div>`).join("");
+  const rows = R.slice().sort((a, b) => (a.h || "") < (b.h || "") ? -1 : 1).map(x => `<div class="item" style="display:flex;gap:10px;align-items:center"><span class="muted small" style="width:42px">${esc(x.h || "")}</span><span class="grow"><span class="ttl" style="display:block">${esc(x.nom)}</span><span class="muted tiny">${fmt(x.q, 0)} g · P ${fmt(x.p, 1)} · G ${fmt(x.g, 1)} · L ${fmt(x.l, 1)}</span></span><b class="small">${fmt(x.k, 0)}</b><button class="iconbtn" data-act="nutDel" data-r="${x.id}" aria-label="Supprimer">×</button></div>`).join("");
   $("#v-corps").innerHTML = corpsSeg() + `
     <div class="row" style="margin-bottom:10px"><button class="iconbtn" data-act="nutDay" data-d="-1" aria-label="Jour précédent">‹</button><b>${nutDate === D.today ? "Aujourd'hui" : cap(dlong(nutDate))}</b><button class="iconbtn" data-act="nutDay" data-d="1" aria-label="Jour suivant" ${nutDate >= D.today ? "disabled" : ""}>›</button></div>
     ${heroCard({small:hasT ? "Calories du jour" : "Calories du jour (suivi)", big:`${fmt(tot.k, 0)}<small>${hasT ? " / " + fmt(T.kcal, 0) : ""} kcal</small>`, sub:hasT ? (left >= 0 ? "reste " + fmt(left, 0) + " kcal" : fmt(-left, 0) + " kcal au-dessus") : R.length ? R.length + " aliment" + (R.length > 1 ? "s" : "") + " noté" + (R.length > 1 ? "s" : "") : "Aucun aliment noté", deco:false})}
@@ -2418,11 +2437,11 @@ Object.assign(ACT, {
       if (nutPick.off && !(D.aliments || []).some(a => a.code === f.code && a.src === "off")) await saveFood(f);
       const row = [nutDate, h, f.nom + (f.marque ? " (" + f.marque + ")" : ""), f.src, f.code || "", r1(q), r1(m.k), r1(m.p), r1(m.g), r1(m.l)];
       const id = await Store.repas.add([row]);
-      D.repas.push({_row:id, date:nutDate, h, nom:row[2], q, k:m.k, p:m.p, g:m.g, l:m.l});
+      D.repas.push({id:id, date:nutDate, h, nom:row[2], q, k:m.k, p:m.p, g:m.g, l:m.l});
       nutPick = null; nutQ = ""; offRes = null; saveCache(); toast(fmt(m.k, 0) + " kcal ajoutées"); rNutri();
     } catch(e){ toast(errMsg(e), true); }
   },
-  nutDel:async d => { const r = +d.r; if (!r) return; try { await Store.repas.remove(r); D.repas = D.repas.filter(x => x._row !== r); saveCache(); rNutri(); } catch(e){ toast(errMsg(e), true); } },
+  nutDel:async d => { const r = +d.r; if (!r) return; try { await Store.repas.remove(r); D.repas = D.repas.filter(x => x.id !== r); saveCache(); rNutri(); } catch(e){ toast(errMsg(e), true); } },
   nutOff:async d => {
     const q = parseFoodLine(nutQ).txt; if (!q || offBusy) return; offBusy = true; nutRefresh();
     try {
@@ -2503,7 +2522,20 @@ let CLASSEMENT_URL = "https://script.google.com/macros/s/AKfycbx-cG4zF8RxhZlbflb
 const PAYS_FR = Object.fromEntries("AD:Andorre|AE:Émirats arabes unis|AF:Afghanistan|AG:Antigua-et-Barbuda|AI:Anguilla|AL:Albanie|AM:Arménie|AO:Angola|AR:Argentine|AS:Samoa américaines|AT:Autriche|AU:Australie|AW:Aruba|AX:Îles Åland|AZ:Azerbaïdjan|BA:Bosnie-Herzégovine|BB:Barbade|BD:Bangladesh|BE:Belgique|BF:Burkina Faso|BG:Bulgarie|BH:Bahreïn|BI:Burundi|BJ:Bénin|BL:Saint-Barthélemy|BM:Bermudes|BN:Brunei|BO:Bolivie|BQ:Pays-Bas caribéens|BR:Brésil|BS:Bahamas|BT:Bhoutan|BW:Botswana|BY:Biélorussie|BZ:Belize|CA:Canada|CC:Îles Cocos|CD:Congo-Kinshasa|CF:République centrafricaine|CG:Congo-Brazzaville|CH:Suisse|CI:Côte d’Ivoire|CK:Îles Cook|CL:Chili|CM:Cameroun|CN:Chine|CO:Colombie|CR:Costa Rica|CU:Cuba|CV:Cap-Vert|CW:Curaçao|CX:Île Christmas|CY:Chypre|CZ:Tchéquie|DE:Allemagne|DJ:Djibouti|DK:Danemark|DM:Dominique|DO:République dominicaine|DZ:Algérie|EC:Équateur|EE:Estonie|EG:Égypte|EH:Sahara occidental|ER:Érythrée|ES:Espagne|ET:Éthiopie|FI:Finlande|FJ:Fidji|FK:Îles Malouines|FM:Micronésie|FO:Îles Féroé|FR:France|GA:Gabon|GB:Royaume-Uni|GD:Grenade|GE:Géorgie|GF:Guyane française|GG:Guernesey|GH:Ghana|GI:Gibraltar|GL:Groenland|GM:Gambie|GN:Guinée|GP:Guadeloupe|GQ:Guinée équatoriale|GR:Grèce|GT:Guatemala|GU:Guam|GW:Guinée-Bissau|GY:Guyana|HK:R.A.S. chinoise de Hong Kong|HN:Honduras|HR:Croatie|HT:Haïti|HU:Hongrie|ID:Indonésie|IE:Irlande|IL:Israël|IM:Île de Man|IN:Inde|IO:Territoire britannique de l’océan Indien|IQ:Irak|IR:Iran|IS:Islande|IT:Italie|JE:Jersey|JM:Jamaïque|JO:Jordanie|JP:Japon|KE:Kenya|KG:Kirghizstan|KH:Cambodge|KI:Kiribati|KM:Comores|KN:Saint-Christophe-et-Niévès|KP:Corée du Nord|KR:Corée du Sud|KW:Koweït|KY:Îles Caïmans|KZ:Kazakhstan|LA:Laos|LB:Liban|LC:Sainte-Lucie|LI:Liechtenstein|LK:Sri Lanka|LR:Liberia|LS:Lesotho|LT:Lituanie|LU:Luxembourg|LV:Lettonie|LY:Libye|MA:Maroc|MC:Monaco|MD:Moldavie|ME:Monténégro|MF:Saint-Martin|MG:Madagascar|MH:Îles Marshall|MK:Macédoine du Nord|ML:Mali|MM:Myanmar (Birmanie)|MN:Mongolie|MO:R.A.S. chinoise de Macao|MP:Îles Mariannes du Nord|MQ:Martinique|MR:Mauritanie|MS:Montserrat|MT:Malte|MU:Maurice|MV:Maldives|MW:Malawi|MX:Mexique|MY:Malaisie|MZ:Mozambique|NA:Namibie|NC:Nouvelle-Calédonie|NE:Niger|NF:Île Norfolk|NG:Nigeria|NI:Nicaragua|NL:Pays-Bas|NO:Norvège|NP:Népal|NR:Nauru|NU:Niue|NZ:Nouvelle-Zélande|OM:Oman|PA:Panama|PE:Pérou|PF:Polynésie française|PG:Papouasie-Nouvelle-Guinée|PH:Philippines|PK:Pakistan|PL:Pologne|PM:Saint-Pierre-et-Miquelon|PN:Îles Pitcairn|PR:Porto Rico|PS:Territoires palestiniens|PT:Portugal|PW:Palaos|PY:Paraguay|QA:Qatar|RE:La Réunion|RO:Roumanie|RS:Serbie|RU:Russie|RW:Rwanda|SA:Arabie saoudite|SB:Îles Salomon|SC:Seychelles|SD:Soudan|SE:Suède|SG:Singapour|SH:Sainte-Hélène|SI:Slovénie|SJ:Svalbard et Jan Mayen|SK:Slovaquie|SL:Sierra Leone|SM:Saint-Marin|SN:Sénégal|SO:Somalie|SR:Suriname|SS:Soudan du Sud|ST:Sao Tomé-et-Principe|SV:Salvador|SX:Saint-Martin (partie néerlandaise)|SY:Syrie|SZ:Eswatini|TC:Îles Turques-et-Caïques|TD:Tchad|TG:Togo|TH:Thaïlande|TJ:Tadjikistan|TK:Tokelau|TL:Timor oriental|TM:Turkménistan|TN:Tunisie|TO:Tonga|TR:Turquie|TT:Trinité-et-Tobago|TV:Tuvalu|TW:Taïwan|TZ:Tanzanie|UA:Ukraine|UG:Ouganda|US:États-Unis|UY:Uruguay|UZ:Ouzbékistan|VA:État de la Cité du Vatican|VC:Saint-Vincent-et-les Grenadines|VE:Venezuela|VG:Îles Vierges britanniques|VI:Îles Vierges des États-Unis|VN:Viêt Nam|VU:Vanuatu|WF:Wallis-et-Futuna|WS:Samoa|YE:Yémen|YT:Mayotte|ZA:Afrique du Sud|ZM:Zambie|ZW:Zimbabwe|XK:Kosovo".split("|").map(x => x.split(":")));
 const PAYS = Object.keys(PAYS_FR);
 let agendaSeg = "compet", clErr = "", clBusy = null, CL = (c => c && Array.isArray(c.rows) && !(c.rows[0] && Array.isArray(c.rows[0])) && !c.id ? c : null)(store.get("sl-cl"));   /* ignore le format v23 */
-const clOn = () => !!CLASSEMENT_URL;
+/* Point d'entrée unique du service de classement (aujourd'hui Google Apps Script ; demain une table de la base de données).
+   exchange : envoie tes stats si tu es connecté (stats calculées seulement dans ce cas) et renvoie les lignes de tout le monde. */
+const Ranking = {
+  get on(){ return !!CLASSEMENT_URL; },
+  async exchange(statsFn){
+    const tok = Account.token();
+    /* requête « simple » (texte brut, sans en-tête) : pas de pré-vérification CORS, acceptée par Apps Script */
+    const r = tok ? await fetch(CLASSEMENT_URL, {method:"POST", body:JSON.stringify({token:tok, data:statsFn()})}) : await fetch(CLASSEMENT_URL);
+    const j = await r.json();
+    if (j.error) throw new Error(j.error === "auth" ? "Connexion Google à renouveler pour le classement." : "Classement : " + j.error);
+    return {rows:Array.isArray(j.rows) ? j.rows : [], identified:!!tok};
+  }
+};
+const clOn = () => Ranking.on;
 const monPays = () => (String(D.profil.pays || "BE").trim().toUpperCase().slice(0, 2)) || "BE";
 const flagOf = cc => /^[A-Z]{2}$/.test(cc || "") ? String.fromCodePoint(...[...cc].map(c => 0x1F1A5 + c.charCodeAt(0))) : "🏳️";
 const paysNom = cc => PAYS_FR[cc] || (() => { try { return new Intl.DisplayNames(["fr"], {type:"region"}).of(cc) || cc; } catch(e){ return cc; } })();
@@ -2523,16 +2555,11 @@ function clSync(){
   if (clBusy) return clBusy;
   clBusy = (async () => {
     if (!clOn()) return;
-    const tok = typeof auth !== "undefined" ? auth.tok : null;
     try {
-      /* requête « simple » (texte brut, sans en-tête) : pas de pré-vérification CORS, acceptée par Apps Script */
-      const r = tok ? await fetch(CLASSEMENT_URL, {method:"POST", body:JSON.stringify({token:tok, data:myStats()})}) : await fetch(CLASSEMENT_URL);
-      const j = await r.json();
-      if (j.error) throw new Error(j.error === "auth" ? "Connexion Google à renouveler pour le classement." : "Classement : " + j.error);
-      /* sans jeton, le service ne sait pas qui tu es : on garde la ligne « toi » de la dernière fois */
+      const {rows, identified} = await Ranking.exchange(myStats);
+      /* sans connexion, le service ne sait pas qui tu es : on garde la ligne « toi » de la dernière fois */
       const prevMe = CL && CL.rows ? (CL.rows.find(x => x.me) || {}).nom : null;
-      const rows = Array.isArray(j.rows) ? j.rows : [];
-      if (!tok && prevMe && !rows.some(x => x.me)) { const m = rows.find(x => x.nom === prevMe); if (m) m.me = true; }
+      if (!identified && prevMe && !rows.some(x => x.me)) { const m = rows.find(x => x.nom === prevMe); if (m) m.me = true; }
       CL = {rows, at:Date.now()}; clErr = ""; store.set("sl-cl", CL);
     } catch(e){ clErr = (e && e.message && /Classement|Connexion/.test(e.message)) ? e.message : "Classement injoignable pour l'instant."; }
   })().finally(() => { clBusy = null; });
@@ -2643,10 +2670,10 @@ CHG.birth = (d, el) => { const v = toIso(el.value); if (!v || v > D.today) retur
 let mealSel = null;
 async function mealEnsureTab(){ if (D._mrTab) return; await Store.ensureTabs(); D._mrTab = true; }
 function mealSaveHtml(){
-  const R = dayRows(nutDate); if (!mealSel) mealSel = new Set(R.map(x => x._row));
+  const R = dayRows(nutDate); if (!mealSel) mealSel = new Set(R.map(x => x.id));
   return `<p class="show t-m">Enregistrer comme repas</p><p class="muted small" style="margin-top:4px">Coche les aliments du repas et donne-lui un nom : la prochaine fois, un toucher l'ajoute en entier.</p>
     <label for="mname">Nom du repas</label><input id="mname" placeholder="Ex. haché-haricots, petit-déj" maxlength="40" autocomplete="off">
-    <div class="list mealsel" style="margin-top:10px">${R.map(x => `<button class="check-row" role="checkbox" aria-checked="${mealSel.has(x._row)}" data-act="mealTick" data-r="${x._row}"><span class="box">✓</span><span class="grow">${esc(x.nom)} <span class="muted small">${fmt(x.q, 0)} g · ${fmt(x.k, 0)} kcal</span></span></button>`).join("")}</div>
+    <div class="list mealsel" style="margin-top:10px">${R.map(x => `<button class="check-row" role="checkbox" aria-checked="${mealSel.has(x.id)}" data-act="mealTick" data-r="${x.id}"><span class="box">✓</span><span class="grow">${esc(x.nom)} <span class="muted small">${fmt(x.q, 0)} g · ${fmt(x.k, 0)} kcal</span></span></button>`).join("")}</div>
     <button class="btn" style="margin-top:14px" data-act="mealSaveGo">Enregistrer</button>`;
 }
 function mealsHtml(){
@@ -2659,13 +2686,13 @@ Object.assign(ACT, {
   mealSave:() => { mealSel = null; openSheet("meal"); },
   mealTick:d => { const r = +d.r, keep = ($("#mname") || {}).value || ""; mealSel.has(r) ? mealSel.delete(r) : mealSel.add(r); renderLayer(); const i = $("#mname"); if (i) i.value = keep; },
   mealSaveGo:async () => {
-    const n = (($("#mname") || {}).value || "").trim(), L = dayRows(nutDate).filter(x => mealSel && mealSel.has(x._row));
+    const n = (($("#mname") || {}).value || "").trim(), L = dayRows(nutDate).filter(x => mealSel && mealSel.has(x.id));
     if (!n) return toast("Donne un nom au repas", true); if (!L.length) return toast("Coche au moins un aliment", true);
     try { await mealEnsureTab();
       const old = (D.mesRepas || {})[n];
-      if (old) for (const x of old) if (x._row) await Store.mesRepas.remove(x._row);   /* même nom : on remplace */
+      if (old) for (const x of old) if (x.id) await Store.mesRepas.remove(x.id);   /* même nom : on remplace */
       const r0 = await Store.mesRepas.add(L.map(x => [n, x.nom, "repas", "", r1(x.q), r1(x.k), r1(x.p), r1(x.g), r1(x.l)]));
-      (D.mesRepas = D.mesRepas || {})[n] = L.map((x, i) => ({_row:r0 ? r0 + i : 0, nom:x.nom, q:x.q, k:x.k, p:x.p, g:x.g, l:x.l}));
+      (D.mesRepas = D.mesRepas || {})[n] = L.map((x, i) => ({id:r0 ? r0 + i : 0, nom:x.nom, q:x.q, k:x.k, p:x.p, g:x.g, l:x.l}));
       mealSel = null; saveCache(); closeSheet(); rNutri(); toast("Repas « " + n + " » enregistré");
     } catch(e){ toast(errMsg(e), true); }
   },
@@ -2674,13 +2701,13 @@ Object.assign(ACT, {
     const now = new Date(), h = nutDate === D.today ? String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0") : "";
     try { await nutEnsureTabs();
       const r0 = await Store.repas.add(L.map(x => [nutDate, h, x.nom, "repas", "", r1(x.q), r1(x.k), r1(x.p), r1(x.g), r1(x.l)]));
-      L.forEach((x, i) => D.repas.push({_row:r0 ? r0 + i : 0, date:nutDate, h, nom:x.nom, q:x.q, k:x.k, p:x.p, g:x.g, l:x.l}));
+      L.forEach((x, i) => D.repas.push({id:r0 ? r0 + i : 0, date:nutDate, h, nom:x.nom, q:x.q, k:x.k, p:x.p, g:x.g, l:x.l}));
       saveCache(); rNutri(); toast(d.n + " ajouté : " + fmt(sum(L.map(x => x.k)), 0) + " kcal");
     } catch(e){ toast(errMsg(e), true); if (b) b.disabled = false; }
   },
   mealsManage:() => openSheet("meals"),
   mealDel:async d => { const L = (D.mesRepas || {})[d.n]; if (!L) return;
-    try { for (const x of L) if (x._row) await Store.mesRepas.remove(x._row);
+    try { for (const x of L) if (x.id) await Store.mesRepas.remove(x.id);
       delete D.mesRepas[d.n]; saveCache(); renderLayer(); rNutri(); toast("Repas supprimé"); } catch(e){ toast(errMsg(e), true); } }
 });
 
@@ -2748,6 +2775,8 @@ vidLoad().catch(() => {});
 
 /* =====================================================================
    ACCÈS AUX DONNÉES : API Google Sheets, connexion Google, aucun serveur
+   Ce fichier est l'ADAPTATEUR GOOGLE de la bêta (connexion, création et choix du carnet, lecture/écriture Sheets).
+   À la migration vers la vraie application, il est remplacé en bloc ; l'app n'y accède que via Store, Account et Ranking (src/app.html).
    ===================================================================== */
 const CLIENT_ID = "592660864473-s7ek1c4i0iknvrnpsmdpi77l7bpr2k8c.apps.googleusercontent.com";
 const SCOPE = "https://www.googleapis.com/auth/spreadsheets email";
