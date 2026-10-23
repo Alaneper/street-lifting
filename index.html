@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261023081210">
+<meta name="sl-build" content="20261023123141">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -159,6 +159,8 @@ tr.done .check{background:var(--ok);border-color:var(--ok);color:#10261a}
 .rpe{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-top:6px}
 .rpe button{flex:none;min-width:48px;height:44px;border-radius:12px;background:var(--deck);font:700 19px var(--f-show);color:var(--steel-hi)}
 .rpe button[aria-pressed="true"]{background:var(--chalk);color:var(--floor)}
+.rpecible{display:flex;flex-direction:column;gap:2px;border:2px solid var(--chalk);border-radius:var(--r);padding:10px 14px;margin-top:10px;font-size:14px}.rpecible b{font:700 17px var(--f-text)}.rpecible span{color:var(--dust)}
+.rpecible.over{border-color:var(--bad)}.rpecible.over span{color:var(--bad)}.rpe button.tgt{box-shadow:inset 0 0 0 2px var(--chalk)}
 .coachnote{background:var(--deck);border-radius:var(--r);padding:12px 14px;font-size:14px;margin-top:10px}
 .prev{font-size:13px;color:var(--dust);margin-top:6px}
 
@@ -480,7 +482,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "31 · 23 oct. 2026";
+const APP_VER = "32 · 23 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -1436,9 +1438,20 @@ function rSeance(){
     ${s.archived ? `<p class="muted small" style="margin-top:14px">Bloc conservé dans ton historique (onglet HISTORIQUE de ton carnet) : il se consulte, il ne se modifie plus.</p>` : `<button class="btn" style="margin-top:14px" data-act="startLive" data-k="${esc(s.key)}">${lv && lv.key === s.key ? "Reprendre" : s.faite ? "Revoir et modifier" : "Commencer"} la séance</button>`}
     ${wk ? `<button class="btn line" style="margin-top:10px" data-act="bilan" data-w="${esc(wk.sheet + "|" + wk.semaine)}">${BILAN_CRIT.every(k => wk.vals[k]) ? "Bilan de la semaine " + esc(wk.semaine) + " : fait, modifier" : "Bilan de la semaine " + esc(wk.semaine)}</button>` : ""}`;
 }
+/* RPE visé écrit par le coach (colonne « INTENSITÉ CIBLE ») : « 7 », « RPE 7 », « @7 », « 7-8 », « ≤ 7 », « max 7 ».
+   Un pourcentage (« 75 % ») reste affiché tel quel. Renvoie null si la case est vide. */
+function rpeCible(e){
+  const t = String(e.intensite ?? "").trim(); if (!t) return null;
+  if (/%/.test(t)) return {txt:t, lab:"Intensité visée " + t, hi:null, max:false};
+  const i = t.search(/rpe|@/i), n = ((i >= 0 ? t.slice(i) : t).match(/\d+(?:[.,]\d+)?/g) || []).map(num).filter(v => v >= 1 && v <= 10);
+  if (!n.length) return {txt:t, lab:"Intensité visée : " + t, hi:null, max:false};
+  const max = /[≤<]|max|pas d[ée]passer|jusqu/i.test(t) && n.length === 1, lo = Math.min(...n), hi = Math.max(...n);
+  const v = lo === hi ? fmt(lo) : fmt(lo) + " à " + fmt(hi);
+  return {txt:t, lab:(max ? "RPE max " : "RPE visé ") + v, lo:max ? null : lo, hi, max};
+}
 function presc(e){
   const kg = isNumTxt(e.charge) ? " kg" : "";
-  return [e.series && e.reps ? `${esc(e.series)} × ${esc(e.reps)}` : "", e.charge ? `${esc(e.charge)}${kg}` : "", e.tempo ? `tempo ${esc(e.tempo)}` : "", e.repos ? `repos ${esc(e.repos)}` : ""].filter(Boolean).join(", ");
+  return [e.series && e.reps ? `${esc(e.series)} × ${esc(e.reps)}` : "", e.charge ? `${esc(e.charge)}${kg}` : "", e.tempo ? `tempo ${esc(e.tempo)}` : "", e.repos ? `repos ${esc(e.repos)}` : "", rpeCible(e) ? esc(rpeCible(e).lab) : ""].filter(Boolean).join(", ");
 }
 
 /* =====================================================================
@@ -1543,7 +1556,8 @@ function rLive(){
   const showR1 = !renfo && s.cols.rpe1 && st.sets[0] && st.sets[0].done, showRL = !renfo && s.cols.rpeLast && st.sets.length > 1 && st.sets.at(-1).done;
   const isBW = l && BW_LIFTS.includes(l), name = renfo ? title(e.variation) : l ? LNAME[l] + " " + title(e.variation).toLowerCase() : title(e.mouvement);
   const pv = j => { if (!prev) return "–"; const p = prev.sets[Math.min(j, prev.sets.length - 1)]; return p ? fmt(p.c) + " × " + p.r : "–"; };
-  const rpeRow = (f, lab) => `<div><h2 class="h2">${lab} <span class="muted">pour ton coach</span></h2><div class="rpe">${RPE_OPTS.map(v => `<button aria-pressed="${st[f] === v}" data-act="rpe" data-f="${f}" data-v="${v}">${fmt(v)}</button>`).join("")}</div></div>`;
+  const rc0 = rpeCible(e), inT = v => rc0 && rc0.hi !== null && v <= rc0.hi && (rc0.lo === null || v >= rc0.lo);
+  const rpeRow = (f, lab) => `<div><h2 class="h2">${lab} <span class="muted">pour ton coach</span></h2><div class="rpe">${RPE_OPTS.map(v => `<button class="${inT(v) ? "tgt" : ""}" aria-pressed="${st[f] === v}" data-act="rpe" data-f="${f}" data-v="${v}">${fmt(v)}</button>`).join("")}</div></div>`;
   return `<div class="live ${sheet === "rest" ? "resting" : ""}" role="dialog" aria-label="Séance en cours"><div class="wrap">
     <div class="livehead"><button class="iconbtn" data-act="closeLive" aria-label="Fermer la séance"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <div style="text-align:center"><p class="small" style="font-weight:700">${esc(s.seance)}</p><p class="muted tiny">${el} min · exercice ${k + 1} sur ${s.exercices.length}</p></div>
@@ -1552,6 +1566,8 @@ function rLive(){
       return `<i class="${j === k ? "cur" : dn ? "on" : ""}" style="--c:${lj ? LCOL[lj] : "var(--dust)"}"></i>`; }).join("")}</div>
     ${(() => { const cur = st.sets[curJ < 0 ? st.sets.length - 1 : curJ] || {}, c0 = cur.c ?? chargeGuess(e);
       return heroCard({color:l ? col : "var(--deck2)", deco:!!l, small:`Exercice ${k + 1} sur ${s.exercices.length} · ${esc(name)}`, big:c0 !== null && c0 !== undefined && c0 !== "" ? `${fmt(num(c0))}<small>kg</small>` : timedOf(e) ? `${timedOf(e)}<small>s</small>` : (isBW ? "0<small>kg de lest</small>" : e.charge ? esc(e.charge) : "<small style=\"font-size:.5em\">Poids du corps</small>"), sub:`${esc(e.series)} série${num(e.series) > 1 ? "s" : ""} de ${esc(e.reps)}${e.tempo ? " · tempo " + esc(e.tempo) : ""}${e.repos ? " · repos " + esc(e.repos) : ""}${(() => { const b = backoffOf(s, e, k, live.rows); return b ? ` · ${esc(String(e.charge).trim())} de ${fmt(b.base)} kg = ${fmt(Math.ceil(b.lo * 4) / 4)} à ${fmt(Math.floor(b.hi * 4) / 4)} kg` : chargeGuess(e) !== null && !isNumTxt(e.charge) && String(e.charge).trim() ? " · prévu : " + esc(String(e.charge).trim()) : ""; })()}`}); })()}
+    ${(() => { const rc = rpeCible(e); if (!rc) return ""; const got = [st.rpe1, st.rpeLast].filter(v => v !== null && v !== undefined), over = rc.hi !== null && got.some(v => v > rc.hi);
+      return `<div class="rpecible ${over ? "over" : ""}" role="note"><b>${esc(rc.lab)}</b><span>${over ? "Au-dessus de la consigne : baisse la charge sur les séries suivantes." : rc.max ? "À ne pas dépasser, sur toutes les séries." : "Consigne de ton coach, à respecter."}</span></div>`; })()}
     ${e.coach ? `<div class="coachnote"><b>Consigne du coach.</b> ${esc(e.coach)}</div>` : ""}
     ${e.angle ? `<p class="prev">À filmer : ${esc(e.angle)}</p>` : ""}
     <section class="setgrid" style="--c:${l ? col : "var(--brand)"}" aria-label="Séries">
