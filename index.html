@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261023123141">
+<meta name="sl-build" content="20261023131435">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -441,6 +441,19 @@ html,body{overflow-x:clip}body{margin-top:0}
 .catgrid button[aria-pressed="true"]{background:var(--chalk);color:var(--floor)}
 .agechips{margin-top:10px}
 @media (prefers-reduced-motion:reduce){.sw,.sw::after,.dcard{transition:none}}
+.impstp{display:flex;gap:6px;align-items:center;margin:0 0 14px}.impstp i{font-style:normal;width:26px;height:26px;border-radius:50%;background:var(--deck2);color:var(--dust);display:flex;align-items:center;justify-content:center;font:700 13px var(--f-text);flex:none}
+.impstp i.on{background:var(--brand);color:#fff}.impstp i.done{background:var(--ok);color:var(--floor)}.impstp u{flex:1;height:2px;background:var(--deck2);text-decoration:none}.impstp span{margin-left:8px;font:600 13px var(--f-text);color:var(--steel-hi)}
+.imptxt{width:100%;min-height:220px;font:500 15px/1.45 var(--f-text);color:var(--chalk);background:var(--deck);border:1px solid var(--seam);border-radius:var(--r-sm);padding:12px;resize:vertical}
+.imptitle{margin-top:6px;font:800 28px/1.1 var(--f-show);background:transparent;border:0;border-bottom:1px dashed rgba(255,255,255,.4);border-radius:0;padding:4px 0;color:#fff;min-height:44px}
+.impchip{background:rgba(255,255,255,.16);color:#fff;min-height:28px;padding:4px 10px;font-size:12px}.impchip.ok{background:rgba(43,182,115,.3)}.impchip.warn{background:rgba(227,179,65,.3)}
+.imptip{background:var(--deck);border-left:3px solid var(--warn);border-radius:10px;padding:10px 12px;font:500 13px var(--f-text);color:var(--steel-hi);margin:12px 0}
+.impday{margin-top:10px}.impday .row{display:flex;justify-content:space-between;align-items:baseline}
+.impex{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--seam);align-items:flex-start}.impex .d10{margin-top:7px;flex:none}.impex>.grow{flex:1;min-width:0}.impex>.iconbtn{flex:none}
+.impsets{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}.impsets span{background:var(--deck2);border-radius:8px;padding:3px 8px;font:600 13px var(--f-text);font-variant-numeric:tabular-nums}
+.imptag{font:600 11px var(--f-text);color:var(--warn)}.impraw{margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+.impedit{margin-top:10px}.impgrid{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:8px;margin-top:6px}
+.impbar{position:sticky;bottom:0;display:flex;gap:8px;padding:14px 0 calc(env(safe-area-inset-bottom,0px) + 14px);background:linear-gradient(180deg,transparent,var(--floor) 35%);margin-top:12px}
+.impok{width:72px;height:72px;border-radius:50%;background:var(--ok);color:var(--floor);display:flex;align-items:center;justify-content:center;font:800 40px var(--f-text);margin:26px auto 14px}
 /* Web app */
 body{padding-top:0}
 body.ob{padding-top:calc(env(safe-area-inset-top,0px) + 8px)}
@@ -482,7 +495,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "32 · 23 oct. 2026";
+const APP_VER = "33 · 23 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -1389,7 +1402,7 @@ function rHome(){
     : heroCard({small:tsmall, big:`${fmt(t)}<small>kg</small>`, sub:tsub, act:`data-act="tab" data-t="prog" role="button" tabindex="0"`});
   const left = `${heroH}${weighed ? "" : weighCard(pw)}
     <h2 class="h2">Cette semaine <span class="muted">${sess ? esc(blocLabel(sess.bloc)) + (sess.semaine ? ", semaine " + esc(sess.semaine) : "") : ""}</span></h2>
-    ${S.length ? (wr || `<p class="muted small">Aucune séance datée cette semaine.</p>`) : `<div class="row" style="padding:14px 0"><span class="muted">${esc(seanceErr) || "Chargement de ta prog…"}</span>${seanceErr ? "" : `<div class="spin"></div>`}</div>`}
+    ${S.length ? (wr || `<p class="muted small">Aucune séance datée cette semaine.</p>`) : !coachId() ? impEmptyHtml() : `<div class="row" style="padding:14px 0"><span class="muted">${esc(seanceErr) || "Chargement de ta prog…"}</span>${seanceErr ? "" : `<div class="spin"></div>`}</div>`}
     ${sess ? `<button class="btn" style="margin-top:16px" data-act="startLive" data-k="${esc(sess.key)}">${lv && lv.key === sess.key ? "Reprendre la séance" : "Commencer la séance " + jourBtn}</button>` : ""}`;
   const right = `${nc ? `<div class="desk-only">${heroCard({plain:true, small:tsmall, big:`${fmt(t)}<small>kg</small>`, sub:tsub})}</div>` : ""}
     <h2 class="h2">Mes records</h2>
@@ -2034,7 +2047,7 @@ function prepHtml(c){
 function renderLayer(){
   let h = "";
   if (live) h += rLive();
-  if (page) h += page.type === "lift" ? rLiftPage(page.l) : rExPage(page.k);
+  if (page) h += page.type === "imp" ? rImpPage() : page.type === "lift" ? rLiftPage(page.l) : rExPage(page.k);
   if (sheet === "rest") h += restPill();
   else if (sheet) h += `<div class="scrim" data-act="closeSheet"></div><div class="sheet" role="dialog"><div class="wrap"><div class="grab"></div>${rSheet()}</div></div>`;
   const keepScroll = document.querySelector(".page, .live, .sheet"), ksel = keepScroll ? "." + keepScroll.classList[0] : "", st = keepScroll ? keepScroll.scrollTop : 0;
@@ -2144,6 +2157,7 @@ function settingsHtml(){
     <div class="chips" style="flex-wrap:wrap">${extra.map(l => `<button class="chip" aria-pressed="${suivis().includes(l)}" data-act="suiviToggle" data-l="${l}">${suivis().includes(l) ? "" : "+ "}${LNAME[l]}</button>`).join("")}</div>
     <p class="muted small" style="margin-top:8px">Leurs records et leur 1RM estimé sont gardés, sans compter dans un total.</p>` : ""}
 
+    ${impCan() ? `<h2 class="h2">Ma prog</h2><button class="btn ghost" data-act="impOpen">${coachId() ? "Ajouter un autre programme" : "Ajouter mon programme"}</button><p class="muted small" style="margin-top:8px">Colle tes notes ou un tableau : l'app lit les séances et tu vérifies avant d'enregistrer.</p>` : ""}
     <h2 class="h2">Le reste</h2>
     ${Object.keys(blocNames).length ? `<label for="sbl" style="margin-top:0">Bloc en cours</label><select id="sbl" data-chg="blocActif"><option value="">Le dernier onglet de la prog</option>${progOrder.map(n => `<option value="${n}" ${n === chosenBloc() ? "selected" : ""}>${esc(blocLabel(n))}</option>`).join("")}</select>` : ""}
     <div class="grid2"><div><label for="sdc">Début de la prog</label><input id="sdc" type="date" value="${D.profil.debut_coaching || ""}" data-chg="prof" data-k="debut_coaching"></div>
@@ -2790,6 +2804,610 @@ Object.assign(ACT, {
 vidLoad().catch(() => {});
 
 /* =====================================================================
+   IMPORT DE PROGRAMME (maquette A, choix d'Alane du 23/10)
+   Collé → lu par le moteur (règles, sans IA, sur le téléphone) → aperçu à corriger → écrit comme un onglet de ton carnet.
+   Disponible quand tu n'as pas de prog de coach (ou que ta prog est déjà celle de ton carnet).
+   ===================================================================== */
+/* Import de programmes (v1, sans IA) — module autonome, PAS encore branché dans l'app.
+   Entrée : texte collé (notes, tableau Excel/Sheets collé, message, forum…).
+   Sortie : { weeks:[{label, notes:[], days:[{label, notes:[], exos:[{raw, name, canon, cat, groups:[{sets,reps,load,amrap}], rpe, tempo, note}]}]}], notes:[], meta:{} }
+   Aucune donnée n'est écrite : l'utilisateur valide l'aperçu avant tout enregistrement. */
+(function (root) {
+  "use strict";
+
+  const NUM_WORDS = { un:1, une:1, deux:2, trois:3, quatre:4, cinq:5, six:6, sept:7, huit:8, neuf:9, dix:10, onze:11, douze:12, quinze:15, vingt:20, trente:30 };
+  const DAYS = { lundi:"Lundi", mardi:"Mardi", mercredi:"Mercredi", jeudi:"Jeudi", vendredi:"Vendredi", samedi:"Samedi", dimanche:"Dimanche",
+    lun:"Lundi", mar:"Mardi", mer:"Mercredi", jeu:"Jeudi", ven:"Vendredi", sam:"Samedi", dim:"Dimanche",
+    monday:"Lundi", tuesday:"Mardi", wednesday:"Mercredi", thursday:"Jeudi", friday:"Vendredi", saturday:"Samedi", sunday:"Dimanche" };
+
+  // Dictionnaire d'exercices : du plus précis au plus général. cat = couleur dans l'app.
+  const EXOS = [
+    [/pause\s*squat|squat\s*pause/, "Squat pause", "squat"],
+    [/front\s*squat/, "Front squat", "squat"],
+    [/hack\s*squat/, "Hack squat", "squat"],
+    [/goblet|gobelet/, "Squat gobelet", "squat"],
+    [/bulgar|split\s*squat/, "Fentes bulgares", "squat"],
+    [/squat|^sq\b|\bsq$/, "Squat", "squat"],
+    [/dead\s*bug|bird\s*dog/, "Gainage", ""],
+    [/(soulev[ée]|sdt|dead\w*).*roumain|\brdl\b|romanian/, "Soulevé de terre roumain", "deadlift"],
+    [/stiff|jambes?\s*tendues/, "Soulevé jambes tendues", "deadlift"],
+    [/deficit|déficit/, "Soulevé de terre déficit", "deadlift"],
+    [/soulev[ée]\s*de\s*terre|deadlift|\bdead\b|\bsdt\b|\bdl\b/, "Soulevé de terre", "deadlift"],
+    [/good\s*morning/, "Good morning", "deadlift"],
+    [/hip.?thrust|glute\s*bridge|pont\s*fessier/, "Hip thrust", "squat"],
+    [/muscle.?up|^mup?\b|\bmup?$/, "Muscle-up", "mu"],
+    [/traction|pull.?ups?\b|chin.?ups?/, "Tractions", "pull"],
+    [/\bdips?\b/, "Dips", "dip"],
+    [/(dc|d[ée]v\w*|bench|banc|press)\s*(couch[ée]\s*)?(halt[eè]res\s*)?incl|incl\w*\s*(db|dumbbell|halt|barbell|bench|press|d[ée]v)/, "Développé incliné", "bench"],
+    [/(dc|d[ée]v\w*\s*couch[ée]|bench|banc|\bbp\b).*(serr|close)|close.?grip/, "Développé couché prise serrée", "bench"],
+    [/(dc|d[ée]v\w*\s*couch[ée]|bench|banc|\bbp\b).*pause|banc\s*pause/, "Développé couché pause", "bench"],
+    [/^(dc|banc|couch[ée])\b|d[ée]velopp[ée]\s*couch[ée]|d[ée]v\w*\.?\s*couch|bench|\bbp\b|\bbanc\b|\bdc\b|machine\s*convergente/, "Développé couché", "bench"],
+    [/militaire|military|\bohp\b|overhead|presse?\s*([ée]paules|shoulder)|shoulder\s*press|d[ée]v\w*\.?\s*([ée]paules?|militaire)/, "Développé militaire", "bench"],
+    [/tirage\s*menton|upright/, "Tirage menton", ""],
+    [/tirage\s*(vertical|poitrine|nuque)|lat\s*pull|pull.?down\b(?!s)/, "Tirage vertical", "pull"],
+    [/rowing|\brow\b|tirage\s*horizontal|trx/, "Rowing", "pull"],
+    [/face\s*pull/, "Face pull", ""],
+    [/pull\s*over/, "Pull-over", ""],
+    [/fente|lunge/, "Fentes", "squat"],
+    [/presse(?!\s*[ée]paule)|leg\s*press|hack\s*press/, "Presse à cuisses", "squat"],
+    [/leg\s*ext|quadri\w*\s*machine|extensions?\s*(des\s*)?jambes|quad\s*ext/, "Leg extension", "squat"],
+    [/leg\s*curl|ham\w*\s*curl|ischio\w*\s*(machine|couch|assis)|lying\s*curl/, "Leg curl", "deadlift"],
+    [/curl/, "Curl biceps", ""],
+    [/triceps|skull\s*crusher|kick.?back|barre\s*au\s*front|barre\s*front|pushdown|extension\s*triceps/, "Triceps", ""],
+    [/[ée]l[ée]v\w*\.?\s*lat|lat(eral)?\s*raise|elev\s*lat|oiseau\s*lat/, "Élévations latérales", ""],
+    [/oiseau|rear\s*delt/, "Oiseau", ""],
+    [/[ée]cart[ée]|fly/, "Écarté", "bench"],
+    [/shrug/, "Shrug", ""],
+    [/mollet|calf|calves/, "Mollets", ""],
+    [/back\s*ext|extension\s*lombaire/, "Extensions lombaires", ""],
+    [/farmer/, "Farmer walk", ""],
+    [/gainage|planche|plank|hollow|l.?sit/, "Gainage", ""],
+    [/crunch|sit.?ups?|abdo|relev[ée]s?\s*de\s*jambes|leg\s*raise|ab\w*\s*wheel/, "Abdos", ""],
+    [/pompes?|push.?ups?/, "Pompes", "bench"],
+    [/burpee|swing|emom|amrap\s*\d+\s*min|sled|corde|jumping/, "Conditionnement", ""],
+  ];
+
+  const strip = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const num = s => parseFloat(String(s).replace(",", "."));
+  const toNum = w => { if (w == null) return null; const t = strip(w); return NUM_WORDS[t] ?? (isNaN(num(t)) ? null : num(t)); };
+
+  function canon(name) {
+    const n = strip(name);
+    for (const [re, c, cat] of EXOS) if (re.test(n)) return { canon: c, cat };
+    return { canon: null, cat: "" };
+  }
+
+  function cleanLine(l) {
+    return l.replace(/^\s*[=#~]{2,}\s*|\s*[=#~]{2,}\s*$/g, "").replace(/\*\*|__/g, "").replace(/^\s*[-*•·]\s*(\[[ x]?\]\s*)?/i, "").replace(/^\s*\[[ x]?\]\s*/i, "")
+      .replace(/^\s*[A-Z]\d\)\s*/, "").replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu, "").trim();
+  }
+
+  // ---------- lecture d'un schéma de séries ----------
+  const RE_PCT_X = /(\d+(?:[.,]\d+)?)\s*%\s*[x×*]\s*(\d+)(?:\s*[x×*]\s*(\d+))?(\+)?/gi;          // 65%x5, 70%x3x3
+  const RE_SXR = /(?<![\d.,])(\d+|un|une|deux|trois|quatre|cinq|six)\s*[x×*]\s*(\d+(?:\s*-\s*\d+)*|max\b|amrap\b)(\+)?/gi;  // 4x5, 3 x 8-10, 4xmax
+  const RE_LXR = /(?<![\d.,%])(\d{2,3}(?:[.,]\d+)?)\s*(kg|lbs?)?\s*[x×*]\s*(\d+)(?!\s*[x×*%])/gi;  // 140 x5 (charge x reps)
+  const RE_PROSE = /(\d+|un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|douze|quinze)\s+s[ée]ries?\s+de\s+(\d+|un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|douze|quinze)/gi;
+
+  const RE_SETS_OF = /(\d+|un|une|deux|trois|quatre|cinq|six)\s*(?:s[ée]ries?|sets?)\s*(?:x|×|of|de)?\s*(\d+(?:\s*-\s*\d+)*|max\b|amrap\b)(?:\s*(?:reps?|r[ée]p[ée]titions?)\b)?/gi;  // 4 séries x 8 reps, 4 sets of 6
+  const RE_LIST = /(?<![\d.,\/])(\d{1,2}(?:\s*\/\s*\d{1,2}){2,})(?![\d\/])/g;   // 5/5/4/4/3
+  const RE_SINGLE = /(?:(\d+|un|une|deux|trois)\s+)?(?:heavy\s+|lourde?s?\s+)?\b(singles?|doubles?|triples?)\b|heavy\s+(\d+)\b/gi;
+
+  function readLoad(s) {
+    const t = s.replace(/\(([^)]*)\)/g, " ");
+    let m;
+    if ((m = t.match(/bw\s*\+\s*(\d+(?:[.,]\d+)?)/i))) return { kind: "lest", v: num(m[1]), u: "kg" };
+    if ((m = t.match(/@\s*(\d+(?:[.,]\d+)?)\s*%/))) return { kind: "pct", v: num(m[1]) };
+    if ((m = t.match(/[àa@]\s*-\s*(\d+(?:[.,]\d+)?)\s*%/))) return { kind: "rel", v: -num(m[1]) };
+    if ((m = t.match(/@\s*\+\s*(\d+(?:[.,]\d+)?)\s*(kg|lbs?)?/i))) return { kind: "lest", v: num(m[1]), u: (m[2] || "kg").replace(/s$/, "") };
+    if ((m = t.match(/(?:^|\s)\+\s*(\d+(?:[.,]\d+)?)\s*(?:(kg|lbs?)\b|(?=\s*(?:$|[,:;)(\/]|\d)))/i))) return { kind: "lest", v: num(m[1]), u: (m[2] || "kg").replace(/s$/, "") };
+    if ((m = t.match(/@\s*(\d+(?:[.,]\d+)?)(?![\d.,]|\s*%)\s*(kg|lbs?)?/i)) && !/rpe\s*$/i.test(t.slice(0, m.index)) && (m[2] || num(m[1]) > 10)) return { kind: "abs", v: num(m[1]), u: (m[2] || "kg").replace(/s$/, "") };
+    if ((m = t.match(/(\d+(?:[.,]\d+)?)\s*(kg|lbs?)\b/i))) return { kind: "abs", v: num(m[1]), u: m[2].toLowerCase().replace(/s$/, "") };
+    if ((m = t.match(/(?:\s|^)[àa]\s+(\d{2,3}(?:[.,]\d+)?)(?![\d.,]|\s*%)/))) return { kind: "abs", v: num(m[1]), u: "kg" };
+    if ((m = t.match(/(?<![\d.,])(\d+(?:[.,]\d+)?)\s*%/))) return { kind: "pct", v: num(m[1]) };
+    for (const pm of s.matchAll(/\(([^)]*)\)/g)) { if (/\d/.test(pm[1]) && !/\(/.test(pm[1]) && /^\s*[+@]?\s*\d|^\s*bw/i.test(pm[1])) { const r = readLoad(" " + pm[1]); if (r) return r; } }
+    if ((m = s.match(/\((\d{2,3}(?:[.,]\d+)?)\s*(kg|lbs?)?\)/i))) return { kind: "abs", v: num(m[1]), u: (m[2] || "kg").toLowerCase().replace(/s$/, "") };   // « opener (190) »
+    if ((m = t.match(/\s(\d{2,3}(?:[.,]\d+)?)\s*$/))) return { kind: "abs", v: num(m[1]), u: "kg" };  // « 3x8 80 » en fin de ligne
+    return null;
+  }
+
+  // Renvoie {name, groups, rpe, tempo, note} ou null si aucun schéma.
+  function readExo(seg) {
+    const s = seg.trim();
+    const hits = [];
+    let m;
+    RE_PCT_X.lastIndex = 0;
+    while ((m = RE_PCT_X.exec(s))) hits.push({ i: m.index, end: m.index + m[0].length, g: m[3] ? { sets: +m[2], reps: m[3] } : { sets: 1, reps: m[2] }, load: { kind: "pct", v: num(m[1]) }, amrap: !!m[4] });
+    RE_SXR.lastIndex = 0;
+    while ((m = RE_SXR.exec(s))) {
+      if (hits.some(h => m.index < h.end && m.index + m[0].length > h.i)) continue;
+      const a = toNum(m[1]); if (a == null || a > 15) continue;
+      const reps = /max|amrap/i.test(m[2]) ? "max" : m[2].replace(/\s/g, "");
+      hits.push({ i: m.index, end: m.index + m[0].length, g: { sets: a, reps }, amrap: reps === "max" || !!m[3] });
+    }
+    RE_LXR.lastIndex = 0;
+    while ((m = RE_LXR.exec(s))) {
+      if (hits.some(h => m.index < h.end && m.index + m[0].length > h.i)) continue;
+      if (num(m[1]) <= 15) continue;
+      hits.push({ i: m.index, end: m.index + m[0].length, g: { sets: 1, reps: m[3] }, load: { kind: "abs", v: num(m[1]), u: (m[2] || "kg").replace(/s$/, "") } });
+    }
+    const add = (re, f) => { re.lastIndex = 0; let q; while ((q = re.exec(s))) { if (hits.some(h => q.index < h.end && q.index + q[0].length > h.i)) continue; const h = f(q); if (h) hits.push({ i: q.index, end: q.index + q[0].length, ...h }); } };
+    add(RE_SETS_OF, q => { const a = toNum(q[1]); if (a == null || a > 15) return null; const reps = /max|amrap/i.test(q[2]) ? "max" : q[2].replace(/\s/g, ""); return { g: { sets: a, reps }, amrap: reps === "max" }; });
+    add(RE_LIST, q => { const l = q[1].replace(/\s/g, "").split("/"); return { g: { sets: l.length, reps: l.every(x => x === l[0]) ? l[0] : l.join("/") } }; });
+    RE_SINGLE.lastIndex = 0;
+    while ((m = RE_SINGLE.exec(s))) {
+      if (hits.some(h => m.index < h.end && m.index + m[0].length > h.i)) continue;
+      const reps = m[3] ? +m[3] : ({ single: 1, double: 2, triple: 3 })[strip(m[2]).replace(/s$/, "")];
+      hits.push({ i: m.index, end: m.index + m[0].length, g: { sets: toNum(m[1]) || 1, reps: String(reps) } });
+    }
+    RE_PROSE.lastIndex = 0;
+    while ((m = RE_PROSE.exec(s))) if (!hits.some(h => m.index < h.end && m.index + m[0].length > h.i)) hits.push({ i: m.index, end: m.index + m[0].length, g: { sets: toNum(m[1]), reps: String(toNum(m[2])) } });
+    if (!hits.length) return null;
+    hits.sort((a, b) => a.i - b.i);
+    // charge de chaque groupe : texte entre la fin du groupe et le début du suivant
+    hits.forEach((h, k) => {
+      if (!h.load) { const tail = s.slice(h.end, k + 1 < hits.length ? hits[k + 1].i : s.length); h.load = readLoad(" " + tail) || (k === 0 ? readLoad(" " + s.slice(0, h.i)) : null); }
+    });
+    let name = s.slice(0, hits[0].i).replace(/\s+(@\s*)?\d+(?:[.,]\d+)?\s*%\s*([:\-—–]\s*)?$/, "").replace(/\s\+\s*\d+(?:[.,]\d+)?\s*(kg|lbs?)?/gi, "").replace(/\d+(?:[.,]\d+)?\s*(kg|lbs?)?\s*$/i, "")
+      .replace(/(\s|^)(puis|then|et|ensuite)\s*$/i, "").replace(/[:\-—–,@(]+\s*$/, "").trim();
+    const rpe = (s.match(/rpe\s*(\d+(?:[.,]\d+)?(?:\s*-\s*\d+(?:[.,]\d+)?)?)/i) || s.match(/@\s*(10|[5-9](?:[.,]5)?)(?![\d.,]|\s*(?:%|kg|lbs?))/i) || [])[1] || null;
+    const tempo = (s.match(/tempo\s*(\d-\d-[\dx](?:-\d)?)/i) || [])[1] || null;
+    const side = /\/\s*(jambe|bras|c[oô]t[ée])|par bras|chaque bras|\/\s*leg|per side/i.test(s);
+    return { name, groups: hits.map(h => ({ ...h.g, load: h.load || null, amrap: !!h.amrap })), rpe, tempo, side };
+  }
+
+  function mkExo(raw, ex) {
+    const c = canon(ex.name);
+    return { raw: raw.trim(), name: ex.name || c.canon || "?", canon: c.canon, cat: c.cat, groups: ex.groups, rpe: ex.rpe, tempo: ex.tempo, side: ex.side };
+  }
+
+  // Une ligne peut contenir plusieurs exercices (« A / B », « A ; B », « A 3x12, B 3x12 »).
+  const ADD_ON = /^(back.?off|top\s*set|warm.?up|[ée]chauff\w*|puis|then|et|ensuite|pareil)\b/i;
+  function readExoLine(line) {
+    const out = [];
+    for (const big of line.split(/\s+\/\s+|\s*;\s*/)) {
+      const parts = big.split(/,\s+/);
+      let cur = null, pending = "";
+      for (const p0 of parts) {
+        const p = pending ? pending + " " + p0 : p0;
+        const ex = readExo(p);
+        if (!ex) { if (cur) cur.raw += ", " + p0; else if (canon(p0).canon) pending = p0; continue; }
+        pending = "";
+        let name = ex.name;
+        // « then 3x10 incline DB 60lb » : le nom est après le schéma
+        if (!canon(name).canon) {
+          const after = p.replace(/^.*?\d\s*[x×]\s*(\d+|max|amrap)\+?/i, "").replace(/\d+(?:[.,]\d+)?\s*(kg|lbs?|%)/gi, "");
+          if (canon(after).canon && !ADD_ON.test(after.trim())) { ex.name = after.trim(); name = ex.name; }
+        }
+        const hasName = name && /[a-zà-ÿ]{2,}/i.test(name) && !ADD_ON.test(name.trim());
+        if (hasName && (canon(name).canon || !cur)) { cur = mkExo(p, ex); out.push(cur); }
+        else if (cur) { cur.groups.push(...ex.groups); cur.raw += ", " + p0; if (!cur.rpe) cur.rpe = ex.rpe; }
+        else { cur = mkExo(p, ex); out.push(cur); }
+      }
+    }
+    return out;
+  }
+
+  // ---------- titres de jour / semaine ----------
+  function readHeader(line) {
+    const l = line.replace(/\*\*|__/g, "").trim();
+    let m;
+    if ((m = l.match(/^(sem(?:aine)?|week|s)\s*(\d+)\b\s*(\([^)]*\))?\s*[:\-—]?\s*(.*)$/i)) && !/^s\s*\d+\s*x/i.test(l))
+      return { type: "week", label: (strip(m[1]).startsWith("w") ? "Week " : "Semaine ") + m[2], key: "w" + m[2], rest: m[4], extra: m[3] || "" };
+    if ((m = l.match(/^(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b\s*[:\-—–,]?\s*(.*)$/i)))
+      return { type: "day", label: DAYS[strip(m[1])], key: DAYS[strip(m[1])], rest: m[2] };
+    if ((m = l.match(/^(lun|mar|mer|jeu|ven|sam|dim)\.?\s+(.*)$/i)) && /\d/.test(m[2]))
+      return { type: "day", label: DAYS[strip(m[1])], key: DAYS[strip(m[1])], rest: m[2] };
+    if ((m = l.match(/^(mon|tues?|wed|thu(?:rs?)?|fri|sat|sun)\b\.?\s*(?:[:\-—–]\s*)?(.*)$/i)) && (/^[A-Z]{3}/.test(l) || /^\w+\.?\s*([:\-—–]|$)/.test(l))) {
+      const d = { mon: "Lundi", tue: "Mardi", tues: "Mardi", wed: "Mercredi", thu: "Jeudi", thur: "Jeudi", thurs: "Jeudi", fri: "Vendredi", sat: "Samedi", sun: "Dimanche" }[strip(m[1])];
+      return { type: "day", label: d, key: d, rest: m[2] };
+    }
+    if ((m = l.match(/^(day|jour|j)\s*(\d+)\b\s*(.*)$/i)))
+      return { type: "day", label: "Jour " + m[2], key: "Jour " + m[2], rest: m[3].replace(/^(accessor(y|ies)|accessoires?)\s*/i, "").replace(/^[:\-—]\s*/, "") };
+    if ((m = l.match(/^(?:s[ée]ance|workout|training|routine|entra[iî]nement)\s+([a-z0-9]+)\b\s*(.*)$/i)))
+      return { type: "day", label: "Séance " + m[1].toUpperCase(), key: "Séance " + m[1].toUpperCase(), rest: m[2] };
+    if ((m = l.match(/^(push|pull|legs|leg day|jambes|upper|lower|haut du corps|bas du corps|full ?body)(?![-\w])(?!\s*(?:ups?|overs?|downs?|day\s*\d*\s*:?\s*\d|over)\b)\s*(\d*)\s*(.*)$/i)) && !/\d\s*(?:[x×]\s*\d|s[ée]ries?|sets?)/i.test(l))
+      return { type: "day", label: (m[1].toUpperCase() + " " + m[2]).trim(), key: (m[1].toUpperCase() + " " + m[2]).trim(), rest: m[3] };
+    return null;
+  }
+
+  const NOTES_HDR = /^(notes?|remarques?|tentatives|objectifs?|nutrition|mon avis)\b.*:?\s*$/i;
+
+  // ---------- tableau collé ----------
+  function parseTable(lines, res, d) {
+    const rows = lines.map(l => l.split(d).map(c => c.trim()));
+    const hi = rows.findIndex(r => r.some(c => /^exerci[cs]es?$/i.test(c)));
+    if (hi < 0) return false;
+    const H = rows[hi].map(c => strip(c));
+    const col = re => H.findIndex(c => re.test(c));
+    const C = { w: col(/^(semaine|week|sem)/), d: col(/^(jour|day|seance)/), e: col(/^exerci/), s: col(/^(series|sets?)$/), r: col(/^(reps?|repetitions)$/),
+      p: col(/%|charge|load|kg|poids/), rpe: col(/rpe/), rest: col(/repos|rest/), n: col(/note|remarque/) };
+    rows.slice(0, hi).forEach(r => { const t = r.filter(Boolean).join(" · "); if (t) res.notes.push(t); });
+    // valeurs de « TM » : ligne de titres suivie d'une ligne de nombres
+    for (let i = 0; i < hi - 1; i++) if (rows[i].some(c => /\btm\b|max/i.test(c)) && rows[i + 1].every(c => !c || /^\d/.test(c)))
+      rows[i].forEach((c, k) => { if (c && rows[i + 1][k]) res.meta[c] = num(rows[i + 1][k]); });
+    for (const r of rows.slice(hi + 1)) {
+      if (!r.some(Boolean)) continue;
+      const wk = ensureWeek(res, C.w >= 0 && r[C.w] ? "Semaine " + r[C.w] : "Programme");
+      const ex = C.e >= 0 ? r[C.e] : "";
+      if (!ex || ex === "-" || !/[a-z]/i.test(ex) || /deload|repos/i.test(ex) && (C.s < 0 || !/\d/.test(r[C.s] || ""))) {
+        const note = r.filter(c => c && c !== "-").slice(1).join(" · "); if (note) wk.notes.push(note); continue;
+      }
+      const day = ensureDay(wk, C.d >= 0 && r[C.d] ? r[C.d].replace(/^j\s*(\d+)$/i, "Jour $1") : "Séance");
+      const sets = C.s >= 0 ? toNum(r[C.s]) : null, repsRaw = C.r >= 0 ? r[C.r] : "";
+      const amrap = /amrap|max/i.test(repsRaw);
+      const pcell = C.p >= 0 ? r[C.p] : "";
+      const load = !pcell || pcell === "-" ? null : /bw\s*\+/i.test(pcell) ? { kind: "lest", v: num(pcell.replace(/bw\s*\+/i, "")), u: "kg" }
+        : /%/.test(pcell) ? { kind: "pct", v: num(pcell) } : /^\d/.test(pcell) ? { kind: "abs", v: num(pcell), u: /lb/i.test(pcell) ? "lb" : "kg" } : null;
+      const c = canon(ex);
+      day.exos.push({ raw: r.join(" | "), name: ex, canon: c.canon, cat: c.cat,
+        groups: [{ sets: sets || 1, reps: amrap ? "max" : repsRaw, load, amrap }],
+        rpe: C.rpe >= 0 && r[C.rpe] && r[C.rpe] !== "-" ? r[C.rpe] : null, rest: C.rest >= 0 ? r[C.rest] || null : null,
+        note: C.n >= 0 ? r[C.n] || null : null, tempo: null, side: false });
+    }
+    return true;
+  }
+
+  function ensureWeek(res, label) {
+    let w = res.weeks.find(x => x.label === label);
+    if (!w) { w = { label, notes: [], days: [] }; res.weeks.push(w); }
+    return w;
+  }
+  function ensureDay(week, label) {
+    let d = week.days.find(x => x.label === label);
+    if (!d) { d = { label, notes: [], exos: [] }; week.days.push(d); }
+    return d;
+  }
+
+  // ---------- point d'entrée ----------
+  function parseProgram(text) {
+    const res = { weeks: [], notes: [], meta: {} };
+    const raw = String(text || "").replace(/\r/g, "");
+    const lines = raw.split("\n");
+    for (const d of ["\t", ";", ","]) {
+      const tl = lines.filter(l => l.split(d).length >= 3);
+      if (tl.length >= 3 && tl.some(l => /exerci[cs]e/i.test(l)) && parseTable(tl, res, d)) { if (d !== "\t") res.notes.unshift(...lines.filter(l => l.trim() && !l.includes(d))); finish(res); return res; }
+    }
+
+    // Texte : les longs paragraphes sont découpés en phrases (prose).
+    const flat = [];
+    const ALONE = /^\s*(\d+\s*[x×*]\s*(\d+(?:\s*-\s*\d+)*|max)|[+@]?\s*\d+(?:[.,]\d+)?\s*(kg|lbs?|%)|@.*|(rest|repos)\b.*|rpe\s*\d.*)\s*$/i;
+    for (const l of lines) {
+      // format « une info par ligne » (exports d'apps) : schéma, charge ou repos seuls sur leur ligne → rattachés à l'exercice au-dessus
+      if (ALONE.test(l) && flat.length && flat[flat.length - 1].trim() && !readHeader(cleanLine(flat[flat.length - 1]))) { flat[flat.length - 1] += " " + l.trim(); continue; }
+      if (l.length > 220) flat.push(...l.split(/(?<=[.!?])\s+/));
+      else flat.push(l);
+    }
+    let week = null, day = null, notesMode = false;
+    const W = () => week || (week = ensureWeek(res, "Programme"));
+    for (const rawLine of flat) {
+      const bullet = /^\s*[-*•](\s|\[)/.test(rawLine);
+      const line = cleanLine(rawLine);
+      if (!line) continue;
+      const h = bullet ? null : readHeader(line);
+      if (h && h.type === "week") {
+        week = ensureWeek(res, h.label); day = null; notesMode = false;
+        const rest = (h.rest || "").trim();
+        if (rest) {
+          const exos = readExoLine(rest);
+          if (exos.length && !/^voir\b/i.test(rest)) { day = ensureDay(week, "Séance"); day.exos.push(...exos); }
+          else week.notes.push(rest);
+        } else if (h.extra) week.notes.push(h.extra.replace(/[()]/g, ""));
+        continue;
+      }
+      if (h && h.type === "day") {
+        notesMode = false;
+        const rest = (h.rest || "").trim();
+        // prose : « Lundi tu commences par… » → le reste de la phrase est lu comme contenu
+        day = ensureDay(W(), h.label);
+        if (rest) {
+          const exos = isProse(rest) ? [] : readExoLine(rest);
+          if (isProse(rest)) proseLine(rest, day);
+          else if (exos.length) day.exos.push(...exos);
+          else if (/^\(.*\)$/.test(rest) || rest.length < 40) day.label === h.label && rest && (day.sub = (day.sub ? day.sub + " " : "") + rest.replace(/^[-—:\s]+/, ""));
+          else proseLine(rest, day);
+        }
+        continue;
+      }
+      if (NOTES_HDR.test(line) && !/\d\s*[x×]\s*\d/.test(line)) { notesMode = true; const t = line.replace(/:\s*$/, ""); if (!/^notes?$/i.test(t)) res.notes.push(t); continue; }
+      if (notesMode) { res.notes.push(line); continue; }
+      if (isProse(line)) { if (!day) day = ensureDay(W(), "Séance 1"); proseLine(line, day); continue; }
+      const exos = readExoLine(line);
+      if (exos.length) {
+        if (!day) day = ensureDay(W(), "Séance 1");
+        day.exos.push(...exos);
+      } else if (line.length > 120 && day) proseLine(line, day);
+      else (day ? day.notes : week ? week.notes : res.notes).push(line);
+    }
+    finish(res);
+    return res;
+  }
+
+  const isProse = t => t.length > 100 && /\b(tu|te|ton|ta|tes|vous|on|je|il)\b/i.test(t);
+
+  // Prose : on coupe en propositions ; le dernier exercice nommé sert pour le schéma qui suit.
+  function proseLine(text, day) {
+    let names = [], found = false;
+    const clauses = text.split(/,\s+|\s+puis\s+|\s+ensuite\s+|\.\s+/i);
+    for (const c of clauses) {
+      const inClause = [];
+      const pair = c.match(/([a-zà-ÿ][a-zà-ÿ ]{2,25})\s+et\s+([a-zà-ÿ][a-zà-ÿ ]{2,25})$/i);
+      if (pair && canon(pair[1]).canon && canon(pair[2]).canon) inClause.push(pair[1], pair[2]);
+      else { const m = c.match(/(?:du|de la|des|le|la|les|journ[ée]e)\s+([a-zà-ÿ][a-zà-ÿ\- ]{2,40})/i); const k = m && canon(m[1]).canon ? m[1] : canon(c).canon ? c : null; if (k) inClause.push(k); }
+      if (inClause.length) names = inClause;
+      const ex = readExo(c);
+      if (!ex || !names.length) continue;
+      for (const n of names) { const k = canon(n); day.exos.push({ raw: c.trim(), name: k.canon, canon: k.canon, cat: k.cat, groups: ex.groups.map(g => ({ ...g })), rpe: ex.rpe, tempo: null, side: false }); }
+      found = true; names = [];
+    }
+    if (!found) day.notes.push(text.trim());
+  }
+
+  function finish(res) {
+    for (const w of res.weeks) w.days = w.days.filter(d => d.exos.length || d.notes.length);
+    res.weeks = res.weeks.filter(w => w.days.length || w.notes.length);
+    let n = 0, ok = 0;
+    for (const w of res.weeks) for (const d of w.days) for (const e of d.exos) { n++; if (e.canon) ok++; }
+    res.stats = { weeks: res.weeks.length, days: res.weeks.reduce((a, w) => a + w.days.length, 0), exos: n, recognized: ok };
+  }
+
+  // Résumé lisible d'un groupe de séries : « 4×5 · 160 kg », « 5×5 · 72 % », « 3×8 · +20 kg »
+  function fmtGroup(g) {
+    const reps = g.reps === "max" ? "max" : g.reps;
+    let s = `${g.sets}×${reps}${g.amrap && g.reps !== "max" ? "+" : ""}`;
+    const L = g.load;
+    if (L) s += " · " + (L.kind === "pct" ? `${L.v} %` : L.kind === "rel" ? `${L.v} %` : L.kind === "lest" ? `+${L.v} ${L.u}` : `${L.v} ${L.u}`);
+    return s;
+  }
+
+  // Classeur (.xlsx/.ods/Google Sheets) : [{name, rows:[[cellules texte]]}] → même résultat que parseProgram.
+  // Repère les en-têtes « Exercice / Mouvement » (même plusieurs côte à côte, une par semaine), puis lit
+  // les colonnes Séries / Reps / % / Charge / RPE, ou une colonne par série (« Série 1 », « Set 2 »…).
+  const H_NAME = /^(exercices?|exercise|mouvements?|movement|exo)$/;
+  const H_SET = /^(s[ée]rie|set)\s*(\d+)$/;
+  function parseWorkbook(sheets) {
+    const res = { weeks: [], notes: [], meta: {} };
+    let any = false; const tableSheets = [];
+    for (const sh of sheets) {
+      const G = sh.rows.map(r => r.map(c => String(c ?? "").trim()));
+      const at = (r, c) => (G[r] && G[r][c]) || "";
+      const sheetWeek = (sh.name.match(/^(?:s|sem(?:aine)?|week)\s*(\d+)$/i) || [])[1];
+      for (let r = 0; r < G.length; r++) {
+        const starts = [];
+        G[r].forEach((v, c) => { if (H_NAME.test(strip(v))) starts.push(c); });
+        if (!starts.length) continue;
+        if (G[r].slice(0, starts[0]).some(v => /^(semaine|week|jour|day|seance)$/.test(strip(v)))) { tableSheets.push(sh); break; }
+        starts.forEach((c0, bi) => {
+          const c1 = bi + 1 < starts.length ? starts[bi + 1] : Math.max(...G.map(x => x.length));
+          const H = []; for (let c = c0; c < c1; c++) H.push(strip(at(r, c)));
+          const col = re => { const i = H.findIndex(h => re.test(h)); return i < 0 ? -1 : c0 + i; };
+          const C = { v: col(/^variation/), s: col(/^(series|sets?|nb series)$/), r: col(/^(reps?|repetitions?)$/), p: col(/^%$|pourcentage|^pct/),
+            ch: col(/^(charge|poids|load|kg|weight)$/), rpe: col(/^rpe(\s*s1)?$|^rpe cible|^intensite/), t: col(/^tempo/), n: col(/^(notes?|commentaire du coach|remarques?)$/) };
+          const setCols = H.map((h, i) => H_SET.test(h) ? c0 + i : -1).filter(i => i >= 0);
+          // semaines en colonnes : « Exercice | S1 | S2 | S3 » avec « 4x5 @80% » dans chaque case
+          const wkCols = H.map((h, i) => /^(s|sem|semaine|week|w)\s*\d+$/.test(h) && !H_SET.test(h) ? c0 + i : -1).filter(i => i >= 0);
+          if (C.s < 0 && C.r < 0 && !setCols.length && wkCols.length) {
+            any = true;
+            const dl = DAYS[strip(sh.name)] || sh.name;
+            for (let rr = r + 1; rr < G.length; rr++) {
+              const nm = at(rr, c0); if (!nm || H_NAME.test(strip(nm))) break;
+              const k = canon(nm);
+              for (const c of wkCols) {
+                const ex = at(rr, c) && readExo(at(rr, c)); if (!ex) continue;
+                const day = ensureDay(ensureWeek(res, "Semaine " + at(r, c).match(/\d+/)[0]), dl);
+                day.exos.push({ raw: nm + " | " + at(rr, c), name: nm, canon: k.canon, cat: k.cat, groups: ex.groups, rpe: ex.rpe, tempo: ex.tempo, side: false });
+              }
+            }
+            return;
+          }
+          if (C.s < 0 && C.r < 0 && !setCols.length) return;
+          any = true;
+          // semaine : cellule « Semaine | 2 » au-dessus, dans les colonnes du bloc ; sinon nom de la feuille
+          let wk = sheetWeek ? "Semaine " + sheetWeek : null, day = null, seance = null;
+          for (let rr = r - 1; rr >= 0 && (!wk || !day); rr--) for (let c = c0 - 1; c < c1; c++) {
+            const v = at(rr, c), nx = at(rr, c + 1), sv = strip(v);
+            if (!wk && /^(semaine|week|sem)\s*\d*$/.test(sv) && (/\d/.test(sv) || /^\d+$/.test(nx))) wk = "Semaine " + (sv.match(/\d+/) || [nx])[0];
+            if (!day && rr >= r - 3) {
+              if (/^jour$/.test(sv) && nx) day = DAYS[strip(nx)] || nx;
+              else if (DAYS[sv] && sv.length > 3) day = DAYS[sv];
+              else if (/^(seance|workout|jour|day|j)\s*\w+$/.test(sv)) { seance = seance || v; continue; }
+            }
+          }
+          const week = ensureWeek(res, wk || "Programme");
+          const d = ensureDay(week, day || seance || "Séance " + (week.days.length + 1));
+          for (let rr = r + 1; rr < G.length; rr++) {
+            const nm = at(rr, c0);
+            if (!nm || /^(recap|total|bilan)/i.test(nm) || H_NAME.test(strip(nm))) break;
+            const varn = C.v >= 0 ? at(rr, C.v) : "";
+            const name = (nm + (varn && !/^comp$/i.test(varn) ? " " + varn : "")).replace(/\s+/g, " ").trim();
+            const k = canon(name);
+            const street = ["Tractions", "Dips", "Muscle-up"].includes(k.canon);
+            let groups = [];
+            if (C.s >= 0 || C.r >= 0) {
+              const reps = C.r >= 0 ? at(rr, C.r) : "", amrap = /amrap|max/i.test(reps);
+              const pc = C.p >= 0 ? at(rr, C.p) : "", ch = C.ch >= 0 ? at(rr, C.ch) : "";
+              let load = null;
+              if (pc && /\d/.test(pc)) load = { kind: "pct", v: num(pc) };
+              else if (ch && /^\s*-\s*\d+(?:[.,]\d+)?\s*%/.test(ch)) load = { kind: "rel", v: -num(ch.replace(/^\s*-\s*/, "")) };
+              else if (ch && /^\s*(bw\s*)?[+]?\s*\d/i.test(ch)) load = /%/.test(ch) ? { kind: "pct", v: num(ch) } : /bw\s*\+|^\+/i.test(ch) || street ? { kind: "lest", v: num(ch.replace(/bw\s*\+|\+/i, "")), u: "kg" } : { kind: "abs", v: num(ch), u: /lb/i.test(ch) ? "lb" : "kg" };
+              groups = [{ sets: toNum(C.s >= 0 ? at(rr, C.s) : "1") || 1, reps: amrap ? "max" : reps.replace(/\s/g, ""), load, amrap }];
+              if (ch && !load) groups[0].note = ch;
+            } else {
+              for (const c of setCols) {
+                const v = at(rr, c); if (!v) continue;
+                let m, g = null;
+                if ((m = v.match(/^\s*(\+?)\s*(\d+(?:[.,]\d+)?)\s*(%|kg|lbs?)?\s*[x×*]\s*(\d+)\s*$/i)))
+                  g = { sets: 1, reps: m[4], load: m[3] === "%" ? { kind: "pct", v: num(m[2]) } : m[1] || street ? { kind: "lest", v: num(m[2]), u: "kg" } : { kind: "abs", v: num(m[2]), u: (m[3] || "kg").toLowerCase().replace(/s$/, "") } };
+                else if ((m = v.match(/^\s*[x×*]\s*(\d+)\s*$/i))) g = { sets: 1, reps: m[1], load: null };
+                else { const ex = readExo("x " + v); if (ex) g = ex.groups[0]; }
+                if (!g) continue;
+                const last = groups[groups.length - 1];
+                if (last && last.reps === g.reps && JSON.stringify(last.load) === JSON.stringify(g.load)) last.sets++;
+                else groups.push({ ...g, amrap: false });
+              }
+            }
+            d.exos.push({ raw: G[rr].slice(c0, c1).filter(Boolean).join(" | "), name, canon: k.canon, cat: k.cat, groups,
+              rpe: C.rpe >= 0 ? at(rr, C.rpe) || null : null, tempo: C.t >= 0 ? at(rr, C.t) || null : null, note: C.n >= 0 ? at(rr, C.n) || null : null, side: false });
+          }
+        });
+      }
+    }
+    if (tableSheets.length && !any) return parseProgram(tableSheets.map(sh => sh.rows.map(r => r.join("\t")).join("\n")).join("\n"));
+    if (!any) return parseProgram(sheets.map(sh => sh.rows.map(r => r.join("\t")).join("\n")).join("\n"));
+    finish(res);
+    return res;
+  }
+
+
+  // Tableau prêt à écrire dans un onglet, au format lu par l'app (semaines, jours, séances, en-tête MOUVEMENT) : résultat de l'import → lignes de cellules.
+  // Charge : kg ou lest en nombre ; lb converties en kg ; % et RPE vont dans « INTENSITÉ CIBLE », le reste (tempo, back-off, remarques) dans « COMMENTAIRE DU COACH ».
+  const GRID_HEAD = ["MOUVEMENT", "VARIATION", "SÉRIES", "RÉPÉTITIONS", "CHARGE", "INTENSITÉ CIBLE", "RPE S1", "RPE DERNIÈRE SÉRIE", "COMMENTAIRE DU COACH", "COMMENTAIRE ATHLÈTE"];
+  const WEEKDAY = /^(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)$/i;
+  const fmtN = n => String(Math.round(n * 100) / 100).replace(".", ",");
+  function toGrid(res) {
+    const rows = [];
+    res.weeks.forEach((w, wi) => {
+      rows.push(["SEMAINE", String(wi + 1)]);
+      let nd = 0;
+      w.days.forEach(d => {
+        if (!d.exos.length) return;
+        nd++;
+        rows.push(["JOUR", d.label]);
+        const sub = d.sub || (WEEKDAY.test(d.label) ? "" : d.label);
+        rows.push(["Séance " + nd + (sub ? " – " + sub : "")]);
+        rows.push(GRID_HEAD.slice());
+        d.exos.forEach(x => {
+          const groups = x.groups.length ? x.groups : [{ sets: "", reps: "", load: null }];
+          groups.forEach((g, gi) => {
+            const L = g.load, com = [];
+            let charge = "", inten = "";
+            if (L) {
+              if (L.kind === "abs" && L.u === "lb") { charge = fmtN(L.v * 0.45359237); com.push(L.v + " lb"); }
+              else if (L.kind === "abs" || L.kind === "lest") charge = fmtN(L.v);
+              else if (L.kind === "pct") inten = L.v + "%";
+              else if (L.kind === "rel") com.push("Back-off " + String(L.v).replace("-", "−") + " % du top set");
+            }
+            if (gi === 0 && x.rpe) { const r = isNaN(+String(x.rpe).replace(",", ".")) ? String(x.rpe) : fmtN(+String(x.rpe).replace(",", ".")); if (inten) com.push("Intensité " + inten); inten = "RPE " + r; }
+            if (gi === 0 && x.tempo) com.push("Tempo " + x.tempo);
+            if (gi === 0 && x.note) com.push(x.note);
+            const reps = g.reps === "max" ? "max" : String(g.reps) + (g.amrap ? "+" : "");
+            rows.push([x.canon || x.name, "", String(g.sets), reps, charge, inten, "", "", com.join(" · "), ""]);
+          });
+        });
+        rows.push(["RECAP", "", "POIDS DE CORPS"]);
+        (d.notes || []).forEach(n => rows.push(["Remarque", n]));
+        rows.push([]);
+      });
+      (w.notes || []).forEach(n => rows.push(["Remarque", n]));
+      rows.push([]);
+    });
+    (res.notes || []).forEach(n => rows.push(["Remarque", n]));
+    return rows;
+  }
+
+  const api = { parseProgram, parseWorkbook, canon, fmtGroup, toGrid, _readExo: readExo };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.ProgImport = api;
+})(typeof window !== "undefined" ? window : globalThis);
+
+let imp = null;
+const impCan = () => !coachId() || coachId() === APP_ID;
+const impNew = () => ({step:1, text:"", res:null, title:"Mon programme", week:0, edit:null, busy:false, saved:null});
+const impLoadTxt = L => !L ? "" : L.kind === "pct" ? L.v + " %" : L.kind === "rel" ? String(L.v).replace("-", "−") + " %" : L.kind === "lest" ? "+" + L.v : L.v + (L.u === "lb" ? " lb" : "");
+function impLoadFrom(t){
+  t = String(t || "").trim().replace(",", ".").replace("−", "-"); if (!t) return null; let m;
+  if ((m = t.match(/^([+-]?)\s*(\d+(?:\.\d+)?)\s*%$/))) return m[1] === "-" ? {kind:"rel", v:-Number(m[2])} : {kind:"pct", v:Number(m[2])};
+  if ((m = t.match(/^\+\s*(\d+(?:\.\d+)?)/))) return {kind:"lest", v:Number(m[1]), u:"kg"};
+  if ((m = t.match(/^(\d+(?:\.\d+)?)\s*(kg|lbs?)?$/i))) return {kind:"abs", v:Number(m[1]), u:(m[2] || "kg").toLowerCase().replace(/s$/, "")};
+  return null;
+}
+const impExos = () => imp.res.weeks.flatMap(w => w.days.flatMap(d => d.exos));
+const impStepper = n => { const dots = [1, 2, 3].map(i => `<i class="${i < n ? "done" : i === n ? "on" : ""}">${i < n ? "✓" : i}</i>${i < 3 ? "<u></u>" : ""}`).join("");
+  return `<div class="impstp" role="img" aria-label="Étape ${n} sur 3">${dots}<span>${["", "Je colle mon programme", "Je vérifie ce que l'app a compris", "C'est enregistré"][n]}</span></div>`; };
+function impEmptyHtml(){
+  return `<div class="panel" style="margin-top:6px"><p style="font-weight:700;font-size:17px">Ajoute ton programme</p>
+    <p class="muted small" style="margin-top:6px">Colle tes notes, un tableau Excel ou le message de ton coach : l'app lit les séances, tu vérifies, et elles apparaissent ici.</p>
+    <button class="btn" style="margin-top:14px" data-act="impOpen">Ajouter mon programme</button></div>`;
+}
+function rImpPage(){
+  const back = `<div class="pagebar"><button class="iconbtn" data-act="impBack" aria-label="Retour"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button><span class="ttl" style="font-weight:700">Ajouter mon programme</span><span style="width:44px"></span></div>`;
+  let h = "";
+  if (imp.step === 1) {
+    h = `${impStepper(1)}<p class="muted small">Colle ton programme tel qu'il est : notes, message du coach, tableau. À l'étape suivante, tu verras ce que l'app a compris avant d'enregistrer quoi que ce soit.</p>
+      <label for="imptxt">Colle ton texte ici</label>
+      <textarea id="imptxt" class="imptxt" rows="11" placeholder="LUNDI PUSH&#10;dc 4x6 80kg&#10;dips lest 4x8 +20&#10;…" data-chg="impTxt">${esc(imp.text)}</textarea>
+      <button class="btn" style="margin-top:12px" data-act="impRun">Analyser →</button>
+      <label class="btn ghost" style="margin-top:10px;cursor:pointer">Importer un fichier texte ou CSV<input type="file" accept=".csv,.tsv,.txt,text/plain,text/csv" data-chg="impFile" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></label>
+      <p class="muted small" style="margin-top:12px">Un fichier Excel ? Sélectionne le tableau, copie-le et colle-le ci-dessus. Photo ou PDF : bientôt.</p>
+      <p class="muted tiny" style="margin-top:6px">Ton texte reste sur ton téléphone : rien n'est envoyé pour l'analyse.</p>`;
+  } else if (imp.step === 2) {
+    const r = imp.res, ex = impExos(), unk = ex.filter(x => !x.canon).length, w = r.weeks[imp.week] || r.weeks[0];
+    h = `${impStepper(2)}<div class="panel" style="background:var(--brand)"><p class="small" style="opacity:.85">Voilà ce que j'ai compris de ton texte</p>
+      <input id="imptitle" class="imptitle" value="${esc(imp.title)}" maxlength="40" aria-label="Nom du programme" data-chg="impTitle">
+      <div class="chips" style="margin-top:8px;flex-wrap:wrap"><span class="chip impchip">${r.weeks.length} semaine${r.weeks.length > 1 ? "s" : ""}</span><span class="chip impchip">${w.days.filter(d => d.exos.length).length} jours</span><span class="chip impchip">${ex.length} exercices</span>
+      <span class="chip impchip ${unk ? "warn" : "ok"}">${ex.length - unk}/${ex.length} reconnus</span></div></div>
+      <div class="imptip">Rien n'est enregistré pour l'instant. Touche <b>✎</b> pour corriger un exercice, une série ou une charge.</div>
+      ${r.weeks.length > 1 ? `<div class="chips" style="margin-bottom:10px;overflow-x:auto">${r.weeks.map((x, i) => `<button class="chip" aria-pressed="${i === imp.week}" data-act="impWeek" data-w="${i}">${esc(x.label)}</button>`).join("")}</div>` : ""}
+      ${w.days.map((d, di) => !d.exos.length ? "" : `<div class="panel impday"><div class="row"><b>${esc(d.label)}</b><span class="muted small">${d.sub ? esc(d.sub) + " · " : ""}${d.exos.length} exos</span></div>
+        ${d.exos.map((x, ei) => { const key = imp.week + "." + di + "." + ei, open = imp.edit === key, lc = {squat:"SQUAT", bench:"BENCH", deadlift:"DEADLIFT", pull:"PULL", dip:"DIP", mu:"MU"}[x.cat];
+          return `<div class="impex"><span class="d10" style="--c:${lc ? LCOL[lc] : "var(--steel)"}"></span><div class="grow"><div style="font-weight:600">${esc(x.canon || x.name)}${x.canon ? "" : ` <span class="imptag">à vérifier</span>`}</div>
+            <div class="impsets">${x.groups.map(g => `<span>${esc(ProgImport.fmtGroup(g))}</span>`).join("")}${x.rpe ? `<span>RPE ${esc(x.rpe)}</span>` : ""}</div>
+            <div class="muted tiny impraw">« ${esc(String(x.raw || "").slice(0, 70))} »</div>
+            ${open ? `<div class="impedit"><label for="ie-n">Exercice</label><input id="ie-n" value="${esc(x.canon || x.name)}" data-chg="impF" data-k="${key}" data-f="n">
+              ${x.groups.map((g, gi) => `<div class="impgrid"><div><label>Séries</label><input inputmode="numeric" value="${esc(g.sets)}" data-chg="impF" data-k="${key}" data-g="${gi}" data-f="s"></div><div><label>Reps</label><input value="${esc(g.reps)}" data-chg="impF" data-k="${key}" data-g="${gi}" data-f="r"></div><div><label>Charge</label><input value="${esc(impLoadTxt(g.load))}" placeholder="80, +20, 70 %" data-chg="impF" data-k="${key}" data-g="${gi}" data-f="l"></div></div>`).join("")}
+              <button class="btn ghost sm" style="margin-top:10px" data-act="impDel" data-k="${key}">Retirer cet exercice</button></div>` : ""}</div>
+            <button class="iconbtn" data-act="impEdit" data-k="${key}" aria-label="Corriger ${esc(x.canon || x.name)}" aria-expanded="${open}">✎</button></div>`; }).join("")}</div>`).join("")}
+      ${r.notes.length ? `<div class="panel"><p class="small"><b>Remarques gardées</b></p>${r.notes.slice(0, 3).map(n => `<p class="muted small" style="margin-top:4px">${esc(n.slice(0, 120))}</p>`).join("")}</div>` : ""}
+      <div class="impbar"><button class="btn ghost" data-act="impBack">‹ Retour</button><button class="btn" data-act="impSave" ${imp.busy ? "disabled" : ""}>${imp.busy ? "Enregistrement…" : "Enregistrer ✓"}</button></div>`;
+  } else {
+    const s = imp.saved;
+    h = `${impStepper(3)}<div style="text-align:center"><div class="impok">✓</div><p class="show t-m">Programme ajouté</p><p class="muted small" style="margin-top:6px">Tu le retrouves dans tes séances, comme celui d'un coach. Il est dans ton carnet Google Sheet, onglet « ${esc(s.name)} ».</p></div>
+      <div class="panel" style="margin-top:14px"><div class="row"><span>Programme</span><b>${esc(s.name)}</b></div><div class="row" style="margin-top:8px"><span>Exercices</span><b>${s.exos}</b></div><div class="row" style="margin-top:8px"><span>Reconnus</span><b>${s.ok} / ${s.exos}</b></div></div>
+      <button class="btn" style="margin-top:16px" data-act="impDone">Voir mes séances</button>`;
+  }
+  return `<div class="page" role="dialog" aria-label="Ajouter mon programme"><div class="wrap">${back}${h}</div></div>`;
+}
+Object.assign(ACT, {
+  impOpen:() => { imp = impNew(); sheet = null; page = {type:"imp"}; renderLayer(); },
+  impBack:() => { if (!imp || imp.busy) return; if (imp.step === 2) { imp.step = 1; imp.edit = null; renderLayer(); } else { page = null; imp = null; renderLayer(); } },
+  impRun:() => {
+    const el = document.getElementById("imptxt"); if (el) imp.text = el.value;
+    if (!imp.text.trim()) return toast("Colle d'abord ton programme", true);
+    let res; try { res = ProgImport.parseProgram(imp.text); } catch(e){ return toast("Je n'ai pas réussi à lire ce texte", true); }
+    if (!res.stats || !res.stats.exos) return toast("Je n'ai reconnu aucun exercice. Vérifie que chaque ligne contient un exercice et ses séries (ex. « squat 4x5 100kg »).", true);
+    imp.res = res; imp.step = 2; imp.week = 0; imp.edit = null; renderLayer(); const p = document.querySelector(".page"); if (p) p.scrollTop = 0;
+  },
+  impWeek:d => { imp.week = +d.w; imp.edit = null; renderLayer(); },
+  impEdit:d => { imp.edit = imp.edit === d.k ? null : d.k; renderLayer(); },
+  impDel:d => { const [w, di, ei] = d.k.split(".").map(Number); imp.res.weeks[w].days[di].exos.splice(ei, 1); imp.edit = null;
+    if (!impExos().length) { imp.step = 1; toast("Plus aucun exercice : recommence avec ton texte", true); } renderLayer(); },
+  impSave:async () => {
+    if (imp.busy) return;
+    const rows = ProgImport.toGrid(imp.res); imp.busy = true; renderLayer();
+    try {
+      const have = await getTitles(APP_ID); let base = String(imp.title || "").replace(/[\[\]:*?\/\\']/g, " ").replace(/\s+/g, " ").trim().slice(0, 40) || "Mon programme", name = base, i = 2;
+      while (have.some(t => t.trim().toLowerCase() === name.toLowerCase()) || CARNET_TABS.has(name.toUpperCase())) name = base + " " + (i++);
+      await addProgTab(APP_ID, name, rows);
+      if (!coachId()) { await Store.profil.set("coach_sheet_id", APP_ID); D.profil.coach_sheet_id = APP_ID; }
+      const ex = impExos(); imp.saved = {name, exos:ex.length, ok:ex.filter(x => x.canon).length}; imp.step = 3;
+      S = []; loadedBlocs.clear(); allLoaded = false; weekMeta = {}; blocNames = {}; progOrder = []; liveIds = new Set(); archMeta = {}; liveCycle = {}; saveCache(); syncAll(true);
+    } catch(e){ toast(errMsg(e), true); }
+    imp.busy = false; renderLayer();
+  },
+  impDone:() => { page = null; imp = null; renderLayer(); setTab("seance"); }
+});
+Object.assign(CHG, {
+  impTxt:(d, el) => { imp.text = el.value; },
+  impTitle:(d, el) => { imp.title = el.value; },
+  impFile:async (d, el) => { const f = el.files && el.files[0]; if (!f) return;
+    if (f.size > 500000) return toast("Ce fichier est trop gros pour un programme", true);
+    try { imp.text = await f.text(); renderLayer(); } catch(e){ toast("Fichier illisible", true); } },
+  impF:(d, el) => { const [w, di, ei] = d.k.split(".").map(Number), x = imp.res.weeks[w].days[di].exos[ei], v = el.value.trim();
+    if (d.f === "n") { const c = ProgImport.canon(v); x.name = v; x.canon = c.canon; x.cat = c.cat; }
+    else { const g = x.groups[+d.g]; if (!g) return;
+      if (d.f === "s") { const n = parseInt(v, 10); if (n > 0) g.sets = n; } else if (d.f === "r") { if (v) g.reps = v; } else g.load = impLoadFrom(v); } }   /* pas de nouveau rendu ici : il ferait perdre le toucher sur le bouton suivant (Enregistrer, Retirer) */
+});
+
+/* =====================================================================
    ACCÈS AUX DONNÉES : API Google Sheets, connexion Google, aucun serveur
    Ce fichier est l'ADAPTATEUR GOOGLE de la bêta (connexion, création et choix du carnet, lecture/écriture Sheets).
    À la migration vers la vraie application, il est remplacé en bloc ; l'app n'y accède que via Store, Account et Ranking (src/app.html).
@@ -2877,6 +3495,11 @@ async function ensureTabs(id){
   if (!miss.length) return;
   await gapi(API + id + ":batchUpdate", {method:"POST", body:JSON.stringify({requests:miss.map(t => ({addSheet:{properties:{title:t}}}))})});
   await writeMany(id, miss.map(t => ({range:t + "!A1", values:[TABS[t]]})));
+}
+/* Nouvel onglet (programme importé) dans le carnet : création puis écriture groupée. */
+async function addProgTab(id, title, rows){
+  await gapi(API + id + ":batchUpdate", {method:"POST", body:JSON.stringify({requests:[{addSheet:{properties:{title}}}]})});
+  await writeMany(id, [{range:q(title) + "!A1", values:rows.map(r => r.map(v => String(v ?? "")))}]);
 }
 async function createBook(p){
   const r = await gapi(API, {method:"POST", body:JSON.stringify({properties:{title:"Street Lifting – " + (p.prenom || "carnet"), locale:"fr_FR"},
@@ -3053,7 +3676,7 @@ async function syncAll(silent){
     /* La liste des onglets de la prog est lue en même temps que le carnet (le lien de la prog est déjà connu). */
     const cid0 = D && coachId(), pt = cid0 ? progTabs(cid0).catch(() => null) : null;
     await loadApp(); render();
-    try { await loadCoach(cid0 && cid0 === coachId() ? pt : null); seanceErr = ""; } catch(e){ seanceErr = "Impossible de lire ta prog : " + errMsg(e); }
+    try { if (coachId()) await loadCoach(cid0 && cid0 === coachId() ? pt : null); else { S = []; loadedBlocs.clear(); weekMeta = {}; blocNames = {}; progOrder = []; allLoaded = true; } seanceErr = ""; } catch(e){ seanceErr = "Impossible de lire ta prog : " + errMsg(e); }
     lastSync = Date.now(); setDot(seanceErr ? "off" : "ok"); saveCache(); render();
     if (clOn()) clSync().then(() => { if (tab === "agenda" && agendaSeg === "amis" && !sheet) rAgenda(); }).catch(() => {});
     if (seanceErr && S.length) toast(seanceErr, true);
