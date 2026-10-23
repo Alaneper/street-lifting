@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261023151931">
+<meta name="sl-build" content="20261023152819">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -496,7 +496,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "38 · 23 oct. 2026";
+const APP_VER = "39 · 23 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -2081,7 +2081,7 @@ function rpeInfoHtml(){
     <h2 class="h2" style="font-size:18px">Comment le noter</h2>
     <p class="small" style="margin-top:4px">Juste après ta série, demande-toi : « combien de reps en plus aurais-je pu faire, sans craquer la technique ? » Retire ce nombre de 10. Pas besoin d'être précis : une demi-note d'écart ne change rien.</p>
     <h2 class="h2" style="font-size:18px">À quoi ça sert dans l'app</h2>
-    <p class="small" style="margin-top:4px">Pour estimer ton 1RM, pour voir si une charge était trop légère ou trop lourde, et pour régler les charges de ton bloc suivant. Sans RPE noté, l'app ne change pas tes charges.</p>
+    <p class="small" style="margin-top:4px">Pour estimer ton 1RM, pour voir si une charge était trop légère ou trop lourde, et pour régler les charges de ton bloc suivant. Sans RPE noté, l'app regarde tes répétitions : si tu valides toutes tes séries au haut de la fourchette prévue (par exemple 3×12 pour 8–12), elle propose de monter la charge.</p>
     <p class="muted small" style="margin-top:10px">Plus la série est longue ou éloignée de l'échec, plus il est difficile de juger l'effort : le RPE est le plus fiable sur des séries courtes et proches de l'échec.</p>
     <p class="src" style="margin-top:10px">Échelle : <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al., 2016</a> (RIR = 10 − RPE). Synthèse : <a href="https://www.strongerbyscience.com/reps-in-reserve" target="_blank" rel="noopener">Stronger by Science</a>.</p>
     <button class="btn" style="margin-top:16px" data-act="closeSheet">Compris</button>`;
@@ -3447,19 +3447,42 @@ const mondayFrom = iso => { const dow = dObj(iso).getDay(); return dow === 1 ? i
    RPE ≤ 8 → charge augmentée ; 8,5 à 9,5 → inchangée ; RPE 10 ou échec → réduite de 5 %.
    Fourchette d'augmentation 2 à 10 % : ACSM, Ratamess et al. 2009 (le pourcentage plus faible pour les petites masses musculaires, plus élevé pour les grandes).
    Les seuils de RPE, le +2,5 % / +5 % et les pas de 1,25 / 2,5 kg sont un choix prudent de l'app, pas une règle publiée. */
+const impBig = (name, cat) => cat === "squat" || cat === "deadlift" || /squat|presse|press\s*(?:a|à)\s*cuisse|leg\s*press|hack|fente|lunge|split|hip\s*thrust|pouss[ée]e de hanche|soulev|deadlift|roumain|rdl|good\s*morning|bulgare|step\s*up/i.test(String(name || ""));
+const impFk = v => String(Math.round(v * 100) / 100).replace(".", ",");
+/* Augmentation : +2,5 % (+5 % gros groupes), jamais moins de 2 % ni plus de 10 % (ACSM), pas de 1,25 kg (< 60 kg) ou 2,5 kg. null si le pas régulier dépasse 10 %. */
+function impUp(load, big){
+  const st = load < 60 ? 1.25 : 2.5; let n = Math.max(Math.round(load * (1 + (big ? .05 : .025)) / st) * st, Math.ceil(load * 1.02 / st) * st); if (n <= load) n = load + st;
+  return (n / load - 1) > .10 ? null : n;
+}
 function impRule(load, rpe, big){
-  const st = load < 60 ? 1.25 : 2.5, rnd = v => Math.round(v / st) * st, f = v => String(Math.round(v * 100) / 100).replace(".", ",") + " kg";
+  const st = load < 60 ? 1.25 : 2.5, rnd = v => Math.round(v / st) * st, R = String(rpe).replace(".", ",");
   if (load === null || load === undefined || !(load > 0)) return {load, why:"Charge non numérique : inchangée", cls:"same"};
   if (rpe === null) return {load, why:"Pas de RPE noté : inchangée", cls:"same"};
-  if (rpe <= 8) { let n = Math.max(rnd(load * (1 + (big ? .05 : .025))), Math.ceil(load * 1.02 / st) * st); if (n <= load) n = load + st;
-    if ((n / load - 1) > .10) return {load, why:"RPE " + String(rpe).replace(".", ",") + " : charge trop légère pour un pas régulier, à ajuster", cls:"same"};
-    return {load:n, why:"RPE " + String(rpe).replace(".", ",") + " : +" + f(n - load).replace(" kg", "") + " kg", cls:"up"}; }
+  if (rpe <= 8) { const n = impUp(load, big);
+    return n === null ? {load, why:"RPE " + R + " : charge trop légère pour un pas régulier, à ajuster", cls:"same"} : {load:n, why:"RPE " + R + " : +" + impFk(n - load) + " kg", cls:"up"}; }
   if (rpe >= 10) { let n = rnd(load * .95); if (n >= load) n = load - st; if (n <= 0) n = load;
-    return {load:n, why:"RPE 10 ou échec : −" + f(load - n).replace(" kg", "") + " kg", cls:"down"}; }
-  return {load, why:"RPE " + String(rpe).replace(".", ",") + " : inchangée", cls:"same"};
+    return {load:n, why:"RPE 10 ou échec : −" + impFk(load - n) + " kg", cls:"down"}; }
+  return {load, why:"RPE " + R + " : inchangée", cls:"same"};
 }
-/* Gros groupes musculaires (ACSM : pourcentage plus élevé) : jambes et fessiers, mouvements complets du bas du corps. Le reste (haut du corps, isolation) : pourcentage plus faible. */
-const impBig = (name, cat) => cat === "squat" || cat === "deadlift" || /squat|presse|press\s*(?:a|à)\s*cuisse|leg\s*press|hack|fente|lunge|split|hip\s*thrust|pouss[ée]e de hanche|soulev|deadlift|roumain|rdl|good\s*morning|bulgare|step\s*up/i.test(String(name || ""));
+/* Sans RPE : progression par répétitions. Toutes les séries prévues faites au haut de la fourchette (ex. 3×12 pour 8–12) → on monte la charge, sinon elle reste.
+   Critère de l'ACSM (Ratamess et al. 2009) : monter quand on dépasse le nombre de répétitions visé ; lecture « haut de la fourchette » = choix de l'app. */
+function impRuleReps(load, repsTxt, nSets, sets, big){
+  if (load === null || load === undefined || !(load > 0)) return {load, why:"Charge non numérique : inchangée", cls:"same"};
+  const m = String(repsTxt || "").match(/^\s*(\d+)(?:\s*[-–]\s*(\d+))?\s*$/);
+  if (!m) return {load, why:"Répétitions non chiffrées : inchangée", cls:"same"};
+  const top = +(m[2] || m[1]);
+  if (!sets || !sets.length) return {load, why:"Pas de RPE ni de séries notées : inchangée", cls:"same"};
+  const need = nSets || sets.length;
+  if (sets.length < need || !sets.every(x => num(x.r) >= top)) return {load, why:"Objectif " + repsTxt + " pas encore validé (" + sets.map(x => x.r).join("/") + ") : inchangée", cls:"same"};
+  const n = impUp(load, big);
+  return n === null ? {load, why:need + "×" + top + " validé, mais charge trop légère pour un pas régulier : à ajuster", cls:"same"} : {load:n, why:need + "×" + top + " validé : +" + impFk(n - load) + " kg", cls:"up"};
+}
+/* Séries réellement faites pour un exercice : notées dans l'app (SERIES) ou reps écrites dans « commentaire athlète » de la prog. */
+function impLogged(z, e){
+  const key = exKey(e), lg = D.series.find(x => x.bloc === z.bloc && x.semaine === z.semaine && x.seance === z.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
+  if (lg && lg.sets && lg.sets.length) return lg.sets;
+  const ro = repsOnly(e.commentaire); return ro && ro.length ? ro.map(r => ({r:num(r)})) : null;
+}
 function impNextBlock(){
   const ab = activeBloc(); if (ab === null) return null;
   const ws = weeksOfBloc(ab), logged = ws.filter(w => S.some(z => z.bloc === ab && z.semaine === w && z.faite)), w0 = (logged.length ? logged : ws).at(-1);
@@ -3468,7 +3491,7 @@ function impNextBlock(){
   const days = tpl.map(z => { const sub = String(z.seance || "").replace(/^s[ée]ance\s*\d+\s*[–-]\s*/i, "").replace(/^s[ée]ance\s*\d+$/i, "").trim();
     return {label:z.jour || "Jour", sub, notes:[], exos:z.exercices.map(e => {
       const c = ProgImport.canon(e.mouvement), bw = BW_LIFTS.includes(liftOf(e.mouvement)), g = chargeGuess(e), pctM = String(e.charge || "").match(/(\d+(?:[.,]\d+)?)\s*%/);
-      const big = impBig(e.mouvement, c.cat), r = impRule(g, rpeOf(e), big), notes = [e.variation, e.coach].filter(Boolean);
+      const big = impBig(e.mouvement, c.cat), r = rpeOf(e) !== null ? impRule(g, rpeOf(e), big) : impRuleReps(g, e.reps, parseInt(e.series, 10) || 0, impLogged(z, e), big), notes = [e.variation, e.coach].filter(Boolean);
       const load = g !== null ? {kind:bw ? "lest" : "abs", v:r.load, u:"kg"} : pctM ? {kind:"pct", v:num(pctM[1])} : null;
       if (g === null && !pctM && String(e.charge || "").trim()) notes.push("Charge d'origine : " + String(e.charge).trim());
       const it = String(e.intensite || "").match(/^\s*(?:rpe\s*)?(\d+(?:[.,]\d+)?)\s*$/i);
@@ -3511,7 +3534,7 @@ function rImpPage(){
       <div class="chips" style="margin-top:8px;flex-wrap:wrap"><span class="chip impchip">${r.weeks.length} semaine${r.weeks.length > 1 ? "s" : ""}</span><span class="chip impchip">${w.days.filter(d => d.exos.length).length} jours</span><span class="chip impchip">${ex.length} exercices</span>
       <span class="chip impchip ${unk ? "warn" : "ok"}">${ex.length - unk}/${ex.length} reconnus</span></div></div>
       <label for="impstart" style="margin-top:12px">Début du programme (un lundi)</label><input id="impstart" type="date" value="${esc(imp.start || "")}" data-chg="impStart">
-      ${imp.mode === "next" ? (() => { const ex = impExos().filter(x => x.why), c = k => ex.filter(x => x.whyCls === k).length; return `<div class="imptip" style="border-color:var(--brand)"><b>Règle par défaut</b> : ${c("up")} charge${c("up") > 1 ? "s" : ""} augmentée${c("up") > 1 ? "s" : ""}, ${c("same")} inchangée${c("same") > 1 ? "s" : ""}, ${c("down")} réduite${c("down") > 1 ? "s" : ""}. Charge +2,5 % (+5 % pour les gros groupes musculaires du bas du corps : squat, soulevé, presse, fentes, hip thrust…) si ton dernier RPE est ≤ 8 ; inchangée entre 8,5 et 9,5 ; −5 % si RPE 10 ou échec. <a href="#" data-act="rpeInfo">C'est quoi le RPE ?</a> La fourchette de 2 à 10 % vient de l'<a href="https://doi.org/10.1249/MSS.0b013e3181915670" target="_blank" rel="noopener">ACSM (Ratamess et al., 2009)</a>, le RPE de <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al. (2016)</a>. Les seuils et les pas sont un choix prudent de l'app, pas une règle publiée : corrige avec ✎.</div>`; })() : `<div class="imptip">Rien n'est enregistré pour l'instant. Touche <b>✎</b> pour corriger un exercice, une série ou une charge.</div>`}
+      ${imp.mode === "next" ? (() => { const ex = impExos().filter(x => x.why), c = k => ex.filter(x => x.whyCls === k).length; return `<div class="imptip" style="border-color:var(--brand)"><b>Règle par défaut</b> : ${c("up")} charge${c("up") > 1 ? "s" : ""} augmentée${c("up") > 1 ? "s" : ""}, ${c("same")} inchangée${c("same") > 1 ? "s" : ""}, ${c("down")} réduite${c("down") > 1 ? "s" : ""}. Charge +2,5 % (+5 % pour les gros groupes musculaires du bas du corps : squat, soulevé, presse, fentes, hip thrust…) si ton dernier RPE est ≤ 8 ; inchangée entre 8,5 et 9,5 ; −5 % si RPE 10 ou échec. <b>Sans RPE noté</b> : si toutes tes séries ont atteint le haut de la fourchette de reps (par exemple 3×12 pour 8–12), la charge monte du même pourcentage ; sinon elle reste. <a href="#" data-act="rpeInfo">C'est quoi le RPE ?</a> La fourchette de 2 à 10 % vient de l'<a href="https://doi.org/10.1249/MSS.0b013e3181915670" target="_blank" rel="noopener">ACSM (Ratamess et al., 2009)</a>, le RPE de <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al. (2016)</a>. Les seuils et les pas sont un choix prudent de l'app, pas une règle publiée : corrige avec ✎.</div>`; })() : `<div class="imptip">Rien n'est enregistré pour l'instant. Touche <b>✎</b> pour corriger un exercice, une série ou une charge.</div>`}
       ${r.weeks.length > 1 ? `<div class="chips" style="margin-bottom:10px;overflow-x:auto">${r.weeks.map((x, i) => `<button class="chip" aria-pressed="${i === imp.week}" data-act="impWeek" data-w="${i}">${esc(x.label)}</button>`).join("")}</div>` : ""}
       ${w.days.map((d, di) => !d.exos.length ? "" : `<div class="panel impday"><div class="row"><b>${esc(d.label)}</b><span class="muted small">${d.sub ? esc(d.sub) + " · " : ""}${d.exos.length} exos</span></div>
         ${d.exos.map((x, ei) => { const key = imp.week + "." + di + "." + ei, open = imp.edit === key, lc = {squat:"SQUAT", bench:"BENCH", deadlift:"DEADLIFT", pull:"PULL", dip:"DIP", mu:"MU"}[x.cat];
