@@ -1,0 +1,63 @@
+"""Version 37 : date de début du programme (niveau 1) et bloc suivant par règles (niveau 2), sans toucher aux progs de coach."""
+import pathlib
+H = pathlib.Path(__file__).resolve().parent
+src = (H / "e2e.py").read_text(); exec(src[:src.index("with sync_playwright()")])
+fails = []
+def check(name, cond, info=""):
+    print(("OK  " if cond else "KO  ") + name, "" if cond else info)
+    if not cond: fails.append(name)
+with sync_playwright() as p:
+    br = p.chromium.launch()
+    c = br.new_context(viewport={"width":390, "height":844}, device_scale_factor=2, service_workers="block"); c.route("**/*", route)
+    pg = c.new_page(); errs = []
+    pg.on("pageerror", lambda e: errs.append(str(e))); pg.on("console", lambda m: errs.append(m.text) if m.type == "error" else None)
+    pg.goto("http://app.local/sl/"); pg.wait_for_timeout(1000); pg.click("[data-act=obLogin]"); pg.wait_for_timeout(1200)
+    pg.fill("#oblink", f"https://docs.google.com/spreadsheets/d/{APP}/edit"); pg.click("[data-act=obLink]")
+    pg.wait_for_function("typeof D !== 'undefined' && D && S.length > 0 && lastSync > 0", timeout=20000); pg.wait_for_timeout(2500)
+    # règles de progression
+    R = lambda l, r, big=False: pg.evaluate("([l, r, b]) => { const x = impRule(l, r, b); return [x.load, x.cls]; }", [l, r, big])
+    check("développé 80 kg, RPE 7 : +2,5 % arrondi au pas de 2,5 → 82,5", R(80, 7) == [82.5, "up"], R(80, 7))
+    check("squat 100 kg, RPE 8 : +5 % → 105", R(100, 8, True) == [105, "up"], R(100, 8, True))
+    check("lest 20 kg, RPE 7 : pas de 1,25 → 21,25", R(20, 7) == [21.25, "up"], R(20, 7))
+    check("RPE 8,5 et 9 : inchangée", R(100, 8.5) == [100, "same"] and R(100, 9) == [100, "same"])
+    check("RPE 10 : −5 % → 95", R(100, 10) == [95, "down"], R(100, 10))
+    check("pas de RPE : inchangée", R(100, None) == [100, "same"])
+    check("charge trop légère (5 kg, +1,25 = +25 %) : inchangée, jamais plus de 10 %", R(5, 7) == [5, "same"], R(5, 7))
+    check("augmentation jamais hors de la fourchette 2–10 % de l'ACSM", all(1.02 <= R(l, 6, b)[0] / l <= 1.10 for l in (20, 40, 60, 80, 100, 140, 200) for b in (False, True)), [(l, R(l, 6)) for l in (20, 40, 80)])
+    # non-régression : prog de coach → aucun bouton
+    pg.evaluate("openSheet('settings')"); pg.wait_for_timeout(300)
+    check("prog de coach : ni import ni « bloc suivant » dans les réglages", pg.evaluate("!document.querySelector('[data-act=impOpen],[data-act=impNext]')"))
+    pg.evaluate("closeSheet()")
+    check("prog de coach : pas de carte « Bloc terminé » sur l'accueil", pg.evaluate("!document.querySelector('#v-home [data-act=impNext]')"))
+    # bloc suivant construit depuis la prog réelle (copie : S n'est pas modifié)
+    before = pg.evaluate("JSON.stringify(S).length")
+    r = pg.evaluate("(() => { const b = impNextBlock(); return b && {weeks:b.res.weeks.length, days:b.res.weeks[0].days.length, exos:b.res.stats.exos, title:b.title, start:b.start, dow:dObj(b.start).getDay(), why:b.res.weeks[0].days.flatMap(d => d.exos).filter(x => x.why).length, same:JSON.stringify(b.res.weeks[0]) === JSON.stringify(b.res.weeks.at(-1))}; })()")
+    check("bloc suivant : semaines, jours et exercices repris", r and r["weeks"] >= 1 and r["days"] >= 1 and r["exos"] >= 1, r)
+    check("chaque exercice a sa raison (+, inchangée, −)", r and r["why"] == r["exos"] if r else False, r)
+    check("début proposé : un lundi", r and r["dow"] == 1, r)
+    check("S n'est pas modifié par la préparation", pg.evaluate("JSON.stringify(S).length") == before)
+    pg.evaluate("D.profil.coach_sheet_id = APP_ID; render()"); pg.wait_for_timeout(300)
+    pg.evaluate("openSheet('settings')"); pg.wait_for_timeout(300)
+    check("prog du carnet : bouton « Préparer le bloc suivant » dans les réglages", pg.evaluate("!!document.querySelector('[data-act=impNext]')"))
+    pg.click("[data-act=impNext]"); pg.wait_for_timeout(400)
+    check("aperçu du bloc suivant (étape 2, mode suite) avec date de début et règle expliquée", pg.evaluate("imp.step === 2 && imp.mode === 'next' && !!document.querySelector('#impstart') && document.body.textContent.includes('Règle par défaut') && !!document.querySelector('.impwhy')"))
+    check("sources citées (ACSM, Zourdos)", pg.evaluate("[...document.querySelectorAll('.page a')].map(a => a.href).join(' ').includes('MSS.0b013e3181915670') && [...document.querySelectorAll('.page a')].map(a => a.href).join(' ').includes('JSC.0000000000001049')"))
+    pg.screenshot(path=str(OUT / "v37-bloc-suivant.png"))
+    # enregistrement : onglet écrit + date de début posée sur le bloc
+    pg.evaluate("""window.W = null; window.DT = null; addProgTab = async (id, t, rows) => { W = {id, t, rows}; };
+      Store.blocs.setDate = async (b, iso) => { DT = [b, iso]; }; syncAll = async () => { blocNames[98] = W.t; }; D.blocs = D.blocs || {};""")
+    pg.fill("#impstart", "2026-11-02"); pg.dispatch_event("#impstart", "change")
+    pg.click("[data-act=impSave]"); pg.wait_for_timeout(800)
+    check("bloc suivant enregistré comme nouvel onglet du carnet", pg.evaluate("W && W.id === APP_ID && /bloc/i.test(W.t)"), pg.evaluate("W && W.t"))
+    check("date de début écrite sur le bloc (BLOCS) : 2 novembre", pg.evaluate("JSON.stringify(DT)") == '[98,"2026-11-02"]', pg.evaluate("JSON.stringify(DT)"))
+    check("étape 3 : date de début affichée", pg.evaluate("imp.step === 3 && document.body.textContent.includes('2 novembre')"))
+    # import classique : date de début aussi
+    pg.evaluate("imp = impNew(); page = {type:'imp'}; renderLayer()"); pg.wait_for_timeout(200)
+    pg.fill("#imptxt", "LUNDI\nsquat 4x5 100kg\ndc 3x8 80kg"); pg.click("[data-act=impRun]"); pg.wait_for_timeout(300)
+    check("import : champ « Début du programme » proposé, un lundi", pg.evaluate("!!document.querySelector('#impstart') && dObj(imp.start).getDay() === 1"))
+    pg.evaluate("DT = null"); pg.click("[data-act=impSave]"); pg.wait_for_timeout(800)
+    check("import : date de début écrite", pg.evaluate("!!DT && DT[0] === 98 && /^\\d{4}-\\d{2}-\\d{2}$/.test(DT[1])"), pg.evaluate("JSON.stringify(DT)"))
+    check("version 37 ou plus", float(pg.evaluate("APP_VER").split(" ")[0]) >= 37)
+    check("aucune erreur console", not [e for e in errs if "Failed to load resource" not in e], errs[:4])
+    br.close()
+print("ÉCHECS :", fails if fails else "aucun"); import sys; sys.exit(1 if fails else 0)

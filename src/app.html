@@ -442,6 +442,7 @@ html,body{overflow-x:clip}body{margin-top:0}
 .imptag{font:600 11px var(--f-text);color:var(--warn)}.impraw{margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
 .impedit{margin-top:10px}.impgrid{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:8px;margin-top:6px}
 .impbar{position:sticky;bottom:0;display:flex;gap:8px;padding:14px 0 calc(env(safe-area-inset-bottom,0px) + 14px);background:linear-gradient(180deg,transparent,var(--floor) 35%);margin-top:12px}
+.impwhy{margin-top:4px;font:600 12px var(--f-text);color:var(--dust)}.impwhy.up{color:var(--ok)}.impwhy.down{color:var(--bad)}
 .impok{width:72px;height:72px;border-radius:50%;background:var(--ok);color:var(--floor);display:flex;align-items:center;justify-content:center;font:800 40px var(--f-text);margin:26px auto 14px}
 </style>
 
@@ -471,7 +472,7 @@ html,body{overflow-x:clip}body{margin-top:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "36 · 23 oct. 2026";
+const APP_VER = "37 · 23 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -1401,6 +1402,7 @@ function rHome(){
   const left = `${heroH}${weighed ? "" : weighCard(pw)}
     <h2 class="h2">Cette semaine <span class="muted">${sess ? esc(blocLabel(sess.bloc)) + (sess.semaine ? ", semaine " + esc(sess.semaine) : "") : ""}</span></h2>
     ${S.length ? (wr || `<p class="muted small">Aucune séance datée cette semaine.</p>`) : !coachId() ? impEmptyHtml() : `<div class="row" style="padding:14px 0"><span class="muted">${esc(seanceErr) || "Chargement de ta prog…"}</span>${seanceErr ? "" : `<div class="spin"></div>`}</div>`}
+    ${impCan() && coachId() && S.length && !sess && !remainingInBloc() ? `<div class="panel" style="margin-top:14px"><p style="font-weight:700">Bloc terminé</p><p class="muted small" style="margin-top:4px">Prépare le suivant : l'app reprend ta dernière semaine et ajuste les charges d'après tes RPE. Tu vérifies avant d'enregistrer.</p><button class="btn" style="margin-top:12px" data-act="impNext">Préparer le bloc suivant</button></div>` : ""}
     ${sess ? `<button class="btn" style="margin-top:16px" data-act="startLive" data-k="${esc(sess.key)}">${lv && lv.key === sess.key ? "Reprendre la séance" : "Commencer la séance " + jourBtn}</button>` : ""}`;
   const right = `${nc ? `<div class="desk-only">${heroCard({plain:true, small:tsmall, big:`${fmt(t)}<small>kg</small>`, sub:tsub})}</div>` : ""}
     <h2 class="h2">Mes records</h2>
@@ -2155,7 +2157,7 @@ function settingsHtml(){
     <div class="chips" style="flex-wrap:wrap">${extra.map(l => `<button class="chip" aria-pressed="${suivis().includes(l)}" data-act="suiviToggle" data-l="${l}">${suivis().includes(l) ? "" : "+ "}${LNAME[l]}</button>`).join("")}</div>
     <p class="muted small" style="margin-top:8px">Leurs records et leur 1RM estimé sont gardés, sans compter dans un total.</p>` : ""}
 
-    ${impCan() ? `<h2 class="h2">Ma prog</h2><button class="btn ghost" data-act="impOpen">${coachId() ? "Ajouter un autre programme" : "Ajouter mon programme"}</button><p class="muted small" style="margin-top:8px">Colle tes notes ou un tableau : l'app lit les séances et tu vérifies avant d'enregistrer.</p>` : ""}
+    ${impCan() ? `<h2 class="h2">Ma prog</h2><button class="btn ghost" data-act="impOpen">${coachId() ? "Ajouter un autre programme" : "Ajouter mon programme"}</button>${coachId() && S.some(z => !z.archived) ? `<button class="btn ghost" style="margin-top:8px" data-act="impNext">Préparer le bloc suivant</button>` : ""}<p class="muted small" style="margin-top:8px">Colle tes notes ou un tableau : l'app lit les séances et tu vérifies avant d'enregistrer.</p>` : ""}
     <h2 class="h2">Le reste</h2>
     ${Object.keys(blocNames).length ? `<label for="sbl" style="margin-top:0">Bloc en cours</label><select id="sbl" data-chg="blocActif"><option value="">Le dernier onglet de la prog</option>${progOrder.map(n => `<option value="${n}" ${n === chosenBloc() ? "selected" : ""}>${esc(blocLabel(n))}</option>`).join("")}</select>` : ""}
     <div class="grid2"><div><label for="sdc">Début de la prog</label><input id="sdc" type="date" value="${D.profil.debut_coaching || ""}" data-chg="prof" data-k="debut_coaching"></div>
@@ -2804,7 +2806,7 @@ vidLoad().catch(() => {});
 /*__PROG_IMPORT__*/
 let imp = null;
 const impCan = () => !coachId() || coachId() === APP_ID;
-const impNew = () => ({step:1, text:"", res:null, title:"Mon programme", week:0, edit:null, busy:false, saved:null});
+const impNew = () => ({step:1, mode:"paste", text:"", res:null, title:"Mon programme", week:0, edit:null, busy:false, saved:null, start:mondayFrom(D.today)});
 const impLoadTxt = L => !L ? "" : L.kind === "pct" ? L.v + " %" : L.kind === "rel" ? String(L.v).replace("-", "−") + " %" : L.kind === "lest" ? "+" + L.v : L.v + (L.u === "lb" ? " lb" : "");
 function impLoadFrom(t){
   t = String(t || "").trim().replace(",", ".").replace("−", "-"); if (!t) return null; let m;
@@ -2848,6 +2850,46 @@ function impFromBook(sheets, label){
   if (!res.stats || !res.stats.exos) return toast("Je n'ai reconnu aucun exercice dans " + label + ". Essaie de copier le tableau et de le coller en texte.", true);
   imp.res = res; imp.step = 2; imp.week = 0; imp.edit = null; renderLayer(); const p = document.querySelector(".page"); if (p) p.scrollTop = 0;
 }
+/* Niveau 1 : date de début du programme (lundi). */
+const mondayFrom = iso => { const dow = dObj(iso).getDay(); return dow === 1 ? iso : addDays(iso, (8 - dow) % 7 || 7); };
+/* Niveau 2 : bloc suivant par règles (sans IA).
+   Règle par défaut, d'après le dernier RPE noté de l'exercice (RIR = 10 − RPE, Zourdos et al. 2016) :
+   RPE ≤ 8 → charge augmentée ; 8,5 à 9,5 → inchangée ; RPE 10 ou échec → réduite de 5 %.
+   Fourchette d'augmentation 2 à 10 % : ACSM, Ratamess et al. 2009 (le pourcentage plus faible pour les petites masses musculaires, plus élevé pour les grandes).
+   Les seuils de RPE, le +2,5 % / +5 % et les pas de 1,25 / 2,5 kg sont un choix prudent de l'app, pas une règle publiée. */
+function impRule(load, rpe, big){
+  const st = load < 60 ? 1.25 : 2.5, rnd = v => Math.round(v / st) * st, f = v => String(Math.round(v * 100) / 100).replace(".", ",") + " kg";
+  if (load === null || load === undefined || !(load > 0)) return {load, why:"Charge non numérique : inchangée", cls:"same"};
+  if (rpe === null) return {load, why:"Pas de RPE noté : inchangée", cls:"same"};
+  if (rpe <= 8) { let n = Math.max(rnd(load * (1 + (big ? .05 : .025))), Math.ceil(load * 1.02 / st) * st); if (n <= load) n = load + st;
+    if ((n / load - 1) > .10) return {load, why:"RPE " + String(rpe).replace(".", ",") + " : charge trop légère pour un pas régulier, à ajuster", cls:"same"};
+    return {load:n, why:"RPE " + String(rpe).replace(".", ",") + " : +" + f(n - load).replace(" kg", "") + " kg", cls:"up"}; }
+  if (rpe >= 10) { let n = rnd(load * .95); if (n >= load) n = load - st; if (n <= 0) n = load;
+    return {load:n, why:"RPE 10 ou échec : −" + f(load - n).replace(" kg", "") + " kg", cls:"down"}; }
+  return {load, why:"RPE " + String(rpe).replace(".", ",") + " : inchangée", cls:"same"};
+}
+function impNextBlock(){
+  const ab = activeBloc(); if (ab === null) return null;
+  const ws = weeksOfBloc(ab), logged = ws.filter(w => S.some(z => z.bloc === ab && z.semaine === w && z.faite)), w0 = (logged.length ? logged : ws).at(-1);
+  const tpl = S.filter(z => z.bloc === ab && z.semaine === w0 && !z.archived).sort((x, y) => x.idx - y.idx); if (!tpl.length) return null;
+  const rpeOf = e => { const t = String(e.rpeLast || e.rpe1 || ""); if (/[ée]chec|fail/i.test(t)) return 10; const n = num(e.rpeLast); return n !== null ? n : num(e.rpe1); };
+  const days = tpl.map(z => { const sub = String(z.seance || "").replace(/^s[ée]ance\s*\d+\s*[–-]\s*/i, "").replace(/^s[ée]ance\s*\d+$/i, "").trim();
+    return {label:z.jour || "Jour", sub, notes:[], exos:z.exercices.map(e => {
+      const c = ProgImport.canon(e.mouvement), bw = BW_LIFTS.includes(liftOf(e.mouvement)), g = chargeGuess(e), pctM = String(e.charge || "").match(/(\d+(?:[.,]\d+)?)\s*%/);
+      const big = c.cat === "squat" || c.cat === "deadlift", r = impRule(g, rpeOf(e), big), notes = [e.variation, e.coach].filter(Boolean);
+      const load = g !== null ? {kind:bw ? "lest" : "abs", v:r.load, u:"kg"} : pctM ? {kind:"pct", v:num(pctM[1])} : null;
+      if (g === null && !pctM && String(e.charge || "").trim()) notes.push("Charge d'origine : " + String(e.charge).trim());
+      const it = String(e.intensite || "").match(/^\s*(?:rpe\s*)?(\d+(?:[.,]\d+)?)\s*$/i);
+      return {raw:[e.mouvement, e.series + "×" + e.reps, e.charge].filter(Boolean).join(" "), name:e.mouvement, canon:c.canon, cat:c.cat,
+        groups:[{sets:parseInt(e.series, 10) || 1, reps:String(e.reps || ""), load, amrap:false}], rpe:it ? it[1] : null, tempo:null, note:notes.join(" · ") || null, why:g !== null ? r.why : pctM ? "Charge en % : inchangée" : r.why, whyCls:g !== null ? r.cls : "same"};
+    })}; });
+  const n = Math.min(8, Math.max(1, ws.length));
+  const res = {weeks:Array.from({length:n}, (_, i) => ({label:"Semaine " + (i + 1), notes:[], days:JSON.parse(JSON.stringify(days))})), notes:[], meta:{}, stats:{}};
+  res.stats = {weeks:n, days:days.length, exos:days.reduce((a, d) => a + d.exos.length, 0), recognized:days.reduce((a, d) => a + d.exos.filter(x => x.canon).length, 0)};
+  const last = S.filter(z => z.bloc === ab).map(dateOf).filter(Boolean).sort().at(-1), base = blocLabel(ab).replace(/\s*[–-]?\s*bloc\s*\d+\s*$/i, "").replace(/^bloc\s*\d+$/i, "Mon programme").trim() || "Mon programme";
+  return {res, title:base + " – bloc " + (progOrder.length + 1), start:mondayFrom(last ? addDays(last, 1) : D.today)};
+}
+const impReload = async () => { for (let i = 0; i < 30 && syncing; i++) await new Promise(r => setTimeout(r, 300)); await syncAll(true); };
 const impExos = () => imp.res.weeks.flatMap(w => w.days.flatMap(d => d.exos));
 const impStepper = n => { const dots = [1, 2, 3].map(i => `<i class="${i < n ? "done" : i === n ? "on" : ""}">${i < n ? "✓" : i}</i>${i < 3 ? "<u></u>" : ""}`).join("");
   return `<div class="impstp" role="img" aria-label="Étape ${n} sur 3">${dots}<span>${["", "Je colle mon programme", "Je vérifie ce que l'app a compris", "C'est enregistré"][n]}</span></div>`; };
@@ -2872,17 +2914,18 @@ function rImpPage(){
       <p class="muted tiny" style="margin-top:6px">Ton texte reste sur ton téléphone : rien n'est envoyé pour l'analyse.</p>`;
   } else if (imp.step === 2) {
     const r = imp.res, ex = impExos(), unk = ex.filter(x => !x.canon).length, w = r.weeks[imp.week] || r.weeks[0];
-    h = `${impStepper(2)}<div class="panel" style="background:var(--brand)"><p class="small" style="opacity:.85">Voilà ce que j'ai compris de ton texte</p>
+    h = `${impStepper(2)}<div class="panel" style="background:var(--brand)"><p class="small" style="opacity:.85">${imp.mode === "next" ? "Voilà le bloc suivant, calculé d'après ta dernière semaine" : "Voilà ce que j'ai compris de ton texte"}</p>
       <input id="imptitle" class="imptitle" value="${esc(imp.title)}" maxlength="40" aria-label="Nom du programme" data-chg="impTitle">
       <div class="chips" style="margin-top:8px;flex-wrap:wrap"><span class="chip impchip">${r.weeks.length} semaine${r.weeks.length > 1 ? "s" : ""}</span><span class="chip impchip">${w.days.filter(d => d.exos.length).length} jours</span><span class="chip impchip">${ex.length} exercices</span>
       <span class="chip impchip ${unk ? "warn" : "ok"}">${ex.length - unk}/${ex.length} reconnus</span></div></div>
-      <div class="imptip">Rien n'est enregistré pour l'instant. Touche <b>✎</b> pour corriger un exercice, une série ou une charge.</div>
+      <label for="impstart" style="margin-top:12px">Début du programme (un lundi)</label><input id="impstart" type="date" value="${esc(imp.start || "")}" data-chg="impStart">
+      ${imp.mode === "next" ? (() => { const ex = impExos().filter(x => x.why), c = k => ex.filter(x => x.whyCls === k).length; return `<div class="imptip" style="border-color:var(--brand)"><b>Règle par défaut</b> : ${c("up")} charge${c("up") > 1 ? "s" : ""} augmentée${c("up") > 1 ? "s" : ""}, ${c("same")} inchangée${c("same") > 1 ? "s" : ""}, ${c("down")} réduite${c("down") > 1 ? "s" : ""}. Charge +2,5 % (+5 % squat et soulevé) si ton dernier RPE est ≤ 8 ; inchangée entre 8,5 et 9,5 ; −5 % si RPE 10 ou échec. La fourchette de 2 à 10 % vient de l'<a href="https://doi.org/10.1249/MSS.0b013e3181915670" target="_blank" rel="noopener">ACSM (Ratamess et al., 2009)</a>, le RPE de <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al. (2016)</a>. Les seuils et les pas sont un choix prudent de l'app, pas une règle publiée : corrige avec ✎.</div>`; })() : `<div class="imptip">Rien n'est enregistré pour l'instant. Touche <b>✎</b> pour corriger un exercice, une série ou une charge.</div>`}
       ${r.weeks.length > 1 ? `<div class="chips" style="margin-bottom:10px;overflow-x:auto">${r.weeks.map((x, i) => `<button class="chip" aria-pressed="${i === imp.week}" data-act="impWeek" data-w="${i}">${esc(x.label)}</button>`).join("")}</div>` : ""}
       ${w.days.map((d, di) => !d.exos.length ? "" : `<div class="panel impday"><div class="row"><b>${esc(d.label)}</b><span class="muted small">${d.sub ? esc(d.sub) + " · " : ""}${d.exos.length} exos</span></div>
         ${d.exos.map((x, ei) => { const key = imp.week + "." + di + "." + ei, open = imp.edit === key, lc = {squat:"SQUAT", bench:"BENCH", deadlift:"DEADLIFT", pull:"PULL", dip:"DIP", mu:"MU"}[x.cat];
           return `<div class="impex"><span class="d10" style="--c:${lc ? LCOL[lc] : "var(--steel)"}"></span><div class="grow"><div style="font-weight:600">${esc(x.canon || x.name)}${x.canon ? "" : ` <span class="imptag">à vérifier</span>`}</div>
             <div class="impsets">${x.groups.map(g => `<span>${esc(ProgImport.fmtGroup(g))}</span>`).join("")}${x.rpe ? `<span>RPE ${esc(x.rpe)}</span>` : ""}</div>
-            <div class="muted tiny impraw">« ${esc(String(x.raw || "").slice(0, 70))} »</div>
+            ${x.why ? `<div class="impwhy ${x.whyCls}">${esc(x.why)}</div>` : `<div class="muted tiny impraw">« ${esc(String(x.raw || "").slice(0, 70))} »</div>`}
             ${open ? `<div class="impedit"><label for="ie-n">Exercice</label><input id="ie-n" value="${esc(x.canon || x.name)}" data-chg="impF" data-k="${key}" data-f="n">
               ${x.groups.map((g, gi) => `<div class="impgrid"><div><label>Séries</label><input inputmode="numeric" value="${esc(g.sets)}" data-chg="impF" data-k="${key}" data-g="${gi}" data-f="s"></div><div><label>Reps</label><input value="${esc(g.reps)}" data-chg="impF" data-k="${key}" data-g="${gi}" data-f="r"></div><div><label>Charge</label><input value="${esc(impLoadTxt(g.load))}" placeholder="80, +20, 70 %" data-chg="impF" data-k="${key}" data-g="${gi}" data-f="l"></div></div>`).join("")}
               <button class="btn ghost sm" style="margin-top:10px" data-act="impDel" data-k="${key}">Retirer cet exercice</button></div>` : ""}</div>
@@ -2892,14 +2935,14 @@ function rImpPage(){
   } else {
     const s = imp.saved;
     h = `${impStepper(3)}<div style="text-align:center"><div class="impok">✓</div><p class="show t-m">Programme ajouté</p><p class="muted small" style="margin-top:6px">Tu le retrouves dans tes séances, comme celui d'un coach. Il est dans ton carnet Google Sheet, onglet « ${esc(s.name)} ».</p></div>
-      <div class="panel" style="margin-top:14px"><div class="row"><span>Programme</span><b>${esc(s.name)}</b></div><div class="row" style="margin-top:8px"><span>Exercices</span><b>${s.exos}</b></div><div class="row" style="margin-top:8px"><span>Reconnus</span><b>${s.ok} / ${s.exos}</b></div></div>
+      <div class="panel" style="margin-top:14px"><div class="row"><span>Programme</span><b>${esc(s.name)}</b></div><div class="row" style="margin-top:8px"><span>Début</span><b>${s.start ? esc(dlong(s.start)) : "non daté"}</b></div><div class="row" style="margin-top:8px"><span>Exercices</span><b>${s.exos}</b></div><div class="row" style="margin-top:8px"><span>Reconnus</span><b>${s.ok} / ${s.exos}</b></div></div>
       <button class="btn" style="margin-top:16px" data-act="impDone">Voir mes séances</button>`;
   }
   return `<div class="page" role="dialog" aria-label="Ajouter mon programme"><div class="wrap">${back}${h}</div></div>`;
 }
 Object.assign(ACT, {
   impOpen:() => { imp = impNew(); sheet = null; page = {type:"imp"}; renderLayer(); },
-  impBack:() => { if (!imp || imp.busy) return; if (imp.step === 2) { imp.step = 1; imp.edit = null; renderLayer(); } else { page = null; imp = null; renderLayer(); } },
+  impBack:() => { if (!imp || imp.busy) return; if (imp.step === 2 && imp.mode !== "next") { imp.step = 1; imp.edit = null; renderLayer(); } else { page = null; imp = null; renderLayer(); } },
   impRun:() => {
     const el = document.getElementById("imptxt"); if (el) imp.text = el.value;
     if (!imp.text.trim()) return toast("Colle d'abord ton programme", true);
@@ -2919,6 +2962,8 @@ Object.assign(ACT, {
       impFromBook(sheets, "ce Google Sheet");
     } catch(e){ imp.busy = false; renderLayer(); toast("Sheet inaccessible : " + errMsg(e), true); }
   },
+  impNext:() => { const b = impNextBlock(); if (!b) return toast("Pas encore de séance à reprendre dans ton bloc", true);
+    imp = Object.assign(impNew(), {mode:"next", res:b.res, title:b.title, start:b.start, step:2}); sheet = null; page = {type:"imp"}; renderLayer(); },
   impWeek:d => { imp.week = +d.w; imp.edit = null; renderLayer(); },
   impEdit:d => { imp.edit = imp.edit === d.k ? null : d.k; renderLayer(); },
   impDel:d => { const [w, di, ei] = d.k.split(".").map(Number); imp.res.weeks[w].days[di].exos.splice(ei, 1); imp.edit = null;
@@ -2932,8 +2977,11 @@ Object.assign(ACT, {
       const rows = ProgImport.toGrid(imp.res, new Date().toLocaleDateString("fr-BE"), name);
       await addProgTab(APP_ID, name, rows);
       if (!coachId()) { await Store.profil.set("coach_sheet_id", APP_ID); D.profil.coach_sheet_id = APP_ID; }
-      const ex = impExos(); imp.saved = {name, exos:ex.length, ok:ex.filter(x => x.canon).length}; imp.step = 3;
-      S = []; loadedBlocs.clear(); allLoaded = false; weekMeta = {}; blocNames = {}; progOrder = []; liveIds = new Set(); archMeta = {}; liveCycle = {}; saveCache(); syncAll(true);
+      const ex = impExos(); imp.saved = {name, exos:ex.length, ok:ex.filter(x => x.canon).length, start:imp.start || ""}; imp.step = 3;
+      S = []; loadedBlocs.clear(); allLoaded = false; weekMeta = {}; blocNames = {}; progOrder = []; liveIds = new Set(); archMeta = {}; liveCycle = {}; saveCache();
+      await impReload();
+      const nb = Object.keys(blocNames).find(k => String(blocNames[k]).trim() === name);
+      if (nb && imp.start) { try { await Store.blocs.setDate(+nb, imp.start); D.blocs[+nb] = imp.start; saveCache(); render(); } catch(e){ toast("Programme ajouté, mais la date de début n'a pas pu s'enregistrer : " + errMsg(e), true); } }
     } catch(e){ toast(errMsg(e), true); }
     imp.busy = false; renderLayer();
   },
@@ -2942,6 +2990,7 @@ Object.assign(ACT, {
 Object.assign(CHG, {
   impTxt:(d, el) => { imp.text = el.value; },
   impTitle:(d, el) => { imp.title = el.value; },
+  impStart:(d, el) => { imp.start = el.value; },
   impLinkVal:(d, el) => { imp.link = el.value; },
   impFile:async (d, el) => { const f = el.files && el.files[0]; if (!f) return;
     if (f.size > 5000000) return toast("Ce fichier est trop gros pour un programme", true);
