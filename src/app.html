@@ -471,7 +471,7 @@ html,body{overflow-x:clip}body{margin-top:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "33 · 23 oct. 2026";
+const APP_VER = "34 · 23 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -2805,6 +2805,41 @@ function impLoadFrom(t){
   if ((m = t.match(/^(\d+(?:\.\d+)?)\s*(kg|lbs?)?$/i))) return {kind:"abs", v:Number(m[1]), u:(m[2] || "kg").toLowerCase().replace(/s$/, "")};
   return null;
 }
+const loadZip = async () => { if (!window.JSZip) await new Promise((ok, ko) => { const sc = document.createElement("script"); sc.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"; sc.onload = ok; sc.onerror = ko; document.head.appendChild(sc); }); };
+/* Classeur .xlsx (un zip de XML) → [{name, rows}] ; lecture locale, sans envoi. */
+async function readXlsx(file){
+  await loadZip();
+  const z = await JSZip.loadAsync(file), xml = async n => { const f = z.file(n); return f ? new DOMParser().parseFromString(await f.async("string"), "application/xml") : null; };
+  const wb = await xml("xl/workbook.xml"); if (!wb) throw new Error("xlsx");
+  const rels = await xml("xl/_rels/workbook.xml.rels"), relT = {};
+  if (rels) for (const r of rels.getElementsByTagName("Relationship")) relT[r.getAttribute("Id")] = r.getAttribute("Target");
+  const ss = await xml("xl/sharedStrings.xml"), shared = ss ? [...ss.getElementsByTagName("si")].map(si => [...si.getElementsByTagName("t")].map(t => t.textContent).join("")) : [];
+  const colN = ref => { let n = 0; for (const ch of ref.replace(/\d+/g, "")) n = n * 26 + ch.charCodeAt(0) - 64; return n - 1; };
+  const out = [];
+  for (const sh of wb.getElementsByTagName("sheet")) {
+    const rid = sh.getAttribute("r:id") || sh.getAttributeNS("http://schemas.openxmlformats.org/officeDocument/2006/relationships", "id"), t = relT[rid]; if (!t) continue;
+    const doc = await xml("xl/" + t.replace(/^\/?(xl\/)?/, "")); if (!doc) continue;
+    const rows = [];
+    for (const row of doc.getElementsByTagName("row")) {
+      const r = (+row.getAttribute("r") || rows.length + 1) - 1; rows[r] = rows[r] || [];
+      for (const c of row.getElementsByTagName("c")) {
+        const ref = c.getAttribute("r"), ty = c.getAttribute("t"), v = c.getElementsByTagName("v")[0], is = c.getElementsByTagName("is")[0];
+        let val = ty === "s" && v ? shared[+v.textContent] ?? "" : ty === "inlineStr" && is ? [...is.getElementsByTagName("t")].map(x => x.textContent).join("") : v ? v.textContent : "";
+        if (ty === "b") val = v && v.textContent === "1" ? "VRAI" : "FAUX";
+        rows[r][ref ? colN(ref) : rows[r].length] = String(val ?? "").replace(/^(-?\d+)\.0$/, "$1");
+      }
+    }
+    for (let i = 0; i < rows.length; i++) rows[i] = Array.from(rows[i] || [], v => v ?? "");
+    out.push({name:sh.getAttribute("name"), rows});
+  }
+  return out;
+}
+/* Classeur → aperçu (même écran que le texte collé). */
+function impFromBook(sheets, label){
+  let res; try { res = ProgImport.parseWorkbook(sheets); } catch(e){ return toast("Je n'ai pas réussi à lire ce classeur", true); }
+  if (!res.stats || !res.stats.exos) return toast("Je n'ai reconnu aucun exercice dans " + label + ". Essaie de copier le tableau et de le coller en texte.", true);
+  imp.res = res; imp.step = 2; imp.week = 0; imp.edit = null; renderLayer(); const p = document.querySelector(".page"); if (p) p.scrollTop = 0;
+}
 const impExos = () => imp.res.weeks.flatMap(w => w.days.flatMap(d => d.exos));
 const impStepper = n => { const dots = [1, 2, 3].map(i => `<i class="${i < n ? "done" : i === n ? "on" : ""}">${i < n ? "✓" : i}</i>${i < 3 ? "<u></u>" : ""}`).join("");
   return `<div class="impstp" role="img" aria-label="Étape ${n} sur 3">${dots}<span>${["", "Je colle mon programme", "Je vérifie ce que l'app a compris", "C'est enregistré"][n]}</span></div>`; };
@@ -2821,8 +2856,11 @@ function rImpPage(){
       <label for="imptxt">Colle ton texte ici</label>
       <textarea id="imptxt" class="imptxt" rows="11" placeholder="LUNDI PUSH&#10;dc 4x6 80kg&#10;dips lest 4x8 +20&#10;…" data-chg="impTxt">${esc(imp.text)}</textarea>
       <button class="btn" style="margin-top:12px" data-act="impRun">Analyser →</button>
-      <label class="btn ghost" style="margin-top:10px;cursor:pointer">Importer un fichier texte ou CSV<input type="file" accept=".csv,.tsv,.txt,text/plain,text/csv" data-chg="impFile" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></label>
-      <p class="muted small" style="margin-top:12px">Un fichier Excel ? Sélectionne le tableau, copie-le et colle-le ci-dessus. Photo ou PDF : bientôt.</p>
+      <label class="btn ghost" style="margin-top:10px;cursor:pointer">Importer un fichier Excel (.xlsx) ou CSV<input type="file" accept=".xlsx,.csv,.tsv,.txt,text/plain,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" data-chg="impFile" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></label>
+      <label for="implink" style="margin-top:14px">Ou un lien Google Sheet</label>
+      <input id="implink" type="url" inputmode="url" placeholder="https://docs.google.com/spreadsheets/d/…" value="${esc(imp.link || "")}" data-chg="impLinkVal">
+      <button class="btn ghost" style="margin-top:8px" data-act="impLink" ${imp.busy ? "disabled" : ""}>${imp.busy ? "Lecture du Sheet…" : "Lire ce Google Sheet"}</button>
+      <p class="muted small" style="margin-top:6px">Le Sheet doit être ouvert avec ton compte Google (le tien ou partagé avec toi). Photo ou PDF : bientôt.</p>
       <p class="muted tiny" style="margin-top:6px">Ton texte reste sur ton téléphone : rien n'est envoyé pour l'analyse.</p>`;
   } else if (imp.step === 2) {
     const r = imp.res, ex = impExos(), unk = ex.filter(x => !x.canon).length, w = r.weeks[imp.week] || r.weeks[0];
@@ -2861,6 +2899,18 @@ Object.assign(ACT, {
     if (!res.stats || !res.stats.exos) return toast("Je n'ai reconnu aucun exercice. Vérifie que chaque ligne contient un exercice et ses séries (ex. « squat 4x5 100kg »).", true);
     imp.res = res; imp.step = 2; imp.week = 0; imp.edit = null; renderLayer(); const p = document.querySelector(".page"); if (p) p.scrollTop = 0;
   },
+  impLink:async () => {
+    const el = document.getElementById("implink"); if (el) imp.link = el.value;
+    const id = idOf(imp.link); if (!id) return toast("Ce lien ne ressemble pas à un lien de Google Sheet", true);
+    if (imp.busy) return; imp.busy = true; renderLayer();
+    try {
+      const titles = await getTitles(id), tabs = titles.slice(0, 12), vals = await getMany(id, tabs.map(t => q(t) + "!A1:CZ400"));
+      const sheets = tabs.map((t, i) => ({name:t, rows:(vals[i] || []).map(r => r.map(v => String(v ?? "")))}));
+      imp.busy = false;
+      if (titles.some(t => BLOC_RE.test(t))) { renderLayer(); return toast("Ce Sheet a déjà le format d'une prog de coach : colle son lien dans Réglages, « Lien de la prog du coach »", true); }
+      impFromBook(sheets, "ce Google Sheet");
+    } catch(e){ imp.busy = false; renderLayer(); toast("Sheet inaccessible : " + errMsg(e), true); }
+  },
   impWeek:d => { imp.week = +d.w; imp.edit = null; renderLayer(); },
   impEdit:d => { imp.edit = imp.edit === d.k ? null : d.k; renderLayer(); },
   impDel:d => { const [w, di, ei] = d.k.split(".").map(Number); imp.res.weeks[w].days[di].exos.splice(ei, 1); imp.edit = null;
@@ -2883,8 +2933,11 @@ Object.assign(ACT, {
 Object.assign(CHG, {
   impTxt:(d, el) => { imp.text = el.value; },
   impTitle:(d, el) => { imp.title = el.value; },
+  impLinkVal:(d, el) => { imp.link = el.value; },
   impFile:async (d, el) => { const f = el.files && el.files[0]; if (!f) return;
-    if (f.size > 500000) return toast("Ce fichier est trop gros pour un programme", true);
+    if (f.size > 5000000) return toast("Ce fichier est trop gros pour un programme", true);
+    if (/\.xlsx$/i.test(f.name)) { try { impFromBook(await readXlsx(f), "ce fichier"); } catch(e){ toast("Fichier Excel illisible. Essaie de copier le tableau et de le coller en texte.", true); } el.value = ""; return; }
+    if (/\.xls$/i.test(f.name)) return toast("Ancien format .xls : enregistre-le en .xlsx, ou copie le tableau et colle-le", true);
     try { imp.text = await f.text(); renderLayer(); } catch(e){ toast("Fichier illisible", true); } },
   impF:(d, el) => { const [w, di, ei] = d.k.split(".").map(Number), x = imp.res.weeks[w].days[di].exos[ei], v = el.value.trim();
     if (d.f === "n") { const c = ProgImport.canon(v); x.name = v; x.canon = c.canon; x.cat = c.cat; }

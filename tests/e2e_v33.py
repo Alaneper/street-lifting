@@ -63,6 +63,27 @@ with sync_playwright() as p:
     pg.evaluate("imp = impNew(); page = {type:'imp'}; renderLayer()"); pg.wait_for_timeout(200)
     pg.fill("#imptxt", "bonjour, voici mon programme de la semaine, courage"); pg.click("[data-act=impRun]"); pg.wait_for_timeout(300)
     check("texte sans exercice : message, on reste à l'étape 1", pg.evaluate("imp.step === 1"))
+    # 5. fichier .xlsx (lecture locale) et lien Google Sheet
+    import openpyxl
+    wbk = openpyxl.Workbook(); ws = wbk.active; ws.title = "Programme"
+    for r in [["Jour", "Exercice", "Séries", "Reps", "Charge", "RPE"], ["Lundi", "Squat", 4, 5, 100, 7], ["Lundi", "Développé couché", 3, 8, 80, 8], ["Lundi", "Tractions lestées", 4, 6, 15, ""], ["Mercredi", "Soulevé de terre", 3, 3, 140, 8], ["Mercredi", "Dips", 4, 8, 20, ""]]: ws.append(r)
+    wbk.create_sheet("Notes").append(["Penser à bien dormir"])
+    xp = str(OUT / "v33-test.xlsx"); wbk.save(xp)
+    pg.evaluate("imp = impNew(); page = {type:'imp'}; renderLayer()"); pg.wait_for_timeout(200)
+    pg.set_input_files("input[data-chg=impFile]", xp); pg.wait_for_timeout(1500)
+    check("xlsx : aperçu à l'étape 2", pg.evaluate("imp.step === 2"), pg.evaluate("imp.step"))
+    r = pg.evaluate("imp.res.weeks.flatMap(w => w.days.flatMap(d => d.exos.map(e => [d.label, e.canon || e.name, e.groups[0].sets, e.groups[0].reps, e.groups[0].load && e.groups[0].load.v])))")
+    check("xlsx : 5 exercices lus avec séries, reps et charges", len(r) == 5 and ["Lundi", "Squat", 4, "5", 100] in r and ["Mercredi", "Dips", 4, "8", 20] in r, r)
+    LK = "1abcdefghijklmnopqrstuvwxyz0123456789"
+    pg.evaluate("""k => { window.__sheets[k] = {"Semaine 1": [['Exercice','Séries','Reps','Charge'],['Squat','5','5','110'],['Bench','4','6','85'],['Rowing','4','8','70']]}; imp = impNew(); page = {type:'imp'}; renderLayer(); }""", LK)
+    pg.wait_for_timeout(200)
+    pg.fill("#implink", "pas un lien"); pg.click("[data-act=impLink]"); pg.wait_for_timeout(200)
+    check("lien invalide : on reste à l'étape 1", pg.evaluate("imp.step === 1"))
+    pg.fill("#implink", "https://docs.google.com/spreadsheets/d/1abcdefghijklmnopqrstuvwxyz0123456789/edit"); pg.click("[data-act=impLink]"); pg.wait_for_timeout(500)
+    check("lien Google Sheet : Sheet lu puis aperçu à l'étape 2", pg.evaluate("imp.step === 2 && impExos().length === 3"), pg.evaluate("[imp.step, impExos().length]"))
+    pg.evaluate("k => { window.__sheets[k] = {'BLOC 1': [['x']], 'PROFIL': [['y']]}; imp = impNew(); page = {type:'imp'}; renderLayer(); }", LK); pg.wait_for_timeout(200)
+    pg.fill("#implink", "https://docs.google.com/spreadsheets/d/1abcdefghijklmnopqrstuvwxyz0123456789/edit"); pg.click("[data-act=impLink]"); pg.wait_for_timeout(400)
+    check("Sheet de coach (onglets BLOC) : orienté vers Réglages, pas importé", pg.evaluate("imp.step === 1"))
     check("version 33 ou plus", float(pg.evaluate("APP_VER").split(" ")[0]) >= 33)
     check("aucune erreur console", not [e for e in errs if "Failed to load resource" not in e], errs[:4])
     br.close()
