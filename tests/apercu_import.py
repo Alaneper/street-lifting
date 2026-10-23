@@ -12,6 +12,18 @@ js = """const {parseProgram,fmtGroup}=require(process.argv[1]);const fs=require(
 const out={};for(const [k,dir] of JSON.parse(process.argv[2])){const r=parseProgram(fs.readFileSync(process.argv[3]+'/'+dir+'/'+k+'.txt','utf8'));
 r.weeks.forEach(w=>w.days.forEach(d=>d.exos.forEach(e=>e.fmt=e.groups.map(fmtGroup))));out[k]=r}console.log(JSON.stringify(out))"""
 data = json.loads(subprocess.check_output(["node", "-e", js, str(R / "src/prog_import.js"), json.dumps([[c[0], c[1]] for c in CASES]), str(H / "fixtures")]))
+# Classeurs .xlsx (corpus synthétique) : python3 tests/gen_corpus.py <dossier> puis CORPUS=<dossier>
+import os, openpyxl
+XL = []
+if os.environ.get("CORPUS"):
+    C = pathlib.Path(os.environ["CORPUS"])
+    XL = [("xlsx_coach-0", "Powerlifting · modèle du coach (.xlsx)", "classeur Excel, semaines côte à côte"),
+          ("xlsx_sets_cols-2", "Musculation · une colonne par série (.xlsx)", "classeur Excel, une feuille par semaine")]
+    cv = lambda v: "" if v is None else str(int(v)) if isinstance(v, float) and v.is_integer() else str(v)
+    books = {k: [{"name": ws.title, "rows": [[cv(v) for v in row] for row in ws.iter_rows(values_only=True)]} for ws in openpyxl.load_workbook(C / (k + ".xlsx")).worksheets] for k, _, _ in XL}
+    jx = """const {parseWorkbook,fmtGroup}=require(process.argv[1]);let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const o={};
+for(const [k,b] of Object.entries(JSON.parse(s))){const r=parseWorkbook(b);r.weeks.forEach(w=>w.days.forEach(d=>d.exos.forEach(e=>e.fmt=e.groups.map(fmtGroup))));o[k]=r}console.log(JSON.stringify(o))})"""
+    data.update(json.loads(subprocess.run(["node", "-e", jx, str(R / "src/prog_import.js")], input=json.dumps(books), capture_output=True, text=True, check=True).stdout))
 COL = {"squat": "#F0524A", "bench": "#A78BFA", "deadlift": "#EC6FB0", "pull": "#4C8DF6", "dip": "#2BB673", "mu": "#E3B341", "": "#8E9198"}
 CSS = """<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
 <style>*{box-sizing:border-box;margin:0}body{background:#0A0B0D;color:#fff;font-family:Barlow,-apple-system,"Segoe UI",sans-serif;width:390px;padding:58px 16px 40px}
@@ -62,6 +74,8 @@ with sync_playwright() as p:
     br = p.chromium.launch(); pg = br.new_page(viewport={"width": 390, "height": 844}, device_scale_factor=2)
     shots = []
     for k, _, title, src in CASES:
+        pg.set_content(page(k, title, src)); pg.wait_for_timeout(600); f = OUT / f"import-{k}.png"; pg.screenshot(path=str(f), full_page=True); shots.append(f)
+    for k, title, src in XL:
         pg.set_content(page(k, title, src)); pg.wait_for_timeout(600); f = OUT / f"import-{k}.png"; pg.screenshot(path=str(f), full_page=True); shots.append(f)
     k, _, title, src = CASES[0]
     pg.set_content(page(k, title, src, "B")); pg.wait_for_timeout(600); pg.screenshot(path=str(OUT / f"import-{k}-B.png"), full_page=True)
