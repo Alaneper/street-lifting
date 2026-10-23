@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261023152819">
+<meta name="sl-build" content="20261023183546">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -22,7 +22,7 @@
   color-scheme:dark;
   --floor:#0A0B0D; --deck:#16181C; --deck2:#1F2227; --deck3:#2A2E34; --seam:#1C1F24;
   --chalk:#FFFFFF; --dust:#8A9099; --faint:#7D838C; --steel:#8E9198; --steel-hi:#B4BAC2; --brand:#1F5FD0;
-  --mu:#E3B341; --pull:#4C8DF6; --dip:#2BB673; --squat:#F0524A; --bench:#A78BFA; --deadlift:#EC6FB0;
+  --mu:#E3B341; --pull:#4C8DF6; --dip:#2BB673; --squat:#F0524A; --bench:#A78BFA; --deadlift:#EC6FB0; --cardio:#4FD1C5;
   --go:#FFFFFF; --comp:#1F5FD0; --ok:#2BB673; --warn:#E3B341; --bad:#FF6F61;
   --f-show:"Barlow Condensed","Arial Narrow",sans-serif;
   --f-text:"Barlow",-apple-system,"Segoe UI",sans-serif;
@@ -496,12 +496,13 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "39 · 23 oct. 2026";
+const APP_VER = "40 · 23 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
 const LNAME = {MU:"Muscle-up", PULL:"Tractions", DIP:"Dips", SQUAT:"Squat", BENCH:"Bench", DEADLIFT:"Deadlift", TOTAL:"Total"};
 const LCOL = {MU:"var(--mu)", PULL:"var(--pull)", DIP:"var(--dip)", SQUAT:"var(--squat)", BENCH:"var(--bench)", DEADLIFT:"var(--deadlift)"};
+LCOL.CARDIO = "var(--cardio)";   /* v40 : le cardio a sa couleur, il ne compte ni dans un total ni dans un classement */
 const BW_LIFTS = ["MU","PULL","DIP"];
 const RPE_OPTS = [5,6,6.5,7,7.5,8,8.5,9,9.5,10];
 const CATS_H = [-66,-73,-80,-87,-94,-101,101], CATS_F = [-52,-57,-63,-70,70];
@@ -686,6 +687,21 @@ function setsFromComment(e, c){
   return null;
 }
 const repsOnly = s => { const p = parseSets(s, 0); return p ? p.map(x => x.r) : null; };
+/* Cardio (v40) : durée en minutes, distance facultative. Rangé dans SERIES sous la forme « 10 min 3,2 km + 5 min » : aucun changement de format du carnet. */
+const unacc = s => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase();
+const CARDIO_RE = /\b(VELO|BIKE|CYCLING|SPINNING|MARCHE|COURSE|RUNNING|JOGGING|FOOTING|TAPIS|TREADMILL|RAMEUR|ELLIPTIQUE|ELLIPTICAL|CROSS TRAINER|ESCALIERS?|STAIRMASTER|STEPPER|NATATION|SWIM|NAGE|CARDIO|SKIERG|AIRBIKE)\b|\bWALK\b/;
+const isCardioName = s => CARDIO_RE.test(unacc(s).replace(/FARMER'?S? WALK/g, ""));
+/* « 10 min », « 20' », « 1h » → minutes ; sinon null */
+const durMin = r => { const t = String(r ?? "").trim(); let m = t.match(/^(\d+(?:[.,]\d+)?)\s*(?:min(?:utes?)?|mn|'|’)$/i); if (m) return num(m[1]);
+  m = t.match(/^(\d+(?:[.,]\d+)?)\s*h(?:eures?)?$/i); return m ? Math.round(num(m[1]) * 600) / 10 : null; };
+function parseCardio(s){
+  const t = String(s ?? "").trim(); if (!t || !/min/i.test(t)) return null;
+  const out = [];
+  for (const p of t.split(/\s*\+\s*/)) { const m = p.trim().match(/^(\d+(?:[.,]\d+)?)\s*min(?:\s*[·-]?\s*(\d+(?:[.,]\d+)?)\s*km)?$/i); if (!m) return null; out.push({r:num(m[1]), c:m[2] ? num(m[2]) : null}); }
+  return out.length ? out : null;
+}
+const fmtCardio = sets => sets.map(x => fmt(x.r, 1) + " min" + (x.c ? " " + fmt(x.c, 2) + " km" : "")).join(" + ");
+const cardioTot = sets => ({min:sets.reduce((a, x) => a + (num(x.r) || 0), 0), km:sets.reduce((a, x) => a + (num(x.c) || 0), 0)});
 function toast(msg, bad){
   const t = $("#toast"); t.textContent = msg; t.classList.toggle("bad", !!bad);
   t.classList.add("on"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("on"), 2800);
@@ -753,8 +769,10 @@ const Store = (() => {
       const objectifs = {}; OB.slice(1).forEach(r => { if (r[0]) objectifs[norm(r[0])] = num(r[1]); });
       const comps = CO.map((r, i) => ({id:i + 1, date:toIso(r[0]), nom:String(r[1] || "").trim(), lieu:String(r[2] || "").trim(), note:String(r[3] || "").trim(), tbc:/confirmer/i.test(r[4] || "")}))
         .slice(1).filter(c => c.date && c.nom).sort((a, b) => a.date < b.date ? -1 : 1);
-      const series = SE.map((r, i) => ({id:i + 1, date:toIso(r[0]), bloc:num(r[1]), semaine:String(r[2] ?? "").trim(), seance:String(r[3] ?? "").trim(), ex:norm(r[4]), charge:num(r[5]), sets:parseSets(r[6], num(r[5])), note:String(r[8] || "")}))
-        .slice(1).filter(x => x.ex && x.sets);
+      const seRow = (r, i) => ({id:i + 1, date:toIso(r[0]), bloc:num(r[1]), semaine:String(r[2] ?? "").trim(), seance:String(r[3] ?? "").trim(), ex:norm(r[4]), charge:num(r[5]), note:String(r[8] || "")});
+      const series = SE.map((r, i) => ({...seRow(r, i), sets:parseSets(r[6], num(r[5]))})).slice(1).filter(x => x.ex && x.sets);
+      /* v40 : le cardio (minutes, km) vit dans SERIES mais dans une liste à part : il n'entre jamais dans les records, le 1RM ni le tonnage */
+      const cardio = SE.map((r, i) => ({...seRow(r, i), sets:parseCardio(r[6])})).slice(1).filter(x => x.ex && x.sets);
       const blocs = {}; BL.slice(1).forEach(r => { const n = num(r[0]), d = toIso(r[1]); if (n && d) blocs[n] = d; });
       const checks = CH.map((r, i) => ({id:i + 1, date:toIso(r[0]), item:String(r[1] || "").trim(), done:/^(true|vrai|oui|1|x)$/i.test(String(r[2] || "").trim())})).slice(1).filter(x => x.date && x.item);
       const bilans = BI.slice(1).map(r => ({date:toIso(r[0]), bloc:num(r[1]), semaine:String(r[2] ?? "").trim(), v:BILAN_CRIT.map((_, i) => num(r[3 + i]))})).filter(b => b.bloc);
@@ -767,7 +785,7 @@ const Store = (() => {
         (mesRepas[n] = mesRepas[n] || []).push({id:i + 2, nom:String(r[1]), q:num(r[4]) || 0, k:num(r[5]) || 0, p:num(r[6]) || 0, g:num(r[7]) || 0, l:num(r[8]) || 0}); }); }
       /* archive des blocs : format propre à l'archive (une ligne = un exercice d'une séance passée) */
       const archive = HI ? HI.map((r, i) => ({id:i + 1, r})).slice(1).filter(x => x.r[0] && x.r[1]) : null;
-      return {profil, prs, poids, objectifs, comps, series, blocs, checks, bilans, repas, aliments, mesRepas, archive};
+      return {profil, prs, poids, objectifs, comps, series, cardio, blocs, checks, bilans, repas, aliments, mesRepas, archive};
     },
     ensureTabs: () => ensureTabs(APP_ID),
     get canArchive(){ return typeof writeMany === "function"; },   /* le carnet accepte les écritures groupées (archive des blocs) */
@@ -808,14 +826,15 @@ async function loadApp(){
   /* onglet absent (carnet ancien) : on garde ce qu'on avait déjà */
   const nutTabs = x.repas !== null, mrTab = x.mesRepas !== null;
   if (x.archive) { ARCH = x.archive; archTab = true; } else { ARCH = []; archTab = false; }
-  D = {profil:x.profil, prs:x.prs, poids:x.poids, objectifs:x.objectifs, comps:x.comps, series:x.series, blocs:x.blocs, checks:x.checks, bilans:x.bilans,
+  D = {profil:x.profil, prs:x.prs, poids:x.poids, objectifs:x.objectifs, comps:x.comps, series:x.series, cardio:x.cardio || [], blocs:x.blocs, checks:x.checks, bilans:x.bilans,
     repas:nutTabs ? x.repas : (D && D.repas) || [], aliments:nutTabs ? x.aliments : (D && D.aliments) || [], mesRepas:mrTab ? x.mesRepas : (D && D.mesRepas) || {},
     _mrTab:mrTab, _nutTabs:nutTabs, today:isoOf(new Date())};
 }
 /* cache d'une version ≤ 30 : « _row » / « row » deviennent « id » */
 function migrateIds(){
   const fix = o => { if (o && o.id === undefined) { if (o._row !== undefined) { o.id = o._row; delete o._row; } else if (o.row !== undefined) { o.id = o.row; delete o.row; } } };
-  if (D) { [D.repas, D.series, D.comps, D.checks].forEach(L => (L || []).forEach(fix)); Object.values(D.mesRepas || {}).forEach(L => (L || []).forEach(fix)); }
+  if (D && !D.cardio) D.cardio = [];   /* cache d'une version ≤ 39 */
+  if (D) { [D.repas, D.series, D.cardio, D.comps, D.checks].forEach(L => (L || []).forEach(fix)); Object.values(D.mesRepas || {}).forEach(L => (L || []).forEach(fix)); }
   (ARCH || []).forEach(fix);
 }
 
@@ -1120,9 +1139,11 @@ function todaySeance(){ const t = S.find(s => dateOf(s) === D.today); return t |
    CALCULS
    ===================================================================== */
 /* Disciplines (v28) : clé PROFIL « disciplines » (street, power ou les deux). Absente : street lifting, comme avant. */
-const discs = () => { const s = String(D.profil.disciplines || "").toLowerCase(), p = /power/.test(s); return {street:/street/.test(s) || !p, power:p}; };
-const streetOn = () => discs().street, powerOn = () => discs().power;
-const mainDisc = () => streetOn() ? "street" : "power";
+const discs = () => { const s = String(D.profil.disciplines || "").toLowerCase(), p = /power/.test(s), m = /muscu/.test(s); return {street:/street/.test(s) || (!p && !m), power:p, muscu:m}; };
+const streetOn = () => discs().street, powerOn = () => discs().power, muscuOn = () => discs().muscu;
+/* v40 : musculation seule = ni total, ni score, ni catégorie de poids, ni classement. Cumulable avec street lifting et powerlifting. */
+const muscuOnly = () => !streetOn() && !powerOn();
+const mainDisc = () => streetOn() ? "street" : powerOn() ? "power" : "muscu";
 const equipped = () => norm(D.profil.power_mode) === "EQUIPPED";
 const suivis = () => String(D.profil.suivis || "").toUpperCase().split(/[,;\s]+/).filter(l => ALL_LIFTS.includes(l));
 const shownLifts = () => ALL_LIFTS.filter(l => (streetOn() && LIFTS.includes(l)) || (powerOn() && POWER_LIFTS.includes(l)) || suivis().includes(l));
@@ -1136,7 +1157,7 @@ const catAutoOn = k => { const v = norm(D.profil[k + "_auto"]); return v ? v ===
 const cat = () => (catAutoOn("categorie") && catAuto(bw(), catsFor(sexe()))) || num(D.profil.categorie) || (sexe() === "F" ? -57 : -80);
 const catIpf = () => (catAutoOn("categorie_ipf") && catAuto(bw(), catsIpfFor(sexe(), myAges().some(a => a === "SJ" || a === "JR")))) || num(D.profil.categorie_ipf) || catAuto(bw() || 80, catsIpfFor(sexe(), false));
 const catOf = d => d === "power" ? catIpf() : cat();
-const catLimit = () => { const c = catOf(mainDisc()); return c < 0 ? -c : null; };
+const catLimit = () => { if (muscuOnly()) return null; const c = catOf(mainDisc()); return c < 0 ? -c : null; };
 const muOn = () => true;   /* v28 : le muscle-up s'affiche toujours (0 kg tant qu'il n'y a pas de record) */
 const bwAt = iso => { let v = null; for (const p of D.poids) { if (p.date <= iso) v = p.poids; else break; } return v ?? (D.poids[0] || {}).poids ?? null; };
 const risOf = (total, w) => { const c = RIS[sexe()]; if (!total || !w) return null; return total * 100 / (c.a + (c.k - c.a) / (1 + c.q * Math.exp(-c.b * (w - c.v)))); };
@@ -1400,6 +1421,13 @@ const okW = v => !!v && v >= 30 && v <= 250;
 function hwRefresh(){ const i = $("#hw"), v = num((i || {}).value), b = $("#hwbtn"), l = $("#hwlim"), lim = catLimit();
   if (i) hwDraft = {d:D.today, v:i.value};
   if (b) b.textContent = "Noter" + (okW(v) ? " " + fmt(v, 1) + " kg" : ""); if (l && lim) l.textContent = okW(v) ? limTxt(v, lim) : ""; }
+/* Semaine d'un utilisateur « musculation seule » : séances faites sur prévues, minutes et km de cardio (lundi à dimanche). */
+function muscuWeek(ref){
+  const t = dObj(ref), mon = addDays(ref, -((t.getDay() + 6) % 7)), sun = addDays(mon, 6);
+  const ss = S.filter(z => { const d = dateOf(z); return d && d >= mon && d <= sun; }), cd = (D.cardio || []).filter(x => x.date && x.date >= mon && x.date <= sun);
+  const tot = cardioTot(cd.flatMap(x => x.sets));
+  return {done:ss.filter(z => z.faite).length, planned:ss.length, min:tot.min, km:tot.km};
+}
 function rHome(){
   if (document.activeElement && document.activeElement.id === "hw") return;   /* ne pas fermer le clavier pendant la saisie du poids */
   const cd = curDisc(), t = totalOf(cd), ts = todaySeance(), ns = nextSeance(), sess = ts && !ts.faite ? ts : ns, nc = nextComp(), pw = D.poids.at(-1), weighed = pw && pw.date === D.today;
@@ -1407,16 +1435,18 @@ function rHome(){
   const weekRef = sessDate && sessDate > addDays(D.today, 6 - (dObj(D.today).getDay() + 6) % 7) ? sessDate : D.today, wr = S.length ? weekRows(weekRef) : "";
   const jourBtn = sessDate ? (sessDate === D.today ? "d'aujourd'hui" : "de " + JOURS[dObj(sessDate).getDay()]) : "";
   const tgt = goalOf(cd), tsub = totalSub(cd, t, bw(), tgt), tsmall = cd === "power" && streetOn() ? "Mon total power" : "Mon total";
-  const heroH = nc ? heroCard({small:`${esc(nc.nom)}, ${dlong(nc.date)}`, big:days(D.today, nc.date) === 0 ? "Jour J" : "J−" + days(D.today, nc.date), sub:[nc.tbc ? "date à confirmer" : "", rem ? `encore ${rem} séance${rem > 1 ? "s" : ""} dans le ${blocLow(activeBloc())}` : ""].filter(Boolean).join(" · "), act:`data-act="tab" data-t="agenda" role="button" tabindex="0"`})
+  const mw = muscuOnly() ? muscuWeek(weekRef) : null;
+  const heroMu = mw ? heroCard({small:"Cette semaine", big:`${mw.done}<small>${mw.planned > mw.done ? "/" + mw.planned : ""} séance${mw.done > 1 ? "s" : ""}</small>`, sub:[mw.min ? `${fmt(mw.min, 0)} min de cardio` : "", mw.km ? `${fmt(mw.km, 1)} km` : "", rem ? `encore ${rem} séance${rem > 1 ? "s" : ""} dans le ${blocLow(activeBloc())}` : ""].filter(Boolean).join(" · ") || "Ta régularité compte plus que tout", act:`data-act="tab" data-t="prog" role="button" tabindex="0"`}) : "";
+  const heroH = mw && !nc ? heroMu : nc ? heroCard({small:`${esc(nc.nom)}, ${dlong(nc.date)}`, big:days(D.today, nc.date) === 0 ? "Jour J" : "J−" + days(D.today, nc.date), sub:[nc.tbc ? "date à confirmer" : "", rem ? `encore ${rem} séance${rem > 1 ? "s" : ""} dans le ${blocLow(activeBloc())}` : ""].filter(Boolean).join(" · "), act:`data-act="tab" data-t="agenda" role="button" tabindex="0"`})
     : heroCard({small:tsmall, big:`${fmt(t)}<small>kg</small>`, sub:tsub, act:`data-act="tab" data-t="prog" role="button" tabindex="0"`});
   const left = `${heroH}${weighed ? "" : weighCard(pw)}
     <h2 class="h2">Cette semaine <span class="muted">${sess ? esc(blocLabel(sess.bloc)) + (sess.semaine ? ", semaine " + esc(sess.semaine) : "") : ""}</span></h2>
     ${S.length ? (wr || `<p class="muted small">Aucune séance datée cette semaine.</p>`) : !coachId() ? impEmptyHtml() : `<div class="row" style="padding:14px 0"><span class="muted">${esc(seanceErr) || "Chargement de ta prog…"}</span>${seanceErr ? "" : `<div class="spin"></div>`}</div>`}
     ${impCan() && coachId() && S.length && !sess && !remainingInBloc() ? `<div class="panel" style="margin-top:14px"><p style="font-weight:700">Bloc terminé</p><p class="muted small" style="margin-top:4px">Prépare le suivant : l'app reprend ta dernière semaine et ajuste les charges d'après tes RPE. Tu vérifies avant d'enregistrer.</p><button class="btn" style="margin-top:12px" data-act="impNext">Préparer le bloc suivant</button></div>` : ""}
     ${sess ? `<button class="btn" style="margin-top:16px" data-act="startLive" data-k="${esc(sess.key)}">${lv && lv.key === sess.key ? "Reprendre la séance" : "Commencer la séance " + jourBtn}</button>` : ""}`;
-  const right = `${nc ? `<div class="desk-only">${heroCard({plain:true, small:tsmall, big:`${fmt(t)}<small>kg</small>`, sub:tsub})}</div>` : ""}
-    <h2 class="h2">Mes records</h2>
-    ${shownLifts().map(l => vrow(LNAME[l], D.objectifs[l] ? "objectif " + kg(D.objectifs[l]) : "pas encore d'objectif", kg(best(l)), LCOL[l], `data-act="openLift" data-l="${l}"`)).join("")}
+  const right = `${nc && !mw ? `<div class="desk-only">${heroCard({plain:true, small:tsmall, big:`${fmt(t)}<small>kg</small>`, sub:tsub})}</div>` : mw && nc ? `<div class="desk-only">${heroMu}</div>` : ""}
+    ${shownLifts().length ? `<h2 class="h2">Mes records</h2>
+    ${shownLifts().map(l => vrow(LNAME[l], D.objectifs[l] ? "objectif " + kg(D.objectifs[l]) : "pas encore d'objectif", kg(best(l)), LCOL[l], `data-act="openLift" data-l="${l}"`)).join("")}` : mw ? `<div class="panel" style="margin-top:14px"><p style="font-weight:700">Tester ton max ?</p><p class="muted small" style="margin-top:4px">Choisis les mouvements dont tu veux suivre le record et le 1RM estimé. Tu peux aussi ajouter le street lifting ou le powerlifting.</p><button class="btn ghost" style="margin-top:12px" data-act="settings">Ouvrir les réglages</button></div>` : ""}
     ${bil ? `<h2 class="h2">Pour ton coach</h2>${vrow("Bilan de la semaine " + esc(bil.semaine), "sommeil, fatigue, motivation… en 30 secondes", "›", null, `data-act="bilan" data-w="${esc(bil.sheet + "|" + bil.semaine)}"`)}` : ""}`;
   $("#v-home").innerHTML = `<div class="homegrid"><div>${left}</div><div>${right}</div></div>`;
   firstPaint = false;
@@ -1453,8 +1483,9 @@ function rSeance(){
     <div class="list" style="margin-top:8px">${s.exercices.map((e, k) => {
       const l = liftOf(e.mouvement), key = exKey(e), o = pts.find(z => z.key === key), p = o && o.pts.find(z => z.label === blocShort(s.bloc) + " S" + s.semaine || (z.date && z.date === d));
       const done = D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
-      const logged = done ? fmtSets(done.sets) : (repsOnly(e.commentaire) ? fmt(num(e.charge)) + " kg × " + repsOnly(e.commentaire).join(" · ") : "");
-      return `<button class="exo" style="--c:${l ? LCOL[l] : "var(--seam)"}" data-act="startLive" data-k="${esc(s.key)}" data-i="${k}"><span class="bar-v"></span><span class="grow">
+      const cdx = isCardioEx(e), cdl = cdx ? cardioLog(s, e) : null;
+      const logged = cdx ? (cdl ? fmtCardio(cdl.sets) : "") : done ? fmtSets(done.sets) : (repsOnly(e.commentaire) ? fmt(num(e.charge)) + " kg × " + repsOnly(e.commentaire).join(" · ") : "");
+      return `<button class="exo" style="--c:${l ? LCOL[l] : cdx ? LCOL.CARDIO : "var(--seam)"}" data-act="startLive" data-k="${esc(s.key)}" data-i="${k}"><span class="bar-v"></span><span class="grow">
         <span class="row"><b class="ttl">${esc(norm(e.mouvement) === "RENFO" ? title(e.variation) : title(e.mouvement) + " " + title(e.variation).toLowerCase())}</b>${e.rpe1 || e.rpeLast ? `<span class="pill">RPE ${esc(e.rpeLast || e.rpe1)}</span>` : ""}</span>
         <span class="muted small" style="display:block;margin-top:2px">${presc(e)}</span>
         ${logged ? `<span class="done-sets" style="display:block">Fait : ${esc(logged)}</span>` : ""}</span></button>`; }).join("")}</div>
@@ -1474,6 +1505,7 @@ function rpeCible(e){
 }
 function presc(e){
   const kg = isNumTxt(e.charge) ? " kg" : "";
+  if (isCardioEx(e) && durMin(e.reps) !== null) return [esc(e.reps), e.charge && !isNumTxt(e.charge) ? esc(e.charge) : ""].filter(Boolean).join(", ");
   return [e.series && e.reps ? `${esc(e.series)} × ${esc(e.reps)}` : "", e.charge ? `${esc(e.charge)}${kg}` : "", e.tempo ? `tempo ${esc(e.tempo)}` : "", e.repos ? `repos ${esc(e.repos)}` : "", rpeCible(e) ? esc(rpeCible(e).lab) : ""].filter(Boolean).join(", ");
 }
 
@@ -1521,11 +1553,19 @@ function isCompVar(v, tempo){
   return x.split(/[\s,+\/]+/).filter(Boolean).every(w => EQUIP_RE.test(w));
 }
 const isCompEx = e => !!liftOf(e.mouvement) && isCompVar(e.variation, e.tempo);
+/* Exercice de cardio (v40) : durée en minutes (« 10 min », « 20' »), ou nom de cardio (vélo, marche, course, rameur…). Jamais pour un mouvement de force. */
+const isCardioEx = e => !liftOf(e.mouvement) && (durMin(e.reps) !== null || isCardioName(String(e.mouvement ?? "") + " " + String(e.variation ?? "")));
+const cardioLog = (s, e) => (D.cardio || []).find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === exKey(e) && (!x.note || x.note === "L" + e.row));
 const failTxt = v => /chec|fail|rat[ée]/i.test(String(v ?? ""));
 /* Exercice en durée : « 15" », « 30'' », « 45 s » → secondes */
 const timedOf = e => { const m = String(e.reps || "").trim().match(/^(\d+)\s*(?:"|''|’’|s|sec)$/i); return m ? +m[1] : null; };
 function initSets(s, e, k){
   const key = exKey(e), lift = liftOf(e.mouvement);
+  if (isCardioEx(e)) {   /* cardio : une ligne = un bloc (minutes, km facultatif) */
+    const lc = cardioLog(s, e); if (lc) return lc.sets.map(x => ({c:x.c, r:x.r, done:true}));
+    const pv = prevCardio(s, k), m = durMin(e.reps), nS = Math.min(12, num(e.series) || 1);
+    return Array.from({length:nS}, (_, i) => ({c:null, r:m ?? (pv && pv.sets.length ? pv.sets[Math.min(i, pv.sets.length - 1)].r : null), done:false}));
+  }
   const lg = D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
   if (lg) return lg.sets.map(x => ({c:x.c, r:x.r, done:true}));
   const nS = Math.min(12, num(e.series) || 1), bo = chargeGuess(e) === null ? backoffOf(s, e, k) : null, cg = bo ? bo.mid : chargeGuess(e);
@@ -1573,12 +1613,12 @@ function rLive(){
   if (bo0 && !live.rows[k0].dirty && !live.rows[k0].sets.some(x => x.done)) live.rows[k0].sets.forEach(x => x.c = bo0.mid);
   { const r0 = live.rows[k0]; if (r0 && !r0.bo && !r0.dirty && !liftOf(s.exercices[k0].mouvement) && !r0.sets.some(x => x.done)) { const f = initSets(s, s.exercices[k0], k0);
       if (f.length === r0.sets.length && f.every(x => !x.done) && f.some((x, i) => x.c !== r0.sets[i].c || x.r !== r0.sets[i].r)) r0.sets = f; } }
-  const k = live.i, e = s.exercices[k], st = live.rows[k], l = liftOf(e.mouvement), renfo = norm(e.mouvement) === "RENFO", col = l ? LCOL[l] : "var(--chalk)";
+  const k = live.i, e = s.exercices[k], st = live.rows[k], l = liftOf(e.mouvement), renfo = norm(e.mouvement) === "RENFO", col = l ? LCOL[l] : "var(--chalk)", cardio = isCardioEx(e);
   const prev = prevRowSets(s, k), nx = s.exercices[k + 1], nl = nx ? liftOf(nx.mouvement) : null;
   const el = Math.floor((Date.now() - live.start) / 60000), doneN = st.sets.filter(x => x.done).length, curJ = st.sets.findIndex(x => !x.done);
-  const showR1 = !renfo && s.cols.rpe1 && st.sets[0] && st.sets[0].done, showRL = !renfo && s.cols.rpeLast && st.sets.length > 1 && st.sets.at(-1).done;
+  const showR1 = !renfo && !cardio && s.cols.rpe1 && st.sets[0] && st.sets[0].done, showRL = !renfo && !cardio && s.cols.rpeLast && st.sets.length > 1 && st.sets.at(-1).done;
   const isBW = l && BW_LIFTS.includes(l), name = renfo ? title(e.variation) : l ? LNAME[l] + " " + title(e.variation).toLowerCase() : title(e.mouvement);
-  const pv = j => { if (!prev) return "–"; const p = prev.sets[Math.min(j, prev.sets.length - 1)]; return p ? fmt(p.c) + " × " + p.r : "–"; };
+  const pv = j => { if (!prev) return "–"; const p = prev.sets[Math.min(j, prev.sets.length - 1)]; return p ? (cardio ? fmt(p.r, 1) + " min" + (p.c ? " · " + fmt(p.c, 2) + " km" : "") : fmt(p.c) + " × " + p.r) : "–"; };
   const rc0 = rpeCible(e), inT = v => rc0 && rc0.hi !== null && v <= rc0.hi && (rc0.lo === null || v >= rc0.lo);
   const rpeRow = (f, lab) => `<div><h2 class="h2">${lab} <span class="muted">pour ton coach</span> <button class="chip" style="min-height:32px;padding:4px 10px;font-size:12px" data-act="rpeInfo" aria-label="C'est quoi le RPE ?">?</button></h2><div class="rpe">${RPE_OPTS.map(v => `<button class="${inT(v) ? "tgt" : ""}" aria-pressed="${st[f] === v}" data-act="rpe" data-f="${f}" data-v="${v}">${fmt(v)}</button>`).join("")}</div></div>`;
   return `<div class="live ${sheet === "rest" ? "resting" : ""}" role="dialog" aria-label="Séance en cours"><div class="wrap">
@@ -1586,34 +1626,47 @@ function rLive(){
       <div style="text-align:center"><p class="small" style="font-weight:700">${esc(s.seance)}</p><p class="muted tiny">${el} min · exercice ${k + 1} sur ${s.exercices.length}</p></div>
       <button class="endbtn" data-act="finishLive">Terminer</button></div>
     <div class="live-progress">${s.exercices.map((x, j) => { const lj = liftOf(x.mouvement), dn = live.rows[j] && live.rows[j].sets.some(z => z.done);
-      return `<i class="${j === k ? "cur" : dn ? "on" : ""}" style="--c:${lj ? LCOL[lj] : "var(--dust)"}"></i>`; }).join("")}</div>
+      return `<i class="${j === k ? "cur" : dn ? "on" : ""}" style="--c:${lj ? LCOL[lj] : isCardioEx(x) ? LCOL.CARDIO : "var(--dust)"}"></i>`; }).join("")}</div>
     ${(() => { const cur = st.sets[curJ < 0 ? st.sets.length - 1 : curJ] || {}, c0 = cur.c ?? chargeGuess(e);
+      if (cardio) { const mn = cur.r ?? durMin(e.reps);
+        return heroCard({color:LCOL.CARDIO, deco:true, small:`Cardio · ${esc(name)}`, big:mn ? `${fmt(mn, 1)}<small>min</small>` : `<small style="font-size:.5em">Durée libre</small>`, sub:durMin(e.reps) !== null ? `Prévu : ${esc(e.reps)}${e.coach ? "" : ""}` : "Note ta durée, et la distance si tu veux"}); }
       return heroCard({color:l ? col : "var(--deck2)", deco:!!l, small:`Exercice ${k + 1} sur ${s.exercices.length} · ${esc(name)}`, big:c0 !== null && c0 !== undefined && c0 !== "" ? `${fmt(num(c0))}<small>kg</small>` : timedOf(e) ? `${timedOf(e)}<small>s</small>` : (isBW ? "0<small>kg de lest</small>" : e.charge ? esc(e.charge) : "<small style=\"font-size:.5em\">Poids du corps</small>"), sub:`${esc(e.series)} série${num(e.series) > 1 ? "s" : ""} de ${esc(e.reps)}${e.tempo ? " · tempo " + esc(e.tempo) : ""}${e.repos ? " · repos " + esc(e.repos) : ""}${(() => { const b = backoffOf(s, e, k, live.rows); return b ? ` · ${esc(String(e.charge).trim())} de ${fmt(b.base)} kg = ${fmt(Math.ceil(b.lo * 4) / 4)} à ${fmt(Math.floor(b.hi * 4) / 4)} kg` : chargeGuess(e) !== null && !isNumTxt(e.charge) && String(e.charge).trim() ? " · prévu : " + esc(String(e.charge).trim()) : ""; })()}`}); })()}
     ${(() => { const rc = rpeCible(e); if (!rc) return ""; const got = [st.rpe1, st.rpeLast].filter(v => v !== null && v !== undefined), over = rc.hi !== null && got.some(v => v > rc.hi);
       return `<div class="rpecible ${over ? "over" : ""}" role="note"><b>${esc(rc.lab)}</b><span>${over ? "Au-dessus de la consigne : baisse la charge sur les séries suivantes." : rc.max ? "À ne pas dépasser, sur toutes les séries." : "Consigne de ton coach, à respecter."}</span></div>`; })()}
     ${e.coach ? `<div class="coachnote"><b>Consigne du coach.</b> ${esc(e.coach)}</div>` : ""}
     ${e.angle ? `<p class="prev">À filmer : ${esc(e.angle)}</p>` : ""}
-    <section class="setgrid" style="--c:${l ? col : "var(--brand)"}" aria-label="Séries">
-      <div class="hd"><span>N°</span><span>Précédent</span><span>${isBW ? "Lest" : "Kg"}</span><span>Reps</span><span></span></div>
+    <section class="setgrid" style="--c:${cardio ? "var(--cardio)" : l ? col : "var(--brand)"}" aria-label="${cardio ? "Blocs de cardio" : "Séries"}">
+      <div class="hd"><span>N°</span><span>Précédent</span>${cardio ? "<span>Min</span><span>Km</span>" : `<span>${isBW ? "Lest" : "Kg"}</span><span>Reps</span>`}<span></span></div>
       ${st.sets.map((x, j) => `<div class="setrow ${x.done ? "done" : ""} ${j === curJ ? "cur" : ""}"><span class="n">${j + 1}</span><span class="pv">${pv(j)}</span>
-        ${timedOf(e) && !chargeGuess(e) ? `<span class="small muted" style="text-align:center">–</span><span class="small" style="text-align:center;font-weight:700">${timedOf(e)} s</span>` : `<input inputmode="decimal" value="${x.c === null || x.c === undefined ? "" : String(x.c).replace(".", ",")}" placeholder="${isBW ? "0" : "kg"}" data-chg="setC" data-j="${j}" aria-label="${isBW ? "Lest" : "Charge"} série ${j + 1}">
+        ${cardio ? `<input inputmode="decimal" value="${x.r === null || x.r === undefined ? "" : String(x.r).replace(".", ",")}" placeholder="min" data-chg="setR" data-j="${j}" aria-label="Minutes bloc ${j + 1}">
+        <input inputmode="decimal" value="${x.c === null || x.c === undefined || x.c === "" ? "" : String(x.c).replace(".", ",")}" placeholder="km" data-chg="setC" data-j="${j}" aria-label="Kilomètres bloc ${j + 1}">` : timedOf(e) && !chargeGuess(e) ? `<span class="small muted" style="text-align:center">–</span><span class="small" style="text-align:center;font-weight:700">${timedOf(e)} s</span>` : `<input inputmode="decimal" value="${x.c === null || x.c === undefined ? "" : String(x.c).replace(".", ",")}" placeholder="${isBW ? "0" : "kg"}" data-chg="setC" data-j="${j}" aria-label="${isBW ? "Lest" : "Charge"} série ${j + 1}">
         <input inputmode="numeric" value="${x.r ?? ""}" placeholder="–" data-chg="setR" data-j="${j}" aria-label="Reps série ${j + 1}">`}
-        <button class="ck" data-act="doneSet" data-j="${j}" aria-label="Série ${j + 1} faite" aria-pressed="${x.done}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></button></div>`).join("")}
-      <div class="row" style="padding:8px 10px 4px"><button class="link small" data-act="addSet">+ Ajouter une série</button>${st.sets.length > 1 ? `<button class="link small muted" data-act="delSet">Retirer la dernière</button>` : ""}</div>
+        <button class="ck" data-act="doneSet" data-j="${j}" aria-label="${cardio ? "Bloc" : "Série"} ${j + 1} fait" aria-pressed="${x.done}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></button></div>`).join("")}
+      <div class="row" style="padding:8px 10px 4px"><button class="link small" data-act="addSet">+ Ajouter ${cardio ? "un intervalle" : "une série"}</button>${st.sets.length > 1 ? `<button class="link small muted" data-act="delSet">Retirer le dernier</button>` : ""}</div>
     </section>
     ${showR1 ? rpeRow("rpe1", "RPE de la 1re série") : ""}
     ${showRL ? rpeRow("rpeLast", "RPE de la dernière série") : ""}
     <div id="prbox"></div>
-    ${nx ? `<div class="nextup"><span class="eyebrow" style="color:var(--faint)">Ensuite</span><span class="dot8" style="--c:${nl ? LCOL[nl] : "var(--faint)"}"></span><b>${esc(norm(nx.mouvement) === "RENFO" ? title(nx.variation) : (nl ? LNAME[nl] : title(nx.mouvement)) + " " + title(nx.variation).toLowerCase())}</b><span class="muted small">${esc(nx.series)} × ${esc(nx.reps)}</span></div>` : ""}
+    ${nx ? `<div class="nextup"><span class="eyebrow" style="color:var(--faint)">Ensuite</span><span class="dot8" style="--c:${nl ? LCOL[nl] : isCardioEx(nx) ? LCOL.CARDIO : "var(--faint)"}"></span><b>${esc(norm(nx.mouvement) === "RENFO" ? title(nx.variation) : (nl ? LNAME[nl] : title(nx.mouvement)) + " " + title(nx.variation).toLowerCase())}</b><span class="muted small">${isCardioEx(nx) ? esc(nx.reps) : esc(nx.series) + " × " + esc(nx.reps)}</span></div>` : ""}
     <div class="grid2" style="margin-top:16px">
       <button class="btn ghost" data-act="liveNav" data-d="-1" ${k === 0 ? "disabled" : ""}>Précédent</button>
       ${k < s.exercices.length - 1 ? `<button class="btn" data-act="liveNav" data-d="1">Exercice suivant</button>` : `<button class="btn" data-act="finishLive">Terminer</button>`}
     </div>
-    <p class="muted tiny" style="text-align:center;margin-top:12px">${doneN}/${st.sets.length} séries faites. Tout est enregistré quand tu changes d'exercice.</p>
+    <p class="muted tiny" style="text-align:center;margin-top:12px">${doneN}/${st.sets.length} ${cardio ? "blocs faits" : "séries faites"}. Tout est enregistré quand tu changes d'exercice.</p>
   </div></div>`;
 }
 /* Dernière fois : même séance, même ligne de l'exercice, semaine précédente du même bloc d'abord, puis blocs précédents. */
+/* Dernière fois en cardio : même ligne la semaine d'avant, sinon le dernier cardio du même nom noté dans le carnet. */
+function prevCardio(s, k){
+  const e = s.exercices[k], key = exKey(e), me = rank(s.bloc) * 100 + (num(s.semaine) || 0), rk = z => rank(z.bloc) * 100 + (num(z.semaine) || 0);
+  const pool = S.filter(z => rk(z) < me && z.idx === s.idx), cands = pool.filter(z => z.bloc === s.bloc).sort((a, b) => rk(b) - rk(a)).concat(pool.filter(z => z.bloc !== s.bloc).sort((a, b) => rk(b) - rk(a)));
+  for (const z of cands) { const same = z.exercices.filter(x => exKey(x) === key); if (!same.length) continue; const lg = cardioLog(z, same[0]);
+    if (lg) return {date:lg.date || dateOf(z), sets:lg.sets, where:(z.bloc === s.bloc ? "" : blocLabel(z.bloc) + ", ") + "S" + z.semaine, src:"noté"}; }
+  const any = (D.cardio || []).filter(x => x.ex === key && x.date && x.date <= D.today && !(x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance)).sort((a, b) => a.date < b.date ? 1 : -1)[0];
+  return any ? {date:any.date, sets:any.sets, where:dfr(any.date), src:"noté"} : null;
+}
 function prevRowSets(s, k){
+  if (isCardioEx(s.exercices[k])) return prevCardio(s, k);
   const e = s.exercices[k], key = exKey(e), me = rank(s.bloc) * 100 + (num(s.semaine) || 0), rk = z => rank(z.bloc) * 100 + (num(z.semaine) || 0);
   const pool = S.filter(z => rk(z) < me && z.idx === s.idx), cands = pool.filter(z => z.bloc === s.bloc).sort((a, b) => rk(b) - rk(a)).concat(pool.filter(z => z.bloc !== s.bloc).sort((a, b) => rk(b) - rk(a)));
   const pos = s.exercices.filter((x, j) => j < k && exKey(x) === key).length;
@@ -1630,9 +1683,15 @@ function prevRowSets(s, k){
   return null;
 }
 function bestBefore(key){ const o = exercisePoints().find(z => z.key === key); if (!o) return null; const p = o.pts.filter(x => x.sk !== live.key); return p.length ? Math.max(...p.map(x => x.e1rmBest)) : null; }
+const liveCardio = () => { const s = live && seanceByKey(live.key); return !!(s && s.exercices[live.i] && isCardioEx(s.exercices[live.i])); };
 function onSetDone(j){
   const s = seanceByKey(live.key), e = s.exercices[live.i], st = live.rows[live.i], x = st.sets[j], l = liftOf(e.mouvement);
   const tr = document.querySelectorAll(".setrow")[j];
+  if (isCardioEx(e)) {   /* cardio : minutes puis km, ni repos, ni e1RM, ni record */
+    if (tr) { const [mi, ki] = tr.querySelectorAll("input"); if (mi && mi.value !== "") x.r = Math.round(num(mi.value) * 10) / 10; if (ki && ki.value !== "") x.c = num(ki.value); }
+    if (!x.done && !x.r) return toast("Indique d'abord la durée en minutes", true);
+    x.done = !x.done; st.dirty = true; persistLive(); renderLayer(); return;
+  }
   if (tr) { const [ci, ri] = tr.querySelectorAll("input"); if (ci && ci.value !== "") x.c = num(ci.value); if (ri && ri.value !== "") x.r = Math.round(num(ri.value)); }
   x.done = !x.done; st.dirty = true; persistLive();
   if (!x.done) return renderLayer();
@@ -1676,6 +1735,22 @@ async function saveRow(k){
   const s = seanceByKey(live.key), e = s.exercices[k], st = live.rows[k];
   if (!st || !st.dirty) return true;
   const key = exKey(e), done = st.sets.filter(x => x.done && x.r).map(x => ({r:+x.r, c:num(x.c) ?? 0}));
+  if (isCardioEx(e)) {   /* cardio : une ligne SERIES « 10 min 3,2 km + 5 min », jamais dans les records */
+    try {
+      if (done.length) {
+        const row = [D.today, s.bloc, s.semaine, s.seance, key, cardioTot(done).min, fmtCardio(done), "app", "L" + e.row];
+        D.cardio = D.cardio || [];
+        const same = x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row);
+        let ex = D.cardio.find(same);
+        if (ex && !ex.id) { await loadApp(); ex = D.cardio.find(same); }
+        if (ex && ex.id) { await Store.series.update(ex.id, row); ex.sets = done; ex.note = "L" + e.row; ex.date = D.today; }
+        else { const id = await Store.series.add(row);
+          D.cardio.push({id:id, date:D.today, bloc:s.bloc, semaine:s.semaine, seance:s.seance, ex:key, charge:row[5], sets:done, note:"L" + e.row}); }
+        s.faite = true;
+      }
+      st.dirty = false; persistLive(); saveCache(); return true;
+    } catch(err){ toast(errMsg(err) + ambig(err), true); return false; }
+  }
   try {
     if (done.length) {
       const sameC = done.every(x => x.c === done[0].c), setsTxt = sameC ? done.map(x => x.r).join(", ") : done.map(x => x.r + "@" + String(x.c)).join(", ");
@@ -1697,18 +1772,20 @@ async function saveRow(k){
 async function finishLive(){
   for (const k of Object.keys(live.rows)) if (!(await saveRow(+k))) return;
   const s = seanceByKey(live.key), dur = Math.round((Date.now() - live.start) / 60000);
-  const all = Object.values(live.rows).flatMap(r => r.sets.filter(x => x.done && x.r)), ton = sum(all.map(x => (num(x.c) || 0) * x.r)), reps = sum(all.map(x => +x.r));
+  const isCd = k => isCardioEx(s.exercices[+k]);
+  const cdSets = Object.entries(live.rows).filter(([k]) => isCd(k)).flatMap(([, r]) => r.sets.filter(x => x.done && x.r)), cdT = cardioTot(cdSets);
+  const all = Object.entries(live.rows).filter(([k]) => !isCd(k)).flatMap(([, r]) => r.sets.filter(x => x.done && x.r)), ton = sum(all.map(x => (num(x.c) || 0) * x.r)), reps = sum(all.map(x => +x.r));
   const prevS = S.find(z => z.bloc === s.bloc && z.idx === s.idx && (num(z.semaine) || 0) === (num(s.semaine) || 0) - 1);
   const pts = exercisePoints();
   /* tonnage comparé sur les seuls exercices faits les deux fois (une séance écourtée ne fausse pas l'écart) */
   /* ligne par ligne : chaque exercice fait aujourd'hui face à la même ligne de la semaine précédente */
   const both = []; let prevTon = 0, tonSame = 0;
-  Object.entries(live.rows).forEach(([k, r]) => { const t = sum(r.sets.filter(x => x.done && x.r).map(x => (num(x.c) || 0) * x.r)); if (t <= 0) return;
+  Object.entries(live.rows).forEach(([k, r]) => { if (isCd(k)) return; const t = sum(r.sets.filter(x => x.done && x.r).map(x => (num(x.c) || 0) * x.r)); if (t <= 0) return;
     const pv = prevRowSets(s, +k), pt = pv ? sum(pv.sets.map(x => (num(x.c) || 0) * (x.r || 0))) : 0; if (pt <= 0) return;
     both.push(k); prevTon += pt; tonSame += t; });
   if (!both.length) { prevTon = null; tonSame = null; }
   const recs = [...new Set(s.exercices.map(exKey))].map(k => { const o = pts.find(z => z.key === k); if (!o) return null; const cur = o.pts.find(p => p.sk === s.key), oth = o.pts.filter(p => p.sk !== s.key); if (!cur || !oth.length) return null; const prev = Math.max(...oth.map(p => p.e1rmBest)); return cur.e1rmBest > prev + .05 ? exName(o.key) + " : " + fmt(cur.e1rmBest, 1) + " kg (avant : " + fmt(prev, 1) + " kg)" : null; }).filter(Boolean);
-  live.summary = {dur, ton, reps, sets:all.length, prevTon, tonSame, nSame:both.length, recs, repRecs:live.recs || []};
+  live.summary = {dur, ton, reps, sets:all.length, cardioMin:cdT.min, cardioKm:cdT.km, prevTon, tonSame, nSame:both.length, recs, repRecs:live.recs || []};
   store.del(ck("sl4-live")); try { wakeLock && wakeLock.release(); } catch(e){}
   openSheet("summary");
 }
@@ -1769,6 +1846,21 @@ function weekHtml(){
     ${bil && bil.length ? `<h3 class="h3">Ton bilan</h3><div class="chips">${bil.map(([k, v]) => `<span class="chip" aria-pressed="false">${k} ${fmt(v)}</span>`).join("")}</div>` : ""}
     <p class="muted tiny" style="margin-top:8px">Écart comparé à la dernière fois que tu as fait le même exercice avant cette semaine.</p>`;
 }
+/* Onglet Progrès d'un utilisateur « musculation seule » : régularité d'abord, pas de total ni de classement. */
+function muscuTop(){
+  const w = muscuWeek(D.today), lifts = shownLifts();
+  return `${heroCard({small:"Cette semaine", big:`${w.done}<small>${w.planned > w.done ? "/" + w.planned : ""} séance${w.done > 1 ? "s" : ""}</small>`, sub:[w.min ? `${fmt(w.min, 0)} min de cardio` : "", w.km ? `${fmt(w.km, 1)} km` : ""].filter(Boolean).join(" · ") || "Ta régularité compte plus que tout", deco:false})}
+    ${lifts.length ? `<h2 class="h2">Mouvements suivis</h2><div>${lifts.map(l => vrow(LNAME[l], D.objectifs[l] ? "objectif " + kg(D.objectifs[l]) : "pas encore d'objectif", kg(best(l)), LCOL[l], `data-act="openLift" data-l="${l}"`)).join("")}</div>` : `<div class="panel" style="margin-top:14px"><p style="font-weight:700">Tester ton max ?</p><p class="muted small" style="margin-top:4px">Active les mouvements dont tu veux suivre le record dans les réglages.</p><button class="btn ghost" style="margin-top:12px" data-act="settings">Ouvrir les réglages</button></div>`}`;
+}
+/* Cardio : minutes et km par semaine (4 dernières semaines), puis les dernières sorties. Vide s'il n'y a rien de noté. */
+function cardioHtml(){
+  const L = (D.cardio || []).filter(x => x.date).sort((a, b) => a.date < b.date ? 1 : -1); if (!L.length) return "";
+  const wk = {}; L.forEach(x => { const t = dObj(x.date), mon = addDays(x.date, -((t.getDay() + 6) % 7)); (wk[mon] = wk[mon] || []).push(...x.sets); });
+  const weeks = Object.keys(wk).sort().reverse().slice(0, 4);
+  return `<h2 class="h2">Cardio <span class="muted">minutes</span></h2>
+    <div>${weeks.map(m => { const t = cardioTot(wk[m]); return vrow("Semaine du " + dfr(m).slice(0, 5), t.km ? fmt(t.km, 1) + " km" : "", fmt(t.min, 0) + " min", "var(--cardio)"); }).join("")}</div>
+    <div class="list" style="margin-top:8px">${L.slice(0, 5).map(x => `<div class="item"><span class="d10" style="--c:var(--cardio)"></span><span class="grow"><span class="ttl" style="display:block">${esc(exName(x.ex))}</span><span class="muted small">${esc(dfr(x.date))} · ${esc(fmtCardio(x.sets))}</span></span></div>`).join("")}</div>`;
+}
 function rProg(){
   const cd = curDisc(), t = totalOf(cd), r = scoreOf(cd, t, bw()), bf = cd === "power" && equipped() ? null : classicOnly;
   const oT = goalOf(cd), sd = cd === "power" ? 2 : 1;
@@ -1784,16 +1876,17 @@ function rProg(){
   } else ensureAllBlocs().then(() => { if (tab === "prog") rProg(); }).catch(() => {});
   const seg = `<div class="seg3">${(cd === "power" ? ["DEADLIFT","SQUAT","BENCH"] : ["SQUAT","DIP","PULL","MU"]).filter(l => best(l, bf)).map((l, i) => `<i style="width:${(best(l, bf) / (oT || 1) * 100).toFixed(1)}%;background:rgba(255,255,255,${[1, .75, .55, .4][i]})"></i>`).join("")}</div>`;
   $("#v-prog").innerHTML = `
-    ${discSegHtml(10)}
+    ${muscuOnly() ? muscuTop() : `${discSegHtml(10)}
     ${heroCard({small:cd === "power" ? `Mon total power · ${equipped() ? "equipped" : "classic"}` : "Mon total", big:`${fmt(t)}<small>kg</small>`, sub:`${scoreName(cd)} ${fmt(r, sd)} · objectif ${fmt(oT, 1)} kg`, extra:seg, deco:false})}
     <div class="tiles2" style="margin-top:12px"><div><p class="muted small">Total visé</p><p class="show">${fmt(oT, 2)}</p></div><div><p class="muted small">${scoreName(cd)} visé</p><p class="show">${fmt(scoreOf(cd, oT, bw()), sd)}</p></div></div>
     <h2 class="h2">Mouvements de compétition</h2>
     <div>${(cd === "power" ? POWER_LIFTS : ["PULL","DIP","SQUAT","MU"]).map(l => { const b = best(l, bf), o = D.objectifs[l];
       return `<button class="liftrow" data-act="openLift" data-l="${l}"><span class="top"><span class="d10" style="--c:${LCOL[l]}"></span><b>${LNAME[l]}</b><span class="val">${kg(b)}</span></span>
         <span class="bar" style="display:block;--c:${LCOL[l]}"><i style="width:${o && b ? pct(b, o) : 0}%"></i></span>
-        <span class="meta"><span>${o ? "objectif " + kg(o) : "pas encore d'objectif"}</span><span>${o && b !== null ? (o <= b ? "atteint" : "encore " + fmt(o - b, 2) + " kg") : ""}</span></span></button>`; }).join("")}</div>
+        <span class="meta"><span>${o ? "objectif " + kg(o) : "pas encore d'objectif"}</span><span>${o && b !== null ? (o <= b ? "atteint" : "encore " + fmt(o - b, 2) + " kg") : ""}</span></span></button>`; }).join("")}</div>`}
     <h2 class="h2">Semaine par semaine</h2>
     ${weekHtml()}
+    ${cardioHtml()}
     ${dpHtml()}
     <details class="more" style="margin-top:22px"><summary class="h2" style="margin:0">Tous les exercices <span class="muted">${activeBloc() !== null ? esc(blocLow(activeBloc())) : ""}</span></summary>
     <p class="muted small" style="margin:6px 0 8px">Le pourcentage compare ton 1RM estimé à celui d'il y a environ 4 semaines.</p>
@@ -2120,8 +2213,9 @@ function rSheet(){
       <button class="btn" style="margin-top:14px" data-act="pdcSave">Enregistrer et commencer</button><button class="btn line" style="margin-top:8px" data-act="pdcSkip">Passer</button>`; }
   if (sheet === "summary") { const m = live.summary, s = seanceByKey(live.key), d = m.prevTon ? (m.tonSame - m.prevTon) / m.prevTon * 100 : null;
     return `<p class="muted">${esc(s.seance)} terminée</p><p class="show t-l" style="margin-top:4px">Bien joué ${esc(D.profil.prenom || "")}</p>
-      <div class="grid3" style="margin-top:18px"><div><p class="muted small">Durée</p><p class="show t-m">${m.dur}<span class="unit">min</span></p></div><div><p class="muted small">Séries</p><p class="show t-m">${m.sets}</p></div><div><p class="muted small">Reps</p><p class="show t-m">${m.reps}</p></div></div>
-      <div class="panel" style="margin-top:14px;background:var(--deck2)"><p class="muted small">Tonnage des charges ajoutées</p><p class="show t-m" style="margin-top:4px">${fmt(m.ton, 0)}<span class="unit">kg</span></p>${d !== null ? `<p class="small" style="margin-top:4px;color:${d >= 0 ? "var(--chalk)" : "var(--dust)"}">${d >= 0 ? "+" : ""}${fmt(d, 0)} % sur ${m.nSame} exercice${m.nSame > 1 ? "s" : ""} fait${m.nSame > 1 ? "s" : ""} aussi la semaine passée</p>` : ""}</div>
+      <div class="grid3" style="margin-top:18px"><div><p class="muted small">Durée</p><p class="show t-m">${m.dur}<span class="unit">min</span></p></div>${m.sets ? `<div><p class="muted small">Séries</p><p class="show t-m">${m.sets}</p></div><div><p class="muted small">Reps</p><p class="show t-m">${m.reps}</p></div>` : m.cardioMin ? `<div><p class="muted small">Cardio</p><p class="show t-m">${fmt(m.cardioMin, 1)}<span class="unit">min</span></p></div>${m.cardioKm ? `<div><p class="muted small">Distance</p><p class="show t-m">${fmt(m.cardioKm, 2)}<span class="unit">km</span></p></div>` : ""}` : ""}</div>
+      ${m.sets && m.cardioMin ? `<div class="panel" style="margin-top:14px;background:var(--deck2)"><p class="muted small"><span class="d10" style="--c:var(--cardio);display:inline-block;margin-right:6px"></span>Cardio</p><p class="show t-m" style="margin-top:4px">${fmt(m.cardioMin, 1)}<span class="unit">min</span>${m.cardioKm ? ` · ${fmt(m.cardioKm, 2)}<span class="unit">km</span>` : ""}</p></div>` : ""}
+      ${m.sets ? `<div class="panel" style="margin-top:14px;background:var(--deck2)"><p class="muted small">Tonnage des charges ajoutées</p><p class="show t-m" style="margin-top:4px">${fmt(m.ton, 0)}<span class="unit">kg</span></p>${d !== null ? `<p class="small" style="margin-top:4px;color:${d >= 0 ? "var(--chalk)" : "var(--dust)"}">${d >= 0 ? "+" : ""}${fmt(d, 0)} % sur ${m.nSame} exercice${m.nSame > 1 ? "s" : ""} fait${m.nSame > 1 ? "s" : ""} aussi la semaine passée</p>` : ""}</div>` : ""}
       ${m.repRecs && m.repRecs.length ? `<div style="margin-top:14px"><p style="font-weight:600">Records de reps</p>${m.repRecs.map(r => `<p class="small" style="margin-top:4px"><span class="d10" style="--c:${LCOL[r.l]};display:inline-block;margin-right:6px"></span>${LNAME[r.l]} · ${r.r} rep${r.r > 1 ? "s" : ""} : <b>${fmt(r.c)} kg</b> <span class="muted">(+${fmt(r.d)})</span></p>`).join("")}</div>` : ""}
       ${m.recs.length ? `<div style="margin-top:14px"><p style="font-weight:600">Meilleur 1RM estimé</p>${m.recs.map(r => `<p class="small" style="margin-top:4px">${esc(r)}</p>`).join("")}</div>` : ""}
       <button class="btn" style="margin-top:18px" data-act="closeSummary">Fermer</button>`; }
@@ -2148,14 +2242,14 @@ const swRow = (title, sub, on, act) => `<button class="prefrow" role="switch" ar
 const ageTxt = () => { const a = myAges(); return a.length ? a.map(x => AGE_NAME[x]).join(" et ") : ""; };
 /* Réglages (maquette A, choix d'Alane du 22/10) : disciplines, catégories, classements, puis le reste. */
 function settingsHtml(){
-  const t = lastSync ? new Date(lastSync) : null, st = streetOn(), pw = powerOn(), b = birth();
+  const t = lastSync ? new Date(lastSync) : null, st = streetOn(), pw = powerOn(), mu = muscuOn(), mo = muscuOnly(), b = birth();
   const clv = k => norm(D.profil["classement_" + k]) !== "NON";
   const extra = ALL_LIFTS.filter(l => !((st && LIFTS.includes(l)) || (pw && POWER_LIFTS.includes(l))));
   return `<div class="row"><p class="show t-m">Réglages</p><button class="btn sm ghost" data-act="sync">Synchroniser</button></div>
     <p class="muted small" style="margin-top:4px">${t ? "Synchronisé à " + String(t.getHours()).padStart(2, "0") + ":" + String(t.getMinutes()).padStart(2, "0") : "Pas encore synchronisé"}. L'app relit tes Sheets à chaque ouverture.</p>
 
     <h2 class="h2">Tes disciplines</h2>
-    <div class="group">${swRow("Street lifting", "Muscle-up, tractions, dips, squat · score RIS", st, `data-act="discToggle" data-k="street"`)}${swRow("Powerlifting", "Squat, Bench, Deadlift · score IPF GL", pw, `data-act="discToggle" data-k="power"`)}
+    <div class="group">${swRow("Street lifting", "Muscle-up, tractions, dips, squat · score RIS", st, `data-act="discToggle" data-k="street"`)}${swRow("Powerlifting", "Squat, Bench, Deadlift · score IPF GL", pw, `data-act="discToggle" data-k="power"`)}${swRow("Musculation", "Machines, haltères, poids du corps, cardio", mu, `data-act="discToggle" data-k="muscu"`)}
       ${pw ? `<div class="prefrow" style="display:block;padding:14px 0"><b style="font:600 16px var(--f-text)">En powerlifting, tu tires</b>
         <div class="segc" role="group" aria-label="Classic ou equipped" style="background:var(--floor);margin-top:10px">${[["CLASSIC", "Classic"], ["EQUIPPED", "Equipped"]].map(([k, x]) => `<button aria-pressed="${(equipped() ? "EQUIPPED" : "CLASSIC") === k}" data-act="powerMode" data-k="${k}">${x}</button>`).join("")}</div>
         <p class="muted small" style="margin-top:8px">Equipped : combinaison et bandes. Le score IPF GL n'est pas le même.</p></div>` : ""}</div>
@@ -2166,7 +2260,7 @@ function settingsHtml(){
     <div class="grid2"><div><label for="snai">Date de naissance</label><input id="snai" type="date" value="${b}" data-chg="birth"></div>
       <div><label for="spays">Pays</label><select id="spays" data-chg="prof" data-k="pays">${paysOptions(monPays())}</select></div></div>
 
-    <h2 class="h2">Catégories</h2>
+    ${mo ? "" : `<h2 class="h2">Catégories</h2>
     <div class="group">
       ${st ? `<button class="catrow" data-act="catPick" data-k="street" data-from="settings"><span class="grow"><b>Street lifting</b><span>${catAutoOn("categorie") ? "Auto d'après ta pesée" : "Choisie à la main"}</span></span><span class="val">${catTxt(cat()).replace(" kg", "<small>kg</small>")}</span>${CHEV}</button>` : ""}
       ${pw ? `<button class="catrow" data-act="catPick" data-k="power" data-from="settings"><span class="grow"><b>Powerlifting</b><span>${catAutoOn("categorie_ipf") ? "Auto d'après ta pesée" : "Choisie à la main"}</span></span><span class="val">${catTxt(catIpf()).replace(" kg", "<small>kg</small>")}</span>${CHEV}</button>` : ""}
@@ -2175,7 +2269,7 @@ function settingsHtml(){
 
     <h2 class="h2">Classements entre amis</h2>
     <div class="group">${st ? swRow("Apparaître en street", "Ton total et ton RIS", clv("street"), `data-act="clVis" data-k="street"`) : ""}${pw ? swRow("Apparaître en powerlifting", "Ton total et tes points IPF GL", clv("power"), `data-act="clVis" data-k="power"`) : ""}</div>
-    <p class="muted small" style="margin-top:10px">Ta date de naissance reste dans ton carnet : le classement n'affiche que ta catégorie d'âge.</p>
+    <p class="muted small" style="margin-top:10px">Ta date de naissance reste dans ton carnet : le classement n'affiche que ta catégorie d'âge.</p>`}
 
     ${extra.length ? `<h2 class="h2">Mouvements suivis en plus <span class="muted">sans total</span></h2>
     <div class="chips" style="flex-wrap:wrap">${extra.map(l => `<button class="chip" aria-pressed="${suivis().includes(l)}" data-act="suiviToggle" data-l="${l}">${suivis().includes(l) ? "" : "+ "}${LNAME[l]}</button>`).join("")}</div>
@@ -2284,7 +2378,7 @@ const ACT = {
   closeLive:async () => { if (live) { await saveRow(live.i); live.paused = true; store.set(ck("sl4-live"), live); } live = null; try { wakeLock && wakeLock.release(); } catch(e){} renderLayer(); render(); toast("Séance enregistrée, tu peux la reprendre plus tard"); },
   liveNav:async d => { const ok = await saveRow(live.i); if (!ok) return; const s = seanceByKey(live.key); live.i = Math.max(0, Math.min(s.exercices.length - 1, live.i + +d.d)); persistLive(); renderLayer(); document.querySelector(".live").scrollTop = 0; },
   doneSet:d => onSetDone(+d.j),
-  addSet:() => { const st = live.rows[live.i], l = st.sets.at(-1) || {c:null, r:null}; st.sets.push({c:l.c, r:l.r, done:false}); st.dirty = true; persistLive(); renderLayer(); },
+  addSet:() => { const st = live.rows[live.i], l = st.sets.at(-1) || {c:null, r:null}; st.sets.push({c:liveCardio() ? null : l.c, r:l.r, done:false}); st.dirty = true; persistLive(); renderLayer(); },
   delSet:() => { const st = live.rows[live.i]; if (st.sets.length > 1) { st.sets.pop(); st.dirty = true; persistLive(); renderLayer(); } },
   rpe:d => { const st = live.rows[live.i]; st[d.f] = st[d.f] === +d.v ? null : +d.v; st.dirty = true; persistLive(); renderLayer(); },
   finishLive:() => finishLive(),
@@ -2330,10 +2424,10 @@ const ACT = {
 const CHG = {
   setC:(d, el) => { const st = live.rows[live.i], j = +d.j, old = st.sets[j].c, nv = el.value === "" ? null : num(el.value); st.sets[j].c = nv; st.dirty = true;
     /* les séries suivantes (pas encore faites) qui avaient la même charge suivent ; une charge modifiée à la main reste telle quelle */
-    if (nv !== null && old !== nv) for (let i = j + 1; i < st.sets.length; i++) if (!st.sets[i].done && st.sets[i].c === old) { st.sets[i].c = nv;
+    if (nv !== null && old !== nv && !liveCardio()) for (let i = j + 1; i < st.sets.length; i++) if (!st.sets[i].done && st.sets[i].c === old) { st.sets[i].c = nv;
       const inp = document.querySelector('[data-chg="setC"][data-j="' + i + '"]'); if (inp && inp !== el) inp.value = String(nv).replace(".", ","); }
     persistLive(); },
-  setR:(d, el) => { const st = live.rows[live.i]; st.sets[+d.j].r = el.value === "" ? null : Math.round(num(el.value)); st.dirty = true; persistLive(); },
+  setR:(d, el) => { const st = live.rows[live.i]; st.sets[+d.j].r = el.value === "" ? null : liveCardio() ? Math.round(num(el.value) * 10) / 10 : Math.round(num(el.value)); st.dirty = true; persistLive(); },
   blocDate:async (d, el) => { const b = +d.b, v = toIso(el.value); if (!v) return;
     try { await Store.blocs.setDate(b, v); D.blocs[b] = v; toast("Dates enregistrées : " + blocLabel(b)); saveCache(); render(); } catch(e){ toast(errMsg(e), true); } },
   setObj:async (d, el) => { const l = d.l, v = num(el.value);
@@ -2639,6 +2733,7 @@ function clRows(d){
 const agendaSegHtml = () => `<div class="segc" style="margin:6px 0 4px">${[["compet", "Compétitions"], ["amis", "Amis"]].map(([k, t]) => `<button aria-pressed="${agendaSeg === k}" data-act="agSeg" data-k="${k}">${t}</button>`).join("")}</div>`;
 function rAmis(){
   const el = $("#v-agenda"), seg = agendaSegHtml();
+  if (muscuOnly()) { el.innerHTML = seg + `<div class="emptycard" style="margin-top:14px"><b>Classement réservé aux sports de force</b><p>Le classement compare des totaux de street lifting ou de powerlifting. Active l'une de ces disciplines dans les réglages pour y apparaître.</p><button class="btn ghost" style="margin-top:14px" data-act="settings">Ouvrir les réglages</button></div>`; return; }
   if (!clOn()) { el.innerHTML = seg + `<div class="emptycard" style="margin-top:14px"><b>Le classement arrive</b><p>Dès que le service du classement est en ligne, tous les membres de l'app y apparaissent automatiquement, avec leurs records et leur total. Rien à saisir.</p></div>`; return; }
   if (!CL) { el.innerHTML = seg + (clErr ? `<div class="emptycard" style="margin-top:14px"><b>Classement indisponible</b><p>${esc(clErr)}</p><button class="btn ghost" style="margin-top:14px" data-act="clRetry">Réessayer</button></div>`
       : `<div class="skel" style="height:240px;margin-top:14px"></div><div class="skel" style="height:120px;margin-top:12px"></div>`);
@@ -2690,7 +2785,7 @@ async function profSet(pairs, msg){
     if (clOn()) clSync().catch(() => {});
   } catch(e){ toast(errMsg(e), true); }
 }
-const discStr = (st, pw) => [st ? "street" : "", pw ? "power" : ""].filter(Boolean).join(",");
+const discStr = (st, pw, mu) => [st ? "street" : "", pw ? "power" : "", mu ? "muscu" : ""].filter(Boolean).join(",");
 /* Choix d'une catégorie : automatique (d'après la dernière pesée) ou à la main, pour viser celle du dessus ou du dessous. */
 function catPickHtml(arg){
   const [k, from] = arg.split("|"), pw = k === "power", key = pw ? "categorie_ipf" : "categorie", auto = catAutoOn(key), cur = pw ? catIpf() : cat();
@@ -2704,11 +2799,11 @@ function catPickHtml(arg){
 }
 Object.assign(ACT, {
   discSel:d => { discSel = d.k; store.set("sl-disc", d.k); render(); },
-  discToggle:d => { const st = streetOn(), pw = powerOn(), ns = d.k === "street" ? !st : st, np = d.k === "power" ? !pw : pw;
-    if (!ns && !np) return toast("Garde au moins une discipline", true);
-    const pairs = [["disciplines", discStr(ns, np)]];
+  discToggle:d => { const st = streetOn(), pw = powerOn(), mu = muscuOn(), ns = d.k === "street" ? !st : st, np = d.k === "power" ? !pw : pw, nm = d.k === "muscu" ? !mu : mu;
+    if (!ns && !np && !nm) return toast("Garde au moins une discipline", true);
+    const pairs = [["disciplines", discStr(ns, np, nm)]];
     /* passage au powerlifting : catégorie IPF placée automatiquement d'après la pesée, modifiable ensuite */
-    profSet(pairs, np && !pw ? "Powerlifting ajouté" : ns && !st ? "Street lifting ajouté" : "Discipline retirée"); },
+    profSet(pairs, np && !pw ? "Powerlifting ajouté" : ns && !st ? "Street lifting ajouté" : nm && !mu ? "Musculation ajoutée" : "Discipline retirée"); },
   powerMode:d => profSet([["power_mode", d.k === "EQUIPPED" ? "equipped" : "classic"]], d.k === "EQUIPPED" ? "Powerlifting equipped" : "Powerlifting classic"),
   sexSet:d => profSet([["sexe", d.k]], "Réglage enregistré"),
   catPick:d => openSheet("cat|" + d.k + (d.from ? "|" + d.from : "")),
@@ -2848,6 +2943,15 @@ vidLoad().catch(() => {});
 
   // Dictionnaire d'exercices : du plus précis au plus général. cat = couleur dans l'app.
   const EXOS = [
+    // Cardio (v40) : suivi en minutes, hors total et hors classement
+    [/rameur|rowing\s*machine|row\s*erg\b/, "Rameur", "cardio"],
+    [/elliptique|elliptical|cross\s*trainer/, "Elliptique", "cardio"],
+    [/escaliers?\b|stairmaster|stepper|stair\s*climb/, "Escalier", "cardio"],
+    [/natation|swim|\bnage\b/, "Natation", "cardio"],
+    [/\bv[ée]lo\b|\bbike\b|cycling|spinning/, "Vélo", "cardio"],
+    [/\bmarche\b|(?<!farmer\s)\bwalk\b/, "Marche", "cardio"],
+    [/\bcourse\b|running|jogging|footing|tapis/, "Course à pied", "cardio"],
+    [/cardio|hiit|zone\s*2/, "Cardio", "cardio"],
     [/pause\s*squat|squat\s*pause/, "Squat pause", "squat"],
     [/front\s*squat/, "Front squat", "squat"],
     [/hack\s*squat/, "Hack squat", "squat"],
@@ -2882,9 +2986,11 @@ vidLoad().catch(() => {});
     [/triceps|skull\s*crusher|kick.?back|barre\s*au\s*front|barre\s*front|pushdown|extension\s*triceps/, "Triceps", ""],
     [/[ée]l[ée]v\w*\.?\s*lat|lat(eral)?\s*raise|elev\s*lat|oiseau\s*lat/, "Élévations latérales", ""],
     [/oiseau|rear\s*delt/, "Oiseau", ""],
-    [/[ée]cart[ée]|fly/, "Écarté", "bench"],
+    [/[ée]cart[ée]|fly|pec\s*deck|butterfly|papillon/, "Écarté", "bench"],
     [/shrug/, "Shrug", ""],
     [/mollet|calf|calves/, "Mollets", ""],
+    [/adducteurs?|adductor/, "Adducteurs", ""],
+    [/abducteurs?|abductor/, "Abducteurs", ""],
     [/back\s*ext|extension\s*lombaire/, "Extensions lombaires", ""],
     [/farmer/, "Farmer walk", ""],
     [/gainage|planche|plank|hollow|l.?sit/, "Gainage", ""],
@@ -2937,6 +3043,20 @@ vidLoad().catch(() => {});
     return null;
   }
 
+  // Cardio (v40) : « vélo 10 min », « 20' de marche », « course 25 minutes 4 km ». Seulement si le nom est du cardio :
+  // « repos 2 min » ou « EMOM 10 min » ne deviennent pas des exercices.
+  const RE_DUR = /(?<![\d.,])(\d+(?:[.,]\d+)?)\s*(minutes?|mins?|mn|h(?:eures?)?|['’])(?![a-zà-ÿ])/i;
+  function readDuration(s) {
+    const m = RE_DUR.exec(s); if (!m) return null;
+    const nameOf = t => t.replace(/[:\-—–,;@(){}]+/g, " ").replace(/\s+/g, " ").trim();
+    let nm = nameOf(s.slice(0, m.index));
+    if (canon(nm).cat !== "cardio") nm = nameOf(s.slice(m.index + m[0].length).split(/[,.;]|\s(?:puis|then)\s/i)[0]);
+    if (canon(nm).cat !== "cardio") return null;
+    const min = /^h/i.test(m[2]) ? num(m[1]) * 60 : num(m[1]);
+    const km = (s.match(/(\d+(?:[.,]\d+)?)\s*km\b/i) || [])[1] || null;
+    return { name: nm, groups: [{ sets: 1, reps: String(Math.round(min * 10) / 10).replace(".", ",") + " min", load: null, amrap: false, km: km }], rpe: null, tempo: null, side: false };
+  }
+
   // Renvoie {name, groups, rpe, tempo, note} ou null si aucun schéma.
   function readExo(seg) {
     const s = seg.trim();
@@ -2968,7 +3088,7 @@ vidLoad().catch(() => {});
     }
     RE_PROSE.lastIndex = 0;
     while ((m = RE_PROSE.exec(s))) if (!hits.some(h => m.index < h.end && m.index + m[0].length > h.i)) hits.push({ i: m.index, end: m.index + m[0].length, g: { sets: toNum(m[1]), reps: String(toNum(m[2])) } });
-    if (!hits.length) return null;
+    if (!hits.length) return readDuration(s);
     hits.sort((a, b) => a.i - b.i);
     // charge de chaque groupe : texte entre la fin du groupe et le début du suivant
     hits.forEach((h, k) => {
@@ -3180,6 +3300,7 @@ vidLoad().catch(() => {});
   // Résumé lisible d'un groupe de séries : « 4×5 · 160 kg », « 5×5 · 72 % », « 3×8 · +20 kg »
   function fmtGroup(g) {
     const reps = g.reps === "max" ? "max" : g.reps;
+    if (/min$/.test(String(reps))) return String(reps) + (g.km ? ` · ${String(g.km).replace(".", ",")} km` : "");   // cardio : « 10 min · 3,2 km »
     let s = `${g.sets}×${reps}${g.amrap && g.reps !== "max" ? "+" : ""}`;
     const L = g.load;
     if (L) s += " · " + (L.kind === "pct" ? `${L.v} %` : L.kind === "rel" ? `${L.v} %` : L.kind === "lest" ? `+${L.v} ${L.u}` : `${L.v} ${L.u}`);
@@ -3319,6 +3440,7 @@ vidLoad().catch(() => {});
             if (gi === 0 && x.rpe) { const r = isNaN(+String(x.rpe).replace(",", ".")) ? String(x.rpe) : fmtN(+String(x.rpe).replace(",", ".")); if (inten) com.push("Intensité " + inten); inten = "RPE " + r; }
             if (gi === 0 && x.tempo) com.push("Tempo " + x.tempo);
             if (gi === 0 && x.note) com.push(x.note);
+            if (g.km) com.push(String(g.km).replace(".", ",") + " km");
             const reps = g.reps === "max" ? "max" : String(g.reps) + (g.amrap ? "+" : "");
             rows.push([x.canon || x.name, "", String(g.sets), reps, charge, inten, "", "", com.join(" · "), ""]);
           });
@@ -3336,7 +3458,7 @@ vidLoad().catch(() => {});
 
   // Mise en forme de l'onglet (maquette A choisie par Alane le 23/10 : sombre comme l'app, logo, couleur de chaque mouvement).
   // Renvoie les requêtes Google Sheets (batchUpdate) pour l'onglet sheetId ; noFont : sans police Barlow (repli).
-  const CAT_COL = { squat: "#F0524A", bench: "#A78BFA", deadlift: "#EC6FB0", pull: "#4C8DF6", dip: "#2BB673", mu: "#E3B341" };
+  const CAT_COL = { squat: "#F0524A", bench: "#A78BFA", deadlift: "#EC6FB0", pull: "#4C8DF6", dip: "#2BB673", mu: "#E3B341", cardio: "#4FD1C5" };
   const C = { floor: "#0A0B0D", deck: "#16181C", deck2: "#1F2227", deck3: "#2A2E34", seam: "#1C1F24", inbg: "#14171B", recap: "#111317", chalk: "#FFFFFF", dust: "#8A9099", steel: "#B4BAC2", brand: "#1F5FD0", warn: "#E3B341" };
   const WIDTHS = [200, 110, 64, 56, 90, 110, 90, 120, 200, 170];
   const INPUT_COLS = [6, 7, 9];
@@ -3537,7 +3659,7 @@ function rImpPage(){
       ${imp.mode === "next" ? (() => { const ex = impExos().filter(x => x.why), c = k => ex.filter(x => x.whyCls === k).length; return `<div class="imptip" style="border-color:var(--brand)"><b>Règle par défaut</b> : ${c("up")} charge${c("up") > 1 ? "s" : ""} augmentée${c("up") > 1 ? "s" : ""}, ${c("same")} inchangée${c("same") > 1 ? "s" : ""}, ${c("down")} réduite${c("down") > 1 ? "s" : ""}. Charge +2,5 % (+5 % pour les gros groupes musculaires du bas du corps : squat, soulevé, presse, fentes, hip thrust…) si ton dernier RPE est ≤ 8 ; inchangée entre 8,5 et 9,5 ; −5 % si RPE 10 ou échec. <b>Sans RPE noté</b> : si toutes tes séries ont atteint le haut de la fourchette de reps (par exemple 3×12 pour 8–12), la charge monte du même pourcentage ; sinon elle reste. <a href="#" data-act="rpeInfo">C'est quoi le RPE ?</a> La fourchette de 2 à 10 % vient de l'<a href="https://doi.org/10.1249/MSS.0b013e3181915670" target="_blank" rel="noopener">ACSM (Ratamess et al., 2009)</a>, le RPE de <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al. (2016)</a>. Les seuils et les pas sont un choix prudent de l'app, pas une règle publiée : corrige avec ✎.</div>`; })() : `<div class="imptip">Rien n'est enregistré pour l'instant. Touche <b>✎</b> pour corriger un exercice, une série ou une charge.</div>`}
       ${r.weeks.length > 1 ? `<div class="chips" style="margin-bottom:10px;overflow-x:auto">${r.weeks.map((x, i) => `<button class="chip" aria-pressed="${i === imp.week}" data-act="impWeek" data-w="${i}">${esc(x.label)}</button>`).join("")}</div>` : ""}
       ${w.days.map((d, di) => !d.exos.length ? "" : `<div class="panel impday"><div class="row"><b>${esc(d.label)}</b><span class="muted small">${d.sub ? esc(d.sub) + " · " : ""}${d.exos.length} exos</span></div>
-        ${d.exos.map((x, ei) => { const key = imp.week + "." + di + "." + ei, open = imp.edit === key, lc = {squat:"SQUAT", bench:"BENCH", deadlift:"DEADLIFT", pull:"PULL", dip:"DIP", mu:"MU"}[x.cat];
+        ${d.exos.map((x, ei) => { const key = imp.week + "." + di + "." + ei, open = imp.edit === key, lc = {squat:"SQUAT", bench:"BENCH", deadlift:"DEADLIFT", pull:"PULL", dip:"DIP", mu:"MU", cardio:"CARDIO"}[x.cat];
           return `<div class="impex"><span class="d10" style="--c:${lc ? LCOL[lc] : "var(--steel)"}"></span><div class="grow"><div style="font-weight:600">${esc(x.canon || x.name)}${x.canon ? "" : ` <span class="imptag">à vérifier</span>`}</div>
             <div class="impsets">${x.groups.map(g => `<span>${esc(ProgImport.fmtGroup(g))}</span>`).join("")}${x.rpe ? `<span>RPE ${esc(x.rpe)}</span>` : ""}</div>
             ${x.why ? `<div class="impwhy ${x.whyCls}">${esc(x.why)}</div>` : `<div class="muted tiny impraw">« ${esc(String(x.raw || "").slice(0, 70))} »</div>`}
@@ -3787,10 +3909,11 @@ function onboard(step, why){
     <p class="muted" style="margin-top:8px">${obPre ? "Rempli depuis ta prog" + (P.bloc ? " (onglet « " + esc(P.blocTitles[P.bloc].trim()) + " »)" : "") + ". Vérifie et corrige si besoin." : "Quelques infos pour te placer dans la bonne catégorie et calculer ton score."}</p>
     <label for="obp">Prénom</label><input id="obp" autocomplete="given-name" value="${v(P.prenom)}">
 
-    <h2 class="h2">Tes disciplines <span class="muted">une ou les deux</span></h2>
+    <h2 class="h2">Tes disciplines <span class="muted">une ou plusieurs</span></h2>
     <div class="dgrid">
       <button class="dcard" aria-pressed="true" data-act="obDisc" data-k="street">${CK}<span class="discs" aria-hidden="true">${dots(LIFTS)}</span><b>Street lifting</b><span class="sub">Muscle-up, tractions, dips, squat</span><span class="sc">Score RIS</span></button>
       <button class="dcard" aria-pressed="false" data-act="obDisc" data-k="power">${CK}<span class="discs" aria-hidden="true">${dots(POWER_LIFTS)}</span><b>Powerlifting</b><span class="sub">Squat, Bench, Deadlift</span><span class="sc">Score IPF GL</span></button>
+      <button class="dcard" aria-pressed="false" data-act="obDisc" data-k="muscu" style="grid-column:1/-1">${CK}<span class="discs" aria-hidden="true"><i style="--c:var(--steel)"></i><i style="--c:var(--cardio)"></i></span><b>Musculation</b><span class="sub">Machines, haltères, poids du corps, cardio</span><span class="sc">Charges, volume, régularité</span></button>
     </div>
     <div class="reveal" id="obpow" hidden><b style="font-size:15px">En powerlifting, tu tires</b>
       <div class="segc" role="group" aria-label="Classic ou equipped" style="margin-top:10px"><button aria-pressed="true" data-act="obMode" data-k="classic">Classic</button><button aria-pressed="false" data-act="obMode" data-k="equipped">Equipped</button></div>
@@ -3802,12 +3925,12 @@ function onboard(step, why){
     <div class="grid2"><div><label for="obn">Date de naissance</label><input id="obn" type="date" data-inp="ob"></div><div><label for="obw">Poids de corps (kg)</label><input id="obw" inputmode="decimal" placeholder="73,2" value="${v(P.poids)}" data-inp="ob"></div></div>
     <label for="obpa">Pays</label><select id="obpa">${paysOptions("BE")}</select>
 
-    <h2 class="h2">Tes catégories <span class="pill">calculées pour toi</span></h2>
+    <div id="obcatsec"><h2 class="h2">Tes catégories <span class="pill">calculées pour toi</span></h2>
     <div class="group" id="obcats"></div>
-    <p class="muted small" style="margin-top:10px">D'après ton poids et ta date de naissance. Tu pourras viser la catégorie du dessus ou du dessous dans les réglages.</p>
+    <p class="muted small" style="margin-top:10px">D'après ton poids et ta date de naissance. Tu pourras viser la catégorie du dessus ou du dessous dans les réglages.</p></div>
 
-    <h2 class="h2">Tes PR actuels <span class="muted">facultatif</span></h2>
-    <div class="grid2">${ALL_LIFTS.map(l => `<div data-lift="${l}"${LIFTS.includes(l) ? "" : " hidden"}><label for="obpr${l}" style="margin-top:0">${LNAME[l]}${BW_LIFTS.includes(l) ? " · lest" : ""}</label><input id="obpr${l}" inputmode="decimal" placeholder="kg" value="${v(P["pr_" + l])}"></div>`).join("")}</div>
+    <div id="obprsec"><h2 class="h2">Tes PR actuels <span class="muted">facultatif</span></h2>
+    <div class="grid2">${ALL_LIFTS.map(l => `<div data-lift="${l}"${LIFTS.includes(l) ? "" : " hidden"}><label for="obpr${l}" style="margin-top:0">${LNAME[l]}${BW_LIFTS.includes(l) ? " · lest" : ""}</label><input id="obpr${l}" inputmode="decimal" placeholder="kg" value="${v(P["pr_" + l])}"></div>`).join("")}</div></div>
     <div class="grid2"><div><label for="obd">Début de la pratique</label><input id="obd" type="date"></div><div></div></div>
     <label for="obk">Lien de la prog de ton coach (facultatif)</label><input id="obk" type="url" placeholder="https://docs.google.com/spreadsheets/d/…" value="${P.coach ? sheetUrl(P.coach) : ""}">
     ${P.blocs && P.blocs.length ? `<label for="obbl">Ton bloc en cours</label><select id="obbl">${P.blocs.map(n => `<option value="${n}" ${n === P.bloc ? "selected" : ""}>${esc(/^\s*BLOC\s*\d+\s*$/i.test(P.blocTitles[n]) ? "Bloc " + n : P.blocTitles[n].trim())}</option>`).join("")}</select><p class="muted tiny" style="margin-top:6px">Choisis le bloc que tu fais en ce moment. Tu pourras le changer dans les réglages.</p>` : ""}
@@ -3825,6 +3948,7 @@ function obRefresh(){
   const st = obOn("street"), pw = obOn("power"), sx = obSel("obSex") || "H", w = num(($("#obw") || {}).value), b = ($("#obn") || {}).value || "";
   const ages = ageCats(b, isoOf(new Date())), youth = ages.some(a => a === "SJ" || a === "JR");
   const pp = $("#obpow"); if (pp) pp.hidden = !pw;
+  { const f = !st && !pw; ["obcatsec", "obprsec"].forEach(i => { const e = $("#" + i); if (e) e.hidden = f; }); }   /* musculation seule : ni catégorie ni PR */
   document.querySelectorAll("[data-lift]").forEach(e => { const l = e.dataset.lift; e.hidden = !((st && LIFTS.includes(l)) || (pw && POWER_LIFTS.includes(l))); });
   const row = (t, s, val) => `<div class="catrow"><span class="grow"><b>${t}</b><span>${s}</span></span><span class="val"${/kg/.test(val) ? "" : ' style="font-size:22px"'}>${val}</span></div>`;
   const kgv = c => c === null ? "—" : catTxt(c).replace(" kg", "<small>kg</small>");
@@ -3836,8 +3960,8 @@ document.addEventListener("input", ev => { if (ev.target && ev.target.dataset &&
 Object.assign(ACT, {
   obLogin:() => auth.login("select_account"),
   obStep:d => onboard(d.s),
-  obDisc:(d, el) => { const b = el.closest("[data-act]"), on = b.getAttribute("aria-pressed") === "true", other = d.k === "street" ? "power" : "street";
-    if (on && !obOn(other)) return toast("Choisis au moins une discipline", true); b.setAttribute("aria-pressed", String(!on)); obRefresh(); },
+  obDisc:(d, el) => { const b = el.closest("[data-act]"), on = b.getAttribute("aria-pressed") === "true", others = ["street", "power", "muscu"].filter(k => k !== d.k);
+    if (on && !others.some(obOn)) return toast("Choisis au moins une discipline", true); b.setAttribute("aria-pressed", String(!on)); obRefresh(); },
   obMode:(d, el) => { document.querySelectorAll("[data-act=obMode]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.k === d.k))); },
   obSex:(d, el) => { document.querySelectorAll("[data-act=obSex]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.k === d.k))); obRefresh(); },
   obLink:async () => { const id = idOf($("#oblink").value); if (!id) return onboard("carnet", "Ce lien ne ressemble pas à un lien de Google Sheet.");
@@ -3858,9 +3982,9 @@ Object.assign(ACT, {
     } catch(e){ b.disabled = false; b.textContent = "Tout remplir depuis ma prog"; toast("Prog inaccessible : " + errMsg(e), true); }
   },
   obCreate:async () => {
-    const st = obOn("street"), pw = obOn("power"), sx = obSel("obSex") || "H", w = num($("#obw").value), nai = $("#obn").value || "";
-    const p = {prenom:$("#obp").value.trim(), sexe:sx, naissance:nai, disciplines:[st ? "street" : "", pw ? "power" : ""].filter(Boolean).join(","), power_mode:obSel("obMode") || "classic",
-      categorie:w ? catAuto(w, catsFor(sx)) : "", debut:$("#obd").value, poids:$("#obw").value, coach:idOf($("#obk").value),
+    const st = obOn("street"), pw = obOn("power"), mu = obOn("muscu"), sx = obSel("obSex") || "H", w = num($("#obw").value), nai = $("#obn").value || "";
+    const p = {prenom:$("#obp").value.trim(), sexe:sx, naissance:nai, disciplines:[st ? "street" : "", pw ? "power" : "", mu ? "muscu" : ""].filter(Boolean).join(","), power_mode:obSel("obMode") || "classic",
+      categorie:w && (st || pw) ? catAuto(w, catsFor(sx)) : "", debut:$("#obd").value, poids:$("#obw").value, coach:idOf($("#obk").value),
       taille:obPre && obPre.taille, pays:($("#obpa") || {}).value || "BE", bloc:$("#obbl") ? Number($("#obbl").value) : obPre && obPre.bloc, blocDate:$("#obb") ? $("#obb").value : ""};
     ALL_LIFTS.forEach(l => { const e = $("#obpr" + l); p["pr_" + l] = e && !e.closest("[hidden]") ? e.value : ""; });
     if (!p.prenom) return toast("Indique ton prénom", true);

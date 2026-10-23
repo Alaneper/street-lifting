@@ -12,6 +12,15 @@
 
   // Dictionnaire d'exercices : du plus précis au plus général. cat = couleur dans l'app.
   const EXOS = [
+    // Cardio (v40) : suivi en minutes, hors total et hors classement
+    [/rameur|rowing\s*machine|row\s*erg\b/, "Rameur", "cardio"],
+    [/elliptique|elliptical|cross\s*trainer/, "Elliptique", "cardio"],
+    [/escaliers?\b|stairmaster|stepper|stair\s*climb/, "Escalier", "cardio"],
+    [/natation|swim|\bnage\b/, "Natation", "cardio"],
+    [/\bv[ée]lo\b|\bbike\b|cycling|spinning/, "Vélo", "cardio"],
+    [/\bmarche\b|(?<!farmer\s)\bwalk\b/, "Marche", "cardio"],
+    [/\bcourse\b|running|jogging|footing|tapis/, "Course à pied", "cardio"],
+    [/cardio|hiit|zone\s*2/, "Cardio", "cardio"],
     [/pause\s*squat|squat\s*pause/, "Squat pause", "squat"],
     [/front\s*squat/, "Front squat", "squat"],
     [/hack\s*squat/, "Hack squat", "squat"],
@@ -46,9 +55,11 @@
     [/triceps|skull\s*crusher|kick.?back|barre\s*au\s*front|barre\s*front|pushdown|extension\s*triceps/, "Triceps", ""],
     [/[ée]l[ée]v\w*\.?\s*lat|lat(eral)?\s*raise|elev\s*lat|oiseau\s*lat/, "Élévations latérales", ""],
     [/oiseau|rear\s*delt/, "Oiseau", ""],
-    [/[ée]cart[ée]|fly/, "Écarté", "bench"],
+    [/[ée]cart[ée]|fly|pec\s*deck|butterfly|papillon/, "Écarté", "bench"],
     [/shrug/, "Shrug", ""],
     [/mollet|calf|calves/, "Mollets", ""],
+    [/adducteurs?|adductor/, "Adducteurs", ""],
+    [/abducteurs?|abductor/, "Abducteurs", ""],
     [/back\s*ext|extension\s*lombaire/, "Extensions lombaires", ""],
     [/farmer/, "Farmer walk", ""],
     [/gainage|planche|plank|hollow|l.?sit/, "Gainage", ""],
@@ -101,6 +112,20 @@
     return null;
   }
 
+  // Cardio (v40) : « vélo 10 min », « 20' de marche », « course 25 minutes 4 km ». Seulement si le nom est du cardio :
+  // « repos 2 min » ou « EMOM 10 min » ne deviennent pas des exercices.
+  const RE_DUR = /(?<![\d.,])(\d+(?:[.,]\d+)?)\s*(minutes?|mins?|mn|h(?:eures?)?|['’])(?![a-zà-ÿ])/i;
+  function readDuration(s) {
+    const m = RE_DUR.exec(s); if (!m) return null;
+    const nameOf = t => t.replace(/[:\-—–,;@(){}]+/g, " ").replace(/\s+/g, " ").trim();
+    let nm = nameOf(s.slice(0, m.index));
+    if (canon(nm).cat !== "cardio") nm = nameOf(s.slice(m.index + m[0].length).split(/[,.;]|\s(?:puis|then)\s/i)[0]);
+    if (canon(nm).cat !== "cardio") return null;
+    const min = /^h/i.test(m[2]) ? num(m[1]) * 60 : num(m[1]);
+    const km = (s.match(/(\d+(?:[.,]\d+)?)\s*km\b/i) || [])[1] || null;
+    return { name: nm, groups: [{ sets: 1, reps: String(Math.round(min * 10) / 10).replace(".", ",") + " min", load: null, amrap: false, km: km }], rpe: null, tempo: null, side: false };
+  }
+
   // Renvoie {name, groups, rpe, tempo, note} ou null si aucun schéma.
   function readExo(seg) {
     const s = seg.trim();
@@ -132,7 +157,7 @@
     }
     RE_PROSE.lastIndex = 0;
     while ((m = RE_PROSE.exec(s))) if (!hits.some(h => m.index < h.end && m.index + m[0].length > h.i)) hits.push({ i: m.index, end: m.index + m[0].length, g: { sets: toNum(m[1]), reps: String(toNum(m[2])) } });
-    if (!hits.length) return null;
+    if (!hits.length) return readDuration(s);
     hits.sort((a, b) => a.i - b.i);
     // charge de chaque groupe : texte entre la fin du groupe et le début du suivant
     hits.forEach((h, k) => {
@@ -344,6 +369,7 @@
   // Résumé lisible d'un groupe de séries : « 4×5 · 160 kg », « 5×5 · 72 % », « 3×8 · +20 kg »
   function fmtGroup(g) {
     const reps = g.reps === "max" ? "max" : g.reps;
+    if (/min$/.test(String(reps))) return String(reps) + (g.km ? ` · ${String(g.km).replace(".", ",")} km` : "");   // cardio : « 10 min · 3,2 km »
     let s = `${g.sets}×${reps}${g.amrap && g.reps !== "max" ? "+" : ""}`;
     const L = g.load;
     if (L) s += " · " + (L.kind === "pct" ? `${L.v} %` : L.kind === "rel" ? `${L.v} %` : L.kind === "lest" ? `+${L.v} ${L.u}` : `${L.v} ${L.u}`);
@@ -483,6 +509,7 @@
             if (gi === 0 && x.rpe) { const r = isNaN(+String(x.rpe).replace(",", ".")) ? String(x.rpe) : fmtN(+String(x.rpe).replace(",", ".")); if (inten) com.push("Intensité " + inten); inten = "RPE " + r; }
             if (gi === 0 && x.tempo) com.push("Tempo " + x.tempo);
             if (gi === 0 && x.note) com.push(x.note);
+            if (g.km) com.push(String(g.km).replace(".", ",") + " km");
             const reps = g.reps === "max" ? "max" : String(g.reps) + (g.amrap ? "+" : "");
             rows.push([x.canon || x.name, "", String(g.sets), reps, charge, inten, "", "", com.join(" · "), ""]);
           });
@@ -500,7 +527,7 @@
 
   // Mise en forme de l'onglet (maquette A choisie par Alane le 23/10 : sombre comme l'app, logo, couleur de chaque mouvement).
   // Renvoie les requêtes Google Sheets (batchUpdate) pour l'onglet sheetId ; noFont : sans police Barlow (repli).
-  const CAT_COL = { squat: "#F0524A", bench: "#A78BFA", deadlift: "#EC6FB0", pull: "#4C8DF6", dip: "#2BB673", mu: "#E3B341" };
+  const CAT_COL = { squat: "#F0524A", bench: "#A78BFA", deadlift: "#EC6FB0", pull: "#4C8DF6", dip: "#2BB673", mu: "#E3B341", cardio: "#4FD1C5" };
   const C = { floor: "#0A0B0D", deck: "#16181C", deck2: "#1F2227", deck3: "#2A2E34", seam: "#1C1F24", inbg: "#14171B", recap: "#111317", chalk: "#FFFFFF", dust: "#8A9099", steel: "#B4BAC2", brand: "#1F5FD0", warn: "#E3B341" };
   const WIDTHS = [200, 110, 64, 56, 90, 110, 90, 120, 200, 170];
   const INPUT_COLS = [6, 7, 9];
