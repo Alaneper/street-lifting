@@ -471,7 +471,7 @@ html,body{overflow-x:clip}body{margin-top:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "34 · 23 oct. 2026";
+const APP_VER = "35 · 23 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -818,7 +818,14 @@ let progOrder = [];
 const CARNET_TABS = new Set(["PROFIL","PR","POIDS","OBJECTIFS","RECORDS","COMPETITIONS","SERIES","BLOCS","TENTATIVES","CHECKLIST","BILAN","HISTORIQUE","REPAS","ALIMENTS","DEPENSE"]);
 const BLOC_RE = /^\s*BLOC\s*(\d+)\s*$/i;
 /* Un onglet est un bloc s'il contient un tableau de séances : une ligne avec « MOUVEMENT » et « SÉRIES » ou « RÉPÉTITIONS ». */
+/* Onglets écrits par l'import de l'app (marqueur « Street Lifting · programme » en haut) : leurs en-têtes sont les nôtres, on les traduit en mémoire pour la lecture. Les autres onglets ne sont jamais touchés. */
+const OWN_LABELS = {"EXERCICE":"MOUVEMENT", "REPS":"RÉPÉTITIONS", "CHARGE (KG)":"CHARGE", "INTENSITÉ VISÉE":"INTENSITÉ CIBLE", "RPE SÉRIE 1":"RPE S1", "NOTES DU PROGRAMME":"COMMENTAIRE DU COACH", "MON COMMENTAIRE":"COMMENTAIRE ATHLÈTE", "BILAN DE SÉANCE":"RECAP"};
+function ownLabels(v){
+  if (!v.slice(0, 3).some(r => (r || []).some(x => String(x ?? "").startsWith("Street Lifting · programme")))) return v;
+  return v.map(r => (r || []).map(x => { const k = norm(String(x ?? "")); return k in OWN_LABELS ? OWN_LABELS[k] : x; }));
+}
 function progInfo(v){
+  v = ownLabels(v);
   for (const row of v) { const t = (row || []).map(x => norm(String(x ?? ""))); if (t.includes("MOUVEMENT") && (t.includes("SÉRIES") || t.includes("RÉPÉTITIONS"))) return {prog:true, n:sectionOf(v).n}; }
   return {prog:false};
 }
@@ -965,6 +972,7 @@ function fixJours(ss){
   }
 }
 function parseBloc(v, sheet, bloc){
+  v = ownLabels(v);
   const sec = sectionOf(v); v = v.map((row, i) => i >= sec.rMin && i < sec.rMax ? row : []);
   const cell = (r, c) => String((v[r] && v[r][c]) ?? "");
   const seances = [], weeks = {};
@@ -2917,7 +2925,7 @@ Object.assign(ACT, {
     if (!impExos().length) { imp.step = 1; toast("Plus aucun exercice : recommence avec ton texte", true); } renderLayer(); },
   impSave:async () => {
     if (imp.busy) return;
-    const rows = ProgImport.toGrid(imp.res); imp.busy = true; renderLayer();
+    const rows = ProgImport.toGrid(imp.res, new Date().toLocaleDateString("fr-BE")); imp.busy = true; renderLayer();
     try {
       const have = await getTitles(APP_ID); let base = String(imp.title || "").replace(/[\[\]:*?\/\\']/g, " ").replace(/\s+/g, " ").trim().slice(0, 40) || "Mon programme", name = base, i = 2;
       while (have.some(t => t.trim().toLowerCase() === name.toLowerCase()) || CARNET_TABS.has(name.toUpperCase())) name = base + " " + (i++);

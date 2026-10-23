@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261023134635">
+<meta name="sl-build" content="20261023135228">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -495,7 +495,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "34 · 23 oct. 2026";
+const APP_VER = "35 · 23 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -828,7 +828,14 @@ let progOrder = [];
 const CARNET_TABS = new Set(["PROFIL","PR","POIDS","OBJECTIFS","RECORDS","COMPETITIONS","SERIES","BLOCS","TENTATIVES","CHECKLIST","BILAN","HISTORIQUE","REPAS","ALIMENTS","DEPENSE"]);
 const BLOC_RE = /^\s*BLOC\s*(\d+)\s*$/i;
 /* Un onglet est un bloc s'il contient un tableau de séances : une ligne avec « MOUVEMENT » et « SÉRIES » ou « RÉPÉTITIONS ». */
+/* Onglets écrits par l'import de l'app (marqueur « Street Lifting · programme » en haut) : leurs en-têtes sont les nôtres, on les traduit en mémoire pour la lecture. Les autres onglets ne sont jamais touchés. */
+const OWN_LABELS = {"EXERCICE":"MOUVEMENT", "REPS":"RÉPÉTITIONS", "CHARGE (KG)":"CHARGE", "INTENSITÉ VISÉE":"INTENSITÉ CIBLE", "RPE SÉRIE 1":"RPE S1", "NOTES DU PROGRAMME":"COMMENTAIRE DU COACH", "MON COMMENTAIRE":"COMMENTAIRE ATHLÈTE", "BILAN DE SÉANCE":"RECAP"};
+function ownLabels(v){
+  if (!v.slice(0, 3).some(r => (r || []).some(x => String(x ?? "").startsWith("Street Lifting · programme")))) return v;
+  return v.map(r => (r || []).map(x => { const k = norm(String(x ?? "")); return k in OWN_LABELS ? OWN_LABELS[k] : x; }));
+}
 function progInfo(v){
+  v = ownLabels(v);
   for (const row of v) { const t = (row || []).map(x => norm(String(x ?? ""))); if (t.includes("MOUVEMENT") && (t.includes("SÉRIES") || t.includes("RÉPÉTITIONS"))) return {prog:true, n:sectionOf(v).n}; }
   return {prog:false};
 }
@@ -975,6 +982,7 @@ function fixJours(ss){
   }
 }
 function parseBloc(v, sheet, bloc){
+  v = ownLabels(v);
   const sec = sectionOf(v); v = v.map((row, i) => i >= sec.rMin && i < sec.rMax ? row : []);
   const cell = (r, c) => String((v[r] && v[r][c]) ?? "");
   const seances = [], weeks = {};
@@ -3260,11 +3268,12 @@ vidLoad().catch(() => {});
 
   // Tableau prêt à écrire dans un onglet, au format lu par l'app (semaines, jours, séances, en-tête MOUVEMENT) : résultat de l'import → lignes de cellules.
   // Charge : kg ou lest en nombre ; lb converties en kg ; % et RPE vont dans « INTENSITÉ CIBLE », le reste (tempo, back-off, remarques) dans « COMMENTAIRE DU COACH ».
-  const GRID_HEAD = ["MOUVEMENT", "VARIATION", "SÉRIES", "RÉPÉTITIONS", "CHARGE", "INTENSITÉ CIBLE", "RPE S1", "RPE DERNIÈRE SÉRIE", "COMMENTAIRE DU COACH", "COMMENTAIRE ATHLÈTE"];
+  const GRID_HEAD = ["Exercice", "Variation", "Séries", "Reps", "Charge (kg)", "Intensité visée", "RPE série 1", "RPE dernière série", "Notes du programme", "Mon commentaire"];
+  const GRID_MARK = "Street Lifting · programme";
   const WEEKDAY = /^(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)$/i;
   const fmtN = n => String(Math.round(n * 100) / 100).replace(".", ",");
-  function toGrid(res) {
-    const rows = [];
+  function toGrid(res, dateTxt) {
+    const rows = [["", GRID_MARK + (dateTxt ? " · importé le " + dateTxt : "")], ["", "Programme importé avec l'app Street Lifting. Tu peux modifier les cases : l'app les relit."], []];
     res.weeks.forEach((w, wi) => {
       rows.push(["SEMAINE", String(wi + 1)]);
       let nd = 0;
@@ -3293,7 +3302,7 @@ vidLoad().catch(() => {});
             rows.push([x.canon || x.name, "", String(g.sets), reps, charge, inten, "", "", com.join(" · "), ""]);
           });
         });
-        rows.push(["RECAP", "", "POIDS DE CORPS"]);
+        rows.push(["Bilan de séance", "", "Poids de corps"]);
         (d.notes || []).forEach(n => rows.push(["Remarque", n]));
         rows.push([]);
       });
@@ -3304,7 +3313,7 @@ vidLoad().catch(() => {});
     return rows;
   }
 
-  const api = { parseProgram, parseWorkbook, canon, fmtGroup, toGrid, _readExo: readExo };
+  const api = { parseProgram, parseWorkbook, canon, fmtGroup, toGrid, GRID_MARK, _readExo: readExo };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.ProgImport = api;
 })(typeof window !== "undefined" ? window : globalThis);
@@ -3432,7 +3441,7 @@ Object.assign(ACT, {
     if (!impExos().length) { imp.step = 1; toast("Plus aucun exercice : recommence avec ton texte", true); } renderLayer(); },
   impSave:async () => {
     if (imp.busy) return;
-    const rows = ProgImport.toGrid(imp.res); imp.busy = true; renderLayer();
+    const rows = ProgImport.toGrid(imp.res, new Date().toLocaleDateString("fr-BE")); imp.busy = true; renderLayer();
     try {
       const have = await getTitles(APP_ID); let base = String(imp.title || "").replace(/[\[\]:*?\/\\']/g, " ").replace(/\s+/g, " ").trim().slice(0, 40) || "Mon programme", name = base, i = 2;
       while (have.some(t => t.trim().toLowerCase() === name.toLowerCase()) || CARNET_TABS.has(name.toUpperCase())) name = base + " " + (i++);
@@ -3551,8 +3560,14 @@ async function ensureTabs(id){
 }
 /* Nouvel onglet (programme importé) dans le carnet : création puis écriture groupée. */
 async function addProgTab(id, title, rows){
-  await gapi(API + id + ":batchUpdate", {method:"POST", body:JSON.stringify({requests:[{addSheet:{properties:{title}}}]})});
+  const r = await gapi(API + id + ":batchUpdate", {method:"POST", body:JSON.stringify({requests:[{addSheet:{properties:{title}}}]})});
   await writeMany(id, [{range:q(title) + "!A1", values:rows.map(r => r.map(v => String(v ?? "")))}]);
+  /* Logo de l'app en A1 (échec sans conséquence : le programme est déjà écrit) */
+  try {
+    const sid = r.replies && r.replies[0] && r.replies[0].addSheet.properties.sheetId;
+    await gapi(API + id + "/values:batchUpdate", {method:"POST", body:JSON.stringify({valueInputOption:"USER_ENTERED", data:[{range:q(title) + "!A1", values:[['=IMAGE("' + location.origin + location.pathname.replace(/[^/]*$/, "") + 'icon-192.png";4;60;60)']]}]})});
+    if (sid !== undefined) await gapi(API + id + ":batchUpdate", {method:"POST", body:JSON.stringify({requests:[{updateDimensionProperties:{range:{sheetId:sid, dimension:"ROWS", startIndex:0, endIndex:1}, properties:{pixelSize:64}, fields:"pixelSize"}}, {updateDimensionProperties:{range:{sheetId:sid, dimension:"COLUMNS", startIndex:0, endIndex:1}, properties:{pixelSize:90}, fields:"pixelSize"}}]})});
+  } catch(e){ console.warn("logo", e); }
 }
 async function createBook(p){
   const r = await gapi(API, {method:"POST", body:JSON.stringify({properties:{title:"Street Lifting – " + (p.prenom || "carnet"), locale:"fr_FR"},

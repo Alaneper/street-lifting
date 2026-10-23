@@ -450,11 +450,12 @@
 
   // Tableau prêt à écrire dans un onglet, au format lu par l'app (semaines, jours, séances, en-tête MOUVEMENT) : résultat de l'import → lignes de cellules.
   // Charge : kg ou lest en nombre ; lb converties en kg ; % et RPE vont dans « INTENSITÉ CIBLE », le reste (tempo, back-off, remarques) dans « COMMENTAIRE DU COACH ».
-  const GRID_HEAD = ["MOUVEMENT", "VARIATION", "SÉRIES", "RÉPÉTITIONS", "CHARGE", "INTENSITÉ CIBLE", "RPE S1", "RPE DERNIÈRE SÉRIE", "COMMENTAIRE DU COACH", "COMMENTAIRE ATHLÈTE"];
+  const GRID_HEAD = ["Exercice", "Variation", "Séries", "Reps", "Charge (kg)", "Intensité visée", "RPE série 1", "RPE dernière série", "Notes du programme", "Mon commentaire"];
+  const GRID_MARK = "Street Lifting · programme";
   const WEEKDAY = /^(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)$/i;
   const fmtN = n => String(Math.round(n * 100) / 100).replace(".", ",");
-  function toGrid(res) {
-    const rows = [];
+  function toGrid(res, dateTxt) {
+    const rows = [["", GRID_MARK + (dateTxt ? " · importé le " + dateTxt : "")], ["", "Programme importé avec l'app Street Lifting. Tu peux modifier les cases : l'app les relit."], []];
     res.weeks.forEach((w, wi) => {
       rows.push(["SEMAINE", String(wi + 1)]);
       let nd = 0;
@@ -483,7 +484,7 @@
             rows.push([x.canon || x.name, "", String(g.sets), reps, charge, inten, "", "", com.join(" · "), ""]);
           });
         });
-        rows.push(["RECAP", "", "POIDS DE CORPS"]);
+        rows.push(["Bilan de séance", "", "Poids de corps"]);
         (d.notes || []).forEach(n => rows.push(["Remarque", n]));
         rows.push([]);
       });
@@ -494,7 +495,7 @@
     return rows;
   }
 
-  const api = { parseProgram, parseWorkbook, canon, fmtGroup, toGrid, _readExo: readExo };
+  const api = { parseProgram, parseWorkbook, canon, fmtGroup, toGrid, GRID_MARK, _readExo: readExo };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.ProgImport = api;
 })(typeof window !== "undefined" ? window : globalThis);

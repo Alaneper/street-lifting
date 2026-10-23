@@ -89,8 +89,14 @@ async function ensureTabs(id){
 }
 /* Nouvel onglet (programme importé) dans le carnet : création puis écriture groupée. */
 async function addProgTab(id, title, rows){
-  await gapi(API + id + ":batchUpdate", {method:"POST", body:JSON.stringify({requests:[{addSheet:{properties:{title}}}]})});
+  const r = await gapi(API + id + ":batchUpdate", {method:"POST", body:JSON.stringify({requests:[{addSheet:{properties:{title}}}]})});
   await writeMany(id, [{range:q(title) + "!A1", values:rows.map(r => r.map(v => String(v ?? "")))}]);
+  /* Logo de l'app en A1 (échec sans conséquence : le programme est déjà écrit) */
+  try {
+    const sid = r.replies && r.replies[0] && r.replies[0].addSheet.properties.sheetId;
+    await gapi(API + id + "/values:batchUpdate", {method:"POST", body:JSON.stringify({valueInputOption:"USER_ENTERED", data:[{range:q(title) + "!A1", values:[['=IMAGE("' + location.origin + location.pathname.replace(/[^/]*$/, "") + 'icon-192.png";4;60;60)']]}]})});
+    if (sid !== undefined) await gapi(API + id + ":batchUpdate", {method:"POST", body:JSON.stringify({requests:[{updateDimensionProperties:{range:{sheetId:sid, dimension:"ROWS", startIndex:0, endIndex:1}, properties:{pixelSize:64}, fields:"pixelSize"}}, {updateDimensionProperties:{range:{sheetId:sid, dimension:"COLUMNS", startIndex:0, endIndex:1}, properties:{pixelSize:90}, fields:"pixelSize"}}]})});
+  } catch(e){ console.warn("logo", e); }
 }
 async function createBook(p){
   const r = await gapi(API, {method:"POST", body:JSON.stringify({properties:{title:"Street Lifting – " + (p.prenom || "carnet"), locale:"fr_FR"},
