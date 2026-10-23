@@ -13,7 +13,8 @@ INJ = """<script>(()=>{const g=window.__sheets['%s']['BLOC 7'];
  for (let w=0; w<4; w++){ const c=2+w*20; let r=0; for (let i=0;i<g.length;i++){ if (String((g[i]||[])[c+1]||'').trim()==='LOADED DEAD BUG'){ r=i; break; } }
    if(!r) continue; const put=(rr,arr)=>{ while(g.length<=rr) g.push([]); arr.forEach((v,k)=>{ const row=g[rr]; while(row.length<=c+k) row.push(''); row[c+k]=v; }); };
    put(r+4, ['BENCH','COMP','','','3','3','3-5\\'','','100','','','','8','8,5','','']);
-   put(r+5, ['DEADLIFT','COMP','','','2','3','3-5\\'','','180','','','','8','','','']); }
+   put(r+5, ['DEADLIFT','COMP','','','2','3','3-5\\'','','180','','','','8','','','']);
+   put(r+6, ['MUSCLE UP','EMOM','','','15','1','','','elastique 2+0,5','','','','8','9','','15/15']); }
 })()</script>""" % COACH
 CLROWS = [
   {"nom":"Alane","pays":"BE","sexe":"M","cat":-80,"MU":None,"PULL":40,"DIP":60,"SQUAT":110,"total":210,"ris":300.1,"disc":"street,power","BENCH":100,"DEADLIFT":200,"SQUATP":110,"totalp":410,"gl":60.12,"mode":"classic","catp":-83,"age":"JR,OPEN","vs":True,"vp":True,"me":True},
@@ -43,7 +44,9 @@ with sync_playwright() as p:
     # 1. Carnet d'avant la v28 : street lifting seul, catégorie gardée telle quelle, muscle-up affiché
     check("street seul par défaut", pg.evaluate("streetOn() && !powerOn()"))
     check("catégorie street inchangée (−80, à la main)", pg.evaluate("cat() === -80 && !catAutoOn('categorie')"))
-    check("muscle-up dans les records de l'accueil", "Muscle-up" in pg.evaluate("document.querySelector('#v-home').innerText"))
+    check("muscle-up à l'élastique (« 15/15 ») : ni record ni 1RM estimé", pg.evaluate("compSets('MU').length === 0 && e1rmBest('MU', compSets('MU')) == null"), pg.evaluate("JSON.stringify(compSets('MU').slice(0,3))"))
+    check("muscle-up à l'élastique : absent du tableau des reps", pg.evaluate("repMaxes(compSets('MU')).every(x => !x.b)"))
+    check("muscle-up acquis' dans les records de l'accueil".replace(" acquis'", ""), "Muscle-up" in pg.evaluate("document.querySelector('#v-home').innerText"))
     check("Bench non reconnu en street seul", pg.evaluate("liftOf('BENCH') === null && liftOf('DEADLIFT') === null"))
     pg.evaluate("ACT.settings()"); pg.wait_for_timeout(400)
     txt = pg.evaluate("document.querySelector('.sheet').innerText")

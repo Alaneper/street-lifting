@@ -55,7 +55,7 @@ with sync_playwright() as p:
     pg.evaluate("window.E.charge = '99'; renderLayer()"); pg.fill('[data-chg=setC][data-j="0"]', "88"); pg.press('[data-chg=setC][data-j="0"]', "Tab"); pg.wait_for_timeout(200)
     pg.evaluate("renderLayer()"); r = pg.evaluate("live.rows[T.k].sets.map(x => x.c)")
     check("séries déjà modifiées : jamais remplacées par la prog (99)", r == [88, 88, 88], r)
-    check("version 27 ou plus", int(pg.evaluate("APP_VER").split(" ")[0]) >= 27)
+    check("version 27 ou plus", float(pg.evaluate("APP_VER").split(" ")[0]) >= 27)
     check("aucune erreur console", not [e for e in errs if "Failed to load resource" not in e], errs[:4])
     br.close()
 print("ÉCHECS :", fails)

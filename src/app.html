@@ -456,7 +456,7 @@ html,body{overflow-x:clip}body{margin-top:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "28 · 23 oct. 2026";
+const APP_VER = "29 · 23 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -1066,7 +1066,7 @@ function e1rm(c, r, lift, w){ if (!r) return null; const W = BW_LIFTS.includes(l
 function liftHistory(l){
   const pts = D.prs.filter(p => p.lift === l && p.reps === 1).map(p => ({date:p.date, v:p.charge, src:"PR"}));
   for (const s of S) { const d = dateOf(s); if (!d || !s.faite) continue;
-    for (const e of s.exercices) { if (liftOf(e.mouvement) !== l || !isCompEx(e)) continue; const v = num(e.e1rm); if (v) pts.push({date:d, v, src:"prog"}); } }
+    for (const e of s.exercices) { if (liftOf(e.mouvement) !== l || !isCompEx(e) || ASSIST_RE.test(String(e.charge ?? ""))) continue; const v = num(e.e1rm); if (v) pts.push({date:d, v, src:"prog"}); } }
   return pts.sort((a, b) => a.date < b.date ? -1 : 1);
 }
 /* ---------- Performances par exercice (prog + carnet), regroupées par séance ---------- */
@@ -1076,6 +1076,7 @@ function exercisePoints(){
   for (const s of S) for (const e of s.exercices) {
     const key = exKey(e), lift = liftOf(e.mouvement), lg = logged[[s.bloc, s.semaine, s.seance, key].join("|")];
     if (lg && (lg.includes("L" + e.row) || lg.includes(""))) continue;
+    if (ASSIST_RE.test(String(e.charge ?? ""))) continue;   /* série assistée (élastique) : ni record ni 1RM estimé (v29) */
     const c = chargeGuess(e); const fc = c === null ? setsFromComment(e, null) : null; if (c === null && !(fc && fc.every(x => x.c !== null && x.c !== undefined))) continue;
     if (failTxt(e.rpe1) && (failTxt(e.rpeLast) || !String(e.rpeLast || "").trim())) continue;
     const own = num(e.rpe1) !== null || num(e.rpeLast) !== null;
@@ -1093,7 +1094,7 @@ function exercisePoints(){
   for (const x of D.series) {
     const s = S.find(z => z.bloc === x.bloc && z.semaine === x.semaine && z.seance === x.seance && (!x.date || !dateOf(z) || Math.abs(days(x.date, dateOf(z))) <= 14));
     const xe = s && s.exercices.find(z => "L" + z.row === x.note), xl = liftOf(x.ex.split(" · ")[0]);
-    if (xe && /lastique|band|assist/i.test(String(xe.charge))) continue;
+    if (xe && ASSIST_RE.test(String(xe.charge))) continue;
     /* séance notée dans l'app : RPE de la 1re série (et de la dernière) repris de la ligne de la prog */
     let xs = x.sets; if (xe && xs && xs.length) { const r1 = num(xe.rpe1), rl = num(xe.rpeLast), okR = v => v && v >= 5 && v <= 10;
       xs = xs.map((y, i) => i === 0 && okR(r1) ? {...y, rpe:r1} : i === xs.length - 1 && i > 0 && okR(rl) ? {...y, rpe:rl} : y); }
@@ -1373,6 +1374,7 @@ function restSec(t, lift){
 /* Charge prescrite lisible :
    « 105 » ; « -15 » (assistance, négatif) ; « -10%/-5% ( 92,5 ) » (valeur calculée par le coach) ;
    « 27+2,3 » (machine + petits disques, additionnés) ; « 192,5-200 » (fourchette : borne basse) ; « 14 (3plaques) ». */
+const ASSIST_RE = /[ÉE]LASTI|LASTIQUE|\bBANDE?S?\b|\bBAND\b|ASSIST/i;
 function chargeGuess(e){
   const t = String(e.charge ?? "").trim();
   if (isNumTxt(t)) return num(t);
