@@ -97,6 +97,7 @@
     for (const pm of s.matchAll(/\(([^)]*)\)/g)) { if (/\d/.test(pm[1]) && !/\(/.test(pm[1]) && /^\s*[+@]?\s*\d|^\s*bw/i.test(pm[1])) { const r = readLoad(" " + pm[1]); if (r) return r; } }
     if ((m = s.match(/\((\d{2,3}(?:[.,]\d+)?)\s*(kg|lbs?)?\)/i))) return { kind: "abs", v: num(m[1]), u: (m[2] || "kg").toLowerCase().replace(/s$/, "") };   // « opener (190) »
     if ((m = t.match(/\s(\d{2,3}(?:[.,]\d+)?)\s*$/))) return { kind: "abs", v: num(m[1]), u: "kg" };  // « 3x8 80 » en fin de ligne
+    if ((m = t.match(/\s(\d{2,3}(?:[.,]\d+)?)\s+(?:@\s*(?:10|[5-9](?:[.,]5)?)|rpe\s*\d+(?:[.,]\d+)?(?:\s*-\s*\d+(?:[.,]\d+)?)?)\s*$/i))) return { kind: "abs", v: num(m[1]), u: "kg" };  // « 3x3 140 @8 », « 3x3 140 rpe 8 »
     return null;
   }
 
