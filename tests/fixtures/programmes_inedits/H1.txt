@@ -1,0 +1,13 @@
+Programme Prise de masse - 5 jours (copié de mon Google Sheet)
+Jour;Exercice;Séries;Reps;Charge;Remarque
+Lundi;Développé couché;4;10;70kg;
+Lundi;Développé incliné haltères;3;12;26kg;
+Lundi;Écarté poulie;3;15;;
+Mardi;Tractions;4;8;PDC;
+Mardi;Rowing barre;4;10;60kg;dos droit
+Mercredi;Squat;4;8;90kg;
+Mercredi;Leg extension;3;15;;
+Jeudi;Développé militaire;4;8;40kg;
+Jeudi;Élévations latérales;4;15;8kg;
+Vendredi;Curl barre;4;10;30kg;
+Vendredi;Barre au front;4;10;25kg;

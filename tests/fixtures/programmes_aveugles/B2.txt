@@ -1,0 +1,26 @@
+Workout A
+Squat
+3 × 5
+80 kg
+Rest 3 min
+
+Bench Press
+3 × 5
+60 kg
+
+Barbell Row
+3 × 8
+50 kg
+
+Workout B
+Squat
+3 × 5
+82.5 kg
+
+Overhead Press
+3 × 5
+35 kg
+
+Deadlift
+1 × 5
+100 kg

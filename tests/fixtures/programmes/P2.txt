@@ -1,0 +1,33 @@
+Athlete: L.M.	Cat: -83kg	Bloc: Accumulation 1	Début: 03/11
+TM Squat	TM Bench	TM Dead	
+170	115	205	
+Semaine	Jour	Exercice	Séries	Reps	%TM	RPE cible	Repos	Notes
+1	J1	Squat	5	5	72%	6	3min	tempo 2s descente
+1	J1	Bench	5	5	72%	6	3min	
+1	J1	Rowing Pendlay	4	8	-	7	2min	
+1	J1	Triceps extension	3	12	-	8	90s	
+1	J2	Deadlift	4	5	75%	6.5	4min	sumo
+1	J2	Squat pause	3	5	65%	6	3min	pause 2s
+1	J2	Tirage vertical	4	10	-	8	2min	
+1	J3	Bench	4	6	75%	7	3min	pause 1s
+1	J3	OHP	4	8	-	7	2min	
+1	J3	Dips	3	10	BW+10	8	2min	
+1	J4	Squat	3	8	65%	6	3min	
+1	J4	RDL	3	8	60%	6	3min	
+1	J4	Hip thrust	3	10	-	8	2min	
+2	J1	Squat	5	5	75%	6.5	3min	
+2	J1	Bench	5	5	75%	6.5	3min	
+2	J2	Deadlift	4	4	78%	7	4min	
+2	J3	Bench	4	6	77.5%	7	3min	
+2	J4	Squat	3	8	67.5%	6	3min	
+3	J1	Squat	5	4	80%	7.5	3-4min	
+3	J1	Bench	5	4	80%	7.5	3min	
+3	J2	Deadlift	4	3	82.5%	7.5	4min	
+3	J3	Bench	4	5	80%	7.5	3min	
+3	J4	Squat	3	6	70%	6.5	3min	
+4	-	DELOAD	-	-	-	-	-	moitié des séries
+5	J1	Squat	6	3	85%	8	4min	
+5	J1	Bench	6	3	85%	8	3min	
+5	J2	Deadlift	5	2	87.5%	8	4min	
+6	J1	Squat	1	AMRAP	87.5%	10	-	test, noter reps
+6	J2	Bench	1	AMRAP	87.5%	10	-	test
