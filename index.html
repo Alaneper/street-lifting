@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261023183546">
+<meta name="sl-build" content="20261024132459">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -496,7 +496,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "40 · 23 oct. 2026";
+const APP_VER = "41 · 24 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -844,7 +844,7 @@ function migrateIds(){
 const coachId = () => idOf(D.profil.coach_sheet_id);
 /* Les blocs de la prog : onglets « BLOC n », et aussi tout onglet nommé autrement (« Peaking BSLC »…)
    qui contient un tableau de séances (en-tête « MOUVEMENT »). Ordre chronologique = ordre des onglets. */
-let progOrder = [];
+let progOrder = [], weekTabs = {};
 const CARNET_TABS = new Set(["PROFIL","PR","POIDS","OBJECTIFS","RECORDS","COMPETITIONS","SERIES","BLOCS","TENTATIVES","CHECKLIST","BILAN","HISTORIQUE","REPAS","ALIMENTS","DEPENSE"]);
 const BLOC_RE = /^\s*BLOC\s*(\d+)\s*$/i;
 /* Un onglet est un bloc s'il contient un tableau de séances : une ligne avec « MOUVEMENT » et « SÉRIES » ou « RÉPÉTITIONS ». */
@@ -854,8 +854,34 @@ function ownLabels(v){
   if (!v.slice(0, 3).some(r => (r || []).some(x => String(x ?? "").startsWith("Street Lifting · programme")))) return v;
   return v.map(r => (r || []).map(x => { const k = norm(String(x ?? "")); return k in OWN_LABELS ? OWN_LABELS[k] : x; }));
 }
+/* Second modèle de coach (v41) : un onglet « WEEK n » par semaine, les jours « DAY k » empilés, colonnes Cat., Exercise, Séries, Reps, RPE, Charge…
+   Lecture seule : l'onglet est traduit en mémoire vers les libellés de l'app, jamais modifié, et aucune écriture ne part vers ce Sheet. */
+const WEEK_RE = /^\s*WEEK\s*(\d+)\s*$/i, DAY_RE = /^DAY\s*(\d+)$/i;
+function weekModelOk(v){ for (let r = 0; r + 1 < v.length; r++) if (DAY_RE.test(String((v[r] || [])[0] ?? "").trim()) && norm(String((v[r + 1] || [])[1] ?? "")) === "EXERCISE") return true; return false; }
+function weekToAts(v){
+  const g = v.map(r => (r || []).map(x => x ?? ""));
+  const cell = (r, c) => String((g[r] && g[r][c]) ?? ""), set = (r, c, x) => { g[r] = g[r] || []; while (g[r].length <= c) g[r].push(""); g[r][c] = x; };
+  for (let r = 0; r + 1 < g.length; r++) {
+    const m = cell(r, 0).trim().match(DAY_RE); if (!m || norm(cell(r + 1, 1)) !== "EXERCISE") continue;
+    const day = cell(r, 1).trim(); set(r, 0, "");
+    if (r > 0 && !cell(r - 1, 1).trim() && !cell(r - 1, 2).trim()) { set(r - 1, 1, "JOUR"); set(r - 1, 2, day); set(r, 1, "Séance " + m[1]); } else { set(r, 1, "JOUR"); set(r, 2, day); }
+    const h = r + 1; let reps = 0, cc = -1;
+    for (let k = 0; k < Math.max((g[h] || []).length, 14); k++) { const t = norm(cell(h, k));
+      if (t === "EXERCISE") set(h, k, "MOUVEMENT"); else if (t === "SERIES" || t === "SÉRIES") set(h, k, "SÉRIES");
+      else if (t === "REPS") set(h, k, reps++ ? "REPS FAITES" : "RÉPÉTITIONS"); else if (t === "INDICATIONS") set(h, k, "COMMENTAIRE DU COACH");
+      else if (t === "RPE") set(h, k, "INTENSITÉ CIBLE"); else if (t === "CHARGE") { set(h, k, "CONSIGNE"); cc = k; }
+      else if (t === "CHARGES") set(h, k, "CHARGES FAITES"); else if (!t && cc >= 0 && k === cc + 1) set(h, k, "CHARGE"); }
+    for (let rr = h + 1; rr < g.length; rr++) {
+      if (DAY_RE.test(cell(rr, 0).trim())) break;
+      if (/^HEURE DE SOMMEIL/.test(norm(cell(rr, 1)))) { set(rr, 1, ""); set(rr + 1, 1, ""); continue; }
+      if (cc >= 0 && cell(rr, 1).trim() && !cell(rr, cc + 1).trim() && cell(rr, cc).trim()) set(rr, cc + 1, cell(rr, cc));
+    }
+  }
+  return g;
+}
 function progInfo(v){
   v = ownLabels(v);
+  if (weekModelOk(v)) return {prog:true, week:true, n:null};
   for (const row of v) { const t = (row || []).map(x => norm(String(x ?? ""))); if (t.includes("MOUVEMENT") && (t.includes("SÉRIES") || t.includes("RÉPÉTITIONS"))) return {prog:true, n:sectionOf(v).n}; }
   return {prog:false};
 }
@@ -877,7 +903,7 @@ const weekLabel = w => { const m = String(w || "").trim().match(/^(\d+)\s*\/\s*\
 const NUM_RE = /^\s*B(?:LOC)?\s*[-_.]?\s*(\d{1,2})(?!\d)/i;
 function hashId(t){ let h = 5381; for (const ch of t) h = (h * 33 + ch.charCodeAt(0)) >>> 0; return 100 + h % 900; }
 async function progTabs(id){
-  const titles = await Store.coach.titles(id), sig = "v3|" + titles.join("|"), ck = "sl-prog:" + id, c = store.get(ck);
+  const titles = await Store.coach.titles(id), sig = "v4|" + titles.join("|"), ck = "sl-prog:" + id, c = store.get(ck);
   let info = c && c.sig === sig ? c.info : null;
   if (!info) {
     info = {};
@@ -889,13 +915,17 @@ async function progTabs(id){
   for (const t of titles) {
     const m = t.match(BLOC_RE); let n = null;
     if (m) n = +m[1];
-    else if (info[t] && info[t].prog) { const k = (t.match(NUM_RE) || [])[1], x = info[t].n;
+    else if (info[t] && info[t].prog && !info[t].week) { const k = (t.match(NUM_RE) || [])[1], x = info[t].n;
       n = k && !used.has(+k) ? +k : x && x > 1 && !used.has(x) ? x : hashId(t); while (used.has(n)) n++; used.add(n); }
     if (n !== null && !names[n]) { names[n] = t; order.push(n); }
   }
-  return {names, order};
+  /* Second modèle : les onglets « WEEK n » forment ensemble un seul bloc (numéro de l'onglet « BLOC n » s'il est seul, sinon un numéro libre). */
+  const wt = titles.filter(t => WEEK_RE.test(t) && info[t] && info[t].week).sort((a, b) => +a.match(WEEK_RE)[1] - +b.match(WEEK_RE)[1]), weeks = {};
+  if (wt.length) { const bl = titles.filter(t => BLOC_RE.test(t)); let n; if (bl.length === 1) n = +bl[0].match(BLOC_RE)[1]; else { n = 1; while (names[n]) n++; }
+    if (!names[n]) { names[n] = "BLOC " + n; order.push(n); } weeks[n] = wt; }
+  return {names, order, weeks};
 }
-async function loadBlocList(pre){ const r = (pre && await pre) || await progTabs(coachId()); blocNames = r.names; progOrder = r.order; liveIds = new Set(r.order); archMeta = {}; }
+async function loadBlocList(pre){ const r = (pre && await pre) || await progTabs(coachId()); blocNames = r.names; progOrder = r.order; weekTabs = r.weeks || {}; liveIds = new Set(r.order); archMeta = {}; }
 
 /* =====================================================================
    HISTORIQUE : chaque exercice fait est recopié dans le carnet (onglet HISTORIQUE).
@@ -978,8 +1008,13 @@ const blocLow = b => isNamed(b) ? "« " + blocNames[b].trim() + " »" : "bloc " 
 const blocShort = b => { const t = String(blocNames[b] || "").trim(), m = t.match(NUM_RE), base = m ? "B" + m[1] : t ? t.split(/\s+/)[0].slice(0, 10) : "B" + b;
   return archMeta[b] && archMeta[b].start ? base + "·" + archMeta[b].start.slice(5, 7) + "/" + archMeta[b].start.slice(2, 4) : base; };
 async function loadBloc(n, pre){
-  const v = pre || await Store.coach.readBloc(blocNames[n]);
-  const {seances, weeks} = parseBloc(v, blocNames[n], n);
+  let seances, weeks;
+  if (weekTabs[n]) {   /* 2e modèle : une lecture par semaine, lecture seule */
+    const tabs = weekTabs[n], vals = Store.coach.canBatch ? await Store.coach.readBlocs(tabs) : await Promise.all(tabs.map(t => Store.coach.readBloc(t)));
+    seances = []; weeks = {};
+    tabs.forEach((t, i) => { const r = parseBloc(weekToAts(vals[i] || []), t, n, String(+t.match(WEEK_RE)[1])); seances.push(...r.seances); });
+    seances.forEach(s => { s.cols = {}; s.recapRow = 0; s.pdcCol = 0; s.pdc = ""; });   /* aucune écriture vers le Sheet du coach */
+  } else { const v = pre || await Store.coach.readBloc(blocNames[n]); ({seances, weeks} = parseBloc(v, blocNames[n], n)); }
   fixJours(seances);
   S = S.filter(s => s.bloc !== n).concat(seances);
   S.sort((a, b) => byRank(a.bloc, b.bloc) || (num(a.semaine) || 0) - (num(b.semaine) || 0) || a.idx - b.idx);
@@ -1001,7 +1036,7 @@ function fixJours(ss){
     }
   }
 }
-function parseBloc(v, sheet, bloc){
+function parseBloc(v, sheet, bloc, forcedWeek){
   v = ownLabels(v);
   const sec = sectionOf(v); v = v.map((row, i) => i >= sec.rMin && i < sec.rMax ? row : []);
   const cell = (r, c) => String((v[r] && v[r][c]) ?? "");
@@ -1029,6 +1064,7 @@ function parseBloc(v, sheet, bloc){
       }
       if (!seance) seance = "Séance " + (nb + 1);
       if (renum) semaine = String(colsSorted.indexOf(c) + 1);
+      if (forcedWeek) semaine = forcedWeek;
       const ex = []; let blanks = 0, last = r;
       for (let rr = r + 1; rr < v.length; rr++){
         const m = norm(cell(rr, c));
@@ -4018,7 +4054,7 @@ async function syncAll(silent){
     /* La liste des onglets de la prog est lue en même temps que le carnet (le lien de la prog est déjà connu). */
     const cid0 = D && coachId(), pt = cid0 ? progTabs(cid0).catch(() => null) : null;
     await loadApp(); render();
-    try { if (coachId()) await loadCoach(cid0 && cid0 === coachId() ? pt : null); else { S = []; loadedBlocs.clear(); weekMeta = {}; blocNames = {}; progOrder = []; allLoaded = true; } seanceErr = ""; } catch(e){ seanceErr = "Impossible de lire ta prog : " + errMsg(e); }
+    try { if (coachId()) await loadCoach(cid0 && cid0 === coachId() ? pt : null); else { S = []; loadedBlocs.clear(); weekMeta = {}; blocNames = {}; progOrder = []; allLoaded = true; } seanceErr = ""; if (coachId() && !S.length) seanceErr = "Ta prog est connectée, mais aucune séance n'y a été reconnue : son tableau n'a pas un format géré par l'app. Envoie le lien de ton Sheet à Alane."; } catch(e){ seanceErr = "Impossible de lire ta prog : " + errMsg(e); }
     lastSync = Date.now(); setDot(seanceErr ? "off" : "ok"); saveCache(); render();
     if (clOn()) clSync().then(() => { if (tab === "agenda" && agendaSeg === "amis" && !sheet) rAgenda(); }).catch(() => {});
     if (seanceErr && S.length) toast(seanceErr, true);
