@@ -46,7 +46,7 @@ with sync_playwright() as p:
     check("catégorie street inchangée (−80, à la main)", pg.evaluate("cat() === -80 && !catAutoOn('categorie')"))
     check("muscle-up à l'élastique (« 15/15 ») : ni record ni 1RM estimé", pg.evaluate("compSets('MU').length === 0 && e1rmBest('MU', compSets('MU')) == null"), pg.evaluate("JSON.stringify(compSets('MU').slice(0,3))"))
     check("muscle-up à l'élastique : absent du tableau des reps", pg.evaluate("repMaxes(compSets('MU')).every(x => !x.b)"))
-    check("muscle-up acquis' dans les records de l'accueil".replace(" acquis'", ""), "Muscle-up" in pg.evaluate("document.querySelector('#v-home').innerText"))
+    check("accueil : plus de bloc « Mes records » (v43)", "Mes records" not in pg.evaluate("document.querySelector('#v-home').innerText"))
     check("Bench non reconnu en street seul", pg.evaluate("liftOf('BENCH') === null && liftOf('DEADLIFT') === null"))
     pg.evaluate("ACT.settings()"); pg.wait_for_timeout(400)
     txt = pg.evaluate("document.querySelector('.sheet').innerText")
@@ -134,7 +134,7 @@ with sync_playwright() as p:
     check("on ne peut pas tout retirer", pg.evaluate("(ACT.discToggle({k:'power'}), powerOn())"))
     pg.click("[data-tab=home]"); pg.wait_for_timeout(500)
     h = pg.evaluate("document.querySelector('#v-home').innerText")
-    check("accueil power seul : pas de muscle-up", "Muscle-up" not in h and "Bench" in h, h[:300])
+    check("accueil power seul : pas de muscle-up", "Muscle-up" not in h, h[:300])
     pg.screenshot(path=str(OUT / "v28-home-power.png"), full_page=True)
     print("ERREURS JS :", errs[:5]); errs_main = list(errs)
 
