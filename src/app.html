@@ -472,7 +472,7 @@ html,body{overflow-x:clip}body{margin-top:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "41 · 24 oct. 2026";
+const APP_VER = "42 · 27 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -2954,9 +2954,11 @@ vidLoad().catch(() => {});
 let imp = null;
 const impCan = () => !coachId() || coachId() === APP_ID;
 const impNew = () => ({step:1, mode:"paste", text:"", res:null, title:"Mon programme", week:0, edit:null, busy:false, saved:null, start:mondayFrom(D.today)});
-const impLoadTxt = L => !L ? "" : L.kind === "pct" ? L.v + " %" : L.kind === "rel" ? String(L.v).replace("-", "−") + " %" : L.kind === "lest" ? "+" + L.v : L.v + (L.u === "lb" ? " lb" : "");
+const impLoadTxt = L => !L ? "" : L.kind === "pct" ? L.v + " %" : L.kind === "rel" ? String(L.v).replace("-", "−") + " %" : L.kind === "lest" ? "+" + L.v : L.kind === "band" ? "élastique" + (L.v ? " " + L.v : "") : L.kind === "assist" ? "assistance " + L.v : L.v + (L.u === "lb" ? " lb" : "");
 function impLoadFrom(t){
   t = String(t || "").trim().replace(",", ".").replace("−", "-"); if (!t) return null; let m;
+  if ((m = t.match(/^[ée]lastique\s*(\d+(?:\.\d+)?)?/i))) return {kind:"band", v:m[1] ? Number(m[1]) : null, u:"kg"};   // v42 : jamais lu comme des kilos
+  if ((m = t.match(/^assist\w*\s*(\d+(?:\.\d+)?)/i))) return {kind:"assist", v:Number(m[1]), u:"kg"};
   if ((m = t.match(/^([+-]?)\s*(\d+(?:\.\d+)?)\s*%$/))) return m[1] === "-" ? {kind:"rel", v:-Number(m[2])} : {kind:"pct", v:Number(m[2])};
   if ((m = t.match(/^\+\s*(\d+(?:\.\d+)?)/))) return {kind:"lest", v:Number(m[1]), u:"kg"};
   if ((m = t.match(/^(\d+(?:\.\d+)?)\s*(kg|lbs?)?$/i))) return {kind:"abs", v:Number(m[1]), u:(m[2] || "kg").toLowerCase().replace(/s$/, "")};

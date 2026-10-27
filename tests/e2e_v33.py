@@ -32,7 +32,7 @@ with sync_playwright() as p:
     check("Dips : lest +20 lu comme 20", ex["Dips|8"][5] == 20, ex.get("Dips|8"))
     check("Tractions 70 % → intensité visée", ex["Tractions|5"][4] == "70%", ex.get("Tractions|5"))
     check("Squat : deux lignes (3×5 à 100 puis 2×3 à 110)", [e[3] for e in lun[3] if e[0] == "Squat"] == ["100", "110"], lun[3])
-    check("« @8 » lu comme RPE 8 (pas comme 8 kg)", [e for e in lun[3] if e[0] == "legs press"][0][3:5] == ["", "RPE 8"], lun[3])
+    check("« @8 » lu comme RPE 8 (pas comme 8 kg)", [e for e in lun[3] if e[0] == "Presse à cuisses"][0][3:5] == ["", "RPE 8"], lun[3])
     r = pg.evaluate("""(() => { const g = ProgImport.toGrid(ProgImport.parseProgram("LUNDI\\nsquat 4x5 100kg"), "23/10/2026"); const flat = g.flat().join("|");
       const noMark = g.slice(3); return {mark:String(g[1][1]).startsWith("Street Lifting · programme"), noCoachLabels:!/MOUVEMENT|RÉPÉTITIONS|INTENSITÉ CIBLE|RECAP|COMMENTAIRE DU COACH/.test(flat),
         otherTab:progInfo([["Exercice","Séries","Reps"],["Squat","4","5"]]).prog, otherCoach:progInfo([["MOUVEMENT","SÉRIES"],["Squat","4"]]).prog}; })()""")

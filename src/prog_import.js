@@ -21,6 +21,11 @@
     [/\bmarche\b|(?<!farmer\s)\bwalk\b/, "Marche", "cardio"],
     [/\bcourse\b|running|jogging|footing|tapis/, "Course à pied", "cardio"],
     [/cardio|hiit|zone\s*2/, "Cardio", "cardio"],
+    // v42 : course (programmes hybrides), mollets avant les squats (« hack squat mollet »), pauses « 2ct »
+    [/fractionn|interval|\bvma\b/, "Fractionné", "cardio"],
+    [/sortie\s*(longue|ef\b)|endurance\s*fondamentale|^ef\b/, "Course à pied", "cardio"],
+    [/mollet|calf|calves/, "Mollets", ""],
+    [/\d\s*ct\b.*squat|squat.*\d\s*ct\b/, "Squat pause", "squat"],
     [/pause\s*squat|squat\s*pause/, "Squat pause", "squat"],
     [/front\s*squat/, "Front squat", "squat"],
     [/hack\s*squat/, "Hack squat", "squat"],
@@ -35,31 +40,34 @@
     [/good\s*morning/, "Good morning", "deadlift"],
     [/hip.?thrust|glute\s*bridge|pont\s*fessier/, "Hip thrust", "squat"],
     [/muscle.?up|^mup?\b|\bmup?$/, "Muscle-up", "mu"],
+    [/tractions?\s*australienne|australian|inverted\s*row|rowing\s*invers/, "Rowing inversé", "pull"],
     [/traction|pull.?ups?\b|chin.?ups?/, "Tractions", "pull"],
     [/\bdips?\b/, "Dips", "dip"],
     [/(dc|d[ée]v\w*|bench|banc|press)\s*(couch[ée]\s*)?(halt[eè]res\s*)?incl|incl\w*\s*(db|dumbbell|halt|barbell|bench|press|d[ée]v)/, "Développé incliné", "bench"],
     [/(dc|d[ée]v\w*\s*couch[ée]|bench|banc|\bbp\b).*(serr|close)|close.?grip/, "Développé couché prise serrée", "bench"],
-    [/(dc|d[ée]v\w*\s*couch[ée]|bench|banc|\bbp\b).*pause|banc\s*pause/, "Développé couché pause", "bench"],
+    [/(dc|d[ée]v\w*\s*couch[ée]|bench|banc|\bbp\b).*pause|banc\s*pause|pause.*(bench|banc|couch)|\d\s*ct\b.*(bench|banc)/, "Développé couché pause", "bench"],
+    [/pec\w*\s*(push|machine)|chest\s*press|presse\s*pectorale/, "Développé machine", "bench"],
     [/^(dc|banc|couch[ée])\b|d[ée]velopp[ée]\s*couch[ée]|d[ée]v\w*\.?\s*couch|bench|\bbp\b|\bbanc\b|\bdc\b|machine\s*convergente/, "Développé couché", "bench"],
-    [/militaire|military|\bohp\b|overhead|presse?\s*([ée]paules|shoulder)|shoulder\s*press|d[ée]v\w*\.?\s*([ée]paules?|militaire)/, "Développé militaire", "bench"],
+    [/militaire|military|\bohp\b|overhead|strict\s*press|presse?\s*([ée]paules|shoulder)|shoulder\s*press|d[ée]v\w*\.?\s*([ée]paules?|militaire)/, "Développé militaire", "bench"],
     [/tirage\s*menton|upright/, "Tirage menton", ""],
+    [/appui\s*poitrine|chest.?supported|pendlay/, "Rowing", "pull"],
     [/tirage\s*(vertical|poitrine|nuque)|lat\s*pull|pull.?down\b(?!s)/, "Tirage vertical", "pull"],
     [/rowing|\brow\b|tirage\s*horizontal|trx/, "Rowing", "pull"],
     [/face\s*pull/, "Face pull", ""],
     [/pull\s*over/, "Pull-over", ""],
     [/fente|lunge/, "Fentes", "squat"],
-    [/presse(?!\s*[ée]paule)|leg\s*press|hack\s*press/, "Presse à cuisses", "squat"],
-    [/leg\s*ext|quadri\w*\s*machine|extensions?\s*(des\s*)?jambes|quad\s*ext/, "Leg extension", "squat"],
-    [/leg\s*curl|ham\w*\s*curl|ischio\w*\s*(machine|couch|assis)|lying\s*curl/, "Leg curl", "deadlift"],
+    [/presse(?!\s*[ée]paule)|legs?\s*press|hack\s*press/, "Presse à cuisses", "squat"],
+    [/legs?\s*ext|quadri\w*\s*machine|extensions?\s*(des\s*)?jambes|quad\s*ext/, "Leg extension", "squat"],
+    [/legs?\s*curl|legs?\s*ischio|ham\w*\s*curl|ischio\w*\s*(machine|couch|assis)|lying\s*curl/, "Leg curl", "deadlift"],
     [/curl/, "Curl biceps", ""],
-    [/triceps|skull\s*crusher|kick.?back|barre\s*au\s*front|barre\s*front|pushdown|extension\s*triceps/, "Triceps", ""],
+    [/triceps|skull\s*crusher|kick.?back|barre\s*au\s*front|barre\s*front|pushdown|extension\s*triceps|extensions?\s*(a\s*la\s*)?(poulie|corde|nuque|halt\w*)/, "Triceps", ""],
     [/[ée]l[ée]v\w*\.?\s*lat|lat(eral)?\s*raise|elev\s*lat|oiseau\s*lat/, "Élévations latérales", ""],
-    [/oiseau|rear\s*delt/, "Oiseau", ""],
+    [/oiseau|rear\s*delt|arriere\w*\s*(d.\s*)?epaules?/, "Oiseau", ""],
     [/[ée]cart[ée]|fly|pec\s*deck|butterfly|papillon/, "Écarté", "bench"],
     [/shrug/, "Shrug", ""],
     [/mollet|calf|calves/, "Mollets", ""],
     [/adducteurs?|adductor/, "Adducteurs", ""],
-    [/abducteurs?|abductor/, "Abducteurs", ""],
+    [/abducteurs?|abductor|abduction/, "Abducteurs", ""],
     [/back\s*ext|extension\s*lombaire/, "Extensions lombaires", ""],
     [/farmer/, "Farmer walk", ""],
     [/gainage|planche|plank|hollow|l.?sit/, "Gainage", ""],
@@ -80,7 +88,7 @@
 
   function cleanLine(l) {
     return l.replace(/^\s*[=#~]{2,}\s*|\s*[=#~]{2,}\s*$/g, "").replace(/\*\*|__/g, "").replace(/^\s*[-*•·]\s*(\[[ x]?\]\s*)?/i, "").replace(/^\s*\[[ x]?\]\s*/i, "")
-      .replace(/^\s*[A-Z]\d\)\s*/, "").replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu, "").trim();
+      .replace(/^\s*[A-Z]\d\)\s*/, "").replace(/^\s*\d{1,2}[.)]\s+(?=[A-Za-zÀ-ÿ])/, "").replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu, "").trim();
   }
 
   // ---------- lecture d'un schéma de séries ----------
@@ -96,6 +104,9 @@
   function readLoad(s) {
     const t = s.replace(/\(([^)]*)\)/g, " ");
     let m;
+    // v42 : élastique (résistance ou aide, jamais une charge) ; « assistance 14 » (ex. « / -14kg » aux tractions)
+    if (/[ée]lastique|\bbands?\b|\bbande\b/i.test(s)) { const v = s.match(/(\d+(?:[.,]\d+)?)\s*kg/i); return { kind: "band", v: v ? num(v[1]) : null, u: "kg" }; }
+    if ((m = s.match(/assist\w*\s*(?:de\s*)?(\d+(?:[.,]\d+)?)\s*(?:kg)?/i))) return { kind: "assist", v: num(m[1]), u: "kg" };
     if ((m = t.match(/bw\s*\+\s*(\d+(?:[.,]\d+)?)/i))) return { kind: "lest", v: num(m[1]), u: "kg" };
     if ((m = t.match(/@\s*(\d+(?:[.,]\d+)?)\s*%/))) return { kind: "pct", v: num(m[1]) };
     if ((m = t.match(/[àa@]\s*-\s*(\d+(?:[.,]\d+)?)\s*%/))) return { kind: "rel", v: -num(m[1]) };
@@ -127,8 +138,12 @@
   }
 
   // Renvoie {name, groups, rpe, tempo, note} ou null si aucun schéma.
+  let ROUNDS = 0;   // v42 : « circuit de 3 tours » → séries des exercices écrits en reps seules
   function readExo(seg) {
-    const s = seg.trim();
+    let s = seg.trim();
+    // v42 : « 4 x 10 (12kg) + 10 (6kg) » = dégressif dans chaque série : 1re charge gardée, détail en note
+    const drop = s.match(/(\d+)\s*\(\s*(\d+(?:[.,]\d+)?)\s*kg\s*\)\s*\+\s*(\d+)\s*\(\s*(\d+(?:[.,]\d+)?)\s*kg\s*\)/i);
+    if (drop) s = s.replace(drop[0], drop[1] + " " + drop[2] + "kg");
     const hits = [];
     let m;
     RE_PCT_X.lastIndex = 0;
@@ -157,6 +172,10 @@
     }
     RE_PROSE.lastIndex = 0;
     while ((m = RE_PROSE.exec(s))) if (!hits.some(h => m.index < h.end && m.index + m[0].length > h.i)) hits.push({ i: m.index, end: m.index + m[0].length, g: { sets: toNum(m[1]), reps: String(toNum(m[2])) } });
+    if (!hits.length) {   // v42 : « Tractions : 7 répétitions » (street workout, circuits)
+      const q = s.match(/(?<![\d.,])(\d{1,3})\s*(?:r[ée]p[ée]titions?|reps?)\b/i);
+      if (q && !/repos|rest\b/i.test(s.slice(0, q.index))) hits.push({ i: q.index, end: q.index + q[0].length, g: { sets: ROUNDS || 1, reps: q[1] } });
+    }
     if (!hits.length) return readDuration(s);
     hits.sort((a, b) => a.i - b.i);
     // charge de chaque groupe : texte entre la fin du groupe et le début du suivant
@@ -167,20 +186,45 @@
       .replace(/(\s|^)(puis|then|et|ensuite)\s*$/i, "").replace(/[:\-—–,@(]+\s*$/, "").trim();
     const rpe = (s.match(/rpe\s*(\d+(?:[.,]\d+)?(?:\s*-\s*\d+(?:[.,]\d+)?)?)/i) || s.match(/@\s*(10|[5-9](?:[.,]5)?)(?![\d.,]|\s*(?:%|kg|lbs?))/i) || [])[1] || null;
     const tempo = (s.match(/tempo\s*(\d-\d-[\dx](?:-\d)?)/i) || [])[1] || null;
-    const side = /\/\s*(jambe|bras|c[oô]t[ée])|par bras|chaque bras|\/\s*leg|per side/i.test(s);
-    return { name, groups: hits.map(h => ({ ...h.g, load: h.load || null, amrap: !!h.amrap })), rpe, tempo, side };
+    const side = /\/\s*(jambe|bras|c[oô]t[ée])|par\s*(bras|jambe|c[oô]t[ée])|chaque\s*(bras|jambe|c[oô]t[ée])|\/\s*leg|per side|\d\s*\/\s*c\b/i.test(s);
+    const groups = hits.map(h => ({ ...h.g, load: h.load || null, amrap: !!h.amrap }));
+    // v42 : lest porté (« pompes lestées … 11 kg », « sac lesté 10kg ») ; indications gardées en note
+    if (/lest[ée]|\bsac\b|gilet|ceinture/i.test(s)) groups.forEach(g => { if (g.load && g.load.kind === "abs") g.load = { ...g.load, kind: "lest" }; });
+    const note = [];
+    if (drop) note.push(`dégressif : ${drop[1]} reps à ${drop[2].replace(".", ",")} kg puis ${drop[3]} à ${drop[4].replace(".", ",")} kg`);
+    else if (/d[ée]gressi|drop\s*set/i.test(s)) note.push(/derni[eè]re/i.test(s) ? "dernière série en dégressif" : "dégressif");
+    if (/derni[eè]re\W+(s[ée]rie\W+)?([àa]\s*l.)?[ée]chec/i.test(s)) note.push("dernière série à l'échec");
+    else if (/[àa]\s*l.\s*[ée]chec|to failure/i.test(s)) note.push("à l'échec");
+    if (/sur\s*chaque/i.test(s)) note.push("sur chaque");
+    const ct = s.match(/(\d)\s*ct\b/i); if (ct) note.push("pause " + ct[1] + " temps");
+    return { name, groups, rpe, tempo, side, note: note.join(" · ") || null };
   }
 
   function mkExo(raw, ex) {
     const c = canon(ex.name);
-    return { raw: raw.trim(), name: ex.name || c.canon || "?", canon: c.canon, cat: c.cat, groups: ex.groups, rpe: ex.rpe, tempo: ex.tempo, side: ex.side };
+    return { raw: raw.trim(), name: ex.name || c.canon || "?", canon: c.canon, cat: c.cat, groups: ex.groups, rpe: ex.rpe, tempo: ex.tempo, side: ex.side, note: ex.note || null };
   }
 
   // Une ligne peut contenir plusieurs exercices (« A / B », « A ; B », « A 3x12, B 3x12 »).
   const ADD_ON = /^(back.?off|top\s*set|warm.?up|[ée]chauff\w*|puis|then|et|ensuite|pareil)\b/i;
   function readExoLine(line) {
     const out = [];
-    for (const big of line.split(/\s+\/\s+|\s*;\s*/)) {
+    // v42 : « Nom / 4 x 8 / 50kg » (notes téléphone) : le nom, le schéma et la charge sont recollés ;
+    // « A 3x12 / B 3x12 » reste deux exercices.
+    const LOADISH = /^(-\s*\d|\d+(?:[.,]\d+)?\s*(kg|lbs?)\b|\d+(?:[.,]\d+)?$|kg\b|lbs?\b|pdc\b|bw\b|poids\s*du\s*corps|[ée]lastique|\+|halt|barre\b|machine\b)/i;
+    const hasNm = ex => ex && ex.name && /[a-zà-ÿ]{2,}/i.test(ex.name) && !ADD_ON.test(ex.name.trim());
+    const bigs = []; let pend = null;
+    for (const t of line.split(/\s+\/\s*|\s*\/\s+|\s*;\s*/).map(x => x.trim())) {
+      if (!t) continue;
+      const ex = readExo(t);
+      if (ex && !hasNm(ex) && pend != null) { bigs.push(pend + " : " + t); pend = null; continue; }
+      if (!ex && LOADISH.test(t) && bigs.length && pend == null) { bigs[bigs.length - 1] += " " + (/^-\s*\d/.test(t) ? "assistance " + t.replace(/^-\s*/, "") : t); continue; }
+      if (pend != null) { bigs.push(pend); pend = null; }
+      if (!ex && /[a-zà-ÿ]{2,}/i.test(t)) { pend = t; continue; }
+      bigs.push(t);
+    }
+    if (pend != null) bigs.push(pend);
+    for (const big of bigs) {
       const parts = big.split(/,\s+/);
       let cur = null, pending = "";
       for (const p0 of parts) {
@@ -207,8 +251,10 @@
   function readHeader(line) {
     const l = line.replace(/\*\*|__/g, "").trim();
     let m;
-    if ((m = l.match(/^(sem(?:aine)?|week|s)\s*(\d+)\b\s*(\([^)]*\))?\s*[:\-—]?\s*(.*)$/i)) && !/^s\s*\d+\s*x/i.test(l))
-      return { type: "week", label: (strip(m[1]).startsWith("w") ? "Week " : "Semaine ") + m[2], key: "w" + m[2], rest: m[4], extra: m[3] || "" };
+    if ((m = l.match(/^(sem(?:aines?)?|weeks?|s)\s*(\d+)\b\s*(\([^)]*\))?\s*[:\-—]?\s*(.*)$/i)) && !/^s\s*\d+\s*x/i.test(l)) {
+      const up = (m[4] || "").match(/^(?:à|a|au|-|–|to)\s*(\d+)\b\s*[:\-—]?\s*(.*)$/i);   // v42 : « Semaine 1 à 3 »
+      return { type: "week", label: (strip(m[1]).startsWith("w") ? "Week " : "Semaine ") + m[2], key: "w" + m[2], rest: up ? up[2] : m[4], extra: m[3] || "", upto: up && +up[1] > +m[2] && +up[1] - +m[2] < 12 ? +up[1] : null };
+    }
     if ((m = l.match(/^(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b\s*[:\-—–,]?\s*(.*)$/i)))
       return { type: "day", label: DAYS[strip(m[1])], key: DAYS[strip(m[1])], rest: m[2] };
     if ((m = l.match(/^(lun|mar|mer|jeu|ven|sam|dim)\.?\s+(.*)$/i)) && /\d/.test(m[2]))
@@ -217,48 +263,75 @@
       const d = { mon: "Lundi", tue: "Mardi", tues: "Mardi", wed: "Mercredi", thu: "Jeudi", thur: "Jeudi", thurs: "Jeudi", fri: "Vendredi", sat: "Samedi", sun: "Dimanche" }[strip(m[1])];
       return { type: "day", label: d, key: d, rest: m[2] };
     }
-    if ((m = l.match(/^(day|jour|j)\s*(\d+)\b\s*(.*)$/i)))
+    if ((m = l.match(/^(day|jours?|j)\s*(\d+)\b\s*(.*)$/i)))
       return { type: "day", label: "Jour " + m[2], key: "Jour " + m[2], rest: m[3].replace(/^(accessor(y|ies)|accessoires?)\s*/i, "").replace(/^[:\-—]\s*/, "") };
-    if ((m = l.match(/^(?:s[ée]ance|workout|training|routine|entra[iî]nement)\s+([a-z0-9]+)\b\s*(.*)$/i)))
+    if ((m = (l.match(/^(?:s[ée]ances?|workout|training|routine)\s+([a-z0-9]+)\b\s*(.*)$/i) || l.match(/^entra[iî]nement\s+(\d+|[a-z])\b\s*(.*)$/i))))
       return { type: "day", label: "Séance " + m[1].toUpperCase(), key: "Séance " + m[1].toUpperCase(), rest: m[2] };
     if ((m = l.match(/^(push|pull|legs|leg day|jambes|upper|lower|haut du corps|bas du corps|full ?body)(?![-\w])(?!\s*(?:ups?|overs?|downs?|day\s*\d*\s*:?\s*\d|over)\b)\s*(\d*)\s*(.*)$/i)) && !/\d\s*(?:[x×]\s*\d|s[ée]ries?|sets?)/i.test(l))
-      return { type: "day", label: (m[1].toUpperCase() + " " + m[2]).trim(), key: (m[1].toUpperCase() + " " + m[2]).trim(), rest: m[3] };
+      return { type: "day", split: true, label: (m[1].toUpperCase() + " " + m[2]).trim(), key: (m[1].toUpperCase() + " " + m[2]).trim(), rest: m[3] };
     return null;
   }
 
   const NOTES_HDR = /^(notes?|remarques?|tentatives|objectifs?|nutrition|mon avis)\b.*:?\s*$/i;
 
   // ---------- tableau collé ----------
+  // v42 : en-tête reconnu par « Exercice » ou par « Séries » + « Reps » (tableau de coach copié, colonne du nom sans titre) ;
+  // plusieurs tableaux empilés sous « SEANCE n » ; colonnes « Semaine 1, 2… » = résultats notés (gardés en note).
+  const isHeadRow = r => r.some(c => /^exerci[cs]es?$/i.test(c)) || (r.some(c => /^(s[ée]ries?|sets?)$/i.test(c)) && r.some(c => /^(reps?|r[ée]p[ée]titions?)$/i.test(c)));
+  function tableCols(r) {
+    const H = r.map(c => strip(c));
+    const col = re => H.findIndex(c => re.test(c));
+    const C = { w: col(/^(semaine|week|sem)\.?$/), d: col(/^(jour|day|seance)/), e: col(/^exerci/), s: col(/^(series?|sets?)$/), r: col(/^(reps?|repetitions?)$/),
+      p: col(/%|charge|load|kg|poids/), ch: col(/charge|load|^kg$|\(kg\)|poids|weight/), pc: col(/%|pourcent/), rpe: col(/rpe/), rest: col(/repos|rest/), n: col(/note|remarque/),
+      res: H.map((h, i) => /^(semaine|week|sem|s)\s*\d+$/.test(h) ? i : -1).filter(i => i >= 0), H: r };
+    if (C.e < 0) C.e = C.s > 0 ? C.s - 1 : 0;
+    return C;
+  }
+  function cellLoad(pcell) {
+    if (!pcell || pcell === "-" || !/\d/.test(pcell)) return null;
+    return /bw\s*\+/i.test(pcell) ? { kind: "lest", v: num(pcell.replace(/bw\s*\+/i, "")), u: "kg" }
+      : /%/.test(pcell) ? { kind: "pct", v: num(pcell) } : /^\d/.test(pcell) ? { kind: "abs", v: num(pcell), u: /lb/i.test(pcell) ? "lb" : "kg" } : null;
+  }
   function parseTable(lines, res, d) {
     const rows = lines.map(l => l.split(d).map(c => c.trim()));
-    const hi = rows.findIndex(r => r.some(c => /^exerci[cs]es?$/i.test(c)));
+    const hi = rows.findIndex(isHeadRow);
     if (hi < 0) return false;
-    const H = rows[hi].map(c => strip(c));
-    const col = re => H.findIndex(c => re.test(c));
-    const C = { w: col(/^(semaine|week|sem)/), d: col(/^(jour|day|seance)/), e: col(/^exerci/), s: col(/^(series|sets?)$/), r: col(/^(reps?|repetitions)$/),
-      p: col(/%|charge|load|kg|poids/), rpe: col(/rpe/), rest: col(/repos|rest/), n: col(/note|remarque/) };
-    rows.slice(0, hi).forEach(r => { const t = r.filter(Boolean).join(" · "); if (t) res.notes.push(t); });
+    let curWeek = null, curDay = null;
+    const single = r => { const f = r.filter(Boolean); return f.length === 1 ? readHeader(cleanLine(f[0])) : null; };
+    rows.slice(0, hi).forEach(r => { const h = single(r); if (h && h.type === "week") { curWeek = h.label; return; } if (h && h.type === "day") { curDay = h.label; return; } const t = r.filter(Boolean).join(" · "); if (t) res.notes.push(t); });
     // valeurs de « TM » : ligne de titres suivie d'une ligne de nombres
     for (let i = 0; i < hi - 1; i++) if (rows[i].some(c => /\btm\b|max/i.test(c)) && rows[i + 1].every(c => !c || /^\d/.test(c)))
       rows[i].forEach((c, k) => { if (c && rows[i + 1][k]) res.meta[c] = num(rows[i + 1][k]); });
-    for (const r of rows.slice(hi + 1)) {
+    let C = null;
+    for (const r of rows.slice(hi)) {
       if (!r.some(Boolean)) continue;
-      const wk = ensureWeek(res, C.w >= 0 && r[C.w] ? "Semaine " + r[C.w] : "Programme");
-      const ex = C.e >= 0 ? r[C.e] : "";
-      if (!ex || ex === "-" || !/[a-z]/i.test(ex) || /deload|repos/i.test(ex) && (C.s < 0 || !/\d/.test(r[C.s] || ""))) {
+      if (isHeadRow(r)) { C = tableCols(r); continue; }
+      const h = single(r);
+      if (h && h.type === "week") { curWeek = h.label; curDay = null; continue; }
+      if (h && h.type === "day") { curDay = h.label + (h.rest ? "" : ""); continue; }
+      const wk = ensureWeek(res, C.w >= 0 && r[C.w] ? "Semaine " + r[C.w] : curWeek || "Programme");
+      const ex = C.e >= 0 ? r[C.e] || "" : "";
+      if (!ex || ex === "-" || ex.length < 2 || !/[a-z]/i.test(ex) || /deload|repos/i.test(ex) && (C.s < 0 || !/\d/.test(r[C.s] || ""))) {
         const note = r.filter(c => c && c !== "-").slice(1).join(" · "); if (note) wk.notes.push(note); continue;
       }
-      const day = ensureDay(wk, C.d >= 0 && r[C.d] ? r[C.d].replace(/^j\s*(\d+)$/i, "Jour $1") : "Séance");
-      const sets = C.s >= 0 ? toNum(r[C.s]) : null, repsRaw = C.r >= 0 ? r[C.r] : "";
-      const amrap = /amrap|max/i.test(repsRaw);
-      const pcell = C.p >= 0 ? r[C.p] : "";
-      const load = !pcell || pcell === "-" ? null : /bw\s*\+/i.test(pcell) ? { kind: "lest", v: num(pcell.replace(/bw\s*\+/i, "")), u: "kg" }
-        : /%/.test(pcell) ? { kind: "pct", v: num(pcell) } : /^\d/.test(pcell) ? { kind: "abs", v: num(pcell), u: /lb/i.test(pcell) ? "lb" : "kg" } : null;
+      const day = ensureDay(wk, C.d >= 0 && r[C.d] ? r[C.d].replace(/^j\s*(\d+)$/i, "Jour $1") : curDay || "Séance");
+      let sets = C.s >= 0 ? toNum(r[C.s]) : null, repsRaw = C.r >= 0 ? r[C.r] || "" : "", side = false, m;
+      const notes = [];
+      if (sets == null && (m = repsRaw.match(/^\s*(\d+)\s*[x×*]\s*(.+)$/))) { sets = +m[1]; repsRaw = m[2]; }   // « 2*8+ »
+      if (/\/\s*c\b|\/\s*c[oô]t|par\s*c[oô]t|\/\s*(jambe|bras)/i.test(repsRaw)) { side = true; repsRaw = repsRaw.replace(/\s*(\/|par)\s*(c[oô]t[ée]s?|c|jambe|bras)\b\.?/i, ""); }
+      let amrap = /amrap|max/i.test(repsRaw);
+      if (!amrap && /\d\s*\+\s*$/.test(repsRaw)) { amrap = true; repsRaw = repsRaw.replace(/\s*\+\s*$/, ""); }
+      repsRaw = repsRaw.replace(/(\d)\s*(?:à|a)\s*(\d)/g, "$1-$2");
+      let load;
+      if (C.ch >= 0 && C.pc >= 0 && C.ch !== C.pc) { load = cellLoad(r[C.ch]) || cellLoad(r[C.pc]); if (load && load.kind !== "pct" && /\d/.test(r[C.pc] || "")) notes.push(r[C.pc].replace(/\s*%$/, " %")); }
+      else load = cellLoad(C.p >= 0 ? r[C.p] : "");
+      C.res.forEach(k => { if (r[k]) notes.push("Fait " + C.H[k].toLowerCase() + " : " + r[k]); });
+      if (C.n >= 0 && r[C.n]) notes.push(r[C.n]);
       const c = canon(ex);
+      const rpe = C.rpe >= 0 && r[C.rpe] && r[C.rpe] !== "-" ? r[C.rpe].replace(/(\d)\s*(?:à|a)\s*(\d)/g, "$1-$2") : null;
       day.exos.push({ raw: r.join(" | "), name: ex, canon: c.canon, cat: c.cat,
-        groups: [{ sets: sets || 1, reps: amrap ? "max" : repsRaw, load, amrap }],
-        rpe: C.rpe >= 0 && r[C.rpe] && r[C.rpe] !== "-" ? r[C.rpe] : null, rest: C.rest >= 0 ? r[C.rest] || null : null,
-        note: C.n >= 0 ? r[C.n] || null : null, tempo: null, side: false });
+        groups: [{ sets: sets || 1, reps: amrap && /max|amrap/i.test(repsRaw) ? "max" : repsRaw, load, amrap }],
+        rpe, rest: C.rest >= 0 ? r[C.rest] || null : null, note: notes.join(" · ") || null, tempo: null, side });
     }
     return true;
   }
@@ -280,8 +353,10 @@
     const raw = String(text || "").replace(/\r/g, "");
     const lines = raw.split("\n");
     for (const d of ["\t", ";", ","]) {
-      const tl = lines.filter(l => l.split(d).length >= 3);
-      if (tl.length >= 3 && tl.some(l => /exerci[cs]e/i.test(l)) && parseTable(tl, res, d)) { if (d !== "\t") res.notes.unshift(...lines.filter(l => l.trim() && !l.includes(d))); finish(res); return res; }
+      const tl0 = lines.filter(l => l.split(d).length >= 3);
+      if (!(tl0.length >= (d === "\t" ? 2 : 3) && tl0.some(l => isHeadRow(l.split(d).map(c => c.trim()))))) continue;
+      const tl = d === "\t" ? lines.filter(l => l.split(d).length >= 2 || (l.trim() && readHeader(cleanLine(l)))) : tl0;
+      if (parseTable(tl, res, d)) { if (d !== "\t") res.notes.unshift(...lines.filter(l => l.trim() && !l.includes(d))); finish(res); return res; }
     }
 
     // Texte : les longs paragraphes sont découpés en phrases (prose).
@@ -294,14 +369,17 @@
       else flat.push(l);
     }
     let week = null, day = null, notesMode = false;
+    ROUNDS = 0;
     const W = () => week || (week = ensureWeek(res, "Programme"));
+    const DAYLIKE = /^(jour|day|s[ée]ance|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b/i;
     for (const rawLine of flat) {
       const bullet = /^\s*[-*•](\s|\[)/.test(rawLine);
       const line = cleanLine(rawLine);
       if (!line) continue;
       const h = bullet ? null : readHeader(line);
       if (h && h.type === "week") {
-        week = ensureWeek(res, h.label); day = null; notesMode = false;
+        week = ensureWeek(res, h.label); day = null; notesMode = false; ROUNDS = 0;
+        if (h.upto) week.upto = h.upto;
         const rest = (h.rest || "").trim();
         if (rest) {
           const exos = readExoLine(rest);
@@ -310,8 +388,13 @@
         } else if (h.extra) week.notes.push(h.extra.replace(/[()]/g, ""));
         continue;
       }
+      // v42 : « JAMBES : » ou « Jambes quadri – ischios » sous « Jour 3 » = intitulé de section, pas un nouveau jour
+      if (h && h.type === "day" && h.split && day && DAYLIKE.test(day.label) && (!day.exos.length || /:\s*$/.test(line) || line === line.toUpperCase())) {
+        if (!day.exos.length && !day.sub) day.sub = line.replace(/\s*:\s*$/, "");
+        continue;
+      }
       if (h && h.type === "day") {
-        notesMode = false;
+        notesMode = false; ROUNDS = 0;
         const rest = (h.rest || "").trim();
         // prose : « Lundi tu commences par… » → le reste de la phrase est lu comme contenu
         day = ensureDay(W(), h.label);
@@ -328,6 +411,18 @@
       if (notesMode) { res.notes.push(line); continue; }
       if (isProse(line)) { if (!day) day = ensureDay(W(), "Séance 1"); proseLine(line, day); continue; }
       const exos = readExoLine(line);
+      // v42 : jours de course (« Jour 4 : Fractionné », « Sortie EF ») : lignes sans nom rattachées au jour
+      const run = day && day.sub && canon(day.sub).cat === "cardio" ? canon(day.sub) : null;
+      if (run) exos.forEach(x => { if (!x.canon && (!x.name || x.name === "?" || !/[a-zà-ÿ]{3,}/i.test(x.name))) { x.name = day.sub; x.canon = run.canon; x.cat = "cardio"; x.note = x.note || x.raw; } });
+      if (!exos.length && run && !/repos|rest\b|gainage|abdos/i.test(line)) {
+        const dm = line.match(/(?<![\d.,])(\d+(?:[.,]\d+)?)\s*(minutes?|mins?|mn|h(?:eures?)?)(?![a-zà-ÿ])/i), km = (line.match(/(\d+(?:[.,]\d+)?)\s*km\b/i) || [])[1] || null;
+        if (dm || km) {
+          const min = dm ? (/^h/i.test(dm[2]) ? num(dm[1]) * 60 : num(dm[1])) : null;
+          day.exos.push({ raw: line, name: day.sub, canon: run.canon, cat: "cardio", groups: [{ sets: 1, reps: min ? String(Math.round(min * 10) / 10).replace(".", ",") + " min" : "", load: null, amrap: false, km }], rpe: null, tempo: null, side: false, note: line });
+          continue;
+        }
+      }
+      if (!exos.length) { const tr = line.match(/(\d+)\s*tours?\b/i); if (tr && /circuit|tour/i.test(line)) ROUNDS = +tr[1]; }
       if (exos.length) {
         if (!day) day = ensureDay(W(), "Séance 1");
         day.exos.push(...exos);
@@ -359,6 +454,13 @@
   }
 
   function finish(res) {
+    // v42 : « Semaine 1 à 3 » → la semaine 1 est recopiée en semaines 2 et 3 (sauf si elles sont écrites)
+    for (let i = 0; i < res.weeks.length; i++) {
+      const w = res.weeks[i], n0 = +((w.label.match(/\d+/) || [])[0]), up = w.upto; delete w.upto;
+      if (!up || !n0) continue;
+      const pre = w.label.replace(/\d+.*$/, "");
+      for (let k = up; k > n0; k--) if (!res.weeks.some(x => x.label === pre + k)) res.weeks.splice(i + 1, 0, { ...JSON.parse(JSON.stringify(w)), label: pre + k });
+    }
     for (const w of res.weeks) w.days = w.days.filter(d => d.exos.length || d.notes.length);
     res.weeks = res.weeks.filter(w => w.days.length || w.notes.length);
     let n = 0, ok = 0;
@@ -369,10 +471,11 @@
   // Résumé lisible d'un groupe de séries : « 4×5 · 160 kg », « 5×5 · 72 % », « 3×8 · +20 kg »
   function fmtGroup(g) {
     const reps = g.reps === "max" ? "max" : g.reps;
+    if (!reps && g.km) return String(g.km).replace(".", ",") + " km";
     if (/min$/.test(String(reps))) return String(reps) + (g.km ? ` · ${String(g.km).replace(".", ",")} km` : "");   // cardio : « 10 min · 3,2 km »
     let s = `${g.sets}×${reps}${g.amrap && g.reps !== "max" ? "+" : ""}`;
     const L = g.load;
-    if (L) s += " · " + (L.kind === "pct" ? `${L.v} %` : L.kind === "rel" ? `${L.v} %` : L.kind === "lest" ? `+${L.v} ${L.u}` : `${L.v} ${L.u}`);
+    if (L) s += " · " + (L.kind === "pct" ? `${L.v} %` : L.kind === "rel" ? `${L.v} %` : L.kind === "lest" ? `+${L.v} ${L.u}` : L.kind === "band" ? "élastique" + (L.v ? ` ${L.v} kg` : "") : L.kind === "assist" ? `assistance ${L.v} kg` : `${L.v} ${L.u}`);
     return s;
   }
 
@@ -388,6 +491,8 @@
       const G = sh.rows.map(r => r.map(c => String(c ?? "").trim()));
       const at = (r, c) => (G[r] && G[r][c]) || "";
       const sheetWeek = (sh.name.match(/^(?:s|sem(?:aine)?|week)\s*(\d+)$/i) || [])[1];
+      // v42 : tableaux de coach sans titre « Exercice » (« série | rep | charge | % | RPE » sous « SEANCE n ») → lecteur de tableau collé
+      if (G.some(r => isHeadRow(r) && !r.some(v => H_NAME.test(strip(v))))) { tableSheets.push(sh); continue; }
       for (let r = 0; r < G.length; r++) {
         const starts = [];
         G[r].forEach((v, c) => { if (H_NAME.test(strip(v))) starts.push(c); });
@@ -468,6 +573,10 @@
         });
       }
     }
+    if (tableSheets.length && any) {   // v42 : classeur mixte → les deux lectures sont réunies
+      const t = parseProgram(tableSheets.map(sh => sh.rows.map(r => r.join("\t")).join("\n")).join("\n"));
+      res.weeks.push(...t.weeks); res.notes.push(...t.notes);
+    }
     if (tableSheets.length && !any) return parseProgram(tableSheets.map(sh => sh.rows.map(r => r.join("\t")).join("\n")).join("\n"));
     if (!any) return parseProgram(sheets.map(sh => sh.rows.map(r => r.join("\t")).join("\n")).join("\n"));
     finish(res);
@@ -505,10 +614,13 @@
               else if (L.kind === "abs" || L.kind === "lest") charge = fmtN(L.v);
               else if (L.kind === "pct") inten = L.v + "%";
               else if (L.kind === "rel") com.push("Back-off " + String(L.v).replace("-", "−") + " % du top set");
+              else if (L.kind === "band") com.push("Élastique" + (L.v ? " " + fmtN(L.v) + " kg" : ""));
+              else if (L.kind === "assist") com.push("Assistance " + fmtN(L.v) + " kg");
             }
             if (gi === 0 && x.rpe) { const r = isNaN(+String(x.rpe).replace(",", ".")) ? String(x.rpe) : fmtN(+String(x.rpe).replace(",", ".")); if (inten) com.push("Intensité " + inten); inten = "RPE " + r; }
             if (gi === 0 && x.tempo) com.push("Tempo " + x.tempo);
             if (gi === 0 && x.note) com.push(x.note);
+            if (gi === 0 && x.side) com.push("Par côté");
             if (g.km) com.push(String(g.km).replace(".", ",") + " km");
             const reps = g.reps === "max" ? "max" : String(g.reps) + (g.amrap ? "+" : "");
             rows.push([x.canon || x.name, "", String(g.sets), reps, charge, inten, "", "", com.join(" · "), ""]);
