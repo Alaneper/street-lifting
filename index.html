@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261027182651">
+<meta name="sl-build" content="20261027190423">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -306,6 +306,9 @@ details>summary::-webkit-details-marker{display:none}
 .nextup{display:flex;align-items:center;gap:10px;margin-top:16px;font-size:14px}
 .nextup b{font-weight:600}
 /* Chrono de repos flottant */
+.slothd{display:flex;justify-content:space-between;margin:14px 2px 6px;font-size:13px;font-weight:700;color:var(--dust);text-transform:uppercase;letter-spacing:.4px}
+.macrorings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:14px 8px}.mring{display:flex;flex-direction:column;align-items:center;gap:2px}.mring .mrv{fill:var(--chalk);font:800 19px var(--f-show)}.mring .mrl{font-size:13px;font-weight:600}.mring .mrs{font-size:12px;color:var(--dust)}
+.replay{display:flex;gap:10px;overflow-x:auto;margin:8px -16px 0;padding:0 16px 4px;scrollbar-width:none}.replay::-webkit-scrollbar{display:none}.rcard{flex:0 0 132px;min-height:96px;border:0;border-radius:16px;background:var(--deck);color:var(--chalk);padding:12px;text-align:left;display:flex;flex-direction:column;justify-content:space-between;font-family:inherit}.rcard:active{transform:scale(.97)}.rcard .rname{font-size:13px;font-weight:600;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.rcard .rk{font:800 24px var(--f-show)}.rcard .rk small{font:500 12px var(--f-text);color:var(--dust)}
 .restpill{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:45;max-width:536px;margin:0 auto;background:#fff;color:var(--floor);border-radius:28px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 18px 40px rgba(0,0,0,.5);animation:up .35s var(--ease)}
 .restpill .show{font-size:32px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
 .restpill .rb{width:44px;height:44px;border-radius:22px;background:#EEF0F3;font:700 13px var(--f-text);color:var(--floor);flex:none}
@@ -496,7 +499,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "43 · 27 oct. 2026";
+const APP_VER = "44 · 27 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -2554,25 +2557,32 @@ function nutTargets(day){
 function corpsSeg(){ return `<div class="segc" style="margin-bottom:14px">${[["nutri", "Alimentation"], ["poids", "Poids"]].map(([k, t]) => `<button aria-pressed="${corpsTab === k}" data-act="corpsTab" data-k="${k}">${t}</button>`).join("")}</div>`; }
 function rCorps(){ if (corpsTab === "poids") { rPoids(); $("#v-corps").insertAdjacentHTML("afterbegin", corpsSeg()); return; } rNutri(); }
 function dayRows(d){ return (D.repas || []).filter(x => x.date === d); }
+function macroRing(lab, v, tg, col, sub){
+  const R = 30, C = 2 * Math.PI * R, f = tg ? Math.min(1, v / tg) : 0;
+  return `<div class="mring"><svg width="76" height="76" viewBox="0 0 76 76" role="img" aria-label="${lab} : ${fmt(v, 0)} g${tg ? " sur " + fmt(tg, 0) + " g" : ""}"><circle cx="38" cy="38" r="${R}" fill="none" stroke="var(--deck3)" stroke-width="7"/><circle cx="38" cy="38" r="${R}" fill="none" stroke="${col}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(f * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 38 38)" style="transition:stroke-dasharray .4s cubic-bezier(.2,.8,.2,1)"/><text x="38" y="43" text-anchor="middle" class="mrv">${fmt(v, 0)}</text></svg><span class="mrl">${lab}</span><span class="mrs">${tg ? "sur " + fmt(tg, 0) + " g" : (sub || "g")}</span></div>`;
+}
 function rNutri(){
   if (!nutDate) nutDate = D.today;
   if (!FOODS) loadFoods().then(() => { const l = $("#nutload"); if (l) l.remove(); nutRefresh(); }).catch(() => { const l = $("#nutload"); if (l) l.textContent = "Table des aliments indisponible hors connexion pour l'instant."; });
   const R = dayRows(nutDate), tot = R.reduce((a, x) => ({k:a.k + x.k, p:a.p + x.p, g:a.g + x.g, l:a.l + x.l}), {k:0, p:0, g:0, l:0}), T = nutTargets(nutDate);
   const hasT = T.kcal && T.obj !== "suivi", left = hasT ? T.kcal - tot.k : null;
   const bar = (lab, v, tg, col) => `<div style="margin-top:12px"><div class="row small"><span>${lab}</span><span><b>${fmt(v, 0)}</b>${tg ? ` / ${fmt(tg, 0)} g` : " g"}</span></div><div class="bar" style="--c:${col}"><i style="width:${tg ? Math.min(100, v / tg * 100) : 0}%"></i></div></div>`;
-  const rows = R.slice().sort((a, b) => (a.h || "") < (b.h || "") ? -1 : 1).map(x => `<div class="item" style="display:flex;gap:10px;align-items:center"><span class="muted small" style="width:42px">${esc(x.h || "")}</span><span class="grow"><span class="ttl" style="display:block">${esc(x.nom)}</span><span class="muted tiny">${fmt(x.q, 0)} g · P ${fmt(x.p, 1)} · G ${fmt(x.g, 1)} · L ${fmt(x.l, 1)}</span></span><b class="small">${fmt(x.k, 0)}</b><button class="iconbtn" data-act="nutDel" data-r="${x.id}" aria-label="Supprimer">×</button></div>`).join("");
+  const itemHtml = x => `<div class="item" style="display:flex;gap:10px;align-items:center"><span class="muted small" style="width:42px">${esc(x.h || "")}</span><span class="grow"><span class="ttl" style="display:block">${esc(x.nom)}</span><span class="muted tiny">${fmt(x.q, 0)} g · P ${fmt(x.p, 1)} · G ${fmt(x.g, 1)} · L ${fmt(x.l, 1)}</span></span><b class="small">${fmt(x.k, 0)}</b><button class="iconbtn" data-act="nutDel" data-r="${x.id}" aria-label="Supprimer">×</button></div>`;
+  const slotOf = h => { const m = String(h || "").match(/^(\d{1,2}):(\d{2})/); if (!m) return 3; const v = +m[1] * 60 + +m[2]; return v < 630 ? 0 : v < 900 ? 1 : v < 1080 ? 2 : 3; };
+  const SLOTS = ["Petit-déjeuner", "Déjeuner", "Collation", "Dîner"];
+  const rows = [0, 1, 2, 3].map(s => { const L = R.filter(x => slotOf(x.h) === s).sort((a, b) => (a.h || "") < (b.h || "") ? -1 : 1); return L.length ? `<div class="slothd"><span>${SLOTS[s]}</span><span>${fmt(sum(L.map(x => x.k)), 0)} kcal</span></div><div class="list">${L.map(itemHtml).join("")}</div>` : ""; }).join("");
   $("#v-corps").innerHTML = corpsSeg() + `
     <div class="row" style="margin-bottom:10px"><button class="iconbtn" data-act="nutDay" data-d="-1" aria-label="Jour précédent">‹</button><b>${nutDate === D.today ? "Aujourd'hui" : cap(dlong(nutDate))}</b><button class="iconbtn" data-act="nutDay" data-d="1" aria-label="Jour suivant" ${nutDate >= D.today ? "disabled" : ""}>›</button></div>
     ${heroCard({small:hasT ? "Calories du jour" : "Calories du jour (suivi)", big:`${fmt(tot.k, 0)}<small>${hasT ? " / " + fmt(T.kcal, 0) : ""} kcal</small>`, sub:hasT ? (left >= 0 ? "reste " + fmt(left, 0) + " kcal" : fmt(-left, 0) + " kcal au-dessus") : R.length ? R.length + " aliment" + (R.length > 1 ? "s" : "") + " noté" + (R.length > 1 ? "s" : "") : "Aucun aliment noté", deco:false})}
-    ${hasT ? `<div class="panel" style="margin-top:12px">${bar("Protéines", tot.p, T.p, "var(--brand)")}${bar("Glucides", tot.g, T.g, "var(--chalk)")}${bar("Lipides", tot.l, T.l, "var(--dust)")}</div>`
-      : `<div class="grid3" style="margin-top:12px">${[["Protéines", tot.p], ["Glucides", tot.g], ["Lipides", tot.l]].map(([k, v]) => `<div class="panel" style="margin:0;padding:12px 14px"><p class="muted tiny">${k}</p><p class="show t-s" style="margin-top:2px">${fmt(v, 0)}<small style="font-size:.6em"> g</small></p></div>`).join("")}</div>`}
+    <div class="panel macrorings" style="margin-top:12px" role="group" aria-label="Protéines, glucides et lipides du jour">${[["Protéines", tot.p, T.p, "var(--brand)", 4], ["Glucides", tot.g, T.g, "var(--chalk)", 4], ["Lipides", tot.l, T.l, "var(--dust)", 9]].map(([lab, v, tg, col, kc]) => macroRing(lab, v, hasT ? tg : 0, col, hasT ? "" : (tot.k > 0 ? fmt(v * kc / tot.k * 100, 0) + " % des kcal" : ""))).join("")}</div>
+    ${Object.keys(D.mesRepas || {}).length ? `<div class="row" style="margin-top:18px;align-items:baseline"><h2 class="h2" style="margin:0">Rejouer un repas</h2><button class="link small muted" data-act="mealsManage" style="min-height:44px">Voir tout</button></div>
+    <div class="replay">${Object.entries(D.mesRepas).slice().reverse().map(([n, L]) => `<button class="rcard" data-act="mealAdd" data-n="${esc(n)}" aria-label="Ajouter le repas ${esc(n)}"><span class="rname">${esc(n)}</span><span class="rk">${fmt(sum(L.map(x => x.k)), 0)}<small> kcal</small></span></button>`).join("")}</div>` : ""}
     <h2 class="h2">Ajouter</h2>
     <input id="nutin" placeholder="Ex. riz, 250 g de pâtes sèches, 1 cordon bleu" value="${esc(nutQ)}" autocomplete="off" data-inp="nutQ">
     ${!FOODS ? `<p class="muted small" style="margin-top:8px" id="nutload">Chargement de la table des aliments…</p>` : ""}
-    ${Object.keys(D.mesRepas || {}).length ? `<div class="chips meals" style="margin-top:10px">${Object.entries(D.mesRepas).map(([n, L]) => `<button class="chip" data-act="mealAdd" data-n="${esc(n)}" aria-label="Ajouter le repas ${esc(n)}">${esc(n)} <span class="muted">${fmt(sum(L.map(x => x.k)), 0)} kcal</span></button>`).join("")}<button class="chip" data-act="mealsManage">Mes repas</button></div>` : ""}
     <div id="nutdyn">${nutDyn()}</div>
     <h2 class="h2">${nutDate === D.today ? "Mangé aujourd'hui" : "Mangé ce jour-là"} <span class="muted">${R.length}</span></h2>
-    ${rows ? `<div class="list">${rows}</div><button class="btn ghost" style="margin-top:10px" data-act="mealSave">Enregistrer comme repas</button>` : `<p class="muted small">Rien de noté pour l'instant. Pèse, tape le nom, ajoute.</p>`}
+    ${rows ? `${rows}<button class="btn ghost" style="margin-top:10px" data-act="mealSave">Enregistrer comme repas</button>` : `<p class="muted small">Rien de noté pour l'instant. Pèse, tape le nom, ajoute.</p>`}
     ${nutGoalHtml(T)}`;
 }
 function nutDyn(){
