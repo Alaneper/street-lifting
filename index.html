@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261027192921">
+<meta name="sl-build" content="20261027201401">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -500,7 +500,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "45 · 27 oct. 2026";
+const APP_VER = "46 · 27 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -1241,6 +1241,7 @@ function exercisePoints(){
     const key = exKey(e), lift = liftOf(e.mouvement), lg = logged[[s.bloc, s.semaine, s.seance, key].join("|")];
     if (lg && (lg.includes("L" + e.row) || lg.includes(""))) continue;
     if (ASSIST_RE.test(String(e.charge ?? ""))) continue;   /* série assistée (élastique) : ni record ni 1RM estimé (v29) */
+    if (isTimedEx(e)) continue;
     const c = chargeGuess(e); const fc = c === null ? setsFromComment(e, null) : null; if (c === null && !(fc && fc.every(x => x.c !== null && x.c !== undefined))) continue;
     if (failTxt(e.rpe1) && (failTxt(e.rpeLast) || !String(e.rpeLast || "").trim())) continue;
     const own = num(e.rpe1) !== null || num(e.rpeLast) !== null;
@@ -1259,6 +1260,7 @@ function exercisePoints(){
     const s = S.find(z => z.bloc === x.bloc && z.semaine === x.semaine && z.seance === x.seance && (!x.date || !dateOf(z) || Math.abs(days(x.date, dateOf(z))) <= 14));
     const xe = s && s.exercices.find(z => "L" + z.row === x.note), xl = liftOf(x.ex.split(" · ")[0]);
     if (xe && ASSIST_RE.test(String(xe.charge))) continue;
+    if (xe ? isTimedEx(xe) : TIMED_RE.test(norm(x.ex))) continue;   /* v46 : un temps n'est pas un 1RM ni un tonnage */
     /* séance notée dans l'app : RPE de la 1re série (et de la dernière) repris de la ligne de la prog */
     let xs = x.sets; if (xe && xs && xs.length) { const r1 = num(xe.rpe1), rl = num(xe.rpeLast), okR = v => v && v >= 5 && v <= 10;
       xs = xs.map((y, i) => i === 0 && okR(r1) ? {...y, rpe:r1} : i === xs.length - 1 && i > 0 && okR(rl) ? {...y, rpe:rl} : y); }
@@ -1593,7 +1595,20 @@ function isCompVar(v, tempo){
 }
 const isCompEx = e => !!liftOf(e.mouvement) && isCompVar(e.variation, e.tempo);
 /* Exercice de cardio (v40) : durée en minutes (« 10 min », « 20' »), ou nom de cardio (vélo, marche, course, rameur…). Jamais pour un mouvement de force. */
-const isCardioEx = e => !liftOf(e.mouvement) && (durMin(e.reps) !== null || isCardioName(String(e.mouvement ?? "") + " " + String(e.variation ?? "")));
+/* v46 : exercices « en temps » (gainage, planche, tenues) : durée saisie en secondes, jamais arrondie à la minute, jamais un record de charge ni un 1RM */
+const TIMED_RE = /GAINAGE|PLANCHE|PLANK|HOLLOW|L-?SIT|ISOMETR|STATIQUE|WALL SIT|DEAD HANG|TENUE/;
+function parseDur(v){ const x = String(v ?? "").trim().replace(/\s+/g, " "); if (!x) return null; let m;
+  if ((m = x.match(/^(\d+)\s*[:'’]\s*(\d{1,2})\s*(?:"|''|’’)?$/))) return +m[1] * 60 + +m[2];
+  if ((m = x.match(/^(\d+)\s*(?:min|mn|m)\s*(\d{1,2})?\s*(?:s|sec)?$/i))) return +m[1] * 60 + (m[2] ? +m[2] : 0);
+  if ((m = x.match(/^(\d+(?:[.,]\d+)?)\s*(?:s|sec|"|'')$/i))) return Math.round(num(m[1]));
+  if ((m = x.match(/^(\d+)$/))) return +m[1];
+  if ((m = x.match(/^(\d+[.,]\d+)$/))) return Math.round(num(m[1]) * 60);   /* « 1,5 » = 1,5 minute */
+  return null; }
+const fmtDur = s => s === null || s === undefined || s === "" ? "" : s >= 60 ? Math.floor(s / 60) + ":" + String(Math.round(s % 60)).padStart(2, "0") : s + " s";
+const timedNameEx = e => !liftOf(e.mouvement) && TIMED_RE.test(norm(String(e.mouvement ?? "") + " " + String(e.variation ?? "")));
+const timedSec = e => { const t0 = timedOf(e); if (t0 !== null) return t0; const r = String(e.reps ?? "").trim(); return /(?:min|mn|[:'’])/i.test(r) && !/^\d+(?:[.,]\d+)?\s*(?:min|mn)$/i.test(r) ? parseDur(r) : (timedNameEx(e) ? parseDur(r) : null); };
+const isTimedEx = e => !liftOf(e.mouvement) && (timedNameEx(e) || timedOf(e) !== null || timedSec(e) !== null);
+const isCardioEx = e => !liftOf(e.mouvement) && !timedNameEx(e) && (durMin(e.reps) !== null || isCardioName(String(e.mouvement ?? "") + " " + String(e.variation ?? "")));
 const cardioLog = (s, e) => (D.cardio || []).find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === exKey(e) && (!x.note || x.note === "L" + e.row));
 const failTxt = v => /chec|fail|rat[ée]/i.test(String(v ?? ""));
 /* Exercice en durée : « 15" », « 30'' », « 45 s » → secondes */
@@ -1610,6 +1625,7 @@ function initSets(s, e, k){
   const nS = Math.min(12, num(e.series) || 1), bo = chargeGuess(e) === null ? backoffOf(s, e, k) : null, cg = bo ? bo.mid : chargeGuess(e);
   /* Valeurs d'avant : exactement celles de la colonne « Précédent » (prevRowSets), jamais une autre source. */
   const pvs = !lift ? prevRowSets(s, k) : null, last = pvs && pvs.sets && pvs.sets.length ? pvs : null;
+  if (isTimedEx(e)) { const ts = timedSec(e); return Array.from({length:nS}, (_, i) => { const ls = last ? last.sets[Math.min(i, last.sets.length - 1)] : null; return {c: ls ? ls.c : null, r: ls && ls.r ? ls.r : ts, done:false}; }); }
   const rg = String(e.reps).match(/^\s*(\d+)\s*[-–]\s*(\d+)\s*$/);
   let seq = null; if (/^\d+(\/\d+)+$/.test(String(e.reps).trim())) seq = String(e.reps).split("/").map(Number);
   const target = isNumTxt(e.reps) ? num(e.reps) : (String(e.reps).match(/^(\d+)\s*-\s*\d+$/) || [])[1];
@@ -1657,7 +1673,7 @@ function rLive(){
   const el = Math.floor((Date.now() - live.start) / 60000), doneN = st.sets.filter(x => x.done).length, curJ = st.sets.findIndex(x => !x.done);
   const showR1 = !renfo && !cardio && s.cols.rpe1 && st.sets[0] && st.sets[0].done, showRL = !renfo && !cardio && s.cols.rpeLast && st.sets.length > 1 && st.sets.at(-1).done;
   const isBW = l && BW_LIFTS.includes(l), name = renfo ? title(e.variation) : l ? LNAME[l] + " " + title(e.variation).toLowerCase() : title(e.mouvement);
-  const pv = j => { if (!prev) return "–"; const p = prev.sets[Math.min(j, prev.sets.length - 1)]; return p ? (cardio ? fmt(p.r, 1) + " min" + (p.c ? " · " + fmt(p.c, 2) + " km" : "") : fmt(p.c) + " × " + p.r) : "–"; };
+  const pv = j => { if (!prev) return "–"; const p = prev.sets[Math.min(j, prev.sets.length - 1)]; return p ? (cardio ? fmt(p.r, 1) + " min" + (p.c ? " · " + fmt(p.c, 2) + " km" : "") : (isTimedEx(e) ? (p.c ? fmt(p.c) + " kg · " : "") + fmtDur(p.r) : fmt(p.c) + " × " + p.r)) : "–"; };
   const rc0 = rpeCible(e), inT = v => rc0 && rc0.hi !== null && v <= rc0.hi && (rc0.lo === null || v >= rc0.lo);
   const rpeRow = (f, lab) => `<div><h2 class="h2">${lab} <span class="muted">pour ton coach</span> <button class="chip" style="min-height:32px;padding:4px 10px;font-size:12px" data-act="rpeInfo" aria-label="C'est quoi le RPE ?">?</button></h2><div class="rpe">${RPE_OPTS.map(v => `<button class="${inT(v) ? "tgt" : ""}" aria-pressed="${st[f] === v}" data-act="rpe" data-f="${f}" data-v="${v}">${fmt(v)}</button>`).join("")}</div></div>`;
   return `<div class="live ${sheet === "rest" ? "resting" : ""}" role="dialog" aria-label="Séance en cours"><div class="wrap">
@@ -1677,11 +1693,11 @@ function rLive(){
     ${e.coach ? `<div class="coachnote"><b>Consigne du coach.</b> ${esc(e.coach)}</div>` : ""}
     ${e.angle ? `<p class="prev">À filmer : ${esc(e.angle)}</p>` : ""}
     <section class="setgrid" style="--c:${cardio ? "var(--cardio)" : l ? col : "var(--brand)"}" aria-label="${cardio ? "Blocs de cardio" : "Séries"}">
-      <div class="hd"><span>N°</span><span>Précédent</span>${cardio ? "<span>Min</span><span>Km</span>" : `<span>${isBW ? "Lest" : "Kg"}</span><span>Reps</span>`}<span></span></div>
+      <div class="hd"><span>N°</span><span>Précédent</span>${cardio ? "<span>Min</span><span>Km</span>" : `<span>${isBW ? "Lest" : "Kg"}</span><span>${isTimedEx(e) ? "Durée" : "Reps"}</span>`}<span></span></div>
       ${st.sets.map((x, j) => `<div class="setrow ${x.done ? "done" : ""} ${j === curJ ? "cur" : ""}"><span class="n">${j + 1}</span><span class="pv">${pv(j)}</span>
         ${cardio ? `<input inputmode="decimal" value="${x.r === null || x.r === undefined ? "" : String(x.r).replace(".", ",")}" placeholder="min" data-chg="setR" data-j="${j}" aria-label="Minutes bloc ${j + 1}">
-        <input inputmode="decimal" value="${x.c === null || x.c === undefined || x.c === "" ? "" : String(x.c).replace(".", ",")}" placeholder="km" data-chg="setC" data-j="${j}" aria-label="Kilomètres bloc ${j + 1}">` : timedOf(e) && !chargeGuess(e) ? `<span class="small muted" style="text-align:center">–</span><span class="small" style="text-align:center;font-weight:700">${timedOf(e)} s</span>` : `<input inputmode="decimal" value="${x.c === null || x.c === undefined ? "" : String(x.c).replace(".", ",")}" placeholder="${isBW ? "0" : "kg"}" data-chg="setC" data-j="${j}" aria-label="${isBW ? "Lest" : "Charge"} série ${j + 1}">
-        <input inputmode="numeric" value="${x.r ?? ""}" placeholder="–" data-chg="setR" data-j="${j}" aria-label="Reps série ${j + 1}">`}
+        <input inputmode="decimal" value="${x.c === null || x.c === undefined || x.c === "" ? "" : String(x.c).replace(".", ",")}" placeholder="km" data-chg="setC" data-j="${j}" aria-label="Kilomètres bloc ${j + 1}">` : `<input inputmode="decimal" value="${x.c === null || x.c === undefined ? "" : String(x.c).replace(".", ",")}" placeholder="${isBW ? "0" : "kg"}" data-chg="setC" data-j="${j}" aria-label="${isBW ? "Lest" : "Charge"} série ${j + 1}">
+        ${isTimedEx(e) ? `<input inputmode="text" value="${esc(fmtDur(x.r))}" placeholder="1:30" data-chg="setR" data-j="${j}" aria-label="Durée série ${j + 1} (ex. 1:30 ou 90)">` : `<input inputmode="numeric" value="${x.r ?? ""}" placeholder="–" data-chg="setR" data-j="${j}" aria-label="Reps série ${j + 1}">`}`}
         <button class="ck" data-act="doneSet" data-j="${j}" aria-label="${cardio ? "Bloc" : "Série"} ${j + 1} fait" aria-pressed="${x.done}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></button></div>`).join("")}
       <div class="row" style="padding:8px 10px 4px"><button class="link small" data-act="addSet">+ Ajouter ${cardio ? "un intervalle" : "une série"}</button>${st.sets.length > 1 ? `<button class="link small muted" data-act="delSet">Retirer le dernier</button>` : ""}</div>
     </section>
@@ -1733,11 +1749,13 @@ function onSetDone(j){
     if (!x.done && !x.r) return toast("Indique d'abord la durée en minutes", true);
     x.done = !x.done; st.dirty = true; persistLive(); renderLayer(); return;
   }
-  if (tr) { const [ci, ri] = tr.querySelectorAll("input"); if (ci && ci.value !== "") x.c = num(ci.value); if (ri && ri.value !== "") x.r = Math.round(num(ri.value)); }
+  if (tr) { const [ci, ri] = tr.querySelectorAll("input"); if (ci && ci.value !== "") x.c = num(ci.value); if (ri && ri.value !== "") x.r = isTimedEx(e) ? parseDur(ri.value) : Math.round(num(ri.value)); }
+  if (isTimedEx(e) && !x.done && !x.r) return toast("Indique d'abord la durée (ex. 1:30 ou 90)", true);
   x.done = !x.done; st.dirty = true; persistLive();
   if (!x.done) return renderLayer();
   if (x.c === null || x.c === undefined || x.c === "") x.c = l && BW_LIFTS.includes(l) ? 0 : x.c;
   renderLayer();
+  if (isTimedEx(e)) return;   /* un temps tenu n'est ni un record de charge ni un 1RM */
   /* Record en direct */
   const w = bw(), b0 = bestBefore(exKey(e)), cur = x.r ? e1rm(num(x.c) || 0, x.r, l, w) : null;
   const box = $("#prbox");
@@ -2470,7 +2488,7 @@ const CHG = {
     if (nv !== null && old !== nv && !liveCardio()) for (let i = j + 1; i < st.sets.length; i++) if (!st.sets[i].done && st.sets[i].c === old) { st.sets[i].c = nv;
       const inp = document.querySelector('[data-chg="setC"][data-j="' + i + '"]'); if (inp && inp !== el) inp.value = String(nv).replace(".", ","); }
     persistLive(); },
-  setR:(d, el) => { const st = live.rows[live.i]; st.sets[+d.j].r = el.value === "" ? null : liveCardio() ? Math.round(num(el.value) * 10) / 10 : Math.round(num(el.value)); st.dirty = true; persistLive(); },
+  setR:(d, el) => { const st = live.rows[live.i]; st.sets[+d.j].r = el.value === "" ? null : liveCardio() ? Math.round(num(el.value) * 10) / 10 : isTimedEx(seanceByKey(live.key).exercices[live.i]) ? parseDur(el.value) : Math.round(num(el.value)); st.dirty = true; persistLive(); },
   blocDate:async (d, el) => { const b = +d.b, v = toIso(el.value); if (!v) return;
     try { await Store.blocs.setDate(b, v); D.blocs[b] = v; toast("Dates enregistrées : " + blocLabel(b)); saveCache(); render(); } catch(e){ toast(errMsg(e), true); } },
   setObj:async (d, el) => { const l = d.l, v = num(el.value);
