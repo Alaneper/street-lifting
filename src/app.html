@@ -472,7 +472,7 @@ html,body{overflow-x:clip}body{margin-top:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "42 · 27 oct. 2026";
+const APP_VER = "43 · 27 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -1471,8 +1471,7 @@ function rHome(){
     ${impCan() && coachId() && S.length && !sess && !remainingInBloc() ? `<div class="panel" style="margin-top:14px"><p style="font-weight:700">Bloc terminé</p><p class="muted small" style="margin-top:4px">Prépare le suivant : l'app reprend ta dernière semaine et ajuste les charges d'après tes RPE. Tu vérifies avant d'enregistrer.</p><button class="btn" style="margin-top:12px" data-act="impNext">Préparer le bloc suivant</button></div>` : ""}
     ${sess ? `<button class="btn" style="margin-top:16px" data-act="startLive" data-k="${esc(sess.key)}">${lv && lv.key === sess.key ? "Reprendre la séance" : "Commencer la séance " + jourBtn}</button>` : ""}`;
   const right = `${nc && !mw ? `<div class="desk-only">${heroCard({plain:true, small:tsmall, big:`${fmt(t)}<small>kg</small>`, sub:tsub})}</div>` : mw && nc ? `<div class="desk-only">${heroMu}</div>` : ""}
-    ${shownLifts().length ? `<h2 class="h2">Mes records</h2>
-    ${shownLifts().map(l => vrow(LNAME[l], D.objectifs[l] ? "objectif " + kg(D.objectifs[l]) : "pas encore d'objectif", kg(best(l)), LCOL[l], `data-act="openLift" data-l="${l}"`)).join("")}` : mw ? `<div class="panel" style="margin-top:14px"><p style="font-weight:700">Tester ton max ?</p><p class="muted small" style="margin-top:4px">Choisis les mouvements dont tu veux suivre le record et le 1RM estimé. Tu peux aussi ajouter le street lifting ou le powerlifting.</p><button class="btn ghost" style="margin-top:12px" data-act="settings">Ouvrir les réglages</button></div>` : ""}
+    ${shownLifts().length ? "" : mw ? `<div class="panel" style="margin-top:14px"><p style="font-weight:700">Tester ton max ?</p><p class="muted small" style="margin-top:4px">Choisis les mouvements dont tu veux suivre le record et le 1RM estimé. Tu peux aussi ajouter le street lifting ou le powerlifting.</p><button class="btn ghost" style="margin-top:12px" data-act="settings">Ouvrir les réglages</button></div>` : ""}
     ${bil ? `<h2 class="h2">Pour ton coach</h2>${vrow("Bilan de la semaine " + esc(bil.semaine), "sommeil, fatigue, motivation… en 30 secondes", "›", null, `data-act="bilan" data-w="${esc(bil.sheet + "|" + bil.semaine)}"`)}` : ""}`;
   $("#v-home").innerHTML = `<div class="homegrid"><div>${left}</div><div>${right}</div></div>`;
   firstPaint = false;
@@ -1656,9 +1655,11 @@ function rLive(){
     ${(() => { const cur = st.sets[curJ < 0 ? st.sets.length - 1 : curJ] || {}, c0 = cur.c ?? chargeGuess(e);
       if (cardio) { const mn = cur.r ?? durMin(e.reps);
         return heroCard({color:LCOL.CARDIO, deco:true, small:`Cardio · ${esc(name)}`, big:mn ? `${fmt(mn, 1)}<small>min</small>` : `<small style="font-size:.5em">Durée libre</small>`, sub:durMin(e.reps) !== null ? `Prévu : ${esc(e.reps)}${e.coach ? "" : ""}` : "Note ta durée, et la distance si tu veux"}); }
-      return heroCard({color:l ? col : "var(--deck2)", deco:!!l, small:`Exercice ${k + 1} sur ${s.exercices.length} · ${esc(name)}`, big:c0 !== null && c0 !== undefined && c0 !== "" ? `${fmt(num(c0))}<small>kg</small>` : timedOf(e) ? `${timedOf(e)}<small>s</small>` : (isBW ? "0<small>kg de lest</small>" : e.charge ? esc(e.charge) : "<small style=\"font-size:.5em\">Poids du corps</small>"), sub:`${esc(e.series)} série${num(e.series) > 1 ? "s" : ""} de ${esc(e.reps)}${e.tempo ? " · tempo " + esc(e.tempo) : ""}${e.repos ? " · repos " + esc(e.repos) : ""}${(() => { const b = backoffOf(s, e, k, live.rows); return b ? ` · ${esc(String(e.charge).trim())} de ${fmt(b.base)} kg = ${fmt(Math.ceil(b.lo * 4) / 4)} à ${fmt(Math.floor(b.hi * 4) / 4)} kg` : chargeGuess(e) !== null && !isNumTxt(e.charge) && String(e.charge).trim() ? " · prévu : " + esc(String(e.charge).trim()) : ""; })()}`}); })()}
+      const asTxt = ASSIST_RE.test(String(e.charge ?? "")) ? String(e.charge).trim() : "";   /* élastique : affiché tel qu'écrit, jamais converti en kg */
+      return heroCard({color:l ? col : "var(--deck2)", deco:!!l, small:`Exercice ${k + 1} sur ${s.exercices.length} · ${esc(name)}`, big:asTxt && (c0 === null || c0 === undefined || c0 === "" || !num(c0)) ? `<small style="font-size:.42em;line-height:1.1;display:block">${esc(asTxt)}</small>` : c0 !== null && c0 !== undefined && c0 !== "" ? `${fmt(num(c0))}<small>kg</small>` : timedOf(e) ? `${timedOf(e)}<small>s</small>` : (isBW ? "0<small>kg de lest</small>" : e.charge ? esc(e.charge) : "<small style=\"font-size:.5em\">Poids du corps</small>"), sub:`${esc(e.series)} série${num(e.series) > 1 ? "s" : ""} de ${esc(e.reps)}${e.tempo ? " · tempo " + esc(e.tempo) : ""}${e.repos ? " · repos " + esc(e.repos) : ""}${(() => { const b = backoffOf(s, e, k, live.rows); return b ? ` · ${esc(String(e.charge).trim())} de ${fmt(b.base)} kg = ${fmt(Math.ceil(b.lo * 4) / 4)} à ${fmt(Math.floor(b.hi * 4) / 4)} kg` : chargeGuess(e) !== null && !isNumTxt(e.charge) && String(e.charge).trim() ? " · prévu : " + esc(String(e.charge).trim()) : ""; })()}`}); })()}
     ${(() => { const rc = rpeCible(e); if (!rc) return ""; const got = [st.rpe1, st.rpeLast].filter(v => v !== null && v !== undefined), over = rc.hi !== null && got.some(v => v > rc.hi);
       return `<div class="rpecible ${over ? "over" : ""}" role="note"><b>${esc(rc.lab)}</b><span>${over ? "Au-dessus de la consigne : baisse la charge sur les séries suivantes." : rc.max ? "À ne pas dépasser, sur toutes les séries." : "Consigne de ton coach, à respecter."}</span></div>`; })()}
+    ${ASSIST_RE.test(String(e.charge ?? "")) ? `<div class="coachnote"><b>Assistance.</b> ${esc(String(e.charge).trim())}</div>` : ""}
     ${e.coach ? `<div class="coachnote"><b>Consigne du coach.</b> ${esc(e.coach)}</div>` : ""}
     ${e.angle ? `<p class="prev">À filmer : ${esc(e.angle)}</p>` : ""}
     <section class="setgrid" style="--c:${cardio ? "var(--cardio)" : l ? col : "var(--brand)"}" aria-label="${cardio ? "Blocs de cardio" : "Séries"}">
@@ -1748,12 +1749,13 @@ function beep(){
 }
 setInterval(() => {
   if (!rest || sheet !== "rest") return;
-  const left = Math.round((rest.end - Date.now()) / 1000), el = $("#restval"), ring = $("#restring");
+  const left = Math.round((rest.end - (rest.pauseAt || Date.now())) / 1000), el = $("#restval"), ring = $("#restring");
   if (!el) return;
   const a = Math.abs(left); el.textContent = (left < 0 ? "+" : "") + Math.floor(a / 60) + ":" + String(a % 60).padStart(2, "0");
   if (ring) ring.style.strokeDashoffset = String(628 * (1 - Math.max(0, Math.min(1, left / rest.total))));
   $("#restbox").classList.toggle("over", left <= 0);
-  if (left <= 0 && !rest.beeped) { rest.beeped = true; beep(); $("#resttitle").textContent = "C'est reparti"; }
+  const pp = $("#restpp"); if (pp) { const g = rest.pauseAt ? "▶" : "❚❚"; if (pp.textContent !== g) { pp.textContent = g; pp.setAttribute("aria-label", rest.pauseAt ? "Reprendre le repos" : "Mettre le repos en pause"); } }
+  if (left <= 0 && !rest.beeped && !rest.pauseAt) { rest.beeped = true; beep(); $("#resttitle").textContent = "C'est reparti"; }
 }, 250);
 
 /* Sauvegarde d'un exercice : carnet SERIES + RPE et reps dans la prog du coach */
@@ -2190,7 +2192,7 @@ function restPill(){
   return `<section id="restbox" class="restpill" role="timer" aria-label="Repos">
     <svg width="52" height="52" viewBox="0 0 54 54" aria-hidden="true" style="flex:none"><circle cx="27" cy="27" r="23" fill="none" stroke="rgba(11,12,15,.15)" stroke-width="5"/><circle id="restring" cx="27" cy="27" r="23" fill="none" stroke="var(--brand)" stroke-width="5" stroke-linecap="round" pathLength="628" stroke-dasharray="628" stroke-dashoffset="0" transform="rotate(-90 27 27)" style="transition:stroke-dashoffset .25s linear"/></svg>
     <div style="flex:1;min-width:0"><p class="small" style="font-weight:600;opacity:.7" id="resttitle">Repos</p><p class="show" id="restval">0:00</p></div>
-    <button class="rb" data-act="restAdd" data-s="-15" aria-label="Retirer 15 secondes">−15</button><button class="rb" data-act="restAdd" data-s="15" aria-label="Ajouter 15 secondes">+15</button><button class="go2" data-act="closeSheet">Passer</button></section>`;
+    <button class="rb" id="restpp" data-act="restPause" aria-label="Mettre le repos en pause">${rest && rest.pauseAt ? "▶" : "❚❚"}</button><button class="go2" data-act="closeSheet">Passer</button></section>`;
 }
 function rpeInfoHtml(){
   const rows = [[10, "Impossible d'en faire une de plus", "0"], [9, "Encore 1 rep possible", "1"], [8, "Encore 2 reps possibles", "2"], [7, "Encore 3 reps possibles", "3"], [6, "Encore 4 reps possibles", "4"]];
@@ -2405,6 +2407,7 @@ const ACT = {
   finishLive:() => finishLive(),
   closeSummary:() => { sheet = null; live = null; renderLayer(); syncAll(true); },
   livePR:async d => { await addPR(d.l, +d.c, 1, D.today, "Séance " + (seanceByKey(live.key) || {}).seance); $("#prbox").innerHTML = ""; },
+  restPause:() => { if (!rest) return; if (rest.pauseAt) { rest.end += Date.now() - rest.pauseAt; rest.pauseAt = 0; } else rest.pauseAt = Date.now(); },
   restAdd:d => { if (rest) { rest.end += +d.s * 1000; rest.total = Math.max(rest.total, Math.round((rest.end - Date.now()) / 1000)); rest.beeped = false; } },
   pdcSave:async () => { const v = num($("#pw").value); if (!v) return toast("Indique ton poids", true); await saveWeight(v, D.today, true); live.pdc = true; persistLive(); closeSheet(); },
   pdcSkip:() => { live.pdc = true; persistLive(); closeSheet(); },
