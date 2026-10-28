@@ -37,7 +37,7 @@ def serve(root, port, slow=True):
 
 def build_site(tmp):
     site, vend = tmp / "site", tmp / "vendor"; site.mkdir(); vend.mkdir()
-    for f in ["sw.js", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png", "aliments.json"]:
+    for f in ["sw.js", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png", "aliments.json", "zxing.min.js"]:
         if (P / f).exists(): shutil.copy(P / f, site / f)
     shutil.copy(B / "node_modules/chart.js/dist/chart.umd.js", vend / "chart.umd.min.js")
     shutil.copy(B / "node_modules/jszip/dist/jszip.min.js", vend / "jszip.min.js")
