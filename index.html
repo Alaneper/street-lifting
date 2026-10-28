@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261028193825">
+<meta name="sl-build" content="20261028200625">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -306,6 +306,7 @@ details>summary::-webkit-details-marker{display:none}
 .nextup{display:flex;align-items:center;gap:10px;margin-top:16px;font-size:14px}
 .nextup b{font-weight:600}
 /* Chrono de repos flottant */
+.fcells{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:8px;margin-top:12px}.fcell{min-height:68px;border:0;border-radius:14px;background:var(--deck2);color:var(--chalk);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px;font:inherit}.fcell b{font-size:18px}.fcell span{font-size:11px;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fcell.done{color:var(--steel-hi)}.fcell.next{background:var(--brand);color:#fff}.fbar{height:6px;border-radius:3px;background:var(--deck3);margin-top:12px}.fbar i{display:block;height:6px;border-radius:3px;background:var(--steel-hi)}
 .slots{display:flex;flex-direction:column;gap:8px}.slotc{background:var(--deck);border-radius:16px;padding:8px 8px 8px 14px}.slotc.cur{box-shadow:inset 0 0 0 1.5px var(--deck3)}.slotrow{display:flex;align-items:center;gap:12px;min-height:56px}.sloti{width:40px;height:40px;border-radius:12px;background:var(--deck2);color:var(--dust);display:flex;align-items:center;justify-content:center;flex:none}.iconbtn.plus{width:44px;height:44px;border-radius:22px;background:var(--chalk);color:var(--floor);font-size:24px;font-weight:700;flex:none}.slotc .list{margin-top:4px}
 .slothd{display:flex;justify-content:space-between;margin:14px 2px 6px;font-size:13px;font-weight:700;color:var(--dust);text-transform:uppercase;letter-spacing:.4px}
 .macrorings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:14px 8px}.mring{display:flex;flex-direction:column;align-items:center;gap:2px}.mring .mrv{fill:var(--chalk);font:800 19px var(--f-show)}.mring .mrl{font-size:13px;font-weight:600}.mring .mrs{font-size:12px;color:var(--dust)}
@@ -500,7 +501,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "47 · 28 oct. 2026";
+const APP_VER = "48 · 28 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -833,7 +834,7 @@ async function loadApp(){
   D = {profil:x.profil, prs:x.prs, poids:x.poids, objectifs:x.objectifs, comps:x.comps, series:x.series, cardio:x.cardio || [], blocs:x.blocs, checks:x.checks, bilans:x.bilans,
     repas:nutTabs ? x.repas : (D && D.repas) || [], aliments:nutTabs ? x.aliments : (D && D.aliments) || [], mesRepas:mrTab ? x.mesRepas : (D && D.mesRepas) || {},
     _mrTab:mrTab, _nutTabs:nutTabs, today:isoOf(new Date())};
-  try { syncDone(); } catch(e){}
+  try { syncDone(); applyAllMods(); } catch(e){}
 }
 /* cache d'une version ≤ 30 : « _row » / « row » deviennent « id » */
 function migrateIds(){
@@ -1022,11 +1023,12 @@ async function loadBloc(n, pre){
     seances.forEach(s => { s.cols = {repsDone:s.cols.repsDone, chargesDone:s.cols.chargesDone}; s.week = true; s.recapRow = 0; s.pdcCol = 0; s.pdc = ""; });
   } else { const v = pre || await Store.coach.readBloc(blocNames[n]); ({seances, weeks} = parseBloc(v, blocNames[n], n)); }
   fixJours(seances);
+  seances.forEach(s => { s.free = !(norm(s.jour) in JOUR_IDX); });
   S = S.filter(s => s.bloc !== n).concat(seances);
   S.sort((a, b) => byRank(a.bloc, b.bloc) || (num(a.semaine) || 0) - (num(b.semaine) || 0) || a.idx - b.idx);
   Object.keys(weekMeta).forEach(k => { if (weekMeta[k].bloc === n) delete weekMeta[k]; });
   Object.assign(weekMeta, weeks);
-  loadedBlocs.add(n); syncDone();
+  loadedBlocs.add(n); syncDone(); S.filter(s => s.bloc === n).forEach(applyMods);
 }
 function fixJours(ss){
   const votes = {};
@@ -1164,7 +1166,11 @@ function blocStart(b){
   if (D.profil.debut_coaching) return {d:addDays(D.profil.debut_coaching, wk(0, i) * 7), est:true};
   return null;
 }
-function dateOf(s){ const st = blocStart(s.bloc); if (!st) return null; return addDays(st.d, ((num(s.semaine) || 1) - 1) * 7 + (JOUR_IDX[norm(s.jour)] ?? 0)); }
+let _dm = null, _dmN = -1;
+/* Séance libre (sans jour de la semaine) : sa date est le jour où elle a été faite, jamais un lundi inventé */
+function doneDates(){ const n = D.series.length + (D.cardio || []).length; if (_dm && _dmN === n) return _dm; _dm = {};
+  [...D.series, ...(D.cardio || [])].forEach(x => { if (!x.date) return; const k = [x.bloc, x.semaine, x.seance].join("|"); if (!_dm[k] || x.date < _dm[k]) _dm[k] = x.date; }); _dmN = n; return _dm; }
+function dateOf(s){ if (s.free) return doneDates()[[s.bloc, s.semaine, s.seance].join("|")] || null; const st = blocStart(s.bloc); if (!st) return null; return addDays(st.d, ((num(s.semaine) || 1) - 1) * 7 + (JOUR_IDX[norm(s.jour)] ?? 0)); }
 function liftOf(m){ const x = norm(m); if (x.includes("MUSCLE")) return "MU"; if (x.includes("PULL") || x.includes("TRACTION")) return "PULL"; if (x.includes("DIP")) return "DIP"; if (x.includes("SQUAT")) return "SQUAT";
   /* v28 : Bench et Deadlift reconnus seulement si la personne les suit (powerlifting ou « mouvements suivis ») ; rien ne change en street lifting seul */
   const y = x.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -1448,6 +1454,17 @@ function weekRows(ref){
       <span class="grow">${z === ns ? `<b>${sessLabel(z)}</b>${sub ? `<span>${sub}</span>` : ""}` : sessLabel(z)}</span>
       ${z.faite ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--steel-hi)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-label="Faite"><path d="M5 12l5 5 9-10"/></svg>` : `<span class="dots" style="display:flex;gap:4px">${ls.map(l => `<i class="d10" style="--c:${LCOL[l]}"></i>`).join("")}</span>`}</button>`; }).join("");
 }
+/* Séances libres (sans jour de la semaine) : la semaine en cases, comme dans la maquette 1B */
+function freeWeekHtml(sess){
+  const wk = S.filter(z => z.bloc === sess.bloc && z.semaine === sess.semaine), nd = wk.filter(z => z.faite).length;
+  const cells = wk.map((z, i) => `<button class="fcell ${z.faite ? "done" : z === sess ? "next" : ""}" data-act="openSeance" data-k="${esc(z.key)}" aria-label="${esc(z.seance)}${z.faite ? ", faite" : z === sess ? ", prochaine" : ""}"><b>${z.faite ? "✓" : i + 1}</b><span>${esc(z.seance)}</span></button>`).join("");
+  const hist = S.filter(z => z.free && z.faite && dateOf(z)).sort((a, b) => dateOf(a) < dateOf(b) ? 1 : -1).slice(0, 3);
+  return `<h2 class="h2">Cette semaine <span class="muted">${esc(blocLabel(sess.bloc))}${sess.semaine ? ", semaine " + esc(sess.semaine) : ""}</span></h2>
+    <section class="card" style="padding:14px" aria-label="Séances de la semaine"><div class="row"><b>${nd} séance${nd > 1 ? "s" : ""} sur ${wk.length}</b></div>
+      <div class="fcells" style="--n:${Math.max(1, Math.min(wk.length, 5))}">${cells}</div>
+      <div class="fbar"><i style="width:${wk.length ? Math.round(nd / wk.length * 100) : 0}%"></i></div></section>
+    ${hist.length ? `<h2 class="h2">Dernières séances</h2>${hist.map(z => vrow(esc(z.seance), esc(dlong(dateOf(z))), "", null)).join("")}` : ""}`;
+}
 function remainingInBloc(){ const b = activeBloc(); return b === null ? 0 : S.filter(z => z.bloc === b && !z.faite).length; }
 /* Pesée du matin (choix d'Alane, maquette A) : sous le héros tant que tu ne t'es pas pesé aujourd'hui.
    Deux touchers : ajuster, « Noter ». La marge sur ta catégorie s'affiche en direct. */
@@ -1484,10 +1501,10 @@ function rHome(){
   const heroH = mw && !nc ? heroMu : nc ? heroCard({small:`${esc(nc.nom)}, ${dlong(nc.date)}`, big:days(D.today, nc.date) === 0 ? "Jour J" : "J−" + days(D.today, nc.date), sub:[nc.tbc ? "date à confirmer" : "", rem ? `encore ${rem} séance${rem > 1 ? "s" : ""} dans le ${blocLow(activeBloc())}` : ""].filter(Boolean).join(" · "), act:`data-act="tab" data-t="agenda" role="button" tabindex="0"`})
     : heroCard({small:tsmall, big:`${fmt(t)}<small>kg</small>`, sub:tsub, act:`data-act="tab" data-t="prog" role="button" tabindex="0"`});
   const left = `${heroH}${weighed ? "" : weighCard(pw)}
-    <h2 class="h2">Cette semaine <span class="muted">${sess ? esc(blocLabel(sess.bloc)) + (sess.semaine ? ", semaine " + esc(sess.semaine) : "") : ""}</span></h2>
-    ${S.length ? (wr || `<p class="muted small">Aucune séance datée cette semaine.</p>`) : !coachId() ? impEmptyHtml() : `<div class="row" style="padding:14px 0"><span class="muted">${esc(seanceErr) || "Chargement de ta prog…"}</span>${seanceErr ? "" : `<div class="spin"></div>`}</div>`}
+    ${sess && sess.free ? freeWeekHtml(sess) : `<h2 class="h2">Cette semaine <span class="muted">${sess ? esc(blocLabel(sess.bloc)) + (sess.semaine ? ", semaine " + esc(sess.semaine) : "") : ""}</span></h2>
+    ${S.length ? (wr || `<p class="muted small">Aucune séance datée cette semaine.</p>`) : !coachId() ? impEmptyHtml() : `<div class="row" style="padding:14px 0"><span class="muted">${esc(seanceErr) || "Chargement de ta prog…"}</span>${seanceErr ? "" : `<div class="spin"></div>`}</div>`}`}
     ${impCan() && coachId() && S.length && !sess && !remainingInBloc() ? `<div class="panel" style="margin-top:14px"><p style="font-weight:700">Bloc terminé</p><p class="muted small" style="margin-top:4px">Prépare le suivant : l'app reprend ta dernière semaine et ajuste les charges d'après tes RPE. Tu vérifies avant d'enregistrer.</p><button class="btn" style="margin-top:12px" data-act="impNext">Préparer le bloc suivant</button></div>` : ""}
-    ${sess ? `<button class="btn" style="margin-top:16px" data-act="startLive" data-k="${esc(sess.key)}">${lv && lv.key === sess.key ? "Reprendre la séance" : "Commencer la séance " + jourBtn}</button>` : ""}`;
+    ${sess ? `<button class="btn" style="margin-top:16px" data-act="startLive" data-k="${esc(sess.key)}">${lv && lv.key === sess.key ? "Reprendre la séance" : "Commencer la séance " + jourBtn}</button>${sess.free ? `<button class="btn ghost" style="margin-top:8px" data-act="tab" data-t="seance">Faire une autre séance</button>` : ""}` : ""}`;
   const right = `${nc && !mw ? `<div class="desk-only">${heroCard({plain:true, small:tsmall, big:`${fmt(t)}<small>kg</small>`, sub:tsub})}</div>` : mw && nc ? `<div class="desk-only">${heroMu}</div>` : ""}
     ${shownLifts().length ? "" : mw ? `<div class="panel" style="margin-top:14px"><p style="font-weight:700">Tester ton max ?</p><p class="muted small" style="margin-top:4px">Choisis les mouvements dont tu veux suivre le record et le 1RM estimé. Tu peux aussi ajouter le street lifting ou le powerlifting.</p><button class="btn ghost" style="margin-top:12px" data-act="settings">Ouvrir les réglages</button></div>` : ""}
     ${bil ? `<h2 class="h2">Pour ton coach</h2>${vrow("Bilan de la semaine " + esc(bil.semaine), "sommeil, fatigue, motivation… en 30 secondes", "›", null, `data-act="bilan" data-w="${esc(bil.sheet + "|" + bil.semaine)}"`)}` : ""}`;
@@ -1532,7 +1549,7 @@ function rSeance(){
         <span class="row"><b class="ttl">${esc(norm(e.mouvement) === "RENFO" ? title(e.variation) : title(e.mouvement) + " " + title(e.variation).toLowerCase())}</b>${e.rpe1 || e.rpeLast ? `<span class="pill">RPE ${esc(e.rpeLast || e.rpe1)}</span>` : ""}</span>
         <span class="muted small" style="display:block;margin-top:2px">${presc(e)}</span>
         ${logged ? `<span class="done-sets" style="display:block">Fait : ${esc(logged)}</span>` : ""}</span></button>`; }).join("")}</div>
-    ${s.archived ? `<p class="muted small" style="margin-top:14px">Bloc conservé dans ton historique (onglet HISTORIQUE de ton carnet) : il se consulte, il ne se modifie plus.</p>` : `<button class="btn" style="margin-top:14px" data-act="startLive" data-k="${esc(s.key)}">${lv && lv.key === s.key ? "Reprendre" : s.faite ? "Revoir et modifier" : "Commencer"} la séance</button>`}
+    ${s.archived ? `<p class="muted small" style="margin-top:14px">Bloc conservé dans ton historique (onglet HISTORIQUE de ton carnet) : il se consulte, il ne se modifie plus.</p>` : `<button class="btn" style="margin-top:14px" data-act="startLive" data-k="${esc(s.key)}">${lv && lv.key === s.key ? "Reprendre" : s.faite ? "Revoir et modifier" : "Commencer"} la séance</button><button class="btn ghost" style="margin-top:8px" data-act="editOpen" data-k="${esc(s.key)}">Modifier cette séance</button>`}
     ${wk ? `<button class="btn line" style="margin-top:10px" data-act="bilan" data-w="${esc(wk.sheet + "|" + wk.semaine)}">${BILAN_CRIT.every(k => wk.vals[k]) ? "Bilan de la semaine " + esc(wk.semaine) + " : fait, modifier" : "Bilan de la semaine " + esc(wk.semaine)}</button>` : ""}`;
 }
 /* RPE visé écrit par le coach (colonne « INTENSITÉ CIBLE ») : « 7 », « RPE 7 », « @7 », « 7-8 », « ≤ 7 », « max 7 ».
@@ -1626,7 +1643,7 @@ function initSets(s, e, k){
   if (lg) return lg.sets.map(x => ({c:x.c, r:x.r, done:true}));
   const nS = Math.min(12, num(e.series) || 1), bo = chargeGuess(e) === null ? backoffOf(s, e, k) : null, cg = bo ? bo.mid : chargeGuess(e);
   /* Valeurs d'avant : exactement celles de la colonne « Précédent » (prevRowSets), jamais une autre source. */
-  const pvs = !lift ? prevRowSets(s, k) : null, last = pvs && pvs.sets && pvs.sets.length ? pvs : null;
+  const pvs = !lift || e._mod ? prevRowSets(s, k) : null, last = pvs && pvs.sets && pvs.sets.length ? pvs : null;
   if (isTimedEx(e)) { const ts = timedSec(e); return Array.from({length:nS}, (_, i) => { const ls = last ? last.sets[Math.min(i, last.sets.length - 1)] : null; return {c: ls ? ls.c : null, r: ls && ls.r ? ls.r : ts, done:false}; }); }
   const rg = String(e.reps).match(/^\s*(\d+)\s*[-–]\s*(\d+)\s*$/);
   let seq = null; if (/^\d+(\/\d+)+$/.test(String(e.reps).trim())) seq = String(e.reps).split("/").map(Number);
@@ -1646,7 +1663,7 @@ async function startLive(key, i){
   let st = store.get(ck("sl4-live"));
   if (!st || st.key !== key) st = {key, start:Date.now(), i:0, rows:{}, pdc:false};
   if (i !== undefined) st.i = +i;
-  s.exercices.forEach((e, k) => { if (!st.rows[k]) st.rows[k] = {sets:initSets(s, e, k), bo:!!backoffOf(s, e, k), rpe1:num(e.rpe1), rpeLast:num(e.rpeLast) ?? (s.week ? rpeSaved(s, e) : null), dirty:false}; });
+  s.exercices.forEach((e, k) => { if (!st.rows[k]) st.rows[k] = newRow(s, e, k); });
   live = st; live.at = Date.now(); delete live.paused; store.set(ck("sl4-live"), live);
   try { if (wakeLock) wakeLock.release(); } catch(e){}
   try { wakeLock = await navigator.wakeLock?.request("screen"); } catch(e){ wakeLock = null; }
@@ -1706,6 +1723,7 @@ function rLive(){
     ${showR1 ? rpeRow("rpe1", "RPE de la 1re série") : ""}
     ${showRL ? rpeRow("rpeLast", "RPE de la dernière série") : ""}
     <div id="prbox"></div>
+    ${s.archived ? "" : `<div class="grid2" style="margin-top:12px"><button class="btn line sm" data-act="swapOpen">Changer l'exercice</button><button class="btn line sm" data-act="editOpen">Modifier la séance</button></div>`}
     ${nx ? `<div class="nextup"><span class="eyebrow" style="color:var(--faint)">Ensuite</span><span class="dot8" style="--c:${nl ? LCOL[nl] : isCardioEx(nx) ? LCOL.CARDIO : "var(--faint)"}"></span><b>${esc(norm(nx.mouvement) === "RENFO" ? title(nx.variation) : (nl ? LNAME[nl] : title(nx.mouvement)) + " " + title(nx.variation).toLowerCase())}</b><span class="muted small">${isCardioEx(nx) ? esc(nx.reps) : esc(nx.series) + " × " + esc(nx.reps)}</span></div>` : ""}
     <div class="grid2" style="margin-top:16px">
       <button class="btn ghost" data-act="liveNav" data-d="-1" ${k === 0 ? "disabled" : ""}>Précédent</button>
@@ -1739,6 +1757,9 @@ function prevRowSets(s, k){
     if (st && st.every(x => x.c !== null && x.c !== undefined)) return {date:dateOf(z), sets:st, where, src:"noté dans la prog"};
     if (c !== null && num(ez.series) && isNumTxt(ez.reps) && (num(ez.rpe1) !== null || num(ez.rpeLast) !== null)) return {date:dateOf(z), sets:Array(num(ez.series)).fill(0).map(() => ({r:num(ez.reps), c})), where, src:"prévu"};
   }
+  /* v48 : exercice changé ou nouveau dans la séance : sa dernière fois, où qu'elle ait eu lieu */
+  const own = D.series.filter(x => x.ex === key && x.date && !(x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance)).sort((a, b) => a.date < b.date ? 1 : -1)[0];
+  if (own && own.sets && own.sets.length) return {date:own.date, sets:own.sets, where:"dernière fois", src:"noté"};
   return null;
 }
 function bestBefore(key){ const o = exercisePoints().find(z => z.key === key); if (!o) return null; const p = o.pts.filter(x => x.sk !== live.key); return p.length ? Math.max(...p.map(x => x.e1rmBest)) : null; }
@@ -1797,6 +1818,126 @@ setInterval(() => {
 function rpeSaved(s, e){ const x = D.series.find(z => z.bloc === s.bloc && z.semaine === s.semaine && z.seance === s.seance && z.ex === exKey(e) && (!z.note || z.note === "L" + e.row)); const m = x && /RPE ([\d,.]+)/.exec(x.src || ""); return m ? num(m[1]) : null; }
 /* Une séance dont des séries sont déjà dans le carnet est une séance faite (le ✓ ne dépend plus d'un RPE écrit chez le coach) */
 function syncDone(){ if (!D || !D.series) return; const lg = new Set(D.series.map(x => [x.bloc, x.semaine, x.seance].join("|"))); S.forEach(s => { if (!s.faite && !s.archived && lg.has([s.bloc, s.semaine, s.seance].join("|"))) s.faite = true; }); }
+/* =====================================================================
+   v48 · MODIFIER SES SÉANCES (changer / retirer / ajouter / réordonner) et séances libres (sans jour de la semaine)
+   Les changements restent dans le carnet (PROFIL › « modifs », un petit JSON) : jamais dans le Sheet du coach.
+   Format d'un changement : {sc:"d"|"s", b:bloc, n:séance, w:semaine, sw:[[origine,mouvement,variation]], rm:[origine], ad:[[mouvement,variation,séries,reps]], or:[ids]}
+   « d » = cette séance seulement ; « s » = cette semaine et les suivantes.
+   ===================================================================== */
+let modScope = "d", swapQ = "", swapK = 0, swapMode = "sw", swapFrom = null, swapCands = [], edSess = null;
+const modsList = () => { try { const a = JSON.parse((D && D.profil && D.profil.modifs) || "[]"); return Array.isArray(a) ? a : []; } catch(e){ return []; } };
+function modFor(s){
+  const L = modsList().filter(m => m.b === s.bloc && m.n === s.seance);
+  const d = L.find(m => m.sc === "d" && String(m.w) === String(s.semaine)); if (d) return d;
+  const w = num(s.semaine) || 0, cs = L.filter(m => m.sc === "s" && (num(m.w) || 0) <= w).sort((a, b) => (num(b.w) || 0) - (num(a.w) || 0));
+  return cs[0] || null;
+}
+const blankEx = (x, row) => ({row, mouvement:x.m, variation:x.v || "", tempo:"", coach:"", series:x.s || "3", reps:x.r || "10", repos:"", charge:"", e1rm:"", intensite:"", rpe1:"", rpeLast:"", angle:"", commentaire:"", repsDone:"", chargesDone:""});
+function applyMods(s){
+  if (!s || s.archived || !s.exercices) return;
+  if (!s.base) s.base = s.exercices;
+  const m = modFor(s); let list = s.base.slice();
+  if (m) {
+    const used = new Set();
+    (m.sw || []).forEach(([o, mv, va]) => { const i = list.findIndex((e, j) => !used.has(e) && !e._mod && exKey(e) === o); if (i < 0) return;
+      const e0 = list[i], ne = {...e0, mouvement:mv, variation:va || "", charge:"", intensite:"", tempo:"", coach:"", e1rm:"", rpe1:"", rpeLast:"", commentaire:"", repsDone:"", chargesDone:"", angle:"", _mod:1, _o:o};
+      used.add(ne); list[i] = ne; });
+    (m.rm || []).forEach(o => { const i = list.findIndex(e => !e._mod && exKey(e) === o); if (i >= 0) list.splice(i, 1); });
+    (m.ad || []).forEach(([mv, va, se, re], i) => { list.push({...blankEx({m:mv, v:va, s:se, r:re}, 9000 + i), _mod:1, _o:""}); });
+  }
+  const seen = {}; list.forEach(e => { const k = exKey(e); seen[k] = (seen[k] || 0) + 1; e._id = k + "#" + seen[k]; });
+  if (m && m.or && m.or.length) { const pos = id => { const i = m.or.indexOf(id); return i < 0 ? 999 : i; }; list = list.map((e, i) => [e, i]).sort((a, b) => pos(a[0]._id) - pos(b[0]._id) || a[1] - b[1]).map(x => x[0]); }
+  s.exercices = list;
+}
+function applyAllMods(){ S.forEach(applyMods); }
+/* Construit (ou met à jour) le changement de cette séance à partir de ce qui est affiché maintenant. */
+function modDraft(s, scope){
+  const cur = modFor(s), m = cur ? JSON.parse(JSON.stringify(cur)) : {sw:[], rm:[], ad:[]};
+  m.sc = scope; m.b = s.bloc; m.n = s.seance; m.w = String(s.semaine); m.t = D.today; m.sw = m.sw || []; m.rm = m.rm || []; m.ad = m.ad || [];
+  return m;
+}
+async function saveMod(s, m){
+  const empty = !m.sw.length && !m.rm.length && !m.ad.length && !(m.or && m.or.length);
+  let L = modsList().filter(x => !(x.sc === m.sc && x.b === m.b && x.n === m.n && String(x.w) === String(m.w)));
+  if (!empty) L.push(m);
+  let txt = JSON.stringify(L);
+  while (txt.length > 45000) { const i = L.findIndex(x => x.sc === "d"); if (i < 0) break; L.splice(i, 1); txt = JSON.stringify(L); }
+  D.profil.modifs = txt;
+  applyAllMods(); saveCache();
+  try { await Store.profil.set("modifs", txt); } catch(err){ toast("Changement gardé sur ce téléphone, pas encore dans ton carnet. " + errMsg(err), true); }
+}
+const edSession = () => seanceByKey(edSess || (live && live.key) || sel);
+function newRow(s, e, k){ return {sets:initSets(s, e, k), bo:!!backoffOf(s, e, k), rpe1:num(e.rpe1), rpeLast:num(e.rpeLast) ?? (s.week ? rpeSaved(s, e) : null), dirty:false}; }
+/* La séance garde les lignes saisies (en direct ou mise de côté) : on les remet face aux bons exercices après un changement. */
+function remapState(st, s, oldIds, oldRows, keepId){
+  const rows = {}; s.exercices.forEach((e, k) => { const oi = oldIds.indexOf(e._id); rows[k] = oi >= 0 && oldRows[oi] ? oldRows[oi] : newRow(s, e, k); });
+  st.rows = rows; const ni = s.exercices.findIndex(e => e._id === keepId); st.i = ni >= 0 ? ni : Math.max(0, Math.min(st.i || 0, s.exercices.length - 1));
+}
+async function edOp(s, scope, fn){
+  const lv = live && live.key === s.key, side = !lv ? store.get(ck("sl4-live")) : null, st = lv ? live : side && side.key === s.key ? side : null;
+  if (lv) for (let k = 0; k < s.exercices.length; k++) if (live.rows[k] && live.rows[k].dirty) await saveRow(k);
+  const oldIds = s.exercices.map(e => e._id), oldRows = st ? Array.from({length:oldIds.length}, (_, i) => st.rows[i]) : [], keepId = st && s.exercices[st.i] ? s.exercices[st.i]._id : null;
+  const m = modDraft(s, scope); fn(m);
+  await saveMod(s, m);
+  if (st) { remapState(st, s, oldIds, oldRows, keepId); if (lv) persistLive(); else store.set(ck("sl4-live"), st); }
+}
+function swapInMod(m, e, c){
+  const nk = exKey({mouvement:c.m, variation:c.v});
+  if (e._mod && e._o) { const i = m.sw.findIndex(x => x[0] === e._o); if (nk === e._o) { if (i >= 0) m.sw.splice(i, 1); } else if (i >= 0) m.sw[i] = [e._o, c.m, c.v]; else m.sw.push([e._o, c.m, c.v]); }
+  else if (e._mod) { const i = m.ad.findIndex(x => exKey({mouvement:x[0], variation:x[1]}) === exKey(e)); if (i >= 0) m.ad[i] = [c.m, c.v, e.series, e.reps]; }
+  else m.sw.push([exKey(e), c.m, c.v]);
+}
+function rmInMod(m, e){
+  if (e._mod && !e._o) { const i = m.ad.findIndex(x => exKey({mouvement:x[0], variation:x[1]}) === exKey(e)); if (i >= 0) m.ad.splice(i, 1); }
+  else if (e._mod) { const i = m.sw.findIndex(x => x[0] === e._o); if (i >= 0) m.sw.splice(i, 1); m.rm.push(e._o); }
+  else m.rm.push(exKey(e));
+}
+function lastLog(key){ let b = null; for (const x of D.series) if (x.ex === key && x.date && (!b || x.date >= b.date)) b = x; return b; }
+function lastTxt(key){ const lg = lastLog(key); if (!lg || !lg.sets || !lg.sets.length) return null;
+  const top = lg.sets.reduce((a, x) => (num(x.c) || 0) > (num(a.c) || 0) ? x : a, lg.sets[0]), d = days(lg.date, D.today);
+  return `Dernière fois : ${top.c ? fmt(top.c) + " kg × " : ""}${isTimedEx({mouvement:key.split(" · ")[0], variation:key.split(" · ")[1] || "", reps:""}) ? fmtDur(top.r) : top.r}${d >= 0 ? " · " + (d === 0 ? "aujourd'hui" : d === 1 ? "hier" : "il y a " + d + " j") : ""}`; }
+function candidates(q, cur){
+  const seen = new Map(), add = (m, v) => { const key = exKey({mouvement:m, variation:v || ""}); if (key && !seen.has(key)) seen.set(key, {key, m:String(m).trim(), v:String(v || "").trim()}); };
+  S.forEach(z => (z.base || z.exercices).forEach(e => { if (String(e.mouvement).trim()) add(e.mouvement, e.variation); }));
+  D.series.forEach(x => { const [a, b] = String(x.ex).split(" · "); if (a) add(title(a), b ? title(b) : ""); });
+  const qq = norm(q), words = new Set(String(cur).split(/[\s·]+/).filter(w => w.length > 2));
+  let out = [...seen.values()].filter(c => c.key !== cur && (!qq || c.key.includes(qq)));
+  out.forEach(c => { c.sc = (lastLog(c.key) ? 2 : 0) + c.key.split(/[\s·]+/).filter(w => words.has(w)).length * 3; });
+  return out.sort((a, b) => b.sc - a.sc).slice(0, 8);
+}
+function swapList(){
+  const s = edSession(); if (!s) return "";
+  const e = swapMode === "sw" ? s.exercices[swapK] : null, cs = swapCands = candidates(swapQ, e ? exKey(e) : ""), q = swapQ.trim();
+  const rows = cs.map((c, i) => { const lt = lastTxt(c.key); return `<div class="item"><span class="grow" style="display:flex;flex-direction:column;gap:2px;min-width:0"><b>${esc(exName(c.key))}</b><span style="${lt ? "color:var(--steel-hi)" : ""}">${lt ? esc(lt) : "Jamais fait dans l'app"}</span></span><button class="btn sm" style="min-width:90px" data-act="swapPick" data-i="${i}">Choisir</button></div>`; }).join("");
+  const free = q && !cs.some(c => c.key === exKey({mouvement:q, variation:""})) ? `<div class="item"><span class="grow" style="display:flex;flex-direction:column;gap:2px;min-width:0"><b>Utiliser « ${esc(q)} »</b><span>Écrire ton propre exercice</span></span><button class="btn sm" style="min-width:90px" data-act="swapPick" data-i="free">Choisir</button></div>` : "";
+  return `<div class="list" style="margin-top:8px">${rows}${free}</div>`;
+}
+const scopeChips = () => `<div class="chips" style="margin-top:12px"><button class="chip" aria-pressed="${modScope === "d"}" data-act="modScope" data-v="d">Aujourd'hui seulement</button><button class="chip" aria-pressed="${modScope === "s"}" data-act="modScope" data-v="s">Pour la suite</button></div>
+  <p class="muted tiny" style="margin-top:6px">${modScope === "d" ? "Seulement cette séance." : "Cette séance et les suivantes (semaine " + esc((edSession() || {}).semaine || "") + " et après)."}</p>`;
+function swapHtml(){
+  const s = edSession(); if (!s) return "";
+  const e = swapMode === "sw" ? s.exercices[swapK] : null;
+  return `<p class="show t-m">${e ? "Changer « " + esc(exName(exKey(e))) + " »" : "Ajouter un exercice"}</p>
+    ${scopeChips()}
+    <input id="swapin" style="margin-top:12px" placeholder="Chercher ou écrire un exercice" value="${esc(swapQ)}" autocomplete="off" data-inp="swapQ" aria-label="Chercher un exercice">
+    ${e ? "" : `<div class="grid2" style="margin-top:10px"><div><label for="adse">Séries</label><input id="adse" inputmode="numeric" value="3"></div><div><label for="adre">Reps</label><input id="adre" inputmode="numeric" value="10"></div></div>`}
+    <div id="swaplist">${swapList()}</div>
+    <p class="muted tiny" style="margin-top:12px">Ce que tu fais ici est gardé sous le nom du nouvel exercice. Si tu l'as déjà fait, ta dernière charge t'est proposée.</p>
+    <button class="btn line" style="margin-top:12px" data-act="swapBack">Retour</button>`;
+}
+function editHtml(){
+  const s = edSession(); if (!s) return "";
+  const lv = live && live.key === s.key;
+  return `<p class="show t-m">Modifier ${esc(s.seance)}</p><p class="muted small" style="margin-top:4px">${lv ? "Séance en cours" : esc(blocLabel(s.bloc)) + ", semaine " + esc(s.semaine)}</p>
+    ${scopeChips()}
+    <div class="list" style="margin-top:12px">${s.exercices.map((e, k) => { const done = lv && live.rows[k] && live.rows[k].sets.some(x => x.done);
+      return `<div class="item"><span class="grow" style="display:flex;flex-direction:column;gap:2px;min-width:0"><b>${esc(exName(exKey(e)))}</b><span>${esc(e.series)} × ${esc(e.reps)}${e._mod ? " · modifié" : ""}${done ? " · fait" : ""}</span></span>
+        <button class="iconbtn" data-act="edMove" data-k="${k}" data-d="-1" aria-label="Monter" ${k === 0 ? "disabled" : ""}>▲</button><button class="iconbtn" data-act="edMove" data-k="${k}" data-d="1" aria-label="Descendre" ${k === s.exercices.length - 1 ? "disabled" : ""}>▼</button>
+        <button class="iconbtn" data-act="edSwap" data-k="${k}" aria-label="Remplacer ${esc(exName(exKey(e)))}">⇄</button><button class="iconbtn" data-act="edRm" data-k="${k}" aria-label="Retirer ${esc(exName(exKey(e)))}">✕</button></div>`; }).join("")}</div>
+    <button class="btn line" style="margin-top:12px" data-act="edAdd">+ Ajouter un exercice</button>
+    <p class="muted tiny" style="margin-top:10px">Le programme de ton coach n'est jamais modifié : tes changements restent dans ton carnet.</p>
+    <button class="btn" style="margin-top:12px" data-act="closeSheet">Terminé</button>`;
+}
 async function saveRow(k){
   const s = seanceByKey(live.key), e = s.exercices[k], st = live.rows[k];
   if (!st || !st.dirty) return true;
@@ -1828,16 +1969,16 @@ async function saveRow(k){
       if (ex2 && ex2.id) { await Store.series.update(ex2.id, row); ex2.sets = done; ex2.note = "L" + e.row; ex2.date = D.today; ex2.src = row[7]; }
       else { const id = await Store.series.add(row);
         D.series.push({id:id, date:D.today, bloc:s.bloc, semaine:s.semaine, seance:s.seance, ex:key, charge:row[5], sets:done, note:"L" + e.row, src:row[7]}); }
-      s.faite = true;
-      if (s.week) {   /* Sheet du coach : reps et charges faites, dans ses colonnes « faites » (bloc EFFECTUE = zone du sportif) */
+      s.faite = true; _dm = null;
+      if (s.week && !e._mod) {   /* Sheet du coach : reps et charges faites, dans ses colonnes « faites » (bloc EFFECTUE = zone du sportif) */
         const fr = v => String(v).replace(".", ","), repsT = done.map(x => x.r).join(", "), chT = sameC ? fr(done[0].c) : done.map(x => fr(x.c)).join(", ");
         for (const [col, f, val] of [[s.cols.repsDone, "repsDone", repsT], [s.cols.chargesDone, "chargesDone", chT]])
           if (col && String(e[f] || "").trim() !== val) { await Store.coach.setCell(s.sheet, col, e.row, val); e[f] = val; }
       }
       const asPresc = isNumTxt(e.reps) && done.length === (num(e.series) || 0) && done.every(x => x.r === num(e.reps));
-      if (s.cols.commentaire && (!e.commentaire || repsOnly(e.commentaire)) && (norm(e.mouvement) === "RENFO" || !asPresc)) { const t = done.map(x => x.r).join(","); await Store.coach.setCell(s.sheet, s.cols.commentaire, e.row, t); e.commentaire = t; }
+      if (s.cols.commentaire && !e._mod && (!e.commentaire || repsOnly(e.commentaire)) && (norm(e.mouvement) === "RENFO" || !asPresc)) { const t = done.map(x => x.r).join(","); await Store.coach.setCell(s.sheet, s.cols.commentaire, e.row, t); e.commentaire = t; }
     }
-    for (const f of ["rpe1","rpeLast"]) if (st[f] !== null && st[f] !== undefined && st[f] !== num(e[f]) && s.cols[f]) {
+    for (const f of ["rpe1","rpeLast"]) if (st[f] !== null && st[f] !== undefined && st[f] !== num(e[f]) && s.cols[f] && !e._mod) {
       await Store.coach.setCell(s.sheet, s.cols[f], e.row, st[f]); e[f] = String(st[f]).replace(".", ","); s.faite = true; }
     st.dirty = false; persistLive(); saveCache(); return true;
   } catch(err){ toast(errMsg(err) + ambig(err), true); return false; }
@@ -2296,6 +2437,8 @@ function rSheet(){
     return `<p class="show t-m">Bilan de la semaine ${esc(wk.semaine)}</p><p class="muted small" style="margin-top:4px">${esc(blocLabel(wk.bloc))}. Note chaque critère de 1 à 10, comme dans le template de ton coach.</p>
       ${BILAN_CRIT.map(k => `<label>${k}</label><div class="score">${Array.from({length:10}, (_, i) => `<button aria-pressed="${v[k] === i + 1}" data-act="score" data-k="${k}" data-v="${i + 1}">${i + 1}</button>`).join("")}</div>`).join("")}
       <button class="btn" style="margin-top:18px" data-act="saveBilan">Envoyer à mon coach</button>`; }
+  if (sheet === "swap") return swapHtml();
+  if (sheet === "edit") return editHtml();
   if (sheet === "settings") return settingsHtml();
   if (sheet && sheet.startsWith("share|")) return `<p class="show t-m">Carte de ton record</p><canvas id="sharecv" width="1080" height="1350" style="width:100%;height:auto;max-height:none;border-radius:16px;margin-top:12px"></canvas><button class="btn" style="margin-top:14px" data-act="saveShare">Enregistrer l'image</button>`;
   return "";
@@ -2439,6 +2582,36 @@ function barChart(id, labels, sets, unit){
 const ACT = {
   tab:d => setTab(d.t),
   openSeance:d => { sel = d.k; setTab("seance"); },
+  modScope:d => { modScope = d.v; renderLayer(); },
+  swapOpen:() => { if (!live) return; edSess = live.key; swapMode = "sw"; swapK = live.i; swapQ = ""; swapFrom = null; openSheet("swap"); },
+  editOpen:d => { edSess = d.k || (live && live.key) || sel; swapFrom = "edit"; openSheet("edit"); },
+  edSwap:d => { swapMode = "sw"; swapK = +d.k; swapQ = ""; swapFrom = "edit"; openSheet("swap"); },
+  edAdd:() => { swapMode = "ad"; swapQ = ""; swapFrom = "edit"; openSheet("swap"); },
+  swapBack:() => { if (swapFrom === "edit") openSheet("edit"); else closeSheet(); },
+  swapPick:async d => {
+    const s = edSession(); if (!s) return;
+    const c = d.i === "free" ? {m:swapQ.trim(), v:""} : swapCands[+d.i]; if (!c || !c.m) return;
+    if (swapMode === "ad") {
+      const se = $("#adse"), re = $("#adre"), ns = Math.max(1, Math.min(12, Math.round(num(se && se.value) || 3))), nr = Math.max(1, Math.round(num(re && re.value) || 10));
+      const ids = s.exercices.map(x => x._id), nk = exKey({mouvement:c.m, variation:c.v});
+      await edOp(s, modScope, m => { m.ad.push([c.m, c.v, String(ns), String(nr)]); if (m.or && m.or.length) m.or = ids.concat(nk + "#1"); });
+    } else {
+      const k = swapK, e = s.exercices[k]; if (!e) return;
+      const ids = s.exercices.map(x => x._id), nk = exKey({mouvement:c.m, variation:c.v}), lvRow = live && live.key === s.key ? live.rows[k] : null;
+      await edOp(s, modScope, m => { swapInMod(m, e, c); if (m.or && m.or.length) m.or = ids.map((id, i) => i === k ? nk + "#1" : id); });
+      if (lvRow && lvRow.sets.some(x => x.done)) toast("Les séries déjà notées restent sous l'ancien exercice.");
+    }
+    if (swapFrom === "edit") openSheet("edit"); else closeSheet();
+    render();
+  },
+  edMove:async d => { const s = edSession(), k = +d.k, j = k + (+d.d); if (!s || j < 0 || j >= s.exercices.length) return;
+    const ids = s.exercices.map(e => e._id); [ids[k], ids[j]] = [ids[j], ids[k]];
+    await edOp(s, modScope, m => { m.or = ids; }); renderLayer(); render(); },
+  edRm:async d => { const s = edSession(), k = +d.k, e = s && s.exercices[k]; if (!e) return;
+    if (live && live.key === s.key && live.rows[k] && live.rows[k].sets.some(x => x.done)) return toast("Cet exercice a déjà des séries notées : on ne le retire pas.", true);
+    if (s.exercices.length <= 1) return toast("Garde au moins un exercice dans la séance.", true);
+    const ids = s.exercices.map(x => x._id).filter((_, i) => i !== k);
+    await edOp(s, modScope, m => { rmInMod(m, e); if (m.or && m.or.length) m.or = ids; }); renderLayer(); render(); },
   settings:() => openSheet("settings"),
   sync:() => syncAll(false),
   closeSheet:() => { if (sheet === "rest") rest = null; closeSheet(); },
@@ -2708,7 +2881,7 @@ async function saveFood(f){
   (D.aliments = D.aliments || []).push({...f});
 }
 /* saisie : suggestions au fil de la frappe */
-document.addEventListener("input", ev => { const t = ev.target; if (t && t.dataset.inp === "hw") return hwRefresh(); if (!t || t.dataset.inp !== "nutQ") return; nutQ = t.value; nutPick = null; offRes = null; nutCreate = false;
+document.addEventListener("input", ev => { const t = ev.target; if (t && t.dataset.inp === "swapQ") { swapQ = t.value; const l = $("#swaplist"); if (l) l.innerHTML = swapList(); return; } if (t && t.dataset.inp === "hw") return hwRefresh(); if (!t || t.dataset.inp !== "nutQ") return; nutQ = t.value; nutPick = null; offRes = null; nutCreate = false;
   clearTimeout(t._h); t._h = setTimeout(nutRefresh, 80);
   /* moins de 3 résultats dans la table : les produits de marque (Open Food Facts) sont cherchés tout seuls */
   clearTimeout(t._o); t._o = setTimeout(() => { const q = parseFoodLine(nutQ).txt; if (FOODS && q && q.length >= 3 && !nutPick && !offRes && searchFoods(q).length < 3 && navigator.onLine !== false) ACT.nutOff({auto:1}); }, 900); });
