@@ -492,7 +492,7 @@ html,body{overflow-x:clip}body{margin-top:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "51 · 28 oct. 2026";
+const APP_VER = "52 · 28 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -2850,7 +2850,12 @@ const persoFoods = () => (D.aliments || []).map(a => ({...a, n:deacc(a.nom + " "
 /* Recherche : chaque mot tapé doit commencer un mot du nom ; le 1er mot du nom, les noms courts et les aliments courants (portion INCA3 connue) passent devant. */
 /* mots courants absents des noms de la table Ciqual */
 const FOOD_SYN = [[/\bviandes? hachees?\b/g, "boeuf steak hache"], [/\bhache(e|es|s)\b/g, "hache"], [/\b(blanc|filet|escalope)s? de poulet\b/g, "poulet filet"],
-  [/\b(blanc|filet|escalope)s? de dinde\b/g, "dinde filet"], [/\bspaghettis?\b/g, "pates"], [/\bpatates?\b/g, "pomme de terre"]];
+  [/\b(blanc|filet|escalope)s? de dinde\b/g, "dinde filet"], [/\bspaghettis?\b/g, "pates"], [/\bpatates?\b(?! douces?\b)/g, "pomme de terre"],
+  /* v52 : mots courants → nom Ciqual (chaque correspondance vérifiée dans la table) */
+  [/\bthon (en boite|naturel|au naturel)\b/g, "thon naturel appertise"], [/^pop ?corn$/g, "pop corn"], [/^corn ?flakes$/g, "petales mais nature"],
+  [/^lait (d |de )?amandes?$/g, "boisson amande"], [/^lait (de |d )?soja$/g, "boisson soja"], [/^lait (d |de )?avoine$/g, "boisson avoine"],
+  [/^jambon (blanc|de paris|cuit)$/g, "jambon cuit superieur"], [/^(coca|coca cola|cola)$/g, "cola sucre"], [/^(coca|cola) (zero|light)$/g, "cola sans sucres edulcorants"],
+  [/^pommes?$/g, "pomme chair crue"], [/^bananes?$/g, "banane chair sans peau crue"], [/^chips$/g, "chips pomme terre"], [/^chicons?$/g, "endive"]];
 const stem = x => x.length > 3 ? x.replace(/(s|x)$/, "") : x;
 function searchFoods(q, max){
   let qq = deacc(q); for (const [re, to] of FOOD_SYN) qq = qq.replace(re, to);
@@ -2858,7 +2863,7 @@ function searchFoods(q, max){
   const pool = persoFoods().concat(FOODS || []), out = [];
   for (const f of pool) {
     const w = f.n.split(" "); let ok = true, sc = 0;
-    for (const x of t) { const sx = stem(x), i = w.findIndex(y => y.startsWith(x) || y.startsWith(sx)); if (i < 0) { ok = false; break; } sc += i === 0 ? 30 : i < 3 ? 12 : 4; if (w[i] === x || stem(w[i]) === sx) sc += 6; }
+    for (const x of t) { const sx = stem(x), i = w.findIndex(y => y.startsWith(x) || y.startsWith(sx)); if (i < 0) { ok = false; break; } sc += i === 0 ? 30 : i < 3 ? 12 : 4; if (w[i] === x) sc += 6; else if (stem(w[i]) === sx) sc += 2; }
     if (!ok) continue;
     sc -= f.n.length / 6; if (f.por) sc += 8;
     for (const [st, b] of STAPLES) if (f.n.startsWith(st)) { sc += b * (t.join(" ").length <= 3 ? 4 : .4); break; } if (f.src !== "ciqual") sc += 25; if (/prelev|martinique|guadeloupe|reunion|guyane|mayotte/.test(f.n)) sc -= 20;
