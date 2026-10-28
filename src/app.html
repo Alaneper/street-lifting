@@ -687,8 +687,10 @@ function toast(msg, bad){
   const t = $("#toast"); t.textContent = msg; t.classList.toggle("bad", !!bad);
   t.classList.add("on"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("on"), 2800);
 }
+const isOffline = e => !!e && e.code === "offline";
 function errMsg(e){
   const c = e && e.code;
+  if (c === "offline") return "Pas de réseau : cette action a besoin d'internet.";
   if (c === "needs_reauth") return "Ta connexion Google Sheets a expiré. Reconnecte-la dans claude.ai, Réglages, Connecteurs.";
   if (c === "server_not_connected") return "Le connecteur Google Sheets n'est pas ajouté. Ajoute-le dans claude.ai, Réglages, Connecteurs.";
   if (c === "selection_required") return "Tu as plusieurs connecteurs Google Sheets : choisis celui à utiliser dans la fenêtre de Claude.";
@@ -739,13 +741,105 @@ const Store = (() => {
   let cache = {P:[], OB:[], BL:[]};   /* lignes brutes des tableaux clé/valeur, pour retrouver la bonne ligne à modifier */
   const endCol = (from, n) => String.fromCharCode(from.charCodeAt(0) + n - 1);
   /* ajoute des enregistrements ; renvoie l'identifiant du premier (0 si inconnu) */
-  const add = async (tab, rows) => { const res = await appendVals(APP_ID, tab + "!A1:" + LAST[tab] + "1", rows), m = JSON.stringify(res || {}).match(new RegExp(tab + "!A(\\d+)")); return m ? +m[1] : 0; };
+  const radd = async (tab, rows) => { const res = await appendVals(APP_ID, tab + "!A1:" + LAST[tab] + "1", rows), m = JSON.stringify(res || {}).match(new RegExp(tab + "!A(\\d+)")); return m ? +m[1] : 0; };
   /* modifie un enregistrement (à partir de la colonne « from ») */
-  const set = (tab, id, values, from = "A") => putVals(APP_ID, tab + "!" + from + id + (values.length > 1 ? ":" + endCol(from, values.length) + id : ""), [values]);
-  const clear = (tab, id) => set(tab, id, Array(LAST[tab].charCodeAt(0) - 64).fill(""));
-  /* clé/valeur : modifie si la clé existe, sinon ajoute */
-  const upsert = async (tab, key, match, values, from, row) => { const i = cache[key].findIndex((r, j) => j > 0 && match(r));
-    if (i > 0) { await set(tab, i + 1, values, from); return; } await add(tab, [row]); cache[key].push(row.slice(0, 2)); };
+  const rset = (tab, id, values, from = "A") => putVals(APP_ID, tab + "!" + from + id + (values.length > 1 ? ":" + endCol(from, values.length) + id : ""), [values]);
+  /* clé/valeur : modifie si la clé existe, sinon ajoute. « mt » : façon de comparer la 1re colonne (str, norm, num) */
+  const MATCH = {str:mv => r => String(r[0]).trim() === mv, norm:mv => r => norm(r[0]) === mv, num:mv => r => num(r[0]) === mv};
+  const rupsert = async (tab, key, mt, mv, values, from, row) => { const i = cache[key].findIndex((r, j) => j > 0 && MATCH[mt](mv)(r));
+    if (i > 0) { await rset(tab, i + 1, values, from); return; } await radd(tab, [row]); cache[key].push(row.slice(0, 2)); };
+
+  /* =====================================================================
+     v50 · FILE D'ATTENTE HORS CONNEXION
+     Toute écriture (série, repas, poids, record, réglage, case du coach…) devient une « action » gardée sur le téléphone quand le réseau manque,
+     puis envoyée dans l'ordre au retour du réseau. Les lignes ajoutées sans réseau reçoivent un numéro provisoire négatif (idmap : vrai numéro après envoi).
+     À la migration vers un serveur, seule runOp() (l'envoi d'une action) est à réécrire.
+     ===================================================================== */
+  const OKEY = "sl4-outbox", IKEY = "sl4-idmap", TKEY = "sl4-tmp";
+  let ob = (store.get(OKEY) || []).map(o => (o.sending = false, o)), idmap = store.get(IKEY) || {}, cur = null, notified = false;
+  const obSave = () => { if (ob.length) store.set(OKEY, ob); else store.del(OKEY); store.set(IKEY, idmap); if (!cur) { try { setDot(ob.length ? "off" : "ok"); } catch(e){} } };
+  const tmpFirst = n => { const c = store.get(TKEY) || 0; store.set(TKEY, c - n); return c - n; };
+  const resolve = id => id < 0 ? (idmap[id] || 0) : id;
+  const enqueue = op => {
+    if (op.k) ob = ob.filter(o => o.k !== op.k);
+    ob.push(op); obSave();
+    if (!notified) { notified = true; toast("Pas de réseau : c'est gardé sur ton téléphone et envoyé dès que le réseau revient."); }
+    kick();
+  };
+  const kick = () => { if (navigator.onLine) setTimeout(() => { try { flushOutbox(); } catch(e){} }, 400); };
+  const eqCell = (a, b) => { const x = String(a ?? "").replace(",", "."), y = String(b ?? "").replace(",", "."); return x === y || (x !== "" && y !== "" && isFinite(x) && isFinite(y) && +x === +y); };
+  /* un envoi interrompu a peut-être abouti : on cherche les mêmes lignes à la fin de l'onglet avant de les rajouter */
+  async function findRows(tab, rows){
+    const v = await getVals(APP_ID, tab + "!A1:" + LAST[tab] + "40000");
+    for (let i = v.length - rows.length; i >= Math.max(0, v.length - 2000); i--)
+      if (rows.every((r, j) => r.every((c, k) => eqCell(v[i + j] && v[i + j][k], c)))) return i + 1;
+    return 0;
+  }
+  async function runOp(op){
+    if (op.t === "add") {
+      let r0 = op.maybe ? await findRows(op.tab, op.rows) : 0;
+      if (!r0) r0 = await radd(op.tab, op.rows);
+      if (r0) for (let i = 0; i < op.rows.length; i++) idmap[op.first + i] = r0 + i;
+    } else if (op.t === "set" || op.t === "clear") {
+      const id = resolve(op.id); if (!id) return;   /* l'ajout correspondant a été abandonné */
+      if (op.t === "set") await rset(op.tab, id, op.values, op.from); else await rset(op.tab, id, Array(LAST[op.tab].charCodeAt(0) - 64).fill(""));
+    } else if (op.t === "upsert") await rupsert(...op.a);
+    else if (op.t === "cell") await putVals(op.cid, q(op.sheet) + "!" + colL(op.col) + op.row, [[op.val]]);
+  }
+  function flush(){
+    if (cur) return cur;
+    if (!ob.length || !navigator.onLine) return Promise.resolve(false);
+    cur = (async () => {
+      let sent = false; try { setDot("busy"); } catch(e){}
+      try {
+        for (const op of [...ob]) {
+          if (!ob.includes(op)) continue;
+          op.sending = true;
+          try { await runOp(op); ob = ob.filter(o => o !== op); sent = true; store.set(IKEY, idmap); }
+          catch(err){ op.sending = false;
+            if (isOffline(err)) { if (op.t === "add" && navigator.onLine) op.maybe = true; break; }
+            op.tries = (op.tries || 0) + 1;
+            if (op.tries >= 5) { ob = ob.filter(o => o !== op); toast("Un enregistrement n'a pas pu être envoyé : " + errMsg(err), true); }
+            break; }
+        }
+      } finally { cur = null; obSave(); }
+      if (!ob.length) notified = false;
+      return sent;
+    })();
+    return cur;
+  }
+  /* ajouter / modifier / effacer, avec file d'attente */
+  const add = async (tab, rows) => {
+    let maybe = false;
+    if (!ob.length) { try { return await radd(tab, rows); } catch(e){ if (!isOffline(e)) throw e; maybe = navigator.onLine; } }
+    const first = tmpFirst(rows.length);
+    enqueue({t:"add", tab, rows:rows.map(r => r.map(x => x ?? "")), first, maybe}); return first;
+  };
+  const set = async (tab, id, values, from = "A") => {
+    const r = resolve(id); if (r) id = r;
+    if (id < 0) {   /* ligne pas encore envoyée : on corrige l'ajout en attente */
+      const o = ob.find(o => o.t === "add" && o.tab === tab && id >= o.first && id < o.first + o.rows.length);
+      if (!o && !idmap[id]) return;
+      if (o && !o.sending) { const row = o.rows[id - o.first], c = from.charCodeAt(0) - 65; values.forEach((v, j) => { row[c + j] = v ?? ""; }); obSave(); return; }
+    }
+    let maybe = false;
+    if (!ob.length && id > 0) { try { return await rset(tab, id, values, from); } catch(e){ if (!isOffline(e)) throw e; maybe = navigator.onLine; } }
+    enqueue({t:"set", k:"set|" + tab + "|" + id + "|" + from + "|" + values.length, tab, id, values, from, maybe});
+  };
+  const clear = async (tab, id) => {
+    const r = resolve(id); if (r) id = r;
+    if (id < 0) {
+      const o = ob.find(o => o.t === "add" && o.tab === tab && id >= o.first && id < o.first + o.rows.length);
+      if (!o && !idmap[id]) return;
+      if (o && !o.sending) { if (o.rows.length === 1) ob = ob.filter(x => x !== o); else o.rows[id - o.first] = o.rows[id - o.first].map(() => ""); obSave(); return; }
+    }
+    if (!ob.length && id > 0) { try { return await rset(tab, id, Array(LAST[tab].charCodeAt(0) - 64).fill("")); } catch(e){ if (!isOffline(e)) throw e; } }
+    enqueue({t:"clear", k:"clear|" + tab + "|" + id, tab, id});
+  };
+  const upsert = async (tab, key, mt, mv, values, from, row) => {
+    if (!ob.length) { try { return await rupsert(tab, key, mt, mv, values, from, row); } catch(e){ if (!isOffline(e)) throw e; } }
+    enqueue({t:"upsert", k:"up|" + tab + "|" + mt + "|" + mv, a:[tab, key, mt, mv, values, from, row]});
+  };
   return {
     /* lecture : tout le carnet d'un coup (onglets ajoutés plus tard : absents tolérés) */
     async readAll(){
@@ -764,7 +858,7 @@ const Store = (() => {
       const objectifs = {}; OB.slice(1).forEach(r => { if (r[0]) objectifs[norm(r[0])] = num(r[1]); });
       const comps = CO.map((r, i) => ({id:i + 1, date:toIso(r[0]), nom:String(r[1] || "").trim(), lieu:String(r[2] || "").trim(), note:String(r[3] || "").trim(), tbc:/confirmer/i.test(r[4] || "")}))
         .slice(1).filter(c => c.date && c.nom).sort((a, b) => a.date < b.date ? -1 : 1);
-      const seRow = (r, i) => ({id:i + 1, date:toIso(r[0]), bloc:num(r[1]), semaine:String(r[2] ?? "").trim(), seance:String(r[3] ?? "").trim(), ex:norm(r[4]), charge:num(r[5]), note:String(r[8] || ""), src:String(r[7] || "")});
+      const seRow = (r, i) => ({id:i + 1, date:toIso(r[0]), bloc:num(r[1]), semaine:String(r[2] ?? "").trim(), seance:String(r[3] ?? "").trim(), ex:norm(r[4]).replace(/ ·$/, ""), charge:num(r[5]), note:String(r[8] || ""), src:String(r[7] || "")});
       const series = SE.map((r, i) => ({...seRow(r, i), sets:parseSets(r[6], num(r[5]))})).slice(1).filter(x => x.ex && x.sets);
       /* v40 : le cardio (minutes, km) vit dans SERIES mais dans une liste à part : il n'entre jamais dans les records, le 1RM ni le tonnage */
       const cardio = SE.map((r, i) => ({...seRow(r, i), sets:parseCardio(r[6])})).slice(1).filter(x => x.ex && x.sets);
@@ -784,9 +878,9 @@ const Store = (() => {
     },
     ensureTabs: () => ensureTabs(APP_ID),
     get canArchive(){ return typeof writeMany === "function"; },   /* le carnet accepte les écritures groupées (archive des blocs) */
-    profil:{ set:(k, val) => upsert("PROFIL", "P", r => String(r[0]).trim() === k, [val], "B", [k, val, ""]) },
-    objectifs:{ set:(label, v, note) => upsert("OBJECTIFS", "OB", r => norm(r[0]) === label, [v ?? "", note], "B", [label, v ?? "", ""]) },
-    blocs:{ setDate:(b, iso) => upsert("BLOCS", "BL", r => num(r[0]) === b, [iso], "B", [b, iso, ""]) },
+    profil:{ set:(k, val) => upsert("PROFIL", "P", "str", k, [val], "B", [k, val, ""]) },
+    objectifs:{ set:(label, v, note) => upsert("OBJECTIFS", "OB", "norm", label, [v ?? "", note], "B", [label, v ?? "", ""]) },
+    blocs:{ setDate:(b, iso) => upsert("BLOCS", "BL", "num", b, [iso], "B", [b, iso, ""]) },
     poids:{ add:rows => add("POIDS", rows) },
     prs:{ add:row => add("PR", [row]) },
     /* v49 : supprime un onglet de programme créé par l'app (jamais un autre onglet) */
@@ -819,12 +913,25 @@ const Store = (() => {
       get canBatch(){ return typeof getMany === "function"; },
       readBlocs:names => getMany(coachId(), names.map(t => q(t) + "!A1:CZ1000")),
       readBloc:name => getVals(coachId(), q(name) + "!A1:CZ1000"),
-      setCell:(sheet, col, row, val) => putVals(coachId(), q(sheet) + "!" + colL(col) + row, [[val]])
-    }
+      setCell:async (sheet, col, row, val) => { const cid = coachId();
+        if (!ob.length) { try { return await putVals(cid, q(sheet) + "!" + colL(col) + row, [[val]]); } catch(e){ if (!isOffline(e)) throw e; } }
+        enqueue({t:"cell", k:"cell|" + cid + "|" + sheet + "|" + col + "|" + row, cid, sheet, col, row, val}); }
+    },
+    flush, pending:() => ob.length, clearIds:() => { idmap = {}; store.del(IKEY); }
   };
 })();
 
+/* Envoie d'abord ce qui attend (sinon la relecture du carnet effacerait ces lignes de l'écran), puis relit. */
+async function flushOutbox(){
+  const sent = await Store.flush();
+  if (sent && !Store.pending()) {
+    if (!live) { try { await loadApp(); saveCache(); render(); Store.clearIds(); } catch(e){} }
+    toast("Tout est envoyé dans ton carnet");
+  }
+}
+window.addEventListener("online", () => { flushOutbox(); });
 async function loadApp(){
+  if (Store.pending()) await Store.flush();
   const x = await Store.readAll();
   /* onglet absent (carnet ancien) : on garde ce qu'on avait déjà */
   const nutTabs = x.repas !== null, mrTab = x.mesRepas !== null;
@@ -832,7 +939,7 @@ async function loadApp(){
   D = {profil:x.profil, prs:x.prs, poids:x.poids, objectifs:x.objectifs, comps:x.comps, series:x.series, cardio:x.cardio || [], blocs:x.blocs, checks:x.checks, bilans:x.bilans,
     repas:nutTabs ? x.repas : (D && D.repas) || [], aliments:nutTabs ? x.aliments : (D && D.aliments) || [], mesRepas:mrTab ? x.mesRepas : (D && D.mesRepas) || {},
     _mrTab:mrTab, _nutTabs:nutTabs, today:isoOf(new Date())};
-  try { outbox.forEach(localApply); } catch(e){}
+  if (!Store.pending() && !live) Store.clearIds();   /* les numéros de ligne sont à nouveau les vrais */
   try { syncDone(); applyAllMods(); } catch(e){}
 }
 /* cache d'une version ≤ 30 : « _row » / « row » deviennent « id » */
@@ -1177,7 +1284,8 @@ function liftOf(m){ const x = norm(m); if (x.includes("MUSCLE")) return "MU"; if
   if (D && liftOn("BENCH") && (/\bBENCH\b|DEVELOPPE COUCHE|^(BP|DC)$/.test(y)) && !/INCLIN|DECLIN|HALTERE|\bDB\b|DUMBBELL|MACHINE|SMITH|FLOOR/.test(y)) return "BENCH";
   if (D && liftOn("DEADLIFT") && (/DEADLIFT|SOULEVE DE TERRE|^(SDT|DL)$/.test(y)) && !/ROMANIAN|ROUMAIN|STIFF|JAMBES TENDUES|\bRDL\b|SLDL|TRAP|HEX/.test(y)) return "DEADLIFT";
   return null; }
-const exKey = e => norm(e.mouvement) === "RENFO" ? norm(e.variation) : norm(e.mouvement) + " · " + norm(e.variation);
+/* sans variation : « EXERCICE » seul (avant : « EXERCICE · », dont l'espace final se perdait à la relecture du carnet et empêchait de retrouver la série) */
+const exKey = e => norm(e.mouvement) === "RENFO" ? norm(e.variation) : norm(norm(e.mouvement) + " · " + norm(e.variation)).replace(/ ·$/, "");
 const exName = k => { const [a, b] = String(k).split(" · "); return b ? title(a) + " " + b.toLowerCase() : title(a); };
 const liftsOf = s => [...new Set(s.exercices.map(e => liftOf(e.mouvement)).filter(Boolean))];
 const seanceByKey = k => S.find(s => s.key === k);
@@ -1347,6 +1455,7 @@ function saveCache(){ if (D) store.set("sl4-cache", {D, S, blocNames, progOrder,
 function loadCache(){
   const c = store.get("sl4-cache"); if (!c || !c.D) return false;
   D = c.D; D.today = isoOf(new Date()); S = c.S || []; blocNames = c.blocNames || {}; progOrder = c.progOrder || Object.keys(blocNames).map(Number).sort((x, y) => x - y); liveIds = new Set(c.liveIds || progOrder); archMeta = c.archMeta || {}; ARCH = c.ARCH || []; weekMeta = c.weekMeta || {};
+  [D.series, D.cardio].forEach(l => (l || []).forEach(x => { x.ex = String(x.ex).replace(/ ·\s*$/, ""); }));   /* ancien format de clé (v49 et avant) */
   S.forEach(s => loadedBlocs.add(s.bloc)); allLoaded = !!c.all; migrateIds(); return true;
 }
 
@@ -1373,8 +1482,8 @@ function renderTop(){
   /* l'en-tête reste fixe : logo et profil */
   $("#initial").textContent = (D.profil.prenom || "·")[0].toUpperCase();
 }
-function setDot(state){ if (state === "ok" && typeof outbox !== "undefined" && outbox.length) state = "off"; const d = $("#syncdot"); d.className = "dot" + (state === "busy" ? " busy" : state === "off" ? " off" : "");
-  d.parentElement.setAttribute("aria-label", "Réglages · " + (state === "busy" ? "synchronisation en cours" : state === "off" ? (typeof outbox !== "undefined" && outbox.length ? outbox.length + " enregistrement(s) en attente d'envoi" : "pas synchronisé") : "données à jour")); }
+function setDot(state){ const pend = Store.pending(); if (state === "ok" && pend) state = "off"; const d = $("#syncdot"); d.className = "dot" + (state === "busy" ? " busy" : state === "off" ? " off" : "");
+  d.parentElement.setAttribute("aria-label", "Réglages · " + (state === "busy" ? "synchronisation en cours" : state === "off" ? (Store.pending() ? Store.pending() + " enregistrement(s) en attente d'envoi" : "pas synchronisé") : "données à jour")); }
 
 /* =====================================================================
    SIGNATURE : LA BARRE CHARGÉE
@@ -1950,59 +2059,6 @@ function editHtml(){
     <p class="muted tiny" style="margin-top:10px">Le programme de ton coach n'est jamais modifié : tes changements restent dans ton carnet.</p>
     <button class="btn" style="margin-top:12px" data-act="closeSheet">Terminé</button>`;
 }
-/* =====================================================================
-   v50 · HORS CONNEXION : FILE D'ATTENTE D'ACTIONS
-   Une action = « ce que le sportif a fait » (une série, une case de la prog), jamais une adresse de cellule propre à Google :
-   à la migration vers un serveur, seule runOp() (l'envoi) change, la file reste telle quelle.
-   ===================================================================== */
-const OUTBOX_KEY = "sl4-outbox";
-let outbox = store.get(OUTBOX_KEY) || [], flushing = false, offlineToasted = false;
-const isOffline = e => !!e && e.code === "offline";
-function outboxSave(){ if (outbox.length) store.set(OUTBOX_KEY, outbox); else store.del(OUTBOX_KEY); try { setDot(outbox.length ? "off" : "ok"); } catch(e){} }
-/* Envoie une action au carnet (Sheets aujourd'hui). Lève {code:"offline"} si le réseau manque. */
-async function runOp(op){
-  if (op.t === "cell") return Store.coach.setCell(op.sheet, op.col, op.row, op.val);
-  const same = x => x.bloc === op.bloc && x.semaine === op.semaine && x.seance === op.seance && x.ex === op.key && (!x.note || x.note === op.note);
-  D[op.list] = D[op.list] || [];
-  let ex = D[op.list].find(x => same(x) && x.id);
-  if (!ex && D[op.list].some(same)) { await loadApp(); ex = (D[op.list] || []).find(x => same(x) && x.id); }   /* copie locale « en attente » : on relit le carnet pour savoir si elle y est déjà */
-  if (ex) { await Store.series.update(ex.id, op.rowv); Object.assign(ex, {sets:op.sets, note:op.note, date:op.rowv[0], src:op.rowv[7]}); }
-  else { const id = await Store.series.add(op.rowv); D[op.list] = (D[op.list] || []).filter(x => !(same(x) && !x.id)); D[op.list].push({id, date:op.rowv[0], bloc:op.bloc, semaine:op.semaine, seance:op.seance, ex:op.key, charge:op.rowv[5], sets:op.sets, note:op.note, src:op.rowv[7]}); }
-}
-/* Garde l'action en attente et l'affiche tout de suite dans l'app (id 0 = pas encore dans le carnet). */
-function queueOp(op){
-  outbox = outbox.filter(o => o.k !== op.k); outbox.push(op); outboxSave(); localApply(op);
-  if (!offlineToasted) { offlineToasted = true; toast("Pas de réseau : c'est gardé sur ton téléphone et envoyé dès que le réseau revient."); }
-}
-function localApply(op){
-  if (op.t !== "serie" || !D) return;
-  const L = D[op.list] = D[op.list] || [], sm = x => x.bloc === op.bloc && x.semaine === op.semaine && x.seance === op.seance && x.ex === op.key && (!x.note || x.note === op.note), ex = L.find(x => sm(x) && x.id) || L.find(sm);
-  if (ex) Object.assign(ex, {sets:op.sets, note:op.note, date:op.rowv[0], src:op.rowv[7]});
-  else L.push({id:0, date:op.rowv[0], bloc:op.bloc, semaine:op.semaine, seance:op.seance, ex:op.key, charge:op.rowv[5], sets:op.sets, note:op.note, src:op.rowv[7]});
-}
-/* Écrit tout de suite ; sans réseau, met en file. Toute autre erreur remonte comme avant. */
-async function doOp(op){
-  outbox = outbox.filter(o => o.k !== op.k);   /* une version plus récente remplace l'ancienne en attente */
-  try { await runOp(op); outboxSave(); }
-  catch(err){ if (isOffline(err)) { queueOp(op); return; } outboxSave(); throw err; }
-}
-async function flushOutbox(){
-  if (flushing || !outbox.length || !navigator.onLine || !APP_ID) return;
-  flushing = true; setDot("busy");
-  try {
-    if (!live) { try { await loadApp(); } catch(e){ if (isOffline(e)) return; } }   /* relire le carnet évite d'ajouter deux fois une série */
-    outbox.forEach(localApply);
-    for (const op of [...outbox]) {
-      try { await runOp(op); outbox = outbox.filter(o => o !== op); outboxSave(); }
-      catch(err){ if (isOffline(err)) break;
-        op.tries = (op.tries || 0) + 1;
-        if (op.tries >= 5) { outbox = outbox.filter(o => o !== op); toast("Un enregistrement n'a pas pu être envoyé : " + errMsg(err), true); } else outboxSave();
-        break; }
-    }
-    if (!outbox.length) { offlineToasted = false; try { saveCache(); render(); } catch(e){} toast("Tout est envoyé dans ton carnet"); }
-  } finally { flushing = false; outboxSave(); }
-}
-window.addEventListener("online", () => { flushOutbox(); });
 async function saveRow(k){
   const s = seanceByKey(live.key), e = s.exercices[k], st = live.rows[k];
   if (!st || !st.dirty) return true;
@@ -2011,7 +2067,13 @@ async function saveRow(k){
     try {
       if (done.length) {
         const row = [D.today, s.bloc, s.semaine, s.seance, key, cardioTot(done).min, fmtCardio(done), "app", "L" + e.row];
-        await doOp({t:"serie", list:"cardio", k:["serie", s.bloc, s.semaine, s.seance, key, "L" + e.row].join("|"), bloc:s.bloc, semaine:s.semaine, seance:s.seance, key, note:"L" + e.row, rowv:row, sets:done});
+        D.cardio = D.cardio || [];
+        const same = x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row);
+        let ex = D.cardio.find(same);
+        if (ex && !ex.id) { await loadApp(); ex = D.cardio.find(same); }
+        if (ex && ex.id) { await Store.series.update(ex.id, row); ex.sets = done; ex.note = "L" + e.row; ex.date = D.today; }
+        else { const id = await Store.series.add(row);
+          D.cardio.push({id:id, date:D.today, bloc:s.bloc, semaine:s.semaine, seance:s.seance, ex:key, charge:row[5], sets:done, note:"L" + e.row}); }
         s.faite = true;
       }
       st.dirty = false; persistLive(); saveCache(); return true;
@@ -2022,18 +2084,23 @@ async function saveRow(k){
       const sameC = done.every(x => x.c === done[0].c), setsTxt = sameC ? done.map(x => x.r).join(", ") : done.map(x => x.r + "@" + String(x.c)).join(", ");
       const rpW = s.week && st.rpeLast !== null && st.rpeLast !== undefined ? st.rpeLast : null;
       const row = [D.today, s.bloc, s.semaine, s.seance, key, Math.max(...done.map(x => x.c)), setsTxt, "app" + (rpW !== null ? " · RPE " + String(rpW).replace(".", ",") : ""), "L" + e.row];
-      await doOp({t:"serie", list:"series", k:["serie", s.bloc, s.semaine, s.seance, key, "L" + e.row].join("|"), bloc:s.bloc, semaine:s.semaine, seance:s.seance, key, note:"L" + e.row, rowv:row, sets:done});
+      const ex = D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
+      if (ex && !ex.id) await loadApp();
+      const ex2 = ex && D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
+      if (ex2 && ex2.id) { await Store.series.update(ex2.id, row); ex2.sets = done; ex2.note = "L" + e.row; ex2.date = D.today; ex2.src = row[7]; }
+      else { const id = await Store.series.add(row);
+        D.series.push({id:id, date:D.today, bloc:s.bloc, semaine:s.semaine, seance:s.seance, ex:key, charge:row[5], sets:done, note:"L" + e.row, src:row[7]}); }
       s.faite = true; _dm = null;
       if (s.week && !e._mod) {   /* Sheet du coach : reps et charges faites, dans ses colonnes « faites » (bloc EFFECTUE = zone du sportif) */
         const fr = v => String(v).replace(".", ","), repsT = done.map(x => x.r).join(", "), chT = sameC ? fr(done[0].c) : done.map(x => fr(x.c)).join(", ");
         for (const [col, f, val] of [[s.cols.repsDone, "repsDone", repsT], [s.cols.chargesDone, "chargesDone", chT]])
-          if (col && String(e[f] || "").trim() !== val) { await doOp({t:"cell", k:"cell|" + s.sheet + "|" + col + "|" + e.row, sheet:s.sheet, col, row:e.row, val}); e[f] = val; }
+          if (col && String(e[f] || "").trim() !== val) { await Store.coach.setCell(s.sheet, col, e.row, val); e[f] = val; }
       }
       const asPresc = isNumTxt(e.reps) && done.length === (num(e.series) || 0) && done.every(x => x.r === num(e.reps));
-      if (s.cols.commentaire && !e._mod && (!e.commentaire || repsOnly(e.commentaire)) && (norm(e.mouvement) === "RENFO" || !asPresc)) { const t = done.map(x => x.r).join(","); await doOp({t:"cell", k:"cell|" + s.sheet + "|" + s.cols.commentaire + "|" + e.row, sheet:s.sheet, col:s.cols.commentaire, row:e.row, val:t}); e.commentaire = t; }
+      if (s.cols.commentaire && !e._mod && (!e.commentaire || repsOnly(e.commentaire)) && (norm(e.mouvement) === "RENFO" || !asPresc)) { const t = done.map(x => x.r).join(","); await Store.coach.setCell(s.sheet, s.cols.commentaire, e.row, t); e.commentaire = t; }
     }
     for (const f of ["rpe1","rpeLast"]) if (st[f] !== null && st[f] !== undefined && st[f] !== num(e[f]) && s.cols[f] && !e._mod) {
-      await doOp({t:"cell", k:"cell|" + s.sheet + "|" + s.cols[f] + "|" + e.row, sheet:s.sheet, col:s.cols[f], row:e.row, val:st[f]}); e[f] = String(st[f]).replace(".", ","); s.faite = true; }
+      await Store.coach.setCell(s.sheet, s.cols[f], e.row, st[f]); e[f] = String(st[f]).replace(".", ","); s.faite = true; }
     st.dirty = false; persistLive(); saveCache(); return true;
   } catch(err){ toast(errMsg(err) + ambig(err), true); return false; }
 }
@@ -2921,7 +2988,7 @@ Object.assign(ACT, {
       offRes = list.map(p => { const n = p.nutriments || {}, k = n["energy-kcal_100g"] ?? (n.energy_100g ? n.energy_100g / 4.184 : null);
         return {src:"off", code:p.code, nom:p.product_name_fr || p.product_name || "", marque:(Array.isArray(p.brands) ? p.brands[0] || "" : String(p.brands || "").split(",")[0]).trim(), k, p:n.proteins_100g, g:n.carbohydrates_100g, l:n.fat_100g}; })
         .filter(f => f.nom && f.k !== null && f.k !== undefined && f.p !== undefined && f.g !== undefined && f.l !== undefined);
-    } catch(e){ if (!(d && d.auto)) toast("Recherche de marque impossible (connexion ?)", true); offRes = null; }
+    } catch(e){ if (!(d && d.auto)) toast(navigator.onLine ? "Recherche de marque impossible pour le moment" : "Pas de réseau : seuls les aliments de la liste et ceux que tu as déjà utilisés sont disponibles", true); offRes = null; }
     offBusy = false; nutRefresh();
   },
   nutCreateSave:async () => {
@@ -3531,11 +3598,11 @@ async function syncAll(silent){
     if (seanceErr && S.length) toast(seanceErr, true);
     if (!silent) toast("Données à jour");
     if (!seanceErr) ensureAllBlocs().then(() => { if (tab !== "seance" && !live) render(); }).catch(() => {});
-  } catch(e){ setDot("off"); if (!D) fatal(errMsg(e)); else toast(errMsg(e), true); }
+  } catch(e){ setDot("off"); if (!D) fatal(isOffline(e) ? "Pas de réseau, et rien n'est encore gardé sur ce téléphone : ouvre l'app une première fois avec du réseau." : errMsg(e)); else if (isOffline(e)) { if (!silent) toast("Pas de réseau : tu travailles avec les données de ton téléphone."); } else toast(errMsg(e), true); }
   finally { syncing = false; }
 }
-document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && D) { flushOutbox(); if (Date.now() - lastSync > 60000 && !live) syncAll(true); } });
-setInterval(() => { if (document.visibilityState === "visible" && D) { flushOutbox(); if (Date.now() - lastSync > 10 * 60000 && !live) syncAll(true); } }, 60000);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && D) { flushOutbox().finally(() => { if (Date.now() - lastSync > 60000 && !live) syncAll(true); }); } });
+setInterval(() => { if (document.visibilityState === "visible" && D) { flushOutbox().finally(() => { if (Date.now() - lastSync > 10 * 60000 && !live) syncAll(true); }); } }, 60000);
 function fatal(msg){ $("#v-home").innerHTML = `<div class="empty"><p>${esc(msg)}</p><button class="btn ghost sm" data-act="boot">Réessayer</button></div>`; }
 ACT.boot = () => boot();
 async function boot(){

@@ -66,7 +66,7 @@ with sync_playwright() as p:
     check("rien écrit dans l'onglet WEEK pour l'exercice changé", not any("WEEK" in c for c in calls), calls)
     check("séries gardées sous le nom du nouvel exercice", pg.evaluate("D.series.some(x => x.ex.startsWith('HACK SQUAT'))"))
     # dernière fois proposée : un exercice déjà fait ailleurs
-    pg.evaluate("D.series.push({id:999, date:'2026-10-10', bloc:3, semaine:'9', seance:'Autre', ex:'CURL HALTÈRES · ', charge:14, sets:[{r:12,c:14},{r:12,c:14},{r:12,c:14}], note:''})")
+    pg.evaluate("D.series.push({id:999, date:'2026-10-10', bloc:3, semaine:'9', seance:'Autre', ex:'CURL HALTÈRES', charge:14, sets:[{r:12,c:14},{r:12,c:14},{r:12,c:14}], note:''})")
     r3 = pg.evaluate("""(async () => { const s = S[0]; swapMode = 'ad'; edSess = s.key; modScope = 'd'; swapQ = 'Curl haltères'; sheet = 'swap'; renderLayer();
       document.querySelector('#adse').value = '4'; document.querySelector('#adre').value = '12';
       await ACT.swapPick({i:'free'}); const e = s.exercices.at(-1); const k = s.exercices.length - 1;

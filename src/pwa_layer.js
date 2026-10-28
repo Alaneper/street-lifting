@@ -43,11 +43,14 @@ async function gapi(url, opt, isRead){
   const tok = auth.tok; if (!tok) return reauth();
   for (let i = 0; ; i++) {
     let r;
-    try { r = await fetch(url, Object.assign({}, opt, {headers:{Authorization:"Bearer " + tok, "Content-Type":"application/json"}})); }
-    catch(e){ throw {code:"offline"}; }
+    /* réseau qui ne répond pas (salle de sport, 1 barre) : au bout de 20 s on considère qu'il n'y a pas de réseau, au lieu de bloquer l'écran */
+    const ac = typeof AbortController === "function" ? new AbortController() : null, tm = ac ? setTimeout(() => ac.abort(), 20000) : 0;
+    try { r = await fetch(url, Object.assign({}, opt, {headers:{Authorization:"Bearer " + tok, "Content-Type":"application/json"}}, ac ? {signal:ac.signal} : {})); }
+    catch(e){ clearTimeout(tm); throw {code:"offline"}; }
     if (r.status === 401) { store.del("sl-tok"); return reauth(); }
     if ((r.status === 429 || r.status >= 500) && isRead && i < 2) { await sleep(1500 * (i + 1) + Math.random() * 500); continue; }
-    const j = await r.json().catch(() => ({}));
+    const j = await r.json().catch(() => ({})); clearTimeout(tm);
+    if (ac && ac.signal.aborted) throw {code:"offline"};
     if (!r.ok) throw {code: r.status === 403 ? "forbidden" : r.status === 404 ? "not_found" : r.status === 429 ? "quota" : r.status >= 500 ? "server_unavailable" : "tool_error",
       retryable: r.status === 429 || r.status >= 500, message: (j.error && j.error.message) || ("Erreur " + r.status)};
     return j;
