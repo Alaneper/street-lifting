@@ -9,6 +9,7 @@
     if (url.includes("oauth2.googleapis.com/revoke")) return J({});
     if (!url.startsWith("https://sheets.googleapis.com/v4/spreadsheets")) return of(url, opt);
     window.__api.push(m + " " + decodeURIComponent(url.slice(46, 160)));
+    if (window.__down) throw new TypeError("Failed to fetch");
     if (window.__fail) return new Response(JSON.stringify({error:{message:"x"}}), {status:window.__fail});
     const mcp = await mcpP, call = (t, i) => mcp.callTool("x", t, i).then(r => r.payload);
     const u = new URL(url), path = decodeURIComponent(u.pathname.replace("/v4/spreadsheets", "")), body = opt.body ? JSON.parse(opt.body) : null;
