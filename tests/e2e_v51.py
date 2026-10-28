@@ -111,6 +111,14 @@ with sync_playwright() as p:
     pg.evaluate("(c) => { ACT.scanManual(); document.getElementById('scman').value = c; ACT.scanGo(); }", BAD); pg.wait_for_timeout(1200)
     r = pg.evaluate("({chk:nutPick && nutPick.f.check, html:document.getElementById('nutdyn') ? document.getElementById('nutdyn').innerText : ''})")
     check("valeurs incohérentes : marquées « À vérifier »", r["chk"] and "À vérifier" in r["html"], r)
+    # --- recherche par nom : fiches incomplètes écartées, incohérentes passées en dernier
+    pg.evaluate("""() => { const of = window.fetch; window.fetch = async (u, o) => { if (!/search\\.openfoodfacts\\.org/.test(String(u))) return of(u, o);
+      const h = (code, nom, k, p, g, l) => ({code, product_name: nom, brands: 'Marque', nutriments: k === null ? {} : {'energy-kcal_100g': k, proteins_100g: p, carbohydrates_100g: g, fat_100g: l}});
+      return new Response(JSON.stringify({hits:[h('1', 'Absurde', 900, 1, 1, 1), h('2', 'Correct', 400, 10, 60, 13), h('3', 'Vide', null)]}), {status:200}); }; }""")
+    pg.evaluate("nutPick = null; offRes = null; nutQ = 'zzz'; ACT.nutOff({})"); pg.wait_for_timeout(1500)
+    r = pg.evaluate("offRes && offRes.map(f => [f.nom, !!f.check])")
+    check("recherche par nom : fiche vide écartée, fiche incohérente classée en dernier", r == [["Correct", False], ["Absurde", True]], r)
+    check("fiche incohérente marquée dans la liste", "À vérifier" in pg.evaluate("document.getElementById('nutdyn').innerText"), "")
     # --- hors connexion : produit déjà connu / inconnu
     pg.evaluate("Object.defineProperty(navigator, 'onLine', {get: () => false, configurable: true}); window.__offHits.length = 0")
     pg.evaluate("nutPick = null; ACT.scanOpen({c:'nutri'})"); pg.wait_for_timeout(500)
