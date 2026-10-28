@@ -477,7 +477,7 @@ html,body{overflow-x:clip}body{margin-top:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "48 · 28 oct. 2026";
+const APP_VER = "49 · 28 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -789,6 +789,14 @@ const Store = (() => {
     blocs:{ setDate:(b, iso) => upsert("BLOCS", "BL", r => num(r[0]) === b, [iso], "B", [b, iso, ""]) },
     poids:{ add:rows => add("POIDS", rows) },
     prs:{ add:row => add("PR", [row]) },
+    /* v49 : supprime un onglet de programme créé par l'app (jamais un autre onglet) */
+    prog:{ async removeTab(title){
+      const id = APP_ID, r = await gapi(API + id + "?fields=" + enc("sheets.properties(sheetId,title)"), {}, true), sh = (r.sheets || []).map(s => s.properties).find(x => x && x.title === title);
+      if (!sh) throw new Error("Onglet introuvable");
+      const v = await getVals(id, q(title) + "!A1:C3");
+      if (!(v || []).some(row => (row || []).some(x => String(x ?? "").startsWith("Street Lifting · programme")))) throw new Error("Cet onglet n'a pas été créé par l'app : je ne le supprime pas.");
+      await gapi(API + id + ":batchUpdate", {method:"POST", body:JSON.stringify({requests:[{deleteSheet:{sheetId:sh.sheetId}}]})});
+    } },
     series:{ add:row => add("SERIES", [row]), update:(id, row) => set("SERIES", id, row) },
     competitions:{ add:row => add("COMPETITIONS", [row]), update:(id, row) => set("COMPETITIONS", id, row), remove:id => clear("COMPETITIONS", id) },
     checklist:{ add:rows => add("CHECKLIST", rows), setDone:(id, done) => set("CHECKLIST", id, [done ? "TRUE" : "FALSE"], "C") },
@@ -1035,6 +1043,7 @@ function fixJours(ss){
   }
 }
 function parseBloc(v, sheet, bloc, forcedWeek){
+  const own = v.slice(0, 3).some(r => (r || []).some(x => String(x ?? "").startsWith("Street Lifting · programme")));
   v = ownLabels(v);
   const sec = sectionOf(v); v = v.map((row, i) => i >= sec.rMin && i < sec.rMax ? row : []);
   const cell = (r, c) => String((v[r] && v[r][c]) ?? "");
@@ -1091,7 +1100,7 @@ function parseBloc(v, sheet, bloc, forcedWeek){
       }
       if (!ex.length) continue;
       const k = h => (h in cols) ? cols[h] + 1 : 0;
-      seances.push({key:sheet + "|" + semaine + "|" + (r + 1), sheet, bloc, semaine, jour, seance, headerRow:r + 1, idx:nb, recapRow, pdc, pdcCol:c + 3,
+      seances.push({key:sheet + "|" + semaine + "|" + (r + 1), sheet, bloc, own, semaine, jour, seance, headerRow:r + 1, idx:nb, recapRow, pdc, pdcCol:c + 3,
         cols:{mouvement:c + 1, rpe1:k("RPE S1"), rpeLast:k("RPE DERNIÈRE SÉRIE"), commentaire:k("COMMENTAIRE ATHLÈTE"), charge:k("CHARGE"), repsDone:k("REPS FAITES"), chargesDone:k("CHARGES FAITES")},
         exercices:ex, faite:ex.some(e => e.rpe1 || e.rpeLast)});
     }
@@ -1455,6 +1464,14 @@ function freeWeekHtml(sess){
       <div class="fbar"><i style="width:${wk.length ? Math.round(nd / wk.length * 100) : 0}%"></i></div></section>
     ${hist.length ? `<h2 class="h2">Dernières séances</h2>${hist.map(z => vrow(esc(z.seance), esc(dlong(dateOf(z))), "", null)).join("")}` : ""}`;
 }
+/* v49 : programmes importés par l'app, avec suppression (jamais le Sheet d'un coach) */
+let progDelAsk = null;
+function progTabsHtml(){
+  if (!coachId() || coachId() !== APP_ID) return "";
+  const tabs = [...new Set(S.filter(z => z.own && !z.archived).map(z => z.sheet))]; if (!tabs.length) return "";
+  return `<h2 class="h2" style="margin-top:16px">Programmes ajoutés</h2><div class="list">${tabs.map(n => `<div class="item" style="display:flex;gap:10px;align-items:center"><span class="grow" style="display:flex;flex-direction:column;gap:2px;min-width:0"><b>${esc(n)}</b><span class="muted tiny">${S.filter(z => z.sheet === n).length} séance${S.filter(z => z.sheet === n).length > 1 ? "s" : ""}</span></span><button class="btn line sm" style="min-width:110px${progDelAsk === n ? ";color:var(--bad)" : ""}" data-act="progDel" data-t="${esc(n)}">${progDelAsk === n ? "Confirmer" : "Supprimer"}</button></div>`).join("")}</div>
+    <p class="muted tiny" style="margin-top:6px">Supprime une version en double. Tes séances déjà faites restent dans ton carnet.</p>`;
+}
 function remainingInBloc(){ const b = activeBloc(); return b === null ? 0 : S.filter(z => z.bloc === b && !z.faite).length; }
 /* Pesée du matin (choix d'Alane, maquette A) : sous le héros tant que tu ne t'es pas pesé aujourd'hui.
    Deux touchers : ajuster, « Noter ». La marge sur ta catégorie s'affiche en direct. */
@@ -1814,6 +1831,8 @@ function syncDone(){ if (!D || !D.series) return; const lg = new Set(D.series.ma
    Format d'un changement : {sc:"d"|"s", b:bloc, n:séance, w:semaine, sw:[[origine,mouvement,variation]], rm:[origine], ad:[[mouvement,variation,séries,reps]], or:[ids]}
    « d » = cette séance seulement ; « s » = cette semaine et les suivantes.
    ===================================================================== */
+/* Catalogue d'exercices courants (noms seulement, liste de l'app) : pour changer vers une machine ou un exercice jamais fait. */
+const EX_CATALOG = ["Leg press","Presse à cuisses inclinée","Hack squat","Squat barre","Squat Smith machine","Squat goblet","Squat bulgare","Fentes marchées","Fentes arrière haltères","Leg extension","Leg curl allongé","Leg curl assis","Soulevé de terre roumain","Soulevé de terre jambes tendues","Good morning","Hip thrust","Hip thrust machine","Abducteurs machine","Adducteurs machine","Mollets debout machine","Mollets assis machine","Presse à mollets","Développé couché barre","Développé couché haltères","Développé couché Smith machine","Développé couché machine","Développé incliné barre","Développé incliné haltères","Développé incliné machine","Développé décliné","Développé convergent","Écartés haltères","Écartés poulie vis-à-vis","Pec deck","Pompes","Dips","Dips machine","Dips assistés machine","Tractions","Tractions assistées machine","Tractions prise neutre","Tirage vertical","Tirage vertical prise serrée","Tirage horizontal","Rowing barre","Rowing haltère unilatéral","Rowing machine","Rowing T-bar","Pull-over poulie","Soulevé de terre","Soulevé de terre sumo","Développé militaire","Développé épaules haltères","Développé épaules machine","Élévations latérales haltères","Élévations latérales poulie","Élévations latérales machine","Élévations frontales","Oiseau haltères","Oiseau machine","Face pull","Shrugs haltères","Shrugs barre","Curl barre","Curl haltères","Curl marteau","Curl pupitre","Curl incliné","Curl poulie","Curl machine","Extension triceps poulie","Extension triceps corde","Barre au front","Extension triceps haltère nuque","Kickback triceps","Crunch machine","Crunch poulie","Relevé de jambes suspendu","Relevé de jambes banc","Roue abdominale","Gainage","Gainage latéral","Lombaires banc","Back extension","Rotation russe","Marche rapide tapis","Vélo","Rameur","Elliptique","Course à pied"];
 let modScope = "d", swapQ = "", swapK = 0, swapMode = "sw", swapFrom = null, swapCands = [], edSess = null;
 const modsList = () => { try { const a = JSON.parse((D && D.profil && D.profil.modifs) || "[]"); return Array.isArray(a) ? a : []; } catch(e){ return []; } };
 function modFor(s){
@@ -1889,11 +1908,12 @@ function lastTxt(key){ const lg = lastLog(key); if (!lg || !lg.sets || !lg.sets.
 function candidates(q, cur){
   const seen = new Map(), add = (m, v) => { const key = exKey({mouvement:m, variation:v || ""}); if (key && !seen.has(key)) seen.set(key, {key, m:String(m).trim(), v:String(v || "").trim()}); };
   S.forEach(z => (z.base || z.exercices).forEach(e => { if (String(e.mouvement).trim()) add(e.mouvement, e.variation); }));
+  EX_CATALOG.forEach(n => add(n, ""));
   D.series.forEach(x => { const [a, b] = String(x.ex).split(" · "); if (a) add(title(a), b ? title(b) : ""); });
   const qq = norm(q), words = new Set(String(cur).split(/[\s·]+/).filter(w => w.length > 2));
   let out = [...seen.values()].filter(c => c.key !== cur && (!qq || c.key.includes(qq)));
-  out.forEach(c => { c.sc = (lastLog(c.key) ? 2 : 0) + c.key.split(/[\s·]+/).filter(w => words.has(w)).length * 3; });
-  return out.sort((a, b) => b.sc - a.sc).slice(0, 8);
+  out.forEach(c => { c.sc = (lastLog(c.key) ? 2 : 0) + c.key.split(/[\s·]+/).filter(w => words.has(w)).length * 3 + (S.some(z => (z.base || z.exercices).some(e => exKey(e) === c.key)) ? 1 : 0); });
+  return out.sort((a, b) => b.sc - a.sc || a.key.localeCompare(b.key)).slice(0, qq ? 25 : 8);
 }
 function swapList(){
   const s = edSession(); if (!s) return "";
@@ -1912,6 +1932,7 @@ function swapHtml(){
     <input id="swapin" style="margin-top:12px" placeholder="Chercher ou écrire un exercice" value="${esc(swapQ)}" autocomplete="off" data-inp="swapQ" aria-label="Chercher un exercice">
     ${e ? "" : `<div class="grid2" style="margin-top:10px"><div><label for="adse">Séries</label><input id="adse" inputmode="numeric" value="3"></div><div><label for="adre">Reps</label><input id="adre" inputmode="numeric" value="10"></div></div>`}
     <div id="swaplist">${swapList()}</div>
+    <p class="muted tiny" style="margin-top:8px">Écris le nom d'une machine ou d'un exercice pour chercher dans toute la liste.</p>
     <p class="muted tiny" style="margin-top:12px">Ce que tu fais ici est gardé sous le nom du nouvel exercice. Si tu l'as déjà fait, ta dernière charge t'est proposée.</p>
     <button class="btn line" style="margin-top:12px" data-act="swapBack">Retour</button>`;
 }
@@ -2388,6 +2409,7 @@ function rSheet(){
   if (sheet.startsWith("cl|")) return clInfoHtml(sheet.slice(3));
   if (sheet.startsWith("cat|")) return catPickHtml(sheet.slice(4));
   if (sheet === "meal") return mealSaveHtml();
+  if (sheet === "mealnew") return mnHtml();
   if (sheet === "meals") return mealsHtml();
   if (sheet.startsWith("rm|")) { const [, l, n] = sheet.split("|"), N = +n;
     /* toutes les perfs à exactement N reps, regroupées par séance et par charge (les séries identiques d'une même ligne = une perf),
@@ -2481,7 +2503,7 @@ function settingsHtml(){
     <div class="chips" style="flex-wrap:wrap">${extra.map(l => `<button class="chip" aria-pressed="${suivis().includes(l)}" data-act="suiviToggle" data-l="${l}">${suivis().includes(l) ? "" : "+ "}${LNAME[l]}</button>`).join("")}</div>
     <p class="muted small" style="margin-top:8px">Leurs records et leur 1RM estimé sont gardés, sans compter dans un total.</p>` : ""}
 
-    ${impCan() ? `<h2 class="h2">Ma prog</h2><button class="btn ghost" data-act="impOpen">${coachId() ? "Ajouter un autre programme" : "Ajouter mon programme"}</button>${coachId() && S.some(z => !z.archived) ? `<button class="btn ghost" style="margin-top:8px" data-act="impNext">Préparer le bloc suivant</button>` : ""}<p class="muted small" style="margin-top:8px">Colle tes notes ou un tableau : l'app lit les séances et tu vérifies avant d'enregistrer.</p>` : ""}
+    ${impCan() ? `<h2 class="h2">Ma prog</h2><button class="btn ghost" data-act="impOpen">${coachId() ? "Ajouter un autre programme" : "Ajouter mon programme"}</button>${coachId() && S.some(z => !z.archived) ? `<button class="btn ghost" style="margin-top:8px" data-act="impNext">Préparer le bloc suivant</button>` : ""}<p class="muted small" style="margin-top:8px">Colle tes notes ou un tableau : l'app lit les séances et tu vérifies avant d'enregistrer.</p>${progTabsHtml()}` : ""}
     <h2 class="h2">Le reste</h2>
     ${Object.keys(blocNames).length ? `<label for="sbl" style="margin-top:0">Bloc en cours</label><select id="sbl" data-chg="blocActif"><option value="">Le dernier onglet de la prog</option>${progOrder.map(n => `<option value="${n}" ${n === chosenBloc() ? "selected" : ""}>${esc(blocLabel(n))}</option>`).join("")}</select>` : ""}
     <div class="grid2"><div><label for="sdc">Début de la prog</label><input id="sdc" type="date" value="${D.profil.debut_coaching || ""}" data-chg="prof" data-k="debut_coaching"></div>
@@ -2567,6 +2589,11 @@ function barChart(id, labels, sets, unit){
 const ACT = {
   tab:d => setTab(d.t),
   openSeance:d => { sel = d.k; setTab("seance"); },
+  progDel:async d => {
+    if (progDelAsk !== d.t) { progDelAsk = d.t; return renderLayer(); }
+    progDelAsk = null;
+    try { await Store.prog.removeTab(d.t); toast("Programme supprimé"); await syncAll(true); renderLayer(); } catch(e){ toast(errMsg(e), true); renderLayer(); }
+  },
   modScope:d => { modScope = d.v; renderLayer(); },
   swapOpen:() => { if (!live) return; edSess = live.key; swapMode = "sw"; swapK = live.i; swapQ = ""; swapFrom = null; openSheet("swap"); },
   editOpen:d => { edSess = d.k || (live && live.key) || sel; swapFrom = "edit"; openSheet("edit"); },
@@ -2781,7 +2808,7 @@ function rNutri(){
     <div class="chips"><button class="chip${tab === "meals" ? " on" : ""}" data-act="nutTab" data-t="meals" aria-pressed="${tab === "meals"}">Mes repas</button><button class="chip${tab === "foods" ? " on" : ""}" data-act="nutTab" data-t="foods" aria-pressed="${tab === "foods"}">Aliments</button></div>
     ${tab === "foods" ? `<input id="nutin" style="margin-top:10px" placeholder="Ex. riz, 250 g de pâtes sèches, 1 cordon bleu" value="${esc(nutQ)}" autocomplete="off" data-inp="nutQ" aria-label="Rechercher un aliment">
     ${!FOODS ? `<p class="muted small" style="margin-top:8px" id="nutload">Chargement de la table des aliments…</p>` : ""}
-    <div id="nutdyn">${nutDyn()}</div>` : `${Object.keys(D.mesRepas || {}).length ? `<div class="list" style="margin-top:8px">${Object.entries(D.mesRepas).slice().reverse().map(([n, L]) => `<div class="item" style="display:flex;gap:10px;align-items:center"><span class="grow"><span class="ttl" style="display:block">${esc(n)}</span><span class="muted tiny">${fmt(sum(L.map(x => x.k)), 0)} kcal · P ${fmt(sum(L.map(x => x.p)), 0)} · G ${fmt(sum(L.map(x => x.g)), 0)} · L ${fmt(sum(L.map(x => x.l)), 0)}</span></span><button class="iconbtn plus" data-act="mealAdd" data-n="${esc(n)}" aria-label="Ajouter ${esc(n)} au ${SLOTS[cur].toLowerCase()}">+</button></div>`).join("")}</div>` : `<p class="muted small" style="margin-top:10px">Aucun repas enregistré. Ajoute des aliments, puis touche « Enregistrer comme repas » : tu le retrouveras ici pour le rejouer en un tap.</p>`}`}
+    <div id="nutdyn">${nutDyn()}</div>` : `<button class="btn line" style="margin-top:8px" data-act="mealNew">+ Créer un repas</button>${Object.keys(D.mesRepas || {}).length ? `<div class="list" style="margin-top:8px">${Object.entries(D.mesRepas).slice().reverse().map(([n, L]) => `<div class="item" style="display:flex;gap:10px;align-items:center"><span class="grow"><span class="ttl" style="display:block">${esc(n)}</span><span class="muted tiny">${fmt(sum(L.map(x => x.k)), 0)} kcal · P ${fmt(sum(L.map(x => x.p)), 0)} · G ${fmt(sum(L.map(x => x.g)), 0)} · L ${fmt(sum(L.map(x => x.l)), 0)}</span></span><button class="iconbtn plus" data-act="mealAdd" data-n="${esc(n)}" aria-label="Ajouter ${esc(n)} au ${SLOTS[cur].toLowerCase()}">+</button></div>`).join("")}</div>` : `<p class="muted small" style="margin-top:10px">Aucun repas enregistré. Touche « Créer un repas » : tu le retrouveras ici pour l'ajouter en un tap au petit-déjeuner, déjeuner, collation ou dîner.</p>`}`}
     ${nutGoalHtml(T)}`;
 }
 function nutDyn(){
@@ -2866,7 +2893,7 @@ async function saveFood(f){
   (D.aliments = D.aliments || []).push({...f});
 }
 /* saisie : suggestions au fil de la frappe */
-document.addEventListener("input", ev => { const t = ev.target; if (t && t.dataset.inp === "swapQ") { swapQ = t.value; const l = $("#swaplist"); if (l) l.innerHTML = swapList(); return; } if (t && t.dataset.inp === "hw") return hwRefresh(); if (!t || t.dataset.inp !== "nutQ") return; nutQ = t.value; nutPick = null; offRes = null; nutCreate = false;
+document.addEventListener("input", ev => { const t = ev.target; if (t && t.dataset.inp === "mnName" && mnDraft) { mnDraft.name = t.value; return; } if (t && t.dataset.inp === "mnQ" && mnDraft) { mnDraft.q = t.value; const l = $("#mnlist"); if (l) l.innerHTML = mnList(); return; } if (t && t.dataset.inp === "mnQty" && mnDraft && mnDraft.pick) { mnDraft.pick.q = num(t.value); return; } if (t && t.dataset.inp === "swapQ") { swapQ = t.value; const l = $("#swaplist"); if (l) l.innerHTML = swapList(); return; } if (t && t.dataset.inp === "hw") return hwRefresh(); if (!t || t.dataset.inp !== "nutQ") return; nutQ = t.value; nutPick = null; offRes = null; nutCreate = false;
   clearTimeout(t._h); t._h = setTimeout(nutRefresh, 80);
   /* moins de 3 résultats dans la table : les produits de marque (Open Food Facts) sont cherchés tout seuls */
   clearTimeout(t._o); t._o = setTimeout(() => { const q = parseFoodLine(nutQ).txt; if (FOODS && q && q.length >= 3 && !nutPick && !offRes && searchFoods(q).length < 3 && navigator.onLine !== false) ACT.nutOff({auto:1}); }, 900); });
@@ -3066,6 +3093,28 @@ CHG.birth = (d, el) => { const v = toIso(el.value); if (!v || v > D.today) retur
 /* =====================================================================
    REPAS ENREGISTRÉS : un repas habituel (aliments + quantités) s'ajoute en un toucher
    ===================================================================== */
+/* v49 : créer un repas de toutes pièces, sans l'ajouter au journal : il va dans « Mes repas », puis « + » le met dans le moment choisi */
+let mnDraft = null;
+const mnTot = () => { const L = mnDraft.items; return {k:sum(L.map(x => x.k)), p:sum(L.map(x => x.p)), g:sum(L.map(x => x.g)), l:sum(L.map(x => x.l))}; };
+function mnList(){
+  const d = mnDraft; if (!d) return "";
+  if (d.pick) { const f = d.pick.f; return `<div class="panel" style="margin-top:10px"><p style="font-weight:700">${esc(f.nom)}${f.marque ? ` <span class="muted small">${esc(f.marque)}</span>` : ""}</p><p class="muted tiny" style="margin-top:2px">Pour 100 g : ${fmt(f.k, 0)} kcal · P ${fmt(f.p, 1)} · G ${fmt(f.g, 1)} · L ${fmt(f.l, 1)}</p>
+      <div class="grid2" style="margin-top:10px;grid-template-columns:1fr auto"><input id="mnq" inputmode="decimal" placeholder="Quantité (g)" value="${d.pick.q ? fmt(d.pick.q, 0) : ""}" data-inp="mnQty" aria-label="Quantité en grammes"><button class="btn sm" data-act="mnAdd">Ajouter</button></div>
+      ${f.por ? `<div class="chips" style="margin-top:8px"><button class="chip" data-act="mnQty" data-q="${f.por}">Portion courante : ${f.por} g</button></div>` : ""}
+      <button class="link small muted" style="margin-top:8px" data-act="mnCancel">Annuler</button></div>`; }
+  const sug = d.q && FOODS ? searchFoods(parseFoodLine(d.q).txt) : [];
+  return sug.length ? `<div class="list" style="margin-top:6px">${sug.map((f, i) => `<button class="item" data-act="mnPick" data-i="${i}"><span class="grow" style="display:flex;flex-direction:column;gap:2px;min-width:0"><b>${esc(f.nom)}</b><span class="muted tiny">${f.marque ? esc(f.marque) + " · " : ""}${fmt(f.k, 0)} kcal · P ${fmt(f.p, 1)} · G ${fmt(f.g, 1)} · L ${fmt(f.l, 1)} pour 100 g</span></span></button>`).join("")}</div>` : (d.q ? `<p class="muted small" style="margin-top:8px">Aucun aliment trouvé. Ajoute-le d'abord dans « Aliments » (créer cet aliment), puis reviens.</p>` : "");
+}
+function mnHtml(){
+  const d = mnDraft; if (!d) return ""; const T = mnTot();
+  return `<p class="show t-m">Créer un repas</p><p class="muted small" style="margin-top:4px">Compose ton repas : il sera enregistré dans « Mes repas », sans être ajouté à ta journée. Tu l'ajouteras ensuite au petit-déjeuner, déjeuner, collation ou dîner.</p>
+    <label for="mnname">Nom du repas</label><input id="mnname" placeholder="Ex. poulet riz, petit-déj" maxlength="40" autocomplete="off" value="${esc(d.name)}" data-inp="mnName">
+    ${d.items.length ? `<div class="list" style="margin-top:10px">${d.items.map((x, i) => `<div class="item" style="display:flex;gap:10px;align-items:center"><span class="grow" style="display:flex;flex-direction:column;gap:2px;min-width:0"><b>${esc(x.nom)}</b><span class="muted tiny">${fmt(x.q, 0)} g · ${fmt(x.k, 0)} kcal</span></span><button class="iconbtn" data-act="mnRm" data-i="${i}" aria-label="Retirer ${esc(x.nom)}">✕</button></div>`).join("")}</div>
+      <p class="small" style="margin-top:8px"><b>${fmt(T.k, 0)} kcal</b> · P ${fmt(T.p, 0)} · G ${fmt(T.g, 0)} · L ${fmt(T.l, 0)}</p>` : ""}
+    <label for="mnsearch">Ajouter un aliment</label><input id="mnsearch" placeholder="Ex. riz, poulet, 250 g de pâtes" value="${esc(d.q)}" autocomplete="off" data-inp="mnQ">
+    <div id="mnlist">${mnList()}</div>
+    <button class="btn" style="margin-top:14px" data-act="mnSave">Créer le repas</button>`;
+}
 let mealSel = null;
 async function mealEnsureTab(){ if (D._mrTab) return; await Store.ensureTabs(); D._mrTab = true; }
 function mealSaveHtml(){
@@ -3078,11 +3127,28 @@ function mealSaveHtml(){
 function mealsHtml(){
   const M = D.mesRepas || {};
   return `<p class="show t-m">Mes repas</p>${Object.keys(M).length ? `<div class="list" style="margin-top:10px">${Object.entries(M).map(([n, L]) => `<div class="item" style="display:flex;gap:10px;align-items:center"><span class="grow"><span style="display:block;font-weight:600">${esc(n)}</span><span class="muted tiny">${L.map(x => esc(x.nom.split(",")[0]) + " " + fmt(x.q, 0) + " g").join(" · ")}</span></span><b class="small">${fmt(sum(L.map(x => x.k)), 0)} kcal</b><button class="iconbtn" data-act="mealDel" data-n="${esc(n)}" aria-label="Supprimer ${esc(n)}">×</button></div>`).join("")}</div>` : `<p class="muted small" style="margin-top:8px">Aucun repas enregistré.</p>`}
-    <p class="muted tiny" style="margin-top:10px">Pour créer un repas : note ses aliments du jour, puis « Enregistrer comme repas » sous la liste.</p>
+    <p class="muted tiny" style="margin-top:10px">Pour créer un repas de toutes pièces, touche « Créer un repas » dans l'onglet Mes repas de Corps. Tu peux aussi noter les aliments du jour, puis « Enregistrer comme repas ».</p>
     <button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`;
 }
 Object.assign(ACT, {
   mealSave:() => { mealSel = null; openSheet("meal"); },
+  mealNew:() => { mnDraft = {name:"", items:[], q:"", pick:null}; openSheet("mealnew"); },
+  mnPick:d => { const p = parseFoodLine(mnDraft.q), f = searchFoods(p.txt)[+d.i]; if (!f) return; mnDraft.pick = {f, q:p.q || (p.n && f.por ? p.n * f.por : null)}; renderLayer(); setTimeout(() => { const i = $("#mnq"); if (i) i.focus(); }, 50); },
+  mnQty:d => { if (mnDraft.pick) { mnDraft.pick.q = num(d.q); renderLayer(); } },
+  mnCancel:() => { mnDraft.pick = null; renderLayer(); },
+  mnAdd:() => { const pk = mnDraft.pick, q = pk && num(pk.q); if (!pk || !q || q <= 0 || q > 5000) return toast("Indique la quantité en grammes", true);
+    const m = macrosOf(pk.f, q); mnDraft.items.push({nom:pk.f.nom + (pk.f.marque ? " (" + pk.f.marque + ")" : ""), q, k:m.k, p:m.p, g:m.g, l:m.l}); mnDraft.pick = null; mnDraft.q = ""; renderLayer(); },
+  mnRm:d => { mnDraft.items.splice(+d.i, 1); renderLayer(); },
+  mnSave:async () => {
+    let n = (mnDraft.name || "").trim(), L = mnDraft.items;
+    if (!n) return toast("Donne un nom au repas", true); if (!L.length) return toast("Ajoute au moins un aliment", true);
+    if ((D.mesRepas || {})[n]) { let i = 2; while ((D.mesRepas || {})[n + " (" + i + ")"]) i++; n = n + " (" + i + ")"; }
+    try { await mealEnsureTab();
+      const r0 = await Store.mesRepas.add(L.map(x => [n, x.nom, "repas", "", r1(x.q), r1(x.k), r1(x.p), r1(x.g), r1(x.l)]));
+      (D.mesRepas = D.mesRepas || {})[n] = L.map((x, i) => ({id:r0 ? r0 + i : 0, nom:x.nom, q:x.q, k:x.k, p:x.p, g:x.g, l:x.l}));
+      mnDraft = null; nutTab = "meals"; saveCache(); closeSheet(); rNutri(); toast("Repas « " + n + " » créé : il est dans Mes repas");
+    } catch(e){ toast(errMsg(e), true); }
+  },
   mealTick:d => { const r = +d.r, keep = ($("#mname") || {}).value || ""; mealSel.has(r) ? mealSel.delete(r) : mealSel.add(r); renderLayer(); const i = $("#mname"); if (i) i.value = keep; },
   mealSaveGo:async () => {
     const n = (($("#mname") || {}).value || "").trim(), L = dayRows(nutDate).filter(x => mealSel && mealSel.has(x.id));
