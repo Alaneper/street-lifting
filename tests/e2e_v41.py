@@ -53,9 +53,9 @@ with sync_playwright() as p:
     check("autorégulation et décharge lues (colonnes Charge et RPE)", mar[1] == "COMP Bench|AUTOREGULATION|6" and mar[2].startswith("COMP Bench|-5,00%|DROP-CAP6"), mar)
     check("lignes de sommeil et de stress pas prises pour des exercices", pg.evaluate("S.every(s => s.exercices.every(e => !/SOMMEIL|^\\d+$/i.test(e.mouvement)))"))
     check("les numéros de ligne sont ceux de l'onglet", pg.evaluate("S[0].exercices[0].row") > 30)
-    check("aucune écriture possible vers le Sheet du coach", pg.evaluate("S.every(s => !s.cols.rpe1 && !s.cols.rpeLast && !s.cols.commentaire && !s.cols.charge && !s.recapRow)"))
+    check("seules les colonnes « faites » sont inscriptibles (jamais RPE cible, charge prescrite, commentaire, recap)", pg.evaluate("S.every(s => !s.cols.rpe1 && !s.cols.rpeLast && !s.cols.commentaire && !s.cols.charge && !s.recapRow && s.cols.repsDone === 12 && s.cols.chargesDone === 13)"), pg.evaluate("JSON.stringify(S[0].cols)"))
     wr = pg.evaluate("window.__calls.filter(x => !/^get|^batch_get/.test(x[0]) && /WEEK|BLOC 3/.test(String(x[1]||''))).length")
-    check("aucun appel d'écriture sur les onglets WEEK / BLOC", wr == 0, wr)
+    check("aucun appel d'écriture avant la validation d'une séance", wr == 0, wr)
     pg.evaluate("ACT && 0"); pg.evaluate("render()"); pg.wait_for_timeout(500)
     txt = pg.evaluate("document.body.innerText")
     check("plus de « Chargement de ta prog » qui tourne", "Chargement de ta prog" not in txt)
@@ -64,6 +64,22 @@ with sync_playwright() as p:
     # séance en direct sur la 1re séance : pas d'erreur
     key = pg.evaluate("S[0].key"); pg.evaluate("(k) => startLive(k)", key); pg.wait_for_timeout(700)
     check("séance en direct ouverte sans erreur", not errs and pg.locator(".live").count() > 0, errs[:3])
+    # v47 : valider un exercice de compétition -> reps/charges dans EFFECTUE, RPE proposé, ✓ affiché
+    pg.evaluate("window.__calls.length = 0")
+    r = pg.evaluate("""(async () => { const s = S.find(z => z.jour === 'Mardi'); live = null; startLive(s.key); const k = s.exercices.findIndex(e => /COMP Bench/i.test(e.mouvement)); live.i = k; const st = live.rows[k];
+      st.sets.forEach(x => { x.done = true; x.r = 6; x.c = 105; }); st.rpeLast = 8; st.dirty = true; render();
+      const showRpe = /RPE de la dernière série/.test(document.body.innerText);
+      const ok = await saveRow(k); return {ok, showRpe, faite:s.faite, rpe:rpeSaved(s, s.exercices[k]), row:s.exercices[k].row}; })()""")
+    check("RPE proposé sur un mouvement de compétition (modèle WEEK)", r["showRpe"], r)
+    check("séance marquée faite (✓)", r["ok"] and r["faite"], r)
+    check("RPE gardé dans le carnet", r["rpe"] == 8, r)
+    w = pg.evaluate("window.__calls.filter(x => !/^get|^batch_get/.test(x[0]))")
+    cells = [str(x) for x in w]
+    check("reps et charges écrites dans les colonnes L et M de la bonne ligne", any("!L%d" % r["row"] in x for x in cells) and any("!M%d" % r["row"] in x for x in cells), cells[:6])
+    vals = pg.evaluate("(r) => [__sheets['%s']['WEEK 1'] || [] , __sheets['%s']['WEEK 2'] || []].map(w => (w[r - 1] || []).slice(11, 13).join('|'))" % (COACH, COACH), r["row"])
+    check("valeurs écrites : reps « 2, 2, 2 »-style et charge « 105 » dans EFFECTUE", any(re.search(r"\d(, \d)*\|105", v) for v in vals), vals)
+    check("rien d'écrit dans les colonnes cibles (Reps, RPE, Charge prescrite) ni ailleurs", all(re.search(r"!(L|M)\d+", x) or "SERIES" in x for x in cells), cells[:8])
+    pg.evaluate("render()"); pg.wait_for_timeout(300)
     c.close()
     # --- B : prog illisible (aucune séance reconnue) → message clair, pas de chargement infini
     INJ2 = "<script>(()=>{const b=window.__sheets['%s']; for (const k of Object.keys(b)) delete b[k]; b['BLOC 3']=[['Athlete Info']]; b['DATA']=[['x']]; })()</script>" % COACH
