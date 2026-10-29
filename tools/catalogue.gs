@@ -1,5 +1,5 @@
 /**
- * Service « catalogue d'aliments » de Street Lifting (lecture seule, v53).
+ * Service « catalogue d'aliments » de Street Lifting.
  * À coller dans Extensions > Apps Script du Google Sheet qui contient le catalogue
  * (onglet « catalogue », colonnes de catalogue-monde-29-10.csv), puis Déployer > Application Web
  * (exécuter en tant que : moi ; accès : tout le monde). L'adresse /exec se copie dans CAT_URL (src/app.html).
@@ -8,10 +8,10 @@
  *   ?a=code&ean=3017620422003           -> {ok:true, p:{code,nom,marque,k,p,g,l,por}} ou {ok:true, p:null}
  *   ?a=q&q=nutella&l=fr&n=15           -> {ok:true, r:[{...}]}
  *   ?a=flush                           -> vide la mémoire (à faire après toute modification du Sheet)
- *   ?a=submit&dev=…&ean=…&nom=…&marque=…&k=…&p=…&g=…&l=…   -> propose un produit absent (v56, voir plus bas)
+ *   ?a=submit&dev=…&ean=…&nom=…&marque=…&k=…&p=…&g=…&l=…   -> propose un produit absent
  * Les utilisateurs n'ont jamais accès au Sheet : seul ce script le lit.
  *
- * v56 — produits proposés par les utilisateurs : onglet « proposes » (créé tout seul), colonnes
+ * Produits proposés par les utilisateurs : onglet « proposes » (créé tout seul), colonnes
  *   cle | code | nom | marque | k | p | g | l | appareils | n | statut | date
  * Un produit devient « partage » (visible par tous) quand 2 APPAREILS DIFFÉRENTS envoient des valeurs proches (±10 %).
  * Avant cela, il reste privé : seul celui qui l'a créé le voit, dans son propre Sheet.
@@ -56,7 +56,7 @@ function food_(x, lang) {
 }
 
 
-/* ---------- v56 : produits proposés ---------- */
+/* ---------- produits proposés ---------- */
 function pSheet_() {
   var ss = SpreadsheetApp.getActive(), sh = ss.getSheetByName(PTAB);
   if (!sh) { sh = ss.insertSheet(PTAB); sh.appendRow(['cle','code','nom','marque','k','p','g','l','appareils','n','statut','date']); sh.getRange('A:C').setNumberFormat('@'); }
