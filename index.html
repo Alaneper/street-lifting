@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261029143005">
+<meta name="sl-build" content="20261029145253">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -516,7 +516,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "55 · 29 oct. 2026";
+const APP_VER = "56 · 29 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -2973,7 +2973,7 @@ function nutDyn(){
   const create = nutCreate ? `<div class="panel" style="margin-top:10px"><p style="font-weight:700">Nouvel aliment (valeurs de l'étiquette, pour 100 g)</p>
       <label for="ncn">Nom</label><input id="ncn" value="${esc(parseFoodLine(nutQ).txt || "")}"><label for="ncm">Marque</label><input id="ncm">
       <div class="grid2"><div><label for="nck">Kcal</label><input id="nck" inputmode="decimal"></div><div><label for="ncp">Protéines (g)</label><input id="ncp" inputmode="decimal"></div><div><label for="ncg">Glucides (g)</label><input id="ncg" inputmode="decimal"></div><div><label for="ncl">Lipides (g)</label><input id="ncl" inputmode="decimal"></div></div>
-      <div id="ncdup"></div><button class="btn" style="margin-top:12px" data-act="nutCreateSave">Enregistrer l'aliment</button><button class="link small muted" style="margin-top:8px" data-act="nutCreate">Annuler</button></div>` : "";
+      <div id="ncdup"></div>${shareLine("ncs")}<button class="btn" style="margin-top:12px" data-act="nutCreateSave">Enregistrer l'aliment</button><button class="link small muted" style="margin-top:8px" data-act="nutCreate">Annuler</button></div>` : "";
   return `${pick}${list}
     ${nutQ && !nutPick ? `<div class="chips" style="margin-top:8px"><button class="chip" data-act="nutOff">${offBusy ? "Recherche…" : "Chercher une marque"}</button><button class="chip" data-act="nutCreate">Créer cet aliment</button></div>` : ""}
     ${off}${create}`;
@@ -3038,7 +3038,7 @@ Object.assign(ACT, {
     const dup = (D.aliments || []).find(x => deacc(x.nom) === deacc(f.nom) && deacc(x.marque) === deacc(f.marque));
     if (dup && !nutDupOk) { nutDup = dup; const el = $("#ncdup"); if (el) el.innerHTML = `<div class="card" style="margin-top:10px"><b>Tu as déjà « ${esc(dup.nom)} »${dup.marque ? " (" + esc(dup.marque) + ")" : ""}</b><span class="muted small">${fmt(dup.k, 0)} kcal · P ${fmt(dup.p, 1)} · G ${fmt(dup.g, 1)} · L ${fmt(dup.l, 1)} pour 100 g</span><button class="btn" data-act="nutDupUse">Utiliser celui-ci</button><button class="link small muted" data-act="nutDupForce">Créer quand même</button></div>`; return; }
     nutDupOk = false;
-    try { await nutEnsureTabs(); await saveFood(f); nutCreate = false; nutPick = {f, q:parseFoodLine(nutQ).q}; nutRefresh(); toast("Aliment enregistré"); } catch(e){ toast(errMsg(e), true); }
+    try { await nutEnsureTabs(); await saveFood(f); commSend(f, ($("#ncs") || {}).checked); nutCreate = false; nutPick = {f, q:parseFoodLine(nutQ).q}; nutRefresh(); toast("Aliment enregistré"); } catch(e){ toast(errMsg(e), true); }
   },
   nutDupUse:() => { if (!nutDup) return; nutPick = {f:nutDup, q:parseFoodLine(nutQ).q}; nutDup = null; nutCreate = false; nutRefresh(); },
   nutDupForce:() => { nutDupOk = true; ACT.nutCreateSave(); }
@@ -3297,10 +3297,34 @@ async function catCall(qs){
 function catFood(x){
   const f = {src:"off", via:"cat", code:String(x.code || ""), nom:String(x.nom || "").trim(), marque:String(x.marque || "").trim(), k:num(x.k), p:num(x.p), g:num(x.g), l:num(x.l)};
   if (x.por) f.por = x.por;
+  if (x.comm) f.comm = 1;
   f.incomplete = !f.nom || f.k === null || f.p === null || f.g === null || f.l === null;
   if (!f.incomplete) f.check = foodCheck(f);
   return f;
 }
+/* v56 — produits proposés par les utilisateurs : envoyés au catalogue partagé (jamais de donnée personnelle : un identifiant d'appareil aléatoire seulement).
+   Un produit n'est visible par tous qu'après confirmation par un 2e appareil. Hors ligne : mis en file d'attente et renvoyé plus tard. */
+const devId = () => { let d = store.get("sl4-dev"); if (!d || !/^[A-Za-z0-9]{8,40}$/.test(d)) { d = Array.from({length:20}, () => "abcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(Math.random() * 36)]).join(""); store.set("sl4-dev", d); } return d; };
+let commBusy = false;
+async function commFlush(){
+  if (commBusy || !CAT_URL || navigator.onLine === false) return; const Q = store.get("sl4-subq") || []; if (!Q.length) return; commBusy = true;
+  try {
+    const rest = [];
+    for (let i = 0; i < Q.length; i++) {
+      let j = null; try { j = await (await fetch(CAT_URL + "?a=submit&dev=" + devId() + "&" + Q[i])).json(); } catch(e){}
+      if (!j) { rest.push(...Q.slice(i)); break; }   // réseau/service indisponible : on garde pour plus tard ; une réponse (même un refus) sort le produit de la file
+    }
+    store.set("sl4-subq", rest.slice(-30));
+  } finally { commBusy = false; }
+}
+function commSend(f, want){
+  if (!CAT_URL || want === false || foodCheck(f) || !f.nom || f.k === null || f.k === undefined) return;
+  const ean = f.code && /^\d{6,14}$/.test(String(f.code)) ? f.code : "", e = encodeURIComponent;
+  const x = "ean=" + e(ean) + "&nom=" + e(f.nom) + "&marque=" + e(f.marque || "") + "&k=" + r1(f.k) + "&p=" + r1(f.p || 0) + "&g=" + r1(f.g || 0) + "&l=" + r1(f.l || 0);
+  const Q = store.get("sl4-subq") || []; Q.push(x); store.set("sl4-subq", Q.slice(-30)); commFlush();
+}
+window.addEventListener("online", () => commFlush()); setTimeout(() => commFlush(), 5000);
+const shareLine = id => `<label class="muted tiny" style="display:flex;gap:8px;align-items:flex-start;margin-top:10px"><input type="checkbox" id="${id}" checked style="margin-top:2px"><span>Partager ce produit avec les autres utilisateurs (sans aucune donnée personnelle). Il ne devient visible pour tous qu'après confirmation par un autre utilisateur.</span></label>`;
 async function catByCode(code){ const j = await catCall("a=code&ean=" + encodeURIComponent(code)); return j && j.p ? catFood(j.p) : null; }
 async function catSearch(q){ const j = await catCall("a=q&n=15&q=" + encodeURIComponent(q)); return j && Array.isArray(j.r) ? j.r.map(catFood).filter(f => !f.incomplete) : []; }
 function loadZX(){ if (window.ZXing) return Promise.resolve(); return scanZXp || (scanZXp = new Promise((ok, ko) => { const el = document.createElement("script"); el.src = "zxing.min.js"; el.onload = ok; el.onerror = () => { scanZXp = null; ko(new Error("zx")); }; document.head.appendChild(el); })); }
@@ -3318,7 +3342,7 @@ function scanPanel(state, extra){
   const el = document.getElementById("scanpanel"); if (!el) return; scanSt = (state === "none" || state === "manual") ? "cam" : state;
   const code = scanCode, btnRe = `<button class="scanbtn2" data-act="scanRetry">Scanner un autre code</button>`;
   const fld = (id, lab, v = "", mode = "") => `<div><label for="${id}" style="font-size:13px">${lab}</label><input id="${id}" ${mode ? `inputmode="${mode}"` : ""} value="${esc(v ?? "")}" autocomplete="off"></div>`;
-  const form = f => `${fld("scn", "Nom du produit", f.nom)}${fld("scm", "Marque", f.marque)}${fld("sck", "Kcal pour 100 g", f.k ?? "", "decimal")}<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">${fld("scp", "Prot. (g)", f.p ?? "", "decimal")}${fld("scg", "Gluc. (g)", f.g ?? "", "decimal")}${fld("scl", "Lip. (g)", f.l ?? "", "decimal")}</div><button class="btn" data-act="scanCreate">Enregistrer le produit</button>`;
+  const form = f => `${fld("scn", "Nom du produit", f.nom)}${fld("scm", "Marque", f.marque)}${fld("sck", "Kcal pour 100 g", f.k ?? "", "decimal")}<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">${fld("scp", "Prot. (g)", f.p ?? "", "decimal")}${fld("scg", "Gluc. (g)", f.g ?? "", "decimal")}${fld("scl", "Lip. (g)", f.l ?? "", "decimal")}</div>${shareLine("scs")}<button class="btn" data-act="scanCreate">Enregistrer le produit</button>`;
   const man = `<div class="card"><label for="scman" style="font-size:13px">Numéro sous le code-barres</label><input id="scman" inputmode="numeric" autocomplete="off" placeholder="13 chiffres" maxlength="14"><button class="btn" data-act="scanGo">Chercher</button></div>`;
   let h = "";
   if (state === "none") h = `<button class="scanbtn2" data-act="scanManual">Saisir le numéro à la main</button>`;
@@ -3415,7 +3439,7 @@ Object.assign(ACT, {
     const f = {src:"perso", code:scanCode, nom:(($("#scn") || {}).value || "").trim(), marque:(($("#scm") || {}).value || "").trim(), k:num(($("#sck") || {}).value), p:num(($("#scp") || {}).value) || 0, g:num(($("#scg") || {}).value) || 0, l:num(($("#scl") || {}).value) || 0};
     if (!f.nom || f.k === null) return toast("Nom et kcal obligatoires", true);
     f.check = foodCheck(f);
-    try { await nutEnsureTabs(); await saveFood(f); scanFound(f); toast("Produit enregistré"); } catch(e){ toast(errMsg(e), true); }
+    try { await nutEnsureTabs(); await saveFood(f); commSend(f, ($("#scs") || {}).checked); scanFound(f); toast("Produit enregistré"); } catch(e){ toast(errMsg(e), true); }
   }
 });
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && sheet === "scan") ACT.scanClose(); });
