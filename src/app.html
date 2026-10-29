@@ -492,7 +492,7 @@ html,body{overflow-x:clip}body{margin-top:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "52 · 28 oct. 2026";
+const APP_VER = "53 · 29 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -2999,6 +2999,7 @@ Object.assign(ACT, {
   nutDel:async d => { const r = +d.r; if (!r) return; try { await Store.repas.remove(r); D.repas = D.repas.filter(x => x.id !== r); saveCache(); rNutri(); } catch(e){ toast(errMsg(e), true); } },
   nutOff:async d => {
     const q = parseFoodLine(nutQ).txt; if (!q || offBusy) return; offBusy = true; nutRefresh();
+    const catP = CAT_URL ? catSearch(q) : Promise.resolve([]);
     try {
       /* Recherche plein texte « Search-a-licious » (recommandée par Open Food Facts), sinon l'ancienne API */
       const F = "code,product_name,product_name_fr,brands,nutriments";
@@ -3008,7 +3009,10 @@ Object.assign(ACT, {
       /* v51 : fiches incomplètes écartées ; fiches aux valeurs incohérentes (kcal ≠ macros) passées en dernier et marquées « à vérifier » */
       const fl = list.map(p => offToFood(p, p.code)).filter(f => !f.incomplete);
       offRes = fl.filter(f => !f.check).concat(fl.filter(f => f.check));
-    } catch(e){ if (!(d && d.auto)) toast(navigator.onLine ? "Recherche de marque impossible pour le moment" : "Pas de réseau : seuls les aliments de la liste et ceux que tu as déjà utilisés sont disponibles", true); offRes = null; }
+    } catch(e){ offRes = null; if (!(d && d.auto) && !(await catP).length) toast(navigator.onLine ? "Recherche de marque impossible pour le moment" : "Pas de réseau : seuls les aliments de la liste et ceux que tu as déjà utilisés sont disponibles", true); }
+    /* v53 : le catalogue passe en premier (fiches contrôlées et dédoublonnées), puis Open Food Facts sans doublon */
+    const cl = await catP;
+    if (cl.length) { const key = f => f.code + "|" + (f.nom + f.marque).toLowerCase(), seen = new Set(cl.map(key)), codes = new Set(cl.map(f => f.code)); offRes = cl.filter(f => !f.check).concat((offRes || []).filter(f => !codes.has(f.code) && !seen.has(key(f)) && !f.check), cl.filter(f => f.check), (offRes || []).filter(f => !codes.has(f.code) && f.check)); }
     offBusy = false; nutRefresh();
   },
   nutCreateSave:async () => {
@@ -3260,6 +3264,23 @@ async function offProduct(code){
   return null;
 }
 const localFood = code => (D.aliments || []).find(a => codeEq(a.code, code)) || null;
+/* v53 — Catalogue d'aliments du monde (Google Sheet lu par un Apps Script, lecture seule). Adresse vide = désactivé : l'app marche alors comme avant. */
+let CAT_URL = "";
+async function catCall(qs){
+  if (!CAT_URL || navigator.onLine === false) return null;
+  const ac = typeof AbortController === "function" ? new AbortController() : null, tm = ac ? setTimeout(() => ac.abort(), 8000) : 0;
+  try { const j = await (await fetch(CAT_URL + "?" + qs + "&l=fr", ac ? {signal:ac.signal} : {})).json(); return j && j.ok ? j : null; }
+  catch(e){ return null; } finally { clearTimeout(tm); }
+}
+function catFood(x){
+  const f = {src:"off", via:"cat", code:String(x.code || ""), nom:String(x.nom || "").trim(), marque:String(x.marque || "").trim(), k:num(x.k), p:num(x.p), g:num(x.g), l:num(x.l)};
+  if (x.por) f.por = x.por;
+  f.incomplete = !f.nom || f.k === null || f.p === null || f.g === null || f.l === null;
+  if (!f.incomplete) f.check = foodCheck(f);
+  return f;
+}
+async function catByCode(code){ const j = await catCall("a=code&c=" + encodeURIComponent(code)); return j && j.p ? catFood(j.p) : null; }
+async function catSearch(q){ const j = await catCall("a=q&n=15&q=" + encodeURIComponent(q)); return j && Array.isArray(j.r) ? j.r.map(catFood).filter(f => !f.incomplete) : []; }
 function loadZX(){ if (window.ZXing) return Promise.resolve(); return scanZXp || (scanZXp = new Promise((ok, ko) => { const el = document.createElement("script"); el.src = "zxing.min.js"; el.onload = ok; el.onerror = () => { scanZXp = null; ko(new Error("zx")); }; document.head.appendChild(el); })); }
 function zxReader(){ const Z = window.ZXing, h = new Map(); h.set(Z.DecodeHintType.POSSIBLE_FORMATS, [Z.BarcodeFormat.EAN_13, Z.BarcodeFormat.EAN_8, Z.BarcodeFormat.UPC_A]); h.set(Z.DecodeHintType.TRY_HARDER, true); const r = new Z.MultiFormatReader(); r.setHints(h); return r; }
 function decodeCanvas(cv){
@@ -3322,6 +3343,7 @@ async function onScanCode(code){
   scanPanel("busy");
   let f = null, off = false;
   if (navigator.onLine) { try { f = await offProduct(code); off = true; } catch(e){ f = null; } }
+  if ((!f || f.incomplete) && CAT_URL) { const c = await catByCode(code); if (c && !c.incomplete) { f = c; off = true; } }
   if (f && f.incomplete) return scanPanel("incomplete", f);
   if (!f) f = localFood(code);
   if (f) return scanFound(f);
