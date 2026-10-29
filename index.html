@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261029122804">
+<meta name="sl-build" content="20261029123246">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -516,7 +516,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "53 · 29 oct. 2026";
+const APP_VER = "54 · 29 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -3280,7 +3280,7 @@ async function offProduct(code){
 }
 const localFood = code => (D.aliments || []).find(a => codeEq(a.code, code)) || null;
 /* v53 — Catalogue d'aliments du monde (Google Sheet lu par un Apps Script, lecture seule). Adresse vide = désactivé : l'app marche alors comme avant. */
-let CAT_URL = "";
+let CAT_URL = "https://script.google.com/macros/s/AKfycbwDd-s6DG5cXzSQ7R1g1N18jNAymdNC9HqMq_vgF-jOdf5ie5moUkStVqH3FAWSO6sKkg/exec";
 async function catCall(qs){
   if (!CAT_URL || navigator.onLine === false) return null;
   const ac = typeof AbortController === "function" ? new AbortController() : null, tm = ac ? setTimeout(() => ac.abort(), 8000) : 0;

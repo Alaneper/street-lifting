@@ -24,7 +24,8 @@ with sync_playwright() as p:
         if (/openfoodfacts\\.org\\/api/.test(u)) return new Response(JSON.stringify({status:0}), {status:404});
         if (/search\\.openfoodfacts\\.org|cgi\\/search/.test(u)) return new Response(JSON.stringify({hits:[{code:'111', product_name:'Skyr test', brands:'Ferme', nutriments:{'energy-kcal_100g':57, proteins_100g:9.5, carbohydrates_100g:3.6, fat_100g:0.5}}, {code:'444', product_name:'Skyr OFF seul', brands:'Y', nutriments:{'energy-kcal_100g':60, proteins_100g:10, carbohydrates_100g:4, fat_100g:0.2}}]}));
         return of(u, o); }; }""", ONLYCAT)
-    check("désactivé par défaut (CAT_URL vide)", pg.evaluate("CAT_URL") == "", "")
+    check("adresse du catalogue renseignée dans l'app", pg.evaluate("CAT_URL").startswith("https://script.google.com/macros/s/"), "")
+    pg.evaluate("CAT_URL = ''")
     pg.evaluate("ACT.scanOpen({c:'nutri'})"); pg.wait_for_timeout(500)
     pg.evaluate("(c) => { ACT.scanManual(); document.getElementById('scman').value = c; ACT.scanGo(); }", ONLYCAT); pg.wait_for_timeout(1200)
     check("sans catalogue : code absent d'OFF => « Produit introuvable »", "Produit introuvable" in pg.evaluate("document.getElementById('scanpanel') ? document.getElementById('scanpanel').innerText : ''"), "")
