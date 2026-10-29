@@ -3279,7 +3279,7 @@ function catFood(x){
   if (!f.incomplete) f.check = foodCheck(f);
   return f;
 }
-async function catByCode(code){ const j = await catCall("a=code&c=" + encodeURIComponent(code)); return j && j.p ? catFood(j.p) : null; }
+async function catByCode(code){ const j = await catCall("a=code&ean=" + encodeURIComponent(code)); return j && j.p ? catFood(j.p) : null; }
 async function catSearch(q){ const j = await catCall("a=q&n=15&q=" + encodeURIComponent(q)); return j && Array.isArray(j.r) ? j.r.map(catFood).filter(f => !f.incomplete) : []; }
 function loadZX(){ if (window.ZXing) return Promise.resolve(); return scanZXp || (scanZXp = new Promise((ok, ko) => { const el = document.createElement("script"); el.src = "zxing.min.js"; el.onload = ok; el.onerror = () => { scanZXp = null; ko(new Error("zx")); }; document.head.appendChild(el); })); }
 function zxReader(){ const Z = window.ZXing, h = new Map(); h.set(Z.DecodeHintType.POSSIBLE_FORMATS, [Z.BarcodeFormat.EAN_13, Z.BarcodeFormat.EAN_8, Z.BarcodeFormat.UPC_A]); h.set(Z.DecodeHintType.TRY_HARDER, true); const r = new Z.MultiFormatReader(); r.setHints(h); return r; }

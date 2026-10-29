@@ -19,7 +19,7 @@ with sync_playwright() as p:
       window.fetch = async (u, o) => { u = String(u);
         if (u.includes('cat.local')) { window.__cat.hits.push(u); if (window.__cat.down) throw new TypeError('Failed to fetch');
           const q = new URL(u).searchParams, J = b => new Response(JSON.stringify(b));
-          if (q.get('a') === 'code') return J({ok:true, p: q.get('c') === code ? {code, nom:'Barre test catalogue', marque:'Marque C', k:380, p:30, g:35, l:12, por:45} : null});
+          if (q.get('a') === 'code') return J({ok:true, p: q.get('ean') === code ? {code, nom:'Barre test catalogue', marque:'Marque C', k:380, p:30, g:35, l:12, por:45} : null});
           if (q.get('a') === 'q') return J({ok:true, r:[{code:'111', nom:'Skyr test', marque:'Ferme', k:57, p:9.5, g:3.6, l:0.5}, {code:'222', nom:'Incohérent test', marque:'X', k:900, p:1, g:1, l:1}, {code:'333', nom:'Vide', marque:'', k:null, p:null, g:null, l:null}]}); }
         if (/openfoodfacts\\.org\\/api/.test(u)) return new Response(JSON.stringify({status:0}), {status:404});
         if (/search\\.openfoodfacts\\.org|cgi\\/search/.test(u)) return new Response(JSON.stringify({hits:[{code:'111', product_name:'Skyr test', brands:'Ferme', nutriments:{'energy-kcal_100g':57, proteins_100g:9.5, carbohydrates_100g:3.6, fat_100g:0.5}}, {code:'444', product_name:'Skyr OFF seul', brands:'Y', nutriments:{'energy-kcal_100g':60, proteins_100g:10, carbohydrates_100g:4, fat_100g:0.2}}]}));

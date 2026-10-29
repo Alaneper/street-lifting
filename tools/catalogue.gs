@@ -5,8 +5,9 @@
  * (exécuter en tant que : moi ; accès : tout le monde). L'adresse /exec se copie dans CAT_URL (src/app.html).
  *
  * Appels (GET) :
- *   ?a=code&c=3017620422003            -> {ok:true, p:{code,nom,marque,k,p,g,l,por}} ou {ok:true, p:null}
+ *   ?a=code&ean=3017620422003           -> {ok:true, p:{code,nom,marque,k,p,g,l,por}} ou {ok:true, p:null}
  *   ?a=q&q=nutella&l=fr&n=15           -> {ok:true, r:[{...}]}
+ *   ?a=flush                           -> vide la mémoire (à faire après toute modification du Sheet)
  * Les utilisateurs n'ont jamais accès au Sheet : seul ce script le lit.
  */
 var TAB = 'catalogue';
@@ -50,9 +51,11 @@ function reply_(o) { return ContentService.createTextOutput(JSON.stringify(o)).s
 
 function doGet(e) {
   try {
-    var a = (e.parameter.a || ''), lang = (e.parameter.l || 'fr').slice(0, 5), idx = index_();
+    var a = (e.parameter.a || '');
+    if (a === 'flush') { CacheService.getScriptCache().remove('idx_n'); return reply_({ok:true, flushed:true}); }   // à appeler après toute modification du Sheet
+    var lang = (e.parameter.l || 'fr').slice(0, 5), idx = index_();
     if (a === 'code') {
-      var c = String(e.parameter.c || '').replace(/\D/g, '').replace(/^0+/, '');
+      var c = String(e.parameter.ean || '').replace(/\D/g, '').replace(/^0+/, '');
       if (!c) return reply_({ok:false});
       for (var i = 0; i < idx.length; i++) {
         var x = idx[i];

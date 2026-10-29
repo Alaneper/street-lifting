@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261029110238">
+<meta name="sl-build" content="20261029122804">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -3294,7 +3294,7 @@ function catFood(x){
   if (!f.incomplete) f.check = foodCheck(f);
   return f;
 }
-async function catByCode(code){ const j = await catCall("a=code&c=" + encodeURIComponent(code)); return j && j.p ? catFood(j.p) : null; }
+async function catByCode(code){ const j = await catCall("a=code&ean=" + encodeURIComponent(code)); return j && j.p ? catFood(j.p) : null; }
 async function catSearch(q){ const j = await catCall("a=q&n=15&q=" + encodeURIComponent(q)); return j && Array.isArray(j.r) ? j.r.map(catFood).filter(f => !f.incomplete) : []; }
 function loadZX(){ if (window.ZXing) return Promise.resolve(); return scanZXp || (scanZXp = new Promise((ok, ko) => { const el = document.createElement("script"); el.src = "zxing.min.js"; el.onload = ok; el.onerror = () => { scanZXp = null; ko(new Error("zx")); }; document.head.appendChild(el); })); }
 function zxReader(){ const Z = window.ZXing, h = new Map(); h.set(Z.DecodeHintType.POSSIBLE_FORMATS, [Z.BarcodeFormat.EAN_13, Z.BarcodeFormat.EAN_8, Z.BarcodeFormat.UPC_A]); h.set(Z.DecodeHintType.TRY_HARDER, true); const r = new Z.MultiFormatReader(); r.setHints(h); return r; }
