@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261029142340">
+<meta name="sl-build" content="20261029143005">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -2864,7 +2864,8 @@ const STAPLES = ["pomme de terre","poulet","pates seches","riz blanc","oeuf","pa
 const persoFoods = () => (D.aliments || []).map(a => ({...a, n:deacc(a.nom + " " + (a.marque || ""))}));
 /* Recherche : chaque mot tapé doit commencer un mot du nom ; le 1er mot du nom, les noms courts et les aliments courants (portion INCA3 connue) passent devant. */
 /* mots courants absents des noms de la table Ciqual */
-const FOOD_SYN = [[/\bviandes? hachees?\b/g, "boeuf steak hache"], [/\bhache(e|es|s)\b/g, "hache"], [/\b(blanc|filet|escalope)s? de poulet\b/g, "poulet filet"],
+const FOOD_SYN = [[/\bpaves? de (saumon|cabillaud|thon|colin|merlu|truite)\b/g, "$1"], [/\bcreme fraiche\b/g, "creme epaisse rayon frais"], [/\bpain gris\b/g, "pain bis"], [/\bpistolets?\b/g, "pain blanc"],
+  [/\bchampignons?\b(?! (de paris|cepes?|morilles?|shiitake|girolles?))/g, "champignon de paris"], [/\bviandes? hachees?\b/g, "boeuf steak hache"], [/\bhache(e|es|s)\b/g, "hache"], [/\b(blanc|filet|escalope)s? de poulet\b/g, "poulet filet"],
   [/\b(blanc|filet|escalope)s? de dinde\b/g, "dinde filet"], [/\bspaghettis?\b/g, "pates"], [/\bpatates?\b(?! douces?\b)/g, "pomme de terre"],
   /* v52 : mots courants → nom Ciqual (chaque correspondance vérifiée dans la table) */
   [/\bthon (en boite|naturel|au naturel)\b/g, "thon naturel appertise"], [/^pop ?corn$/g, "pop corn"], [/^corn ?flakes$/g, "petales mais nature"],
@@ -2881,7 +2882,7 @@ function searchFoods(q, max){
     for (const x of t) { const sx = stem(x), i = w.findIndex(y => y.startsWith(x) || y.startsWith(sx)); if (i < 0) { ok = false; break; } sc += i === 0 ? 30 : i < 3 ? 12 : 4; if (w[i] === x) sc += 6; else if (stem(w[i]) === sx) sc += 2; }
     if (!ok) continue;
     sc -= f.n.length / 6; if (f.por) sc += 8;
-    for (const [st, b] of STAPLES) if (f.n.startsWith(st)) { sc += b * (t.join(" ").length <= 3 ? 4 : .4); break; } if (f.src !== "ciqual") sc += 25; if (/prelev|martinique|guadeloupe|reunion|guyane|mayotte/.test(f.n)) sc -= 20;
+    for (const [st, b] of STAPLES) if (f.n.startsWith(st)) { sc += b * (t.join(" ").length <= 3 ? 4 : .4); break; } if (f.src !== "ciqual") sc += 25; if (/prelev|martinique|guadeloupe|reunion|guyane|mayotte/.test(f.n)) sc -= 20; if (/\b(puree|a la grecque|nectar|confiture|compote|deshydrate|sechee)\b/.test(f.n) && !/\b(puree|grecque|nectar|confiture|compote|deshydrate|sechee|seche)\b/.test(qq)) sc -= 18;
     out.push([sc, f]);
   }
   return out.sort((a, b) => b[0] - a[0]).slice(0, max || 8).map(x => x[1]);
