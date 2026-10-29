@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261029123246">
+<meta name="sl-build" content="20261029142340">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -516,7 +516,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "54 · 29 oct. 2026";
+const APP_VER = "55 · 29 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -2848,7 +2848,7 @@ const CHG = {
    ALIMENTATION : table Ciqual 2025 (Anses) + Open Food Facts pour les marques
    Carnet : onglet REPAS (une ligne par aliment pesé) et ALIMENTS (aliments de marque ou créés).
    ===================================================================== */
-let corpsTab = "nutri", nutDate = null, FOODS = null, foodsLoading = null, nutQ = "", nutSlot = null, nutTab = null, nutPick = null, offRes = null, offBusy = false, nutCreate = false;
+let corpsTab = "nutri", nutDate = null, FOODS = null, foodsLoading = null, nutQ = "", nutSlot = null, nutTab = null, nutPick = null, offRes = null, offBusy = false, nutCreate = false, nutDup = null, nutDupOk = false;
 const NUT_ACT = [[1.375, "Peu actif (1 à 3 séances)"], [1.55, "Actif (4 à 5 séances)"], [1.725, "Très actif (6+ séances ou travail physique)"]];
 const NUT_OBJ = [["suivi", "Juste suivre ce que je mange"], ["maintien", "Garder mon poids"], ["perte", "Perdre du poids"], ["prise", "Prendre du poids"], ["compet", "Faire le poids pour une compétition"]];
 const deacc = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/œ/g, "oe").replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
@@ -2972,7 +2972,7 @@ function nutDyn(){
   const create = nutCreate ? `<div class="panel" style="margin-top:10px"><p style="font-weight:700">Nouvel aliment (valeurs de l'étiquette, pour 100 g)</p>
       <label for="ncn">Nom</label><input id="ncn" value="${esc(parseFoodLine(nutQ).txt || "")}"><label for="ncm">Marque</label><input id="ncm">
       <div class="grid2"><div><label for="nck">Kcal</label><input id="nck" inputmode="decimal"></div><div><label for="ncp">Protéines (g)</label><input id="ncp" inputmode="decimal"></div><div><label for="ncg">Glucides (g)</label><input id="ncg" inputmode="decimal"></div><div><label for="ncl">Lipides (g)</label><input id="ncl" inputmode="decimal"></div></div>
-      <button class="btn" style="margin-top:12px" data-act="nutCreateSave">Enregistrer l'aliment</button><button class="link small muted" style="margin-top:8px" data-act="nutCreate">Annuler</button></div>` : "";
+      <div id="ncdup"></div><button class="btn" style="margin-top:12px" data-act="nutCreateSave">Enregistrer l'aliment</button><button class="link small muted" style="margin-top:8px" data-act="nutCreate">Annuler</button></div>` : "";
   return `${pick}${list}
     ${nutQ && !nutPick ? `<div class="chips" style="margin-top:8px"><button class="chip" data-act="nutOff">${offBusy ? "Recherche…" : "Chercher une marque"}</button><button class="chip" data-act="nutCreate">Créer cet aliment</button></div>` : ""}
     ${off}${create}`;
@@ -3003,7 +3003,7 @@ Object.assign(ACT, {
   nutPickOff:d => { const f = offRes && offRes[+d.i]; if (!f) return; const p = parseFoodLine(nutQ); nutPick = {f, q:p.q, n:p.n, off:true}; nutRefresh(); },
   nutQty:d => { if (nutPick) { nutPick.q = num(d.q); nutRefresh(); } },
   nutCancel:() => { nutPick = null; nutRefresh(); },
-  nutCreate:() => { nutCreate = !nutCreate; offRes = null; nutRefresh(); },
+  nutCreate:() => { nutCreate = !nutCreate; nutDup = null; nutDupOk = false; offRes = null; nutRefresh(); },
   nutAdd:async () => {
     const q = num($("#nq") && $("#nq").value); if (!q || q <= 0 || q > 5000) return toast("Indique la quantité pesée en grammes", true);
     const f = nutPick.f, h = nutHM();
@@ -3033,8 +3033,14 @@ Object.assign(ACT, {
   nutCreateSave:async () => {
     const f = {src:"perso", code:"p" + Date.now().toString(36), nom:$("#ncn").value.trim(), marque:$("#ncm").value.trim(), k:num($("#nck").value), p:num($("#ncp").value) || 0, g:num($("#ncg").value) || 0, l:num($("#ncl").value) || 0};
     if (!f.nom || f.k === null) return toast("Nom et kcal obligatoires", true);
+    /* v55 : même nom et même marque déjà dans « mes aliments » => on propose celui-ci avant d'en créer un second */
+    const dup = (D.aliments || []).find(x => deacc(x.nom) === deacc(f.nom) && deacc(x.marque) === deacc(f.marque));
+    if (dup && !nutDupOk) { nutDup = dup; const el = $("#ncdup"); if (el) el.innerHTML = `<div class="card" style="margin-top:10px"><b>Tu as déjà « ${esc(dup.nom)} »${dup.marque ? " (" + esc(dup.marque) + ")" : ""}</b><span class="muted small">${fmt(dup.k, 0)} kcal · P ${fmt(dup.p, 1)} · G ${fmt(dup.g, 1)} · L ${fmt(dup.l, 1)} pour 100 g</span><button class="btn" data-act="nutDupUse">Utiliser celui-ci</button><button class="link small muted" data-act="nutDupForce">Créer quand même</button></div>`; return; }
+    nutDupOk = false;
     try { await nutEnsureTabs(); await saveFood(f); nutCreate = false; nutPick = {f, q:parseFoodLine(nutQ).q}; nutRefresh(); toast("Aliment enregistré"); } catch(e){ toast(errMsg(e), true); }
-  }
+  },
+  nutDupUse:() => { if (!nutDup) return; nutPick = {f:nutDup, q:parseFoodLine(nutQ).q}; nutDup = null; nutCreate = false; nutRefresh(); },
+  nutDupForce:() => { nutDupOk = true; ACT.nutCreateSave(); }
 });
 const r1 = x => Math.round(x * 10) / 10;
 async function saveFood(f){
