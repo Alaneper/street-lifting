@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261030113100">
+<meta name="sl-build" content="20261030115333">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -516,7 +516,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "58 · 30 oct. 2026";
+const APP_VER = "59 · 30 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -673,18 +673,21 @@ function toIso(v){
 }
 function colL(n){ let s = ""; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; }
 const q = name => "'" + String(name).replace(/'/g, "''") + "'";
-/* Reps notées : "8,8,9" · "12,10,9," · "8@42, 9@44" → [{r, c}] */
-function parseSets(s, defC){
+/* Reps notées : "8,8,9" · "12,10,9," · "8@42, 9@44" → [{r, c}]
+   carnet = true pour la colonne G de SERIES (ce que l'app écrit) : durées en secondes jusqu'à 99 999 (un gainage de 4 min = 240) et charge négative après @ (machine d'assistance, « 8@-20 »).
+   Sans carnet (commentaires de la prog), les limites strictes restent : au-delà de 199, c'est sans doute une charge, pas des reps. */
+function parseSets(s, defC, carnet){
   const t = String(s ?? "").trim(); if (!t) return null;
   const sx = t.match(/^(\d{1,2})\s*\*\s*(\d{1,3})$/); if (sx) return Array(+sx[1]).fill(0).map(() => ({r:+sx[2], c:defC}));
-  if (!/^[\d\s.,;/x+@]+$/i.test(t)) return null;
-  const parts = t.split(/[;,/+]|\s{2,}/).map(x => x.trim()).filter(Boolean), out = [];
+  if (!(carnet ? /^[\d\s.,;/x+@\-]+$/i : /^[\d\s.,;/x+@]+$/i).test(t)) return null;
+  const parts = t.split(/[;,/+]|\s{2,}/).map(x => x.trim()).filter(Boolean), out = [], R = carnet ? "\\d{1,5}" : "\\d{1,3}";
+  const re = new RegExp("^(" + R + ")\\s*(?:[@x]\\s*(" + (carnet ? "-?" : "") + "\\d+(?:[.,]\\d+)?))?$", "i"), one = new RegExp("^" + R + "$");
   for (const p of parts) {
-    const m = p.match(/^(\d{1,3})\s*(?:[@x]\s*(\d+(?:[.,]\d+)?))?$/i);
-    if (!m) { const sp = p.split(/\s+/).filter(Boolean); if (sp.every(z => /^\d{1,3}$/.test(z))) { sp.forEach(z => out.push({r:+z, c:defC})); continue; } return null; }
+    const m = p.match(re);
+    if (!m) { const sp = p.split(/\s+/).filter(Boolean); if (sp.every(z => one.test(z))) { sp.forEach(z => out.push({r:+z, c:defC})); continue; } return null; }
     out.push({r:+m[1], c: m[2] ? num(m[2]) : defC});
   }
-  return out.length && out.every(x => x.r > 0 && x.r < 200) ? out : null;
+  return out.length && out.every(x => x.r > 0 && x.r < (carnet ? 100000 : 200)) ? out : null;
 }
 /* Séries notées dans la prog, vérifiées contre la prescription.
    « 85,90,95 » sur un 3×5 à 95 kg = des charges, pas des reps : on le relit comme 3 séries de 5. */
@@ -884,7 +887,7 @@ const Store = (() => {
       const comps = CO.map((r, i) => ({id:i + 1, date:toIso(r[0]), nom:String(r[1] || "").trim(), lieu:String(r[2] || "").trim(), note:String(r[3] || "").trim(), tbc:/confirmer/i.test(r[4] || "")}))
         .slice(1).filter(c => c.date && c.nom).sort((a, b) => a.date < b.date ? -1 : 1);
       const seRow = (r, i) => ({id:i + 1, date:toIso(r[0]), bloc:num(r[1]), semaine:String(r[2] ?? "").trim(), seance:String(r[3] ?? "").trim(), ex:norm(r[4]).replace(/ ·$/, ""), charge:num(r[5]), note:String(r[8] || ""), src:String(r[7] || "")});
-      const series = SE.map((r, i) => ({...seRow(r, i), sets:parseSets(r[6], num(r[5]))})).slice(1).filter(x => x.ex && x.sets);
+      const series = SE.map((r, i) => ({...seRow(r, i), sets:parseSets(r[6], num(r[5]), true)})).slice(1).filter(x => x.ex && x.sets);
       /* v40 : le cardio (minutes, km) vit dans SERIES mais dans une liste à part : il n'entre jamais dans les records, le 1RM ni le tonnage */
       const cardio = SE.map((r, i) => ({...seRow(r, i), sets:parseCardio(r[6])})).slice(1).filter(x => x.ex && x.sets);
       const blocs = {}; BL.slice(1).forEach(r => { const n = num(r[0]), d = toIso(r[1]); if (n && d) blocs[n] = d; });
@@ -1402,7 +1405,7 @@ function exercisePoints(){
     const s = S.find(z => z.bloc === x.bloc && z.semaine === x.semaine && z.seance === x.seance && (!x.date || !dateOf(z) || Math.abs(days(x.date, dateOf(z))) <= 14));
     const xe = s && s.exercices.find(z => "L" + z.row === x.note), xl = liftOf(x.ex.split(" · ")[0]);
     if (xe && ASSIST_RE.test(String(xe.charge))) continue;
-    if (xe ? isTimedEx(xe) : TIMED_RE.test(norm(x.ex))) continue;   /* v46 : un temps n'est pas un 1RM ni un tonnage */
+    if (isTimedEx(xe || {mouvement:x.ex.split(" · ")[0], variation:x.ex.split(" · ").slice(1).join(" · "), reps:""})) continue;   /* v46 : un temps n'est pas un 1RM ni un tonnage (v59 : choix « Temps » compris, même sans ligne de prog) */
     /* séance notée dans l'app : RPE de la 1re série (et de la dernière) repris de la ligne de la prog */
     let xs = x.sets; if (xe && xs && xs.length) { const r1 = num(xe.rpe1), rl = num(xe.rpeLast), okR = v => v && v >= 5 && v <= 10;
       xs = xs.map((y, i) => i === 0 && okR(r1) ? {...y, rpe:r1} : i === xs.length - 1 && i > 0 && okR(rl) ? {...y, rpe:rl} : y); }
@@ -2115,6 +2118,10 @@ async function saveRow(k){
   try {
     if (done.length) {
       const sameC = done.every(x => x.c === done[0].c), setsTxt = sameC ? done.map(x => x.r).join(", ") : done.map(x => x.r + "@" + String(x.c)).join(", ");
+      /* garde-fou : ce qui part dans le carnet doit se relire à l'identique (série par série), sinon on n'écrit rien et on le dit */
+      const back = parseSets(setsTxt, Math.max(...done.map(x => x.c)), true);
+      if (!back || back.length !== done.length || back.some((y, i) => y.r !== done[i].r || Math.abs(y.c - done[i].c) > 1e-9)) {
+        toast("Ces séries n'ont pas pu être enregistrées telles quelles (valeur inattendue). Vérifie les chiffres puis revalide.", true); return false; }
       const rpW = s.week && st.rpeLast !== null && st.rpeLast !== undefined ? st.rpeLast : null;
       const row = [D.today, s.bloc, s.semaine, s.seance, key, Math.max(...done.map(x => x.c)), setsTxt, "app" + (rpW !== null ? " · RPE " + String(rpW).replace(".", ",") : ""), "L" + e.row];
       const ex = D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
@@ -2376,7 +2383,7 @@ function rExPage(key){
     <p class="muted">${o.lift ? LNAME[o.lift] : "Renforcement"}</p>
     <p class="show t-l" style="margin-top:4px;color:${col}">${esc(exName(key))}</p>
     <div class="grid3" style="margin-top:18px">
-      <div><p class="muted small">Dernière fois</p><p class="show t-s" style="margin-top:4px">${fmt(la.charge)} kg</p><p class="muted tiny">${la.sets.map(x => x.r).join(" · ")}</p></div>
+      <div><p class="muted small">Dernière fois</p><p class="show t-s" style="margin-top:4px">${fmt(la.charge)} kg</p><p class="muted tiny">${la.sets.every(x => x.c === la.sets[0].c) ? la.sets.map(x => x.r).join(" · ") : la.sets.map(x => fmt(x.c) + " × " + x.r).join(" · ")}</p></div>
       <div><p class="muted small">1RM estimé</p><p class="show t-s" style="margin-top:4px">${fmt(la.e1rm, 1)}</p><p class="muted tiny">record ${fmt(bp.e1rmBest, 1)}</p></div>
       <div><p class="muted small">Depuis le début</p><p class="show t-s" style="margin-top:4px;color:${g < 0 ? "var(--dust)" : "var(--chalk)"}">${g === null ? "–" : (g > 0 ? "+" : "") + fmt(g, 1).replace("-", "−") + " %"}</p><p class="muted tiny">${P.length} séances</p></div>
     </div>
