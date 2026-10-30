@@ -27,8 +27,10 @@ def R19():
     p.note = "Titre de jour sur sa propre ligne (« Day 1 - Push »), colonne Day vide ensuite, « BW » et « BW+10kg », Rest en « 2 min »/« 90s »."
     return p
 
+ONE_RM = {"Squat": 140, "Développé couché": 105, "Soulevé de terre": 180, "Squat pause": 140, "Développé couché pause": 105}
+
 def R20():
-    p = Prog("R20", "reglage", "sheet", "Sheet en locale française : « 62,5 », « 75% », repos « 3:00 », onglets S1–S3", ["A2", "E5", "C1"], "déduit de l'API Sheets (valeurs formatées selon la locale du fichier) ; mise en page type coach")
+    p = Prog("R20", "reglage", "sheet", "Sheet en locale française : « 62,5 », « 75% » (kg ET % sur la même ligne), repos « 3:00 », onglets S1–S3", ["A2", "E5", "C1"], "déduit de l'API Sheets (valeurs formatées selon la locale du fichier) ; mise en page type coach")
     H = ["Jour", "Exercice", "Séries", "Reps", "Charge", "%", "RPE", "Repos"]
     plan = [("Lundi", [("Squat", 4, 5, "", 75, 7, "3:00"), ("Développé couché", 4, 6, "", 72, 7, "3:00"), ("Rowing barre", 3, 10, 62.5, "", 8, "1:30"), ("Curl haltères", 3, 12, 14, "", 9, "1:00")]),
             ("Mercredi", [("Soulevé de terre", 3, 4, "", 80, 8, "4:00"), ("Développé militaire", 4, 6, 45, "", 8, "2:00"), ("Tractions lestées", 4, 6, 17.5, "", 8, "2:00")]),
@@ -39,8 +41,9 @@ def R20():
         for d, (jr, exs) in enumerate(plan):
             for nm, s, r, ch, pc, rp, rest in exs:
                 chv = ch + 2.5 * (w - 1) if ch != "" else ""; pcv = pc + 2.5 * (w - 1) if pc != "" else ""
+                if pcv != "" and nm in ONE_RM: chv = round(ONE_RM[nm] * pcv / 100 / 2.5) * 2.5   # kg ET % dans la même ligne
                 rows.append([jr, nm, str(s), str(r), (f"{chv:g}".replace(".", ",") if chv != "" else ""), (f"{pcv:g}".replace(".", ",") + "%" if pcv != "" else ""), str(rp), rest])
-                load = f"{pcv:g} %" if pcv != "" else (lest(chv) if nm == "Tractions lestées" else (kg(chv) if chv != "" else None))
+                load = f"{chv:g} kg · {pcv:g} %" if (pcv != "" and chv != "") else (f"{pcv:g} %" if pcv != "" else (lest(chv) if nm == "Tractions lestées" else (kg(chv) if chv != "" else None)))
                 p.ex(w - 1, d, nm, [g(s, r, load)], rpe=str(rp))
         tabs.append(dict(name=f"S{w}", rows=rows))
     p.sheets = tabs

@@ -55,10 +55,6 @@ for m in idx:
                 miss.append(f"S{t['w']+1} J{t['d']+1} {t['name']} : " + ("rangé dans un autre jour" if anyw else "absent")); continue
             used.add((t["w"], t["d"], j)); matched += 1; c["found_day"] += 1; e = pool[j]
             ws_ = want_sets(t["groups"]); got = list(e["sets"])
-            # un exercice coupé en plusieurs lignes consécutives du même nom (top set + back-off) compte comme un seul
-            k_ = j + 1
-            while got != ws_ and len(got) < len(ws_) and k_ < len(pool) and (t["w"], t["d"], k_) not in used and same(pool[k_], t):
-                got += pool[k_]["sets"]; used.add((t["w"], t["d"], k_)); matched += 1; k_ += 1
             e = dict(e, sets=got)
             ok = e["sets"] == ws_
             if ok: c["exact"] += 1

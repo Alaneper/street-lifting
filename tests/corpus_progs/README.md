@@ -16,14 +16,14 @@ python3 tests/corpus_progs/score.py controle --controle       # UNE fois (étape
 « exact » = exercice trouvé à la bonne semaine et au bon jour, avec toutes ses séries (reps + charge) justes. Aussi mesurés : exercice trouvé au bon jour, structure (semaines/jours), extras (RPE, tempo, côté), bruit (lignes lues en trop) et progs importées sans aucune correction.
 Un exercice coupé en plusieurs lignes consécutives de même nom (top set + back-off) compte comme un seul.
 
-## Décisions de format (hypothèses de l'étape 2, à valider avant l'étape 3)
-1. Si kg **et** % sont présents pour un exercice : on garde le **kg** comme charge (R16).
-2. Charges en **lb** : l'unité est conservée dans l'aperçu (« 225 lb ») puis convertie à l'écriture (comme `toGrid`).
-3. Maintiens chronométrés : reps = « 45 s » (R03, R04, R06, R14, R25, C06, C13).
-4. Pourcentage stocké en fraction (0.75) : lu **75 %**.
-5. RPE en fourchette : « 8-9 » (« 8 à 9 » est accepté à la comparaison).
-6. Top set + back-off sur plusieurs lignes ou plusieurs groupes = **un seul** exercice.
-7. RIR : non évalué dans cette étape (colonne présente en C10, ignorée par la vérité).
+## Décisions de format (validées par Alane le 30/10/2026)
+1. Si kg **et** % sont présents pour un exercice : les **deux** sont lus et transcrits (vérité « 140 kg · 78 % » en R16 et R20).
+2. Charges en **lb** : l'unité est conservée dans l'aperçu (« 225 lb »), puis convertie à l'écriture avec le facteur exact 0,45359237, kg stockés à **2 décimales** (aller-retour lb→kg→lb sans perte, testé sur 1999 valeurs). À vérifier par des essais à l'étape 3.
+3. Maintiens chronométrés : reps = « 45 s » (R03, R04, R06, R14, R25, C06, C13). Validé.
+4. Pourcentage stocké en fraction par Excel (0.75) : lu **75 %**. Validé après explication.
+5. RPE en fourchette : « 8-9 » (« 8 à 9 » est accepté à la comparaison). Validé.
+6. Top set et back-off = **deux entrées séparées** (deux fiches dans l'app, poids différents) : R03, R09, R16 et R20 ont été réécrits en ce sens ; le scoreur ne tolère plus la fusion de lignes.
+7. RIR : traité plus tard ; formule à vérifier avant usage (RIR = 10 − RPE d'après Zourdos et al., 2016 pour 10 → 0 RIR et 9 → 1 RIR ; demi-points non vérifiés). Colonne présente en C10, ignorée par la vérité.
 
 ## Limites
 - Même auteur pour les deux lots (pas un assistant séparé) : le lot contrôle est moins neutre qu'il ne devrait.

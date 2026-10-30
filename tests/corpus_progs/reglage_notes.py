@@ -88,7 +88,8 @@ def R03():
         t.week(f"Semaine {w}")
         t.day("Lundi")
         sq = round(180 * a / 2.5) * 2.5
-        t.exo(f"Squat : {b}x1 à {int(a*100)}% puis 3x5 à -10%", "Squat", [g(b, 1, pct(int(a*100))), g(3, 5, pct(-10))], canon="Squat")
+        t.exo(f"Squat : {b}x1 à {int(a*100)}% puis 3x5 à -10%", "Squat (top set)", [g(b, 1, pct(int(a*100)))], canon="Squat")
+        p.ex(t.w, t.d, "Squat (back-off)", [g(3, 5, pct(-10))], canon="Squat")
         bn = round(125 * (a - 0.05) / 2.5) * 2.5
         t.exo(f"Développé couché 2ct pause : 4x4 @ {kg(bn).replace(' kg','')}kg RPE {rp}", "Développé couché 2ct pause", [g(4, 4, kg(bn))], canon="Développé couché pause", rpe=rp)
         t.exo("Rowing barre 4x8 @ 70kg", "Rowing barre", [g(4, 8, kg(70))], canon="Rowing")
@@ -100,7 +101,8 @@ def R03():
         t.exo("Fentes bulgares 3x8 par jambe @ 20kg", "Fentes bulgares", [g(3, 8, kg(20))], canon="Fentes bulgares", side=True)
         t.exo("Gainage 3x45s", "Gainage", [g(3, "45 s")], canon="Gainage")
         t.day("Vendredi")
-        t.exo(f"Développé couché : top set 1x3 @ {rp}, back-off 3x6 à -12%", "Développé couché", [g(1, 3), g(3, 6, pct(-12))], canon="Développé couché", rpe=rp)
+        t.exo(f"Développé couché : top set 1x3 @ {rp}, back-off 3x6 à -12%", "Développé couché (top set)", [g(1, 3)], canon="Développé couché", rpe=rp)
+        p.ex(t.w, t.d, "Développé couché (back-off)", [g(3, 6, pct(-12))], canon="Développé couché")
         t.exo(f"Squat pause 2ct : 3x4 @ {int(round(sq*0.85/2.5)*2.5)}kg", "Squat pause 2ct", [g(3, 4, kg(int(round(sq*0.85/2.5)*2.5)))], canon="Squat pause")
         t.exo("Développé militaire 4x6 @ 50kg", "Développé militaire", [g(4, 6, kg(50))], canon="Développé militaire")
         t.exo("Curl haltères 3x10 @ 14kg", "Curl haltères", [g(3, 10, kg(14))], canon="Curl biceps").raw()

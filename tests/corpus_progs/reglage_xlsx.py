@@ -22,10 +22,10 @@ def R09():
             for k, (nm, sr, rp, ch, bo) in enumerate(days_plan[j]):
                 ss, rr = sr.split("x")
                 grp = [g(int(ss), rr, kg(ch + (2.5 if w == 2 and ch else 0)) if ch else None)]
-                if bo:
-                    bs, br = bo.split(" ")[0].split("x"); grp.append(g(int(bs), br, pct(-int(bo.split(" ")[1].strip("-%")))))
                 rows.append([f"Jour {j}" if k == 0 else "", nm, sr, rp, (ch + (2.5 if w == 2 else 0)) if ch else "", bo, "", "", ""])
                 p.ex(w - 1, d, nm, grp, rpe=rp)
+                if bo:   # le back-off est une entrée à part (décision d'Alane, 30/10)
+                    bs, br = bo.split(" ")[0].split("x"); p.ex(w - 1, d, nm + " (back-off)", [g(int(bs), br, pct(-int(bo.split(" ")[1].strip("-%"))))], canon=nm)
         rows.append([])
     p.xlsx = [dict(name="Paramètres", rows=setup), dict(name="Aide", rows=aide), dict(name="Bloc 1", rows=rows)]
     p.note = "Onglets non-séances, semaine de 7 jours avec 3 repos, « Jour 1 » écrit seulement sur la 1re ligne, back-off dans une colonne, charge vide aux tractions."
@@ -183,11 +183,14 @@ def R16():
     rows += [[], ["SEANCE 2"], ["Exercice", "série", "rep", "Inc", "charge", "%", "RPE", "e1RM"]]
     for ex in S2: rows.append(list(ex))
     # vérité : lignes d'un même exercice consécutives = un seul exercice avec plusieurs groupes
-    p.ex(0, 0, "Squat", [g(1, 5, kg(140)), g(3, 5, kg(126))], canon="Squat", rpe="7")
-    p.ex(0, 0, "Développé couché 2ct pause", [g(4, "6-8", kg(85))], canon="Développé couché pause", rpe="8")
+    # kg ET % présents : les deux sont gardés (décision d'Alane, 30/10), « kg · % » ; top set et back-off = deux entrées
+    p.ex(0, 0, "Squat (top set)", [g(1, 5, kg(140) + " · 78 %")], canon="Squat", rpe="7")
+    p.ex(0, 0, "Squat (back-off)", [g(3, 5, kg(126) + " · 70 %")], canon="Squat", rpe="6-7")
+    p.ex(0, 0, "Développé couché 2ct pause", [g(4, "6-8", kg(85) + " · 68 %")], canon="Développé couché pause", rpe="8")
     p.ex(0, 0, "Rowing barre", [g(3, 10, kg(65))], canon="Rowing", rpe="8-9")
     p.ex(0, 0, "Fentes", [g(3, 8, kg(20))], canon="Fentes", side=True, rpe="8")
-    p.ex(0, 1, "Soulevé de terre", [g(1, 4, kg(175)), g(3, 6, kg(150))], canon="Soulevé de terre", rpe="8")
+    p.ex(0, 1, "Soulevé de terre (top set)", [g(1, 4, kg(175) + " · 80 %")], canon="Soulevé de terre", rpe="8")
+    p.ex(0, 1, "Soulevé de terre (back-off)", [g(3, 6, kg(150) + " · 69 %")], canon="Soulevé de terre", rpe="7")
     p.ex(0, 1, "Développé militaire", [g(4, 6, kg(47.5))], canon="Développé militaire", rpe="8")
     p.ex(0, 1, "Tractions lestées", [g(4, 6, lest(15))], canon="Tractions", rpe="8-9")
     data = [["DATA"], ["Mouvement", "Record", "Moyenne"], ["Squat", 165, "#DIV/0!"], ["Bench", "#DIV/0!", "#DIV/0!"], ["Deadlift", 205, "#DIV/0!"]]

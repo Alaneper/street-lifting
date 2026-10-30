@@ -974,7 +974,7 @@
    {
     "w": 0,
     "d": 0,
-    "name": "Squat",
+    "name": "Squat (top set)",
     "canon": "Squat",
     "groups": [
      [
@@ -982,7 +982,18 @@
       "1",
       "80 %",
       false
-     ],
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Squat (back-off)",
+    "canon": "Squat",
+    "groups": [
      [
       3,
       "5",
@@ -1116,7 +1127,7 @@
    {
     "w": 0,
     "d": 2,
-    "name": "Développé couché",
+    "name": "Développé couché (top set)",
     "canon": "Développé couché",
     "groups": [
      [
@@ -1124,7 +1135,18 @@
       "3",
       null,
       false
-     ],
+     ]
+    ],
+    "rpe": "7",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Développé couché (back-off)",
+    "canon": "Développé couché",
+    "groups": [
      [
       3,
       "6",
@@ -1132,7 +1154,7 @@
       false
      ]
     ],
-    "rpe": "7",
+    "rpe": null,
     "tempo": null,
     "side": false
    },
@@ -1190,7 +1212,7 @@
    {
     "w": 1,
     "d": 0,
-    "name": "Squat",
+    "name": "Squat (top set)",
     "canon": "Squat",
     "groups": [
      [
@@ -1198,7 +1220,18 @@
       "1",
       "85 %",
       false
-     ],
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Squat (back-off)",
+    "canon": "Squat",
+    "groups": [
      [
       3,
       "5",
@@ -1332,7 +1365,7 @@
    {
     "w": 1,
     "d": 2,
-    "name": "Développé couché",
+    "name": "Développé couché (top set)",
     "canon": "Développé couché",
     "groups": [
      [
@@ -1340,7 +1373,18 @@
       "3",
       null,
       false
-     ],
+     ]
+    ],
+    "rpe": "8",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 2,
+    "name": "Développé couché (back-off)",
+    "canon": "Développé couché",
+    "groups": [
      [
       3,
       "6",
@@ -1348,7 +1392,7 @@
       false
      ]
     ],
-    "rpe": "8",
+    "rpe": null,
     "tempo": null,
     "side": false
    },
@@ -1406,7 +1450,7 @@
    {
     "w": 2,
     "d": 0,
-    "name": "Squat",
+    "name": "Squat (top set)",
     "canon": "Squat",
     "groups": [
      [
@@ -1414,7 +1458,18 @@
       "1",
       "90 %",
       false
-     ],
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 0,
+    "name": "Squat (back-off)",
+    "canon": "Squat",
+    "groups": [
      [
       3,
       "5",
@@ -1548,7 +1603,7 @@
    {
     "w": 2,
     "d": 2,
-    "name": "Développé couché",
+    "name": "Développé couché (top set)",
     "canon": "Développé couché",
     "groups": [
      [
@@ -1556,7 +1611,18 @@
       "3",
       null,
       false
-     ],
+     ]
+    ],
+    "rpe": "9",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 2,
+    "name": "Développé couché (back-off)",
+    "canon": "Développé couché",
+    "groups": [
      [
       3,
       "6",
@@ -1564,7 +1630,7 @@
       false
      ]
     ],
-    "rpe": "9",
+    "rpe": null,
     "tempo": null,
     "side": false
    },
@@ -1624,7 +1690,7 @@
    "deload"
   ],
   "file": "R03.txt",
-  "sha": "f1909873bce2b4a2"
+  "sha": "718c358d71e415bb"
  },
  {
   "id": "R04",
@@ -3064,7 +3130,18 @@
       "5",
       "135 kg",
       false
-     ],
+     ]
+    ],
+    "rpe": "7",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Squat (back-off)",
+    "canon": "Squat",
+    "groups": [
      [
       3,
       "5",
@@ -3072,7 +3149,7 @@
       false
      ]
     ],
-    "rpe": "7",
+    "rpe": null,
     "tempo": null,
     "side": false
    },
@@ -3087,7 +3164,18 @@
       "5",
       "95 kg",
       false
-     ],
+     ]
+    ],
+    "rpe": "7",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Développé couché (back-off)",
+    "canon": "Développé couché",
+    "groups": [
      [
       3,
       "5",
@@ -3095,7 +3183,7 @@
       false
      ]
     ],
-    "rpe": "7",
+    "rpe": null,
     "tempo": null,
     "side": false
    },
@@ -3127,7 +3215,18 @@
       "4",
       "165 kg",
       false
-     ],
+     ]
+    ],
+    "rpe": "7",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Soulevé de terre (back-off)",
+    "canon": "Soulevé de terre",
+    "groups": [
      [
       2,
       "4",
@@ -3135,7 +3234,7 @@
       false
      ]
     ],
-    "rpe": "7",
+    "rpe": null,
     "tempo": null,
     "side": false
    },
@@ -3235,7 +3334,18 @@
       "3",
       "150 kg",
       false
-     ],
+     ]
+    ],
+    "rpe": "8",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 3,
+    "name": "Squat (back-off)",
+    "canon": "Squat",
+    "groups": [
      [
       3,
       "6",
@@ -3243,7 +3353,7 @@
       false
      ]
     ],
-    "rpe": "8",
+    "rpe": null,
     "tempo": null,
     "side": false
    },
@@ -3275,7 +3385,18 @@
       "5",
       "137.5 kg",
       false
-     ],
+     ]
+    ],
+    "rpe": "7",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Squat (back-off)",
+    "canon": "Squat",
+    "groups": [
      [
       3,
       "5",
@@ -3283,7 +3404,7 @@
       false
      ]
     ],
-    "rpe": "7",
+    "rpe": null,
     "tempo": null,
     "side": false
    },
@@ -3298,7 +3419,18 @@
       "5",
       "97.5 kg",
       false
-     ],
+     ]
+    ],
+    "rpe": "7",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Développé couché (back-off)",
+    "canon": "Développé couché",
+    "groups": [
      [
       3,
       "5",
@@ -3306,7 +3438,7 @@
       false
      ]
     ],
-    "rpe": "7",
+    "rpe": null,
     "tempo": null,
     "side": false
    },
@@ -3338,7 +3470,18 @@
       "4",
       "167.5 kg",
       false
-     ],
+     ]
+    ],
+    "rpe": "7",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Soulevé de terre (back-off)",
+    "canon": "Soulevé de terre",
+    "groups": [
      [
       2,
       "4",
@@ -3346,7 +3489,7 @@
       false
      ]
     ],
-    "rpe": "7",
+    "rpe": null,
     "tempo": null,
     "side": false
    },
@@ -3446,7 +3589,18 @@
       "3",
       "152.5 kg",
       false
-     ],
+     ]
+    ],
+    "rpe": "8",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 3,
+    "name": "Squat (back-off)",
+    "canon": "Squat",
+    "groups": [
      [
       3,
       "6",
@@ -3454,7 +3608,7 @@
       false
      ]
     ],
-    "rpe": "8",
+    "rpe": null,
     "tempo": null,
     "side": false
    },
@@ -3483,7 +3637,7 @@
    "repos"
   ],
   "file": "R09.xlsx",
-  "sha": "51e1642694d55aa9"
+  "sha": "32c326a45a4adf24"
  },
  {
   "id": "R10",
@@ -5911,23 +6065,34 @@
    {
     "w": 0,
     "d": 0,
-    "name": "Squat",
+    "name": "Squat (top set)",
     "canon": "Squat",
     "groups": [
      [
       1,
       "5",
-      "140 kg",
-      false
-     ],
-     [
-      3,
-      "5",
-      "126 kg",
+      "140 kg · 78 %",
       false
      ]
     ],
     "rpe": "7",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Squat (back-off)",
+    "canon": "Squat",
+    "groups": [
+     [
+      3,
+      "5",
+      "126 kg · 70 %",
+      false
+     ]
+    ],
+    "rpe": "6-7",
     "tempo": null,
     "side": false
    },
@@ -5940,7 +6105,7 @@
      [
       4,
       "6-8",
-      "85 kg",
+      "85 kg · 68 %",
       false
      ]
     ],
@@ -5985,23 +6150,34 @@
    {
     "w": 0,
     "d": 1,
-    "name": "Soulevé de terre",
+    "name": "Soulevé de terre (top set)",
     "canon": "Soulevé de terre",
     "groups": [
      [
       1,
       "4",
-      "175 kg",
-      false
-     ],
-     [
-      3,
-      "6",
-      "150 kg",
+      "175 kg · 80 %",
       false
      ]
     ],
     "rpe": "8",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Soulevé de terre (back-off)",
+    "canon": "Soulevé de terre",
+    "groups": [
+     [
+      3,
+      "6",
+      "150 kg · 69 %",
+      false
+     ]
+    ],
+    "rpe": "7",
     "tempo": null,
     "side": false
    },
@@ -6046,7 +6222,7 @@
    "moyenne"
   ],
   "file": "R16.xlsx",
-  "sha": "de251b1690e56e86"
+  "sha": "5f0671c0e690f093"
  },
  {
   "id": "R17",
@@ -7325,7 +7501,7 @@
   "id": "R20",
   "lot": "reglage",
   "kind": "sheet",
-  "title": "Sheet en locale française : « 62,5 », « 75% », repos « 3:00 », onglets S1–S3",
+  "title": "Sheet en locale française : « 62,5 », « 75% » (kg ET % sur la même ligne), repos « 3:00 », onglets S1–S3",
   "pieges": [
    "A2",
    "E5",
@@ -7343,7 +7519,7 @@
      [
       4,
       "5",
-      "75 %",
+      "105 kg · 75 %",
       false
      ]
     ],
@@ -7360,7 +7536,7 @@
      [
       4,
       "6",
-      "72 %",
+      "75 kg · 72 %",
       false
      ]
     ],
@@ -7411,7 +7587,7 @@
      [
       3,
       "4",
-      "80 %",
+      "145 kg · 80 %",
       false
      ]
     ],
@@ -7462,7 +7638,7 @@
      [
       3,
       "4",
-      "70 %",
+      "97.5 kg · 70 %",
       false
      ]
     ],
@@ -7479,7 +7655,7 @@
      [
       4,
       "4",
-      "78 %",
+      "82.5 kg · 78 %",
       false
      ]
     ],
@@ -7513,7 +7689,7 @@
      [
       4,
       "5",
-      "77.5 %",
+      "107.5 kg · 77.5 %",
       false
      ]
     ],
@@ -7530,7 +7706,7 @@
      [
       4,
       "6",
-      "74.5 %",
+      "77.5 kg · 74.5 %",
       false
      ]
     ],
@@ -7581,7 +7757,7 @@
      [
       3,
       "4",
-      "82.5 %",
+      "147.5 kg · 82.5 %",
       false
      ]
     ],
@@ -7632,7 +7808,7 @@
      [
       3,
       "4",
-      "72.5 %",
+      "102.5 kg · 72.5 %",
       false
      ]
     ],
@@ -7649,7 +7825,7 @@
      [
       4,
       "4",
-      "80.5 %",
+      "85 kg · 80.5 %",
       false
      ]
     ],
@@ -7683,7 +7859,7 @@
      [
       4,
       "5",
-      "80 %",
+      "112.5 kg · 80 %",
       false
      ]
     ],
@@ -7700,7 +7876,7 @@
      [
       4,
       "6",
-      "77 %",
+      "80 kg · 77 %",
       false
      ]
     ],
@@ -7751,7 +7927,7 @@
      [
       3,
       "4",
-      "85 %",
+      "152.5 kg · 85 %",
       false
      ]
     ],
@@ -7802,7 +7978,7 @@
      [
       3,
       "4",
-      "75 %",
+      "105 kg · 75 %",
       false
      ]
     ],
@@ -7819,7 +7995,7 @@
      [
       4,
       "4",
-      "83 %",
+      "87.5 kg · 83 %",
       false
      ]
     ],
@@ -7847,7 +8023,7 @@
   ],
   "noise": [],
   "file": "R20.sheet.json",
-  "sha": "c30a8d4e7a5be69a"
+  "sha": "50af9c37cf86cb37"
  },
  {
   "id": "R21",
