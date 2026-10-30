@@ -20,7 +20,7 @@ with sync_playwright() as p:
     print("héros :", pg.locator("#v-corps .hero").first.inner_text().replace("\n", " | "))
     print("REPAS :", pg.evaluate(f"(window.__sheets['{APP}'].REPAS||[]).slice(0,4)"))
     print("dépense du jour retirée :", pg.locator("#ndep").count() == 0)
-    pg.select_option("#nob", "perte"); pg.wait_for_timeout(1200)
+    (pg.click("#nutgoal summary") if not pg.evaluate("document.querySelector('#nutgoal').open") else None); pg.wait_for_timeout(300); pg.select_option("#nob", "perte"); pg.wait_for_timeout(1200)
     print("objectif :", pg.locator("#v-corps .panel").last.inner_text().replace("\n", " | ")[:400])
     pg.screenshot(path=str(OUT / "nutri.png"), full_page=True)
     print("ERRORS:", errs[:8])
