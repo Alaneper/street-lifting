@@ -136,4 +136,4 @@ class TB:
 def kg(v): return f"{float(str(v).replace(',', '.')):g} kg"
 def lb(v): return f"{v} lb"
 def pct(v): return f"{v} %"
-def lest(v): return f"+{v} kg"
+def lest(v): return f"+{float(v):g} kg"

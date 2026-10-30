@@ -91,7 +91,7 @@ const T4 = ["SEMAINE 2", "SEANCE 1", "\tsérie\trep\tInc\tcharge\t%\tRPE", "Comp
 r = parseProgram(T4); E = all(r);
 chk("T4 2 séances", r.stats.days === 2 && r.weeks[0].label === "Semaine 2", r.weeks.map(w => w.label + ":" + w.days.map(d => d.label)));
 const sq = E.find(e => e.canon === "Squat");
-chk("T4 squat charge + % en note", sq && g0(sq) === "3×4 · 120 kg" && /70 %/.test(sq.note || ""), g0(sq) + " " + (sq && sq.note));
+chk("T4 squat charge et % gardés tous deux (décision d'Alane, 30/10)", sq && g0(sq) === "3×4 · 120 kg · 70 %", g0(sq) + " " + (sq && sq.note));
 chk("T4 « 6 à 8 » et RPE « 8 à 9 »", E.some(e => e.canon === "Rowing" && g0(e) === "3×6-8" && e.rpe === "8-9"), E.map(g0));
 chk("T4 2ct = pause", E.some(e => e.canon === "Développé couché pause"), E.map(e => e.canon));
 const bu = E.find(e => e.canon === "Fentes bulgares");
