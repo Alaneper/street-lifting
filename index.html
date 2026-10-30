@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261030155912">
+<meta name="sl-build" content="20261030161848">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -517,7 +517,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "63 · 30 oct. 2026";
+const APP_VER = "64 · 30 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -3736,7 +3736,7 @@ vidLoad().catch(() => {});
     [/(dc|d[ée]v\w*\s*couch[ée]|bench|banc|\bbp\b).*pause|banc\s*pause|pause.*(bench|banc|couch)|\d\s*ct\b.*(bench|banc)/, "Développé couché pause", "bench"],
     [/pec\w*\s*(push|machine)|chest\s*press|presse\s*pectorale/, "Développé machine", "bench"],
     [/^(dc|banc|couch[ée])\b|d[ée]velopp[ée]\s*couch[ée]|d[ée]v\w*\.?\s*couch|bench|\bbp\b|\bbanc\b|\bdc\b|machine\s*convergente/, "Développé couché", "bench"],
-    [/militaire|military|\bohp\b|overhead|strict\s*press|presse?\s*([ée]paules|shoulder)|shoulder\s*press|d[ée]v\w*\.?\s*([ée]paules?|militaire)/, "Développé militaire", "bench"],
+    [/militaire|military|\bohp\b|overhead|strict\s*press|push\s*press|presse?\s*([ée]paules|shoulder)|shoulder\s*press|d[ée]v\w*\.?\s*([ée]paules?|militaire)/, "Développé militaire", "bench"],
     [/tirage\s*menton|upright/, "Tirage menton", ""],
     [/appui\s*poitrine|chest.?supported|pendlay/, "Rowing", "pull"],
     [/tirage\s*(vertical|poitrine|nuque)|lat\s*pull|pull.?down\b(?!s)/, "Tirage vertical", "pull"],
@@ -3766,6 +3766,10 @@ vidLoad().catch(() => {});
 
   const strip = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
   const num = s => parseFloat(String(s).replace(",", "."));
+  // « quarante-cinq », « soixante-dix », « vingt et un » → chiffres (prog dictée à la voix)
+  const TENS = { vingt: 20, trente: 30, quarante: 40, cinquante: 50, soixante: 60 }, UNITS = { un: 1, une: 1, deux: 2, trois: 3, quatre: 4, cinq: 5, six: 6, sept: 7, huit: 8, neuf: 9, dix: 10, onze: 11, douze: 12, treize: 13, quatorze: 14, quinze: 15, seize: 16, "dix-sept": 17, "dix-huit": 18, "dix-neuf": 19 };
+  const wordsToDigits = t => t.replace(/\b(vingt|trente|quarante|cinquante|soixante)(?:[-\s]+(?:et[-\s]+)?(un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix-sept|dix-huit|dix-neuf|dix|onze|douze|treize|quatorze|quinze|seize))?\b/gi, (m, a, b) => String(TENS[a.toLowerCase()] + (b ? UNITS[b.toLowerCase()] : 0)))
+    .replace(/(\d)\s*(kilos?|kilogrammes?)\b/gi, "$1 kg").replace(/(\d)\s*(pounds?)\b/gi, "$1 lb");
   const toNum = w => { if (w == null) return null; const t = strip(w); return NUM_WORDS[t] ?? (isNaN(num(t)) ? null : num(t)); };
 
   // Lot 1 du chantier progs (30/10) : unité du programme. Une charge sans unité vaut DEF_U (kg par défaut, lb si le
@@ -3834,12 +3838,19 @@ vidLoad().catch(() => {});
   // « repos 2 min » ou « EMOM 10 min » ne deviennent pas des exercices.
   const RE_DUR = /(?<![\d.,])(\d+(?:[.,]\d+)?)\s*(minutes?|mins?|mn|h(?:eures?)?|['’])(?![a-zà-ÿ])/i;
   const REST_LIKE = /^(repos|rest|r[ée]cup|pause|break|off)\b/i;
+  // « Fractionné 30 min : 6 x 3 min », « EMOM 12 min – 3 burpees + 6 swings », « AMRAP 10 min – 5 pull-ups, 10 push-ups »
+  function timedLine(s) {
+    const tm = s.match(/^\s*([A-Za-zÀ-ÿ][^\d:–—]{1,40}?)\s+(\d+(?:[.,]\d+)?)\s*(min|minutes?|mn|h|heures?)\s*[:–—-]\s*(.+)$/i);
+    if (!tm || REST_LIKE.test(tm[1])) return null;
+    const c = canon(tm[1]);
+    return c.cat === "cardio" || !c.canon || c.canon === "Conditionnement" ? tm : null;
+  }
   function readDuration(s) {
     const m = RE_DUR.exec(s); if (!m) return null;
     const nameOf = t => t.replace(/[:\-—–,;@(){}]+/g, " ").replace(/\s+/g, " ").trim();
     let nm = nameOf(s.slice(0, m.index));
     // lot 2 : « Mobilité 15 min », « Circuit Hyrox 25 min : … » = une activité chronométrée, même hors cardio
-    const alone = nm.length >= 4 && /[a-zà-ÿ]{4}/i.test(nm) && !REST_LIKE.test(nm) && !canon(nm).canon && /^\s*(:.*)?$/.test(s.slice(m.index + m[0].length));
+    const alone = nm.length >= 4 && /[a-zà-ÿ]{4}/i.test(nm) && !REST_LIKE.test(nm) && (!canon(nm).canon || canon(nm).canon === "Conditionnement") && /^\s*([:–—-].*)?$/.test(s.slice(m.index + m[0].length));
     if (canon(nm).cat !== "cardio" && !alone) nm = nameOf(s.slice(m.index + m[0].length).split(/[,.;]|\s(?:puis|then)\s/i)[0]);
     if (canon(nm).cat !== "cardio" && !alone) return null;
     const min = /^h/i.test(m[2]) ? num(m[1]) * 60 : num(m[1]);
@@ -3855,9 +3866,11 @@ vidLoad().catch(() => {});
     const drop = s.match(/(\d+)\s*\(\s*(\d+(?:[.,]\d+)?)\s*kg\s*\)\s*\+\s*(\d+)\s*\(\s*(\d+(?:[.,]\d+)?)\s*kg\s*\)/i);
     if (drop) s = s.replace(drop[0], drop[1] + " " + drop[2] + DEF_U);
     s = s.replace(/([x×*])\s*\((\d+\s*-\s*\d+)\)/g, "$1$2");   // « 4×(8-10) »
+    s = wordsToDigits(s);
+    s = s.replace(/\bavec\s+(\d+(?:[.,]\d+)?)\s*(kg|lbs?)\s+de\s+lest\b/gi, "+$1 $2").replace(/\bwith\s+(\d+(?:[.,]\d+)?)\s*(kg|lbs?)\s+(?:added|extra)\b/gi, "+$1 $2");
     // « Fractionné 30 min : 6 x 3 min vite, récup 2 min » : la durée qui suit le nom est la consigne, le détail va en note
-    const tm = s.match(/^\s*([A-Za-zÀ-ÿ][^\d:]{2,40}?)\s+(\d+(?:[.,]\d+)?)\s*(min|minutes?|mn|h|heures?)\s*:\s*(.+)$/i);
-    if (tm && !REST_LIKE.test(tm[1]) && (canon(tm[1]).cat === "cardio" || !canon(tm[1]).canon)) { const d = readDuration(tm[1] + " " + tm[2] + " " + tm[3]); if (d) return { ...d, note: tm[4].trim() }; }
+    const tm = timedLine(s);
+    if (tm) { const d = readDuration(tm[1] + " " + tm[2] + " " + tm[3]); if (d) return { ...d, note: tm[4].trim() }; }
     const hits = [];
     let m;
     RE_PCT_X.lastIndex = 0;
@@ -3910,7 +3923,7 @@ vidLoad().catch(() => {});
     hits.forEach(h => { if (!/^\d+$/.test(h.g.reps)) return; const after = s.slice(h.end); if (/^\s*(s|sec|secondes?|seconds?|")(?![a-zà-ÿ])/i.test(after)) h.g = { ...h.g, reps: h.g.reps + " s" }; else if (/^\s*(min|mn|minutes?|')(?![a-zà-ÿ])/i.test(after)) h.g = { ...h.g, reps: h.g.reps + " min" }; });
     const groups = hits.map(h => ({ ...h.g, load: h.load || null, amrap: !!h.amrap }));
     // v42 : lest porté (« pompes lestées … 11 kg », « sac lesté 10kg ») ; indications gardées en note
-    if (/lest[ée]|\bsac\b|gilet|ceinture/i.test(s)) groups.forEach(g => { if (g.load && g.load.kind === "abs") g.load = { ...g.load, kind: "lest" }; });
+    if (/lest[ée]|\bsac\b|gilet|ceinture|weighted/i.test(s)) groups.forEach(g => { if (g.load && g.load.kind === "abs") g.load = { ...g.load, kind: "lest" }; });
     const note = [];
     if (drop) note.push(`dégressif : ${drop[1]} reps à ${drop[2].replace(".", ",")} kg puis ${drop[3]} à ${drop[4].replace(".", ",")} kg`);
     else if (/d[ée]gressi|drop\s*set/i.test(s)) note.push(/derni[eè]re/i.test(s) ? "dernière série en dégressif" : "dégressif");
@@ -3924,6 +3937,9 @@ vidLoad().catch(() => {});
 
   function mkExo(raw, ex) {
     const c = canon(ex.name);
+    // tractions, dips, muscle-up : une charge ajoutée est toujours un lest (on ne fait pas des tractions « à 15 kg »)
+    // sauf « tractions assistées 20 kg » : c'est une aide, jamais une charge
+    if (["Tractions", "Dips", "Muscle-up"].includes(c.canon)) ex.groups.forEach(g => { if (g.load && g.load.kind === "abs") g.load = /assist/i.test(raw) ? { kind: "assist", v: g.load.v, u: g.load.u } : { ...g.load, kind: "lest" }; });
     return { raw: raw.trim(), name: ex.name || c.canon || "?", canon: c.canon, cat: c.cat, groups: ex.groups, rpe: ex.rpe, tempo: ex.tempo, side: ex.side, note: ex.note || null };
   }
 
@@ -3931,6 +3947,7 @@ vidLoad().catch(() => {});
   const ADD_ON = /^(back.?off|top\s*set|warm.?up|[ée]chauff\w*|puis|then|et|ensuite|pareil)\b/i;
   function readExoLine(line) {
     const out = [];
+    if (timedLine(line)) { const ex = readExo(line); if (ex) return [mkExo(line, ex)]; }
     // v42 : « Nom / 4 x 8 / 50kg » (notes téléphone) : le nom, le schéma et la charge sont recollés ;
     // « A 3x12 / B 3x12 » reste deux exercices.
     const LOADISH = /^(-\s*\d|\d+(?:[.,]\d+)?\s*(kg|lbs?)\b|\d+(?:[.,]\d+)?$|kg\b|lbs?\b|pdc\b|bw\b|poids\s*du\s*corps|[ée]lastique|\+|halt|barre\b|machine\b)/i;
@@ -4096,6 +4113,8 @@ vidLoad().catch(() => {});
     const ALONE = /^\s*(\d+\s*[x×*]\s*(\d+(?:\s*-\s*\d+)*|max)|[+@]?\s*\d+(?:[.,]\d+)?\s*(kg|lbs?|%)|@.*|(rest|repos)\b.*|rpe\s*\d.*)\s*$/i;
     for (const l of lines) {
       // format « une info par ligne » (exports d'apps) : schéma, charge ou repos seuls sur leur ligne → rattachés à l'exercice au-dessus
+      const setl = l.match(/^\s*(?:set|s[ée]rie)\s*\d+\s*[:.)\-–]\s*(.+)$/i);   // export d'app : une ligne par série
+      if (setl && flat.length && flat[flat.length - 1].trim() && !readHeader(cleanLine(flat[flat.length - 1]))) { flat[flat.length - 1] += " " + setl[1].trim(); continue; }
       if (ALONE.test(l) && flat.length && flat[flat.length - 1].trim() && !readHeader(cleanLine(flat[flat.length - 1]))) { flat[flat.length - 1] += " " + l.trim(); continue; }
       if (l.length > 220) flat.push(...l.split(/(?<=[.!?])\s+/));
       else flat.push(l);
@@ -4145,7 +4164,7 @@ vidLoad().catch(() => {});
       if (NOTES_HDR.test(line) && !/\d\s*[x×]\s*\d/.test(line)) { notesMode = true; const t = line.replace(/:\s*$/, ""); if (!/^notes?$/i.test(t)) res.notes.push(t); continue; }
       if (notesMode) { res.notes.push(line); continue; }
       if (isProse(line)) { if (!day) day = ensureDay(W(), "Séance 1"); proseLine(line, day); continue; }
-      const exos = readExoLine(line);
+      const exos = readExoLine(line.replace(/^(strength|force|wod|metcon|conditioning|conditionnement|accessor(?:y|ies)|accessoires?|warm[\s-]?up|[ée]chauffement|cool[\s-]?down|retour au calme|finisher|skill|cardio|part\s+[a-e]|partie\s+[a-e]|bloc\s+[a-e])\s*[:\-–]\s*(?=\S)/i, ""));
       // v42 : jours de course (« Jour 4 : Fractionné », « Sortie EF ») : lignes sans nom rattachées au jour
       const run = day && day.sub && canon(day.sub).cat === "cardio" ? canon(day.sub) : null;
       if (run) exos.forEach(x => { if (!x.canon && (!x.name || x.name === "?" || !/[a-zà-ÿ]{3,}/i.test(x.name))) { x.name = day.sub; x.canon = run.canon; x.cat = "cardio"; x.note = x.note || x.raw; } });
@@ -4242,12 +4261,14 @@ vidLoad().catch(() => {});
     if (/^(fait|done|realise|resultats?|actual|log)\b|\b(fait|faites?|realisee?s?|reel(le)?|actual|done)$|^(fait|reps?|charges?|poids|weight)\s+(s|sem|semaine|week|w)\s*\d+$|^rpe (serie|derniere)|^mon commentaire/.test(h)) return "done";
     if (/^(semaine|week|sem|wk)\.?$/.test(h)) return "week";
     if (/^(jours?|day|seances?|session|workout|training day)$/.test(h)) return "day";
-    if (/^(exercices?|exercise|exos?|mouvements?|movements?|lifts?)\b/.test(h)) return "name";
+    if (/^(exercices?|exercise|exos?|mouvements?|movements?|lifts?|skills?|figures?)\b/.test(h)) return "name";
+    if (/^(detail|details|description|contenu|seance du jour|programme du jour|a faire|travail)\b/.test(h)) return "detail";
     if (/^variation/.test(h)) return "var";
     if (/(series?|sets?)\s*[x×*\/]\s*(reps?|repetitions?)|^prescription|^schema|^(prevu|planned|programme|objectif|target)$/.test(h)) return "sxr";
     if (/^(nb |nombre de )?(series?|sets?)$/.test(h)) return "sets";
     if (/amrap/.test(h)) return "done";
-    if (/^(nb |nombre de )?(reps?|repetitions?)\b/.test(h)) return "reps";
+    if (/^(nb |nombre de )?(reps?|repetitions?)\b|^(fourchette|rep range|range|plage)\b/.test(h)) return "reps";
+    if (/^(maintien|hold|tenue|isometri|temps sous tension)|\((s|sec|secondes?)\)$/.test(h) && !/repos|rest|recup/.test(h)) return "hold";
     if (/back.?off|degressi/.test(h)) return "bo";
     if (/^%|pourcent|^pct\b|^intensite$/.test(h)) return "pct";
     if (/^rpe|^intensite (visee|cible)/.test(h)) return "rpe";
@@ -4255,6 +4276,7 @@ vidLoad().catch(() => {});
     if (/^tempo/.test(h)) return "tempo";
     if (/^(temps de )?(repos|rest|recup)/.test(h)) return "rest";
     if (/1\s*rm|\btm\b|e1rm|record|^max|^inc\b|increment|arrondi|moyenne|total|^date/.test(h)) return "skip";
+    if (/^(lest|weighted|added weight|ajout)\b/.test(h)) return "lest";
     if (/^(charges?|poids|loads?|weights?|kg|lbs?|kilos?)\b|\((kg|lbs?)\)/.test(h)) return "load";
     if (/distance|\bkm\b/.test(h)) return "km";
     if (/^(duree|duration|temps|time)\b|\(min\)/.test(h)) return "dur";
@@ -4262,11 +4284,16 @@ vidLoad().catch(() => {});
     if (/^(s|sem|semaine|week|w)\s*\d+$/.test(h)) return "wcol";
     return "tag";
   }
-  const PRESC = ["sets", "reps", "sxr", "set", "wcol", "load", "pct"];
+  const PRESC = ["sets", "reps", "sxr", "set", "wcol", "load", "pct", "hold", "lest"];
   function gridHead(r) {
     const roles = r.map(c => colRole(c));
     const names = roles.map((x, i) => x === "name" ? i : -1).filter(i => i >= 0);
     if (names.length && roles.some(x => PRESC.includes(x))) return { roles, names, r };
+    const det = roles.indexOf("detail");
+    if (det >= 0 && !names.length && roles.some(x => x === "day" || x === "week")) return { roles, names: [det], r, detail: true };
+    // mise en page transposée : jours en colonnes (« | Lundi | Mercredi | Vendredi »), une case = « Squat 4x6 @ 100kg »
+    const dcols = r.map((c, i) => c && (DAYS[strip(c).trim()] || /^(jour|day|j|s[ée]ance|seance|workout)\s*[\da-e]$/i.test(c.trim())) ? i : -1).filter(i => i >= 0);
+    if (dcols.length >= 2 && dcols.length >= r.filter(Boolean).length - 1) return { roles, names: [], r, dayCols: dcols };
     // « | série | rep | charge » : colonne du nom sans titre (la première vide avant les séries)
     if (roles.includes("sets") && roles.includes("reps")) { const k = roles.findIndex(x => !x); return { roles, names: [k >= 0 && k < roles.indexOf("sets") ? k : 0], r }; }
     return null;
@@ -4345,8 +4372,18 @@ vidLoad().catch(() => {});
           else res.notes.push(r.filter(Boolean).join(" · "));
           continue;
         }
+        if (H.dayCols) {   // jours en colonnes
+          H.dayCols.forEach(i => {
+            const t = r[i]; if (!t || isErr(t)) return;
+            const exs = readExoLine(t); if (!exs.length) return;
+            const lab = H.r[i].trim(), lb = DAYS[strip(lab)] || lab;
+            const w2 = wk, d2 = w2.days.find(d => d._col === i && d._hd === H) || (() => { const d = { label: lb, notes: [], exos: [], _col: i, _hd: H }; w2.days.push(d); return d; })();
+            d2.exos.push(...exs);
+          });
+          continue;
+        }
         const R = H.roles, at = role => R.map((x, i) => x === role ? i : -1).filter(i => i >= 0);
-        const dataCols = R.map((x, i) => PRESC.includes(x) || x === "rpe" || x === "bo" || x === "km" || x === "dur" ? i : -1).filter(i => i >= 0);
+        const dataCols = R.map((x, i) => PRESC.includes(x) || x === "rpe" || x === "bo" || x === "km" || x === "dur" || (H.detail && x === "detail") ? i : -1).filter(i => i >= 0);
         const hasData = dataCols.some(i => r[i] && !isErr(r[i]));
         const wc = at("week")[0], dc = at("day")[0];
         if (!hasData && filled.length === 1 && filled[0] !== H.names[0]) { banner(r[filled[0]]); continue; }
@@ -4362,11 +4399,19 @@ vidLoad().catch(() => {});
           const cell = role => { const i = inSeg(role); return i >= 0 ? r[i] || "" : ""; };
           let nm = r[c0] || "";
           if (!nm || JUNK_NAME.test(nm) || !/[a-zà-ÿ]{2}/i.test(nm)) return;
-          const segData = R.some((x, k) => k >= c0 && k < c1 && (PRESC.includes(x) || ["rpe", "bo", "km", "dur"].includes(x)) && r[k] && !isErr(r[k]));
+          const segData = H.detail || R.some((x, k) => k >= c0 && k < c1 && (PRESC.includes(x) || ["rpe", "bo", "km", "dur"].includes(x)) && r[k] && !isErr(r[k]));
           if (!segData) { if (!REST_NAME.test(nm)) wk.notes.push(r.slice(c0, c1).filter(Boolean).join(" · ")); return; }
+          if (H.detail) {
+            const exs = readExoLine(nm); if (!exs.length) { wk.notes.push(nm); return; }
+            const km = cell("km"), dur = cell("dur");
+            exs.forEach(x => x.groups.forEach(g => { if (km && /\d/.test(km) && !g.km) g.km = num(km); if (!g.reps && dur) g.reps = num(dur) + " min"; }));
+            const nt = cell("note"); if (nt) exs[0].note = [exs[0].note, nt].filter(Boolean).join(" · ");
+            curDay().exos.push(...exs);
+            return;
+          }
           const v = cell("var"); if (v && !/^comp/i.test(v)) nm = nm + " " + v;
           const k = canon(nm);
-          const street = ["Tractions", "Dips", "Muscle-up"].includes(k.canon) || /lest[ée]|weighted/i.test(nm);
+          const street = (["Tractions", "Dips", "Muscle-up"].includes(k.canon) || /lest[ée]|weighted/i.test(nm)) && !/assist/i.test(nm);
           const hdr = role => { const i = inSeg(role); return i >= 0 ? String(H.r[i] || "") : ""; };
           const unit = /lb/i.test(hdr("load")) ? "lb" : /kg/i.test(hdr("load")) ? "kg" : DEF_U;
           const notes = [];
@@ -4401,16 +4446,18 @@ vidLoad().catch(() => {});
             const sxr = cell("sxr"), setsC = cell("sets"), repsC = cell("reps");
             const ex = sxr ? gridScheme(sxr) : (/\d\s*[x×*]\s*\d/.test(repsC) ? gridScheme(repsC) : null);
             if (ex) { groups = ex.groups.map(g => ({ ...g })); side = !!ex.side; rpe = ex.rpe || null; tempo = ex.tempo || null; }
-            else if (setsC || repsC || cell("dur") || cell("km")) {
+            else if (setsC || repsC || cell("dur") || cell("km") || cell("hold")) {
               const n = normReps(repsC); side = n.side;
               let reps = n.reps;
+              const hold = cell("hold"); if (!reps && hold && /\d/.test(hold)) reps = /[a-z"']/i.test(hold) ? normReps(hold).reps : num(hold) + " s";
               const dur = cell("dur"); if (!reps && dur && /\d/.test(dur)) reps = num(dur) + " min";
               groups = [{ sets: toNum(setsC) || 1, reps, amrap: n.amrap, load: null }];
               if (/^\d+$/.test(setsC)) groups[0]._setv = +setsC;
             }
             if (!groups.length) { const L0 = gridLoad(cell("load"), unit, street); if (L0) groups = [{ sets: 1, reps: "", amrap: false, load: null }]; }
-            const lc = cell("load"), pc = cell("pct");
+            const lc = cell("load"), pc = cell("pct"), ls = cell("lest");
             let L = gridLoad(lc, unit, street);
+            if (!L && ls) { const x = gridLoad(ls.replace(/^\+?\s*/, "+"), /lb/i.test(hdr("lest")) ? "lb" : unit, true); if (x) L = x; }
             if (lc && !L && !isErr(lc) && !/^(bw|pdc|pc|poids du corps|bodyweight|body weight)$/i.test(lc)) notes.push(lc);
             const pv = pc && /^\s*\d+(?:[.,]\d+)?\s*%?\s*$/.test(pc) ? pctVal(pc) : null;
             if (pc && pv == null && !L) L = gridLoad(pc, unit, street);
