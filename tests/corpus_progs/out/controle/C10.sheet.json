@@ -1,0 +1,135 @@
+[
+ {
+  "name": "Volume",
+  "rows": [
+   [
+    "Groupe",
+    "MEV",
+    "MAV",
+    "MRV"
+   ],
+   [
+    "Pectoraux",
+    "8",
+    "12-20",
+    "22"
+   ],
+   [
+    "Dos",
+    "10",
+    "14-22",
+    "25"
+   ],
+   [
+    "Quadriceps",
+    "8",
+    "12-18",
+    "20"
+   ],
+   [
+    "Total séries / semaine",
+    "",
+    "",
+    ""
+   ]
+  ]
+ },
+ {
+  "name": "Séance 1",
+  "rows": [
+   [
+    "Muscle",
+    "Exercice",
+    "Séries",
+    "Fourchette",
+    "Charge",
+    "RIR"
+   ],
+   [
+    "Pectoraux",
+    "Développé couché",
+    "4",
+    "6-8",
+    "80",
+    "2"
+   ],
+   [
+    "Pectoraux",
+    "Développé incliné haltères",
+    "3",
+    "8-12",
+    "28",
+    "1"
+   ],
+   [
+    "Dos",
+    "Rowing barre",
+    "4",
+    "8-10",
+    "70",
+    "2"
+   ],
+   [
+    "Dos",
+    "Tirage vertical",
+    "3",
+    "10-12",
+    "60",
+    "1"
+   ],
+   [
+    "Triceps",
+    "Triceps corde",
+    "3",
+    "12-15",
+    "25",
+    "0"
+   ]
+  ]
+ },
+ {
+  "name": "Séance 2",
+  "rows": [
+   [
+    "Muscle",
+    "Exercice",
+    "Séries",
+    "Fourchette",
+    "Charge",
+    "RIR"
+   ],
+   [
+    "Quadriceps",
+    "Squat",
+    "4",
+    "6-8",
+    "110",
+    "2"
+   ],
+   [
+    "Ischios",
+    "Soulevé de terre roumain",
+    "3",
+    "8-10",
+    "100",
+    "2"
+   ],
+   [
+    "Quadriceps",
+    "Presse à cuisses",
+    "3",
+    "10-15",
+    "200",
+    "1"
+   ],
+   [
+    "Mollets",
+    "Mollets debout",
+    "4",
+    "12-15",
+    "70",
+    "0"
+   ]
+  ]
+ }
+]

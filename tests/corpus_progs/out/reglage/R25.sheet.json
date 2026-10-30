@@ -1,0 +1,80 @@
+[
+ {
+  "name": "Journal",
+  "rows": [
+   [
+    "Semaine 3"
+   ],
+   [
+    "Lundi"
+   ],
+   [
+    "Exercice",
+    "Prévu",
+    "Fait",
+    "RPE",
+    "Commentaire"
+   ],
+   [
+    "Squat",
+    "4x6 @ 100kg",
+    "100x6 100x6 100x5 95x6",
+    "8",
+    "dernière série lourde"
+   ],
+   [
+    "Développé couché",
+    "4x6 @ 80kg",
+    "80x6 80x6 80x6 77.5x6",
+    "7.5",
+    ""
+   ],
+   [
+    "Rowing barre",
+    "3x10 @ 65kg",
+    "65x10 65x10 65x9",
+    "8",
+    ""
+   ],
+   [
+    "Gainage",
+    "3x45s",
+    "45 45 40",
+    "",
+    ""
+   ],
+   [],
+   [
+    "Mercredi"
+   ],
+   [
+    "Exercice",
+    "Prévu",
+    "Fait",
+    "RPE",
+    "Commentaire"
+   ],
+   [
+    "Soulevé de terre",
+    "3x5 @ 140kg",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Développé militaire",
+    "4x6 @ 45kg",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Tractions lestées",
+    "4x6 +15kg",
+    "",
+    "",
+    ""
+   ]
+  ]
+ }
+]

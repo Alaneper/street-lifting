@@ -1,0 +1,3292 @@
+[
+ {
+  "id": "C01",
+  "lot": "controle",
+  "kind": "note",
+  "title": "Prog rédigée en phrases (français parlé)",
+  "pieges": [
+   "B3",
+   "B5",
+   "C5"
+  ],
+  "source": "inventé : style message vocal retranscrit / mail de coach",
+  "note": "Phrases complètes, « kilos », « avec 10 kilos de lest », « dans chaque main », salutations autour.",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Développé couché",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      4,
+      "6",
+      "80 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Rowing barre",
+    "canon": "Rowing",
+    "groups": [
+     [
+      4,
+      "8",
+      "70 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Développé militaire",
+    "canon": "Développé militaire",
+    "groups": [
+     [
+      3,
+      "8",
+      "40 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Tractions",
+    "canon": "Tractions",
+    "groups": [
+     [
+      4,
+      "6",
+      "+10 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Curl biceps",
+    "canon": "Curl biceps",
+    "groups": [
+     [
+      3,
+      "12",
+      "15 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      5,
+      "5",
+      "110 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Soulevé de terre roumain",
+    "canon": "Soulevé de terre roumain",
+    "groups": [
+     [
+      3,
+      "8",
+      "100 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Fentes marchées",
+    "canon": "Fentes",
+    "groups": [
+     [
+      3,
+      "10",
+      "20 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Leg curl",
+    "canon": "Leg curl",
+    "groups": [
+     [
+      3,
+      "12",
+      "40 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Mollets debout",
+    "canon": "Mollets",
+    "groups": [
+     [
+      4,
+      "15",
+      "70 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Soulevé de terre",
+    "canon": "Soulevé de terre",
+    "groups": [
+     [
+      3,
+      "3",
+      "150 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Dips",
+    "canon": "Dips",
+    "groups": [
+     [
+      3,
+      "10",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Face pull",
+    "canon": "Face pull",
+    "groups": [
+     [
+      3,
+      "15",
+      "20 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [
+   "a bientot",
+   "dis-moi"
+  ],
+  "file": "C01.txt",
+  "sha": "512c10836963f13e"
+ },
+ {
+  "id": "C02",
+  "lot": "controle",
+  "kind": "note",
+  "title": "Export d'une app de suivi (une ligne par série)",
+  "pieges": [
+   "B8",
+   "A9"
+  ],
+  "source": "format d'export type Strong/Hevy (cité dans « Plus tard » de la feuille de route) — contenu inventé",
+  "note": "Une ligne par série « Set 2: 80 kg × 8 », nom suivi de « (Barbell) », date dans le titre du jour. Vérité : chaque série garde sa charge (pull-up lesté = ici affichée en kg ; lest attendu +10 kg).",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Bench Press",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      1,
+      "8",
+      "80 kg",
+      false
+     ],
+     [
+      1,
+      "8",
+      "80 kg",
+      false
+     ],
+     [
+      1,
+      "6",
+      "82.5 kg",
+      false
+     ],
+     [
+      1,
+      "6",
+      "82.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Overhead Press",
+    "canon": "Développé militaire",
+    "groups": [
+     [
+      1,
+      "8",
+      "45 kg",
+      false
+     ],
+     [
+      1,
+      "7",
+      "45 kg",
+      false
+     ],
+     [
+      1,
+      "6",
+      "45 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Incline Dumbbell Press",
+    "canon": "Développé incliné",
+    "groups": [
+     [
+      1,
+      "10",
+      "28 kg",
+      false
+     ],
+     [
+      1,
+      "10",
+      "28 kg",
+      false
+     ],
+     [
+      1,
+      "12",
+      "26 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Triceps Pushdown",
+    "canon": "Triceps",
+    "groups": [
+     [
+      1,
+      "12",
+      "30 kg",
+      false
+     ],
+     [
+      1,
+      "12",
+      "30 kg",
+      false
+     ],
+     [
+      1,
+      "15",
+      "27.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Deadlift",
+    "canon": "Soulevé de terre",
+    "groups": [
+     [
+      1,
+      "5",
+      "140 kg",
+      false
+     ],
+     [
+      1,
+      "5",
+      "140 kg",
+      false
+     ],
+     [
+      1,
+      "3",
+      "150 kg",
+      false
+     ],
+     [
+      1,
+      "3",
+      "150 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Pull Up",
+    "canon": "Tractions",
+    "groups": [
+     [
+      1,
+      "8",
+      "+10 kg",
+      false
+     ],
+     [
+      1,
+      "7",
+      "+10 kg",
+      false
+     ],
+     [
+      1,
+      "6",
+      "+10 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Bent Over Row",
+    "canon": "Rowing",
+    "groups": [
+     [
+      1,
+      "8",
+      "70 kg",
+      false
+     ],
+     [
+      1,
+      "8",
+      "70 kg",
+      false
+     ],
+     [
+      1,
+      "8",
+      "70 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Hammer Curl",
+    "canon": "Curl biceps",
+    "groups": [
+     [
+      1,
+      "12",
+      "16 kg",
+      false
+     ],
+     [
+      1,
+      "10",
+      "16 kg",
+      false
+     ],
+     [
+      1,
+      "12",
+      "14 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [],
+  "file": "C02.txt",
+  "sha": "895819c7b9a37a02"
+ },
+ {
+  "id": "C03",
+  "lot": "controle",
+  "kind": "note",
+  "title": "GZCL en anglais, lignes « T1: / T2: / T3: », AMRAP en toutes lettres",
+  "pieges": [
+   "B1",
+   "B18",
+   "C2"
+  ],
+  "source": "GZCL (sourcé : T1/T2/T3, AMRAP, « 1-2 reps in the tank »)",
+  "note": "Préfixes « T1: », « Week », « last set AMRAP » entre parenthèses, point décimal.",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      5,
+      "3",
+      "100 kg",
+      true
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Bench Press",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      3,
+      "10",
+      "60 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Lat Pulldown",
+    "canon": "Tirage vertical",
+    "groups": [
+     [
+      3,
+      "15",
+      "45 kg",
+      true
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Overhead Press",
+    "canon": "Développé militaire",
+    "groups": [
+     [
+      5,
+      "3",
+      "42.5 kg",
+      true
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Deadlift",
+    "canon": "Soulevé de terre",
+    "groups": [
+     [
+      3,
+      "10",
+      "100 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Dumbbell Row",
+    "canon": "Rowing",
+    "groups": [
+     [
+      3,
+      "15",
+      "22 kg",
+      true
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Bench Press",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      5,
+      "3",
+      "80 kg",
+      true
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      3,
+      "10",
+      "80 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Lat Pulldown",
+    "canon": "Tirage vertical",
+    "groups": [
+     [
+      3,
+      "15",
+      "47.5 kg",
+      true
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      5,
+      "3",
+      "102.5 kg",
+      true
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Bench Press",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      3,
+      "10",
+      "62.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Lat Pulldown",
+    "canon": "Tirage vertical",
+    "groups": [
+     [
+      3,
+      "15",
+      "47.5 kg",
+      true
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [],
+  "file": "C03.txt",
+  "sha": "3362f79192583e58"
+ },
+ {
+  "id": "C04",
+  "lot": "controle",
+  "kind": "xlsx",
+  "title": "6 semaines type Candito : « Sets x Reps » + « %1RM » en deux colonnes",
+  "pieges": [
+   "A2",
+   "A4",
+   "B2",
+   "C1"
+  ],
+  "source": "Candito 6 semaines / Texas Method (sourcé : 5×5, 2×5, 1×5, % du 1RM, lundi-mercredi-vendredi)",
+  "note": "Semaine et jour en cellules fusionnées sur deux colonnes, en-tête « Mouvement », « %1RM ».",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      5,
+      "5",
+      "70 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Développé couché",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      5,
+      "5",
+      "70 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Rowing barre",
+    "canon": "Rowing",
+    "groups": [
+     [
+      4,
+      "8",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      2,
+      "5",
+      "62 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Développé militaire",
+    "canon": "Développé militaire",
+    "groups": [
+     [
+      3,
+      "6",
+      "65 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Tractions",
+    "canon": "Tractions",
+    "groups": [
+     [
+      3,
+      "8",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      1,
+      "5",
+      "75 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Développé couché",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      1,
+      "5",
+      "75 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Soulevé de terre",
+    "canon": "Soulevé de terre",
+    "groups": [
+     [
+      1,
+      "5",
+      "75 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      5,
+      "5",
+      "72 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Développé couché",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      5,
+      "5",
+      "72 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Rowing barre",
+    "canon": "Rowing",
+    "groups": [
+     [
+      4,
+      "8",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      2,
+      "5",
+      "64 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Développé militaire",
+    "canon": "Développé militaire",
+    "groups": [
+     [
+      3,
+      "6",
+      "67 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Tractions",
+    "canon": "Tractions",
+    "groups": [
+     [
+      3,
+      "8",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 2,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      1,
+      "5",
+      "78 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 2,
+    "name": "Développé couché",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      1,
+      "5",
+      "78 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 2,
+    "name": "Soulevé de terre",
+    "canon": "Soulevé de terre",
+    "groups": [
+     [
+      1,
+      "5",
+      "78 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [],
+  "file": "C04.xlsx",
+  "sha": "7a0f623d2d8dbedf"
+ },
+ {
+  "id": "C05",
+  "lot": "controle",
+  "kind": "xlsx",
+  "title": "Powerbuilding : colonne Ordre A1/A2/B1, tempo, repos, deux onglets Upper/Lower",
+  "pieges": [
+   "B17",
+   "B13",
+   "A3"
+  ],
+  "source": "Recommended Routine (sourcé : paires, tempo 10X0, repos) ; inventé",
+  "note": "Ordre en lettres/chiffres (A1/A2) à ne pas lire comme des séries, tempo à 4 chiffres, repos en secondes (pas des reps).",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Développé couché",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      4,
+      "6-8",
+      "80 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": "3-1-1-0",
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Rowing barre",
+    "canon": "Rowing",
+    "groups": [
+     [
+      4,
+      "6-8",
+      "70 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": "2-0-1-0",
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Développé militaire",
+    "canon": "Développé militaire",
+    "groups": [
+     [
+      3,
+      "8-10",
+      "42.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": "2-0-1-0",
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Tractions",
+    "canon": "Tractions",
+    "groups": [
+     [
+      3,
+      "8-10",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": "2-1-1-0",
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Élévations latérales",
+    "canon": "Élévations latérales",
+    "groups": [
+     [
+      4,
+      "12-15",
+      "10 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": "2-0-1-1",
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      4,
+      "5-6",
+      "115 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": "3-1-1-0",
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Soulevé de terre roumain",
+    "canon": "Soulevé de terre roumain",
+    "groups": [
+     [
+      3,
+      "8",
+      "100 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": "3-0-1-0",
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Fentes bulgares",
+    "canon": "Fentes bulgares",
+    "groups": [
+     [
+      3,
+      "10",
+      "20 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": "2-0-1-0",
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Leg curl",
+    "canon": "Leg curl",
+    "groups": [
+     [
+      3,
+      "12",
+      "40 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": "2-0-1-1",
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Mollets debout",
+    "canon": "Mollets",
+    "groups": [
+     [
+      4,
+      "15",
+      "70 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": "2-1-1-1",
+    "side": false
+   }
+  ],
+  "noise": [],
+  "file": "C05.xlsx",
+  "sha": "0787c8fd9408ad83"
+ },
+ {
+  "id": "C06",
+  "lot": "controle",
+  "kind": "xlsx",
+  "title": "Calisthenics par niveau : « Maintien (s) », colonne Niveau, 3 jours",
+  "pieges": [
+   "B14",
+   "B16",
+   "B15"
+  ],
+  "source": "Recommended Routine / Liftosaur (sourcé : maintiens chronométrés, échelles) ; inventé",
+  "note": "Reps vides quand c'est un maintien (« Maintien (s) »), « Lest (kg) » en colonne, colonne Niveau qui précise l'exercice.",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Front lever",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "10 s",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Tractions",
+    "canon": "Tractions",
+    "groups": [
+     [
+      4,
+      "6-8",
+      "+10 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Tractions australiennes",
+    "canon": "Rowing inversé",
+    "groups": [
+     [
+      3,
+      "10-12",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Hollow hold",
+    "canon": "Gainage",
+    "groups": [
+     [
+      3,
+      "30 s",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Handstand",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "30 s",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Dips",
+    "canon": "Dips",
+    "groups": [
+     [
+      4,
+      "6-8",
+      "+20 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Pompes archer",
+    "canon": "Pompes",
+    "groups": [
+     [
+      3,
+      "6",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Planche lean",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "20 s",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Pistol squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      4,
+      "5",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Nordic curl",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "5",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "L-sit",
+    "canon": "Gainage",
+    "groups": [
+     [
+      4,
+      "15 s",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Muscle-up",
+    "canon": "Muscle-up",
+    "groups": [
+     [
+      5,
+      "2",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [],
+  "file": "C06.xlsx",
+  "sha": "6d227865d593d054"
+ },
+ {
+  "id": "C07",
+  "lot": "controle",
+  "kind": "xlsx",
+  "title": "Mise en page transposée : jours en colonnes, une feuille par semaine",
+  "pieges": [
+   "A2",
+   "A11"
+  ],
+  "source": "inventé (agenda hebdomadaire de coach)",
+  "note": "Transposé : les jours sont des colonnes, chaque case contient « Squat 4x6 @ 100kg ».",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      4,
+      "6",
+      "100 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Développé couché",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      4,
+      "6",
+      "80 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Rowing barre",
+    "canon": "Rowing",
+    "groups": [
+     [
+      4,
+      "8",
+      "70 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Curl barre",
+    "canon": "Curl biceps",
+    "groups": [
+     [
+      3,
+      "12",
+      "30 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Soulevé de terre",
+    "canon": "Soulevé de terre",
+    "groups": [
+     [
+      3,
+      "5",
+      "140 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Développé militaire",
+    "canon": "Développé militaire",
+    "groups": [
+     [
+      4,
+      "6",
+      "45 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Tractions",
+    "canon": "Tractions",
+    "groups": [
+     [
+      4,
+      "8",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Dips",
+    "canon": "Dips",
+    "groups": [
+     [
+      3,
+      "10",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Squat pause",
+    "canon": "Squat pause",
+    "groups": [
+     [
+      3,
+      "5",
+      "90 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Développé couché prise serrée",
+    "canon": "Développé couché prise serrée",
+    "groups": [
+     [
+      4,
+      "8",
+      "65 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Rowing haltère",
+    "canon": "Rowing",
+    "groups": [
+     [
+      3,
+      "10",
+      "30 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Face pull",
+    "canon": "Face pull",
+    "groups": [
+     [
+      3,
+      "15",
+      "20 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      4,
+      "6",
+      "102.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Développé couché",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      4,
+      "6",
+      "82.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Rowing barre",
+    "canon": "Rowing",
+    "groups": [
+     [
+      4,
+      "8",
+      "70 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Curl barre",
+    "canon": "Curl biceps",
+    "groups": [
+     [
+      3,
+      "12",
+      "30 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Soulevé de terre",
+    "canon": "Soulevé de terre",
+    "groups": [
+     [
+      3,
+      "5",
+      "142.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Développé militaire",
+    "canon": "Développé militaire",
+    "groups": [
+     [
+      4,
+      "6",
+      "46.25 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Tractions",
+    "canon": "Tractions",
+    "groups": [
+     [
+      4,
+      "8",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Dips",
+    "canon": "Dips",
+    "groups": [
+     [
+      3,
+      "10",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 2,
+    "name": "Squat pause",
+    "canon": "Squat pause",
+    "groups": [
+     [
+      3,
+      "5",
+      "92.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 2,
+    "name": "Développé couché prise serrée",
+    "canon": "Développé couché prise serrée",
+    "groups": [
+     [
+      4,
+      "8",
+      "67.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 2,
+    "name": "Rowing haltère",
+    "canon": "Rowing",
+    "groups": [
+     [
+      3,
+      "10",
+      "30 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 2,
+    "name": "Face pull",
+    "canon": "Face pull",
+    "groups": [
+     [
+      3,
+      "15",
+      "20 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 0,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      4,
+      "6",
+      "105 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 0,
+    "name": "Développé couché",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      4,
+      "6",
+      "85 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 0,
+    "name": "Rowing barre",
+    "canon": "Rowing",
+    "groups": [
+     [
+      4,
+      "8",
+      "70 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 0,
+    "name": "Curl barre",
+    "canon": "Curl biceps",
+    "groups": [
+     [
+      3,
+      "12",
+      "30 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 1,
+    "name": "Soulevé de terre",
+    "canon": "Soulevé de terre",
+    "groups": [
+     [
+      3,
+      "5",
+      "145 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 1,
+    "name": "Développé militaire",
+    "canon": "Développé militaire",
+    "groups": [
+     [
+      4,
+      "6",
+      "47.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 1,
+    "name": "Tractions",
+    "canon": "Tractions",
+    "groups": [
+     [
+      4,
+      "8",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 1,
+    "name": "Dips",
+    "canon": "Dips",
+    "groups": [
+     [
+      3,
+      "10",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 2,
+    "name": "Squat pause",
+    "canon": "Squat pause",
+    "groups": [
+     [
+      3,
+      "5",
+      "95 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 2,
+    "name": "Développé couché prise serrée",
+    "canon": "Développé couché prise serrée",
+    "groups": [
+     [
+      4,
+      "8",
+      "70 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 2,
+    "name": "Rowing haltère",
+    "canon": "Rowing",
+    "groups": [
+     [
+      3,
+      "10",
+      "30 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 2,
+    "name": "Face pull",
+    "canon": "Face pull",
+    "groups": [
+     [
+      3,
+      "15",
+      "20 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [],
+  "file": "C07.xlsx",
+  "sha": "1c3562c1a368a9dd"
+ },
+ {
+  "id": "C08",
+  "lot": "controle",
+  "kind": "xlsx",
+  "title": "Préparation semi + force : semaine fusionnée, colonne Détail libre, Distance",
+  "pieges": [
+   "A12",
+   "A13",
+   "B19",
+   "A8"
+  ],
+  "source": "Nick Bare (sourcé : semaine type course + muscu) ; inventé",
+  "note": "Colonne Détail qui mélange course (« Footing 50 min ») et muscu (« Squat 4x6 @ 100kg »), distance à part, semaine fusionnée.",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Footing",
+    "canon": "Course à pied",
+    "groups": [
+     [
+      1,
+      "50 min",
+      "8 km",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      4,
+      "6",
+      "100 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Développé couché",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      4,
+      "6",
+      "80 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Fractionné",
+    "canon": "Fractionné",
+    "groups": [
+     [
+      1,
+      "40 min",
+      "7 km",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 3,
+    "name": "Soulevé de terre",
+    "canon": "Soulevé de terre",
+    "groups": [
+     [
+      3,
+      "5",
+      "140 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 4,
+    "name": "Sortie longue",
+    "canon": "Course à pied",
+    "groups": [
+     [
+      1,
+      "90 min",
+      "15 km",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Footing",
+    "canon": "Course à pied",
+    "groups": [
+     [
+      1,
+      "55 min",
+      "9 km",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      4,
+      "6",
+      "100 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Développé couché",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      4,
+      "6",
+      "80 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 2,
+    "name": "Fractionné",
+    "canon": "Fractionné",
+    "groups": [
+     [
+      1,
+      "45 min",
+      "8 km",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 3,
+    "name": "Soulevé de terre",
+    "canon": "Soulevé de terre",
+    "groups": [
+     [
+      3,
+      "5",
+      "140 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 4,
+    "name": "Sortie longue",
+    "canon": "Course à pied",
+    "groups": [
+     [
+      1,
+      "95 min",
+      "16 km",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [],
+  "file": "C08.xlsx",
+  "sha": "067d6fba8636bdf1"
+ },
+ {
+  "id": "C09",
+  "lot": "controle",
+  "kind": "sheet",
+  "title": "Préparation type CrossFit : bloc force + conditionnement EMOM/AMRAP",
+  "pieges": [
+   "B19",
+   "A13"
+  ],
+  "source": "inventé (programmation de box)",
+  "note": "Préfixes « Strength: / WOD: », EMOM/AMRAP en minutes, circuit en tours.",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Back Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      5,
+      "3",
+      "85 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Strict Pull-ups",
+    "canon": "Tractions",
+    "groups": [
+     [
+      4,
+      "6",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "EMOM 12 min",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "12 min",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Push Press",
+    "canon": "Développé militaire",
+    "groups": [
+     [
+      5,
+      "3",
+      "75 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Dips",
+    "canon": "Dips",
+    "groups": [
+     [
+      4,
+      "8",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "AMRAP 10 min",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "10 min",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Deadlift",
+    "canon": "Soulevé de terre",
+    "groups": [
+     [
+      3,
+      "5",
+      "80 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Bench Press",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      4,
+      "6",
+      "72 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "AMRAP 8 min",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "8 min",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [],
+  "file": "C09.sheet.json",
+  "sha": "7b56c32f97f46fe2"
+ },
+ {
+  "id": "C10",
+  "lot": "controle",
+  "kind": "sheet",
+  "title": "Hypertrophie avec onglet Volume (MEV/MAV/MRV) et colonne RIR",
+  "pieges": [
+   "A1",
+   "C2"
+  ],
+  "source": "inventé (feuille type « landmarks de volume »)",
+  "note": "Onglet de réglages avec des noms de muscles, colonne « Fourchette » (reps), colonne RIR (non évaluée), un onglet par séance.",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Développé couché",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      4,
+      "6-8",
+      "80 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Développé incliné haltères",
+    "canon": "Développé incliné",
+    "groups": [
+     [
+      3,
+      "8-12",
+      "28 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Rowing barre",
+    "canon": "Rowing",
+    "groups": [
+     [
+      4,
+      "8-10",
+      "70 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Tirage vertical",
+    "canon": "Tirage vertical",
+    "groups": [
+     [
+      3,
+      "10-12",
+      "60 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Triceps corde",
+    "canon": "Triceps",
+    "groups": [
+     [
+      3,
+      "12-15",
+      "25 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      4,
+      "6-8",
+      "110 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Soulevé de terre roumain",
+    "canon": "Soulevé de terre roumain",
+    "groups": [
+     [
+      3,
+      "8-10",
+      "100 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Presse à cuisses",
+    "canon": "Presse à cuisses",
+    "groups": [
+     [
+      3,
+      "10-15",
+      "200 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Mollets debout",
+    "canon": "Mollets",
+    "groups": [
+     [
+      4,
+      "12-15",
+      "70 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [
+   "pectoraux",
+   "mev",
+   "total series"
+  ],
+  "file": "C10.sheet.json",
+  "sha": "a56bb452712247c4"
+ },
+ {
+  "id": "C11",
+  "lot": "controle",
+  "kind": "xlsx",
+  "title": "Une seule colonne « Prescription » aux écritures mélangées",
+  "pieges": [
+   "B2",
+   "B3",
+   "B1",
+   "D1"
+  ],
+  "source": "inventé (feuille remplie à la main sur plusieurs mois)",
+  "note": "Cinq écritures différentes dans la même colonne (« 5x5 @100 », « 100kg 5x5 », « 4 séries de 8 à 60 kg », « 3×12 (14kg) », « 3x3 @ 85% »), pas de colonne Exercice.",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      5,
+      "5",
+      "100 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Développé couché",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      5,
+      "5",
+      "100 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Rowing barre",
+    "canon": "Rowing",
+    "groups": [
+     [
+      4,
+      "8",
+      "60 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Curl haltères",
+    "canon": "Curl biceps",
+    "groups": [
+     [
+      3,
+      "12",
+      "14 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Soulevé de terre",
+    "canon": "Soulevé de terre",
+    "groups": [
+     [
+      3,
+      "3",
+      "85 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Développé militaire",
+    "canon": "Développé militaire",
+    "groups": [
+     [
+      6,
+      "3",
+      "70 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Tractions",
+    "canon": "Tractions",
+    "groups": [
+     [
+      5,
+      "5",
+      "+10 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Dips",
+    "canon": "Dips",
+    "groups": [
+     [
+      4,
+      "8",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [],
+  "file": "C11.xlsx",
+  "sha": "05d8a2b160b525c0"
+ },
+ {
+  "id": "C12",
+  "lot": "controle",
+  "kind": "csv",
+  "title": "CSV exporté d'un Excel français : point-virgule, virgule décimale, guillemets",
+  "pieges": [
+   "A2",
+   "D1",
+   "E3"
+  ],
+  "source": "format d'un « Enregistrer sous CSV » d'Excel en locale française (déduit) — contenu inventé",
+  "note": "Séparateur « ; », décimale « 102,5 », commentaire entre guillemets contenant un « ; ».",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      4,
+      "6",
+      "102.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Développé couché",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      4,
+      "6",
+      "82.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Rowing barre",
+    "canon": "Rowing",
+    "groups": [
+     [
+      4,
+      "8",
+      "67.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Triceps corde",
+    "canon": "Triceps",
+    "groups": [
+     [
+      3,
+      "12",
+      "27.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Soulevé de terre",
+    "canon": "Soulevé de terre",
+    "groups": [
+     [
+      3,
+      "5",
+      "145 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Développé militaire",
+    "canon": "Développé militaire",
+    "groups": [
+     [
+      4,
+      "6",
+      "47.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Tractions",
+    "canon": "Tractions",
+    "groups": [
+     [
+      4,
+      "8",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Squat pause",
+    "canon": "Squat pause",
+    "groups": [
+     [
+      3,
+      "4",
+      "92.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Dips",
+    "canon": "Dips",
+    "groups": [
+     [
+      3,
+      "10",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Curl barre",
+    "canon": "Curl biceps",
+    "groups": [
+     [
+      3,
+      "10",
+      "32.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [],
+  "file": "C12.csv",
+  "sha": "14bdd0b0b5b2f87b"
+ },
+ {
+  "id": "C13",
+  "lot": "controle",
+  "kind": "note",
+  "title": "Prog dictée à la voix : nombres écrits en lettres",
+  "pieges": [
+   "B3",
+   "C5"
+  ],
+  "source": "inventé (retranscription vocale d'un téléphone)",
+  "note": "Pas de signe ×, séries et reps en lettres (« quatre séries de cinq reps »), « quarante-cinq secondes ».",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      4,
+      "5",
+      "100 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "développé couché",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      3,
+      "8",
+      "70 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "rowing barre",
+    "canon": "Rowing",
+    "groups": [
+     [
+      4,
+      "10",
+      "60 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "gainage",
+    "canon": "Gainage",
+    "groups": [
+     [
+      3,
+      "45 s",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "soulevé de terre",
+    "canon": "Soulevé de terre",
+    "groups": [
+     [
+      5,
+      "3",
+      "140 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "tractions",
+    "canon": "Tractions",
+    "groups": [
+     [
+      4,
+      "8",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "développé militaire",
+    "canon": "Développé militaire",
+    "groups": [
+     [
+      3,
+      "10",
+      "40 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "fentes",
+    "canon": "Fentes",
+    "groups": [
+     [
+      3,
+      "12",
+      "20 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [],
+  "file": "C13.txt",
+  "sha": "bc6410d13e85c65c"
+ },
+ {
+  "id": "C14",
+  "lot": "controle",
+  "kind": "sheet",
+  "title": "Modèle de coach à séances fusionnées : MOUVEMENT / COMMENTAIRE ATHLÈTE",
+  "pieges": [
+   "A2",
+   "A3",
+   "E5",
+   "F1"
+  ],
+  "source": "modèle du coach d'Alane et Noa (connu du lecteur de lien direct) — contenu inventé, ici lu par l'import",
+  "note": "Bandeaux « SÉANCE n – Jour » et « BLOC n – SEMAINE n » sur leur propre ligne, en-tête MOUVEMENT répété, commentaire athlète rempli à un endroit.",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Squat",
+    "canon": "Squat",
+    "groups": [
+     [
+      4,
+      "5",
+      "75 %",
+      false
+     ]
+    ],
+    "rpe": "7",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Développé couché",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      4,
+      "6",
+      "72 %",
+      false
+     ]
+    ],
+    "rpe": "7",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Tractions lestées",
+    "canon": "Tractions",
+    "groups": [
+     [
+      4,
+      "6",
+      "+15 kg",
+      false
+     ]
+    ],
+    "rpe": "8",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Rowing barre",
+    "canon": "Rowing",
+    "groups": [
+     [
+      3,
+      "10",
+      "65 kg",
+      false
+     ]
+    ],
+    "rpe": "8",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Soulevé de terre",
+    "canon": "Soulevé de terre",
+    "groups": [
+     [
+      3,
+      "4",
+      "80 %",
+      false
+     ]
+    ],
+    "rpe": "8",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Développé militaire",
+    "canon": "Développé militaire",
+    "groups": [
+     [
+      4,
+      "6",
+      "45 kg",
+      false
+     ]
+    ],
+    "rpe": "8",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Dips",
+    "canon": "Dips",
+    "groups": [
+     [
+      3,
+      "10",
+      null,
+      false
+     ]
+    ],
+    "rpe": "8",
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [],
+  "file": "C14.sheet.json",
+  "sha": "4dd8b622a27b7373"
+ }
+]

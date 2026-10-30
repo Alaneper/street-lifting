@@ -1,0 +1,97 @@
+[
+ {
+  "name": "Routine",
+  "rows": [
+   [
+    "Weight in lbs unless noted"
+   ],
+   [
+    "Exercise",
+    "Sets × Reps",
+    "Weight (lbs)",
+    "Notes"
+   ],
+   [
+    "Day 1 - Pull"
+   ],
+   [
+    "Barbell Deadlift",
+    "1×5+",
+    "275",
+    ""
+   ],
+   [
+    "Pull Ups",
+    "3×8-12",
+    "",
+    "bodyweight"
+   ],
+   [
+    "Barbell Row",
+    "4×5, 1×5+",
+    "135",
+    ""
+   ],
+   [
+    "Face Pulls",
+    "5×15-20",
+    "60",
+    ""
+   ],
+   [
+    "Day 2 - Push"
+   ],
+   [
+    "Bench Press",
+    "4×5, 1×5+",
+    "185",
+    ""
+   ],
+   [
+    "Overhead Press",
+    "3×6-8",
+    "95",
+    ""
+   ],
+   [
+    "Incline DB Press",
+    "3×8-12",
+    "55",
+    "per dumbbell"
+   ],
+   [
+    "Triceps Pushdown",
+    "3×8-12",
+    "70",
+    ""
+   ],
+   [
+    "Day 3 - Legs"
+   ],
+   [
+    "Squat (low bar)",
+    "4×5, 1×5+",
+    "225",
+    ""
+   ],
+   [
+    "Romanian Deadlift",
+    "3×6-8",
+    "185",
+    ""
+   ],
+   [
+    "Leg Press",
+    "3×10-15",
+    "360",
+    ""
+   ],
+   [
+    "Calf Raises",
+    "5×10-15",
+    "150",
+    ""
+   ]
+  ]
+ }
+]

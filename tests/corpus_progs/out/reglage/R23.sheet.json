@@ -1,0 +1,98 @@
+[
+ {
+  "name": "GZCLP",
+  "rows": [
+   [
+    "Day",
+    "Tier",
+    "Exercise",
+    "Sets x Reps",
+    "Weight (kg)"
+   ],
+   [
+    "A1",
+    "T1",
+    "Squat",
+    "5x3+",
+    "100"
+   ],
+   [
+    "",
+    "T2",
+    "Bench Press",
+    "3x10",
+    "60"
+   ],
+   [
+    "",
+    "T3",
+    "Lat Pulldown",
+    "3x15+",
+    "40"
+   ],
+   [
+    "B1",
+    "T1",
+    "Overhead Press",
+    "5x3+",
+    "42.5"
+   ],
+   [
+    "",
+    "T2",
+    "Deadlift",
+    "3x10",
+    "100"
+   ],
+   [
+    "",
+    "T3",
+    "Dumbbell Row",
+    "3x15+",
+    "22"
+   ],
+   [
+    "A2",
+    "T1",
+    "Bench Press",
+    "5x3+",
+    "80"
+   ],
+   [
+    "",
+    "T2",
+    "Squat",
+    "3x10",
+    "80"
+   ],
+   [
+    "",
+    "T3",
+    "Lat Pulldown",
+    "3x15+",
+    "42.5"
+   ],
+   [
+    "B2",
+    "T1",
+    "Deadlift",
+    "5x3+",
+    "125"
+   ],
+   [
+    "",
+    "T2",
+    "Overhead Press",
+    "3x10",
+    "32.5"
+   ],
+   [
+    "",
+    "T3",
+    "Dumbbell Row",
+    "3x15+",
+    "24"
+   ]
+  ]
+ }
+]

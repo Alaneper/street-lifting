@@ -1,0 +1,12 @@
+Jour	Exercice	Séries	Reps	Charge	Remarque
+Lundi	Squat	4	6	100	
+	DC	4	8	80	pause 2 s
+	Rowing barre	4	8	#REF!	
+	Tractions	4	max		lestées si 12 reps
+Mercredi	Soulevé de terre	3	5	140	
+	OHP	4	6	45	
+	Leg curl	3	12	40	
+Vendredi	Squat pause	3	5	90	
+	Dips	3	10		
+	Curl barre	3	10	30	
+TOTAL		=SOMME(C2:C11)			
