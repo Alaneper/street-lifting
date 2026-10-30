@@ -492,7 +492,7 @@ html,body{overflow-x:clip}body{margin-top:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "59 · 30 oct. 2026";
+const APP_VER = "60 · 30 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -500,7 +500,7 @@ const LNAME = {MU:"Muscle-up", PULL:"Tractions", DIP:"Dips", SQUAT:"Squat", BENC
 const LCOL = {MU:"var(--mu)", PULL:"var(--pull)", DIP:"var(--dip)", SQUAT:"var(--squat)", BENCH:"var(--bench)", DEADLIFT:"var(--deadlift)"};
 LCOL.CARDIO = "var(--cardio)";   /* v40 : le cardio a sa couleur, il ne compte ni dans un total ni dans un classement */
 const BW_LIFTS = ["MU","PULL","DIP"];
-const RPE_OPTS = [5,6,6.5,7,7.5,8,8.5,9,9.5,10];
+const RPE_OPTS = [3,4,5,6,6.5,7,7.5,8,8.5,9,9.5,10];   /* v60 : à partir de 3 (demande des testeurs) */
 const CATS_H = [-66,-73,-80,-87,-94,-101,101], CATS_F = [-52,-57,-63,-70,70];
 let CATS = CATS_H;
 const catsFor = sx => sx === "F" ? CATS_F : CATS_H;
@@ -1387,8 +1387,8 @@ function exercisePoints(){
     if (!sets && own && lift && c !== null && num(e.series) && rg) sets = Array(num(e.series)).fill(0).map(() => ({r:+rg[1], c, rng:e.reps}));
     if (!sets) continue;
     if (failTxt(e.rpeLast) && sets.length > 1) sets = sets.slice(0, -1);
-    const rp = num(e.rpeLast); if (rp && rp >= 5 && rp <= 10 && sets.length) sets = sets.map((x, i) => i === sets.length - 1 ? {...x, rpe:rp} : x);
-    const r1 = num(e.rpe1); if (r1 && r1 >= 5 && r1 <= 10 && sets.length && (sets.length > 1 || !(rp && rp >= 5))) sets = sets.map((x, i) => i === 0 ? {...x, rpe:r1} : x);
+    const rp = num(e.rpeLast); if (rp && rp >= 3 && rp <= 10 && sets.length) sets = sets.map((x, i) => i === sets.length - 1 ? {...x, rpe:rp} : x);
+    const r1 = num(e.rpe1); if (r1 && r1 >= 3 && r1 <= 10 && sets.length && (sets.length > 1 || !(rp && rp >= 3))) sets = sets.map((x, i) => i === 0 ? {...x, rpe:r1} : x);
     rows.push({sk:s.key, ex:key, lift, comp:isCompEx(e), where:{bloc:s.bloc, sem:s.semaine, seance:s.seance, row:e.row, sheet:s.sheet, charge:e.charge, rpe1:e.rpe1, rpeLast:e.rpeLast, com:e.commentaire, archived:!!s.archived}, bloc:s.bloc, sem:s.semaine, date:dateOf(s), order:rank(s.bloc) * 1000 + (num(s.semaine) || 0) * 10 + s.idx, label:blocShort(s.bloc) + " S" + s.semaine, sets, src:"prog"});
   }
   for (const x of D.series) {
@@ -1397,7 +1397,7 @@ function exercisePoints(){
     if (xe && ASSIST_RE.test(String(xe.charge))) continue;
     if (isTimedEx(xe || {mouvement:x.ex.split(" · ")[0], variation:x.ex.split(" · ").slice(1).join(" · "), reps:""})) continue;   /* v46 : un temps n'est pas un 1RM ni un tonnage (v59 : choix « Temps » compris, même sans ligne de prog) */
     /* séance notée dans l'app : RPE de la 1re série (et de la dernière) repris de la ligne de la prog */
-    let xs = x.sets; if (xe && xs && xs.length) { const r1 = num(xe.rpe1), rl = num(xe.rpeLast), okR = v => v && v >= 5 && v <= 10;
+    let xs = x.sets; if (xe && xs && xs.length) { const r1 = num(xe.rpe1), rl = num(xe.rpeLast), okR = v => v && v >= 3 && v <= 10;
       xs = xs.map((y, i) => i === 0 && okR(r1) ? {...y, rpe:r1} : i === xs.length - 1 && i > 0 && okR(rl) ? {...y, rpe:rl} : y); }
     rows.push({sk: s ? s.key : "d" + x.date, comp:!!xl && (xe ? isCompEx(xe) : isCompVar(x.ex.split(" · ")[1] || "")), where:{bloc:x.bloc, sem:x.semaine, seance:x.seance, app:true}, bloc:x.bloc, sem:x.semaine, ex:x.ex, lift:liftOf(x.ex.split(" · ")[0]), date:x.date || (s && dateOf(s)), order:x.bloc ? rank(x.bloc) * 1000 + (num(x.semaine) || 0) * 10 + (s ? s.idx : 0) : 0, label:x.date ? dfr(x.date) : blocShort(x.bloc) + " S" + x.semaine, sets:xs, src:"carnet"});
   }
@@ -1434,7 +1434,7 @@ function repMaxes(sets){
 const RTS = [100, 97.8, 95.5, 93.9, 92.2, 90.7, 89.2, 87.8, 86.3, 85, 83.7, 82.4, 81.1, 79.9, 78.6, 77.4, 76.2, 75.1, 73.9];
 const rtsPct = x => { const i = Math.round((x - 1) * 2); return i >= 0 && i < RTS.length ? RTS[i] / 100 : null; };
 /* 1RM estimé d'une série : charge réelle (poids de corps + lest pour MU, tractions, dips) ÷ % de la table.
-   RPE pris en compte de 5 à 10 (30 kg × 1 à RPE 6 ne vaut pas un 1RM de 30 kg). Sans RPE : série supposée à fond. */
+   RPE noté de 3 à 10 (30 kg × 1 à RPE 6 ne vaut pas un 1RM de 30 kg). Réserve plafonnée à 5 reps : sous RPE 5, l'échelle (Zourdos 2016 : 3–4 = effort léger) ne donne plus de nombre de reps fiable, la série est comptée comme un RPE 5 (estimation prudente). Sans RPE : série supposée à fond. */
 function e1rmOf(l, x){
   const rir = x.rpe ? Math.min(5, Math.max(0, 10 - x.rpe)) : 0, xe = x.r + rir, pc = rtsPct(xe); if (!pc) return null;
   const w = BW_LIFTS.includes(l) ? bwAt(x.date || D.today) : 0; if (BW_LIFTS.includes(l) && !w) return null;
@@ -2535,12 +2535,13 @@ function restPill(){
     <button class="rb" id="restpp" data-act="restPause" aria-label="Mettre le repos en pause">${rest && rest.pauseAt ? "▶" : "❚❚"}</button><button class="go2" data-act="closeSheet">Passer</button></section>`;
 }
 function rpeInfoHtml(){
-  const rows = [[10, "Impossible d'en faire une de plus", "0"], [9, "Encore 1 rep possible", "1"], [8, "Encore 2 reps possibles", "2"], [7, "Encore 3 reps possibles", "3"], [6, "Encore 4 reps possibles", "4"]];
+  const rows = [[10, "Impossible d'en faire une de plus", "0"], [9, "Encore 1 rep possible", "1"], [8, "Encore 2 reps possibles", "2"], [7, "Encore 3 reps possibles", "3"], [6, "Encore 4 reps possibles", "4"], [5, "Encore 5 reps possibles environ", "5"], ["3–4", "Effort léger (échauffement)", "6+"]];
   return `<p class="show t-m">C'est quoi le RPE ?</p>
     <p class="muted small" style="margin-top:6px">RPE veut dire « Rate of Perceived Exertion » : l'effort ressenti sur une série, de 1 à 10. En musculation, on le relie au nombre de répétitions qu'il te restait en réserve à la fin de la série.</p>
-    <div class="list" style="margin-top:14px">${rows.map(([v, t, r]) => `<div class="item" style="display:flex;gap:12px;align-items:center"><b style="font:800 26px var(--f-show);width:34px">${v}</b><span class="grow">${t}</span><span class="muted small">${r} en réserve</span></div>`).join("")}</div>
+    <div class="list" style="margin-top:14px">${rows.map(([v, t, r]) => `<div class="item" style="display:flex;gap:12px;align-items:center"><b style="font:800 26px var(--f-show);min-width:34px;white-space:nowrap">${v}</b><span class="grow">${t}</span><span class="muted small">${r} en réserve</span></div>`).join("")}</div>
     <h2 class="h2" style="font-size:18px">Comment le noter</h2>
     <p class="small" style="margin-top:4px">Juste après ta série, demande-toi : « combien de reps en plus aurais-je pu faire, sans craquer la technique ? » Retire ce nombre de 10. Pas besoin d'être précis : une demi-note d'écart ne change rien.</p>
+    <p class="muted small" style="margin-top:6px">En dessous de 5, le RPE dit seulement que c'était facile : pour estimer ton 1RM, l'app compte alors la série comme un RPE 5, par prudence.</p>
     <h2 class="h2" style="font-size:18px">À quoi ça sert dans l'app</h2>
     <p class="small" style="margin-top:4px">Pour estimer ton 1RM, pour voir si une charge était trop légère ou trop lourde, et pour régler les charges de ton bloc suivant. Sans RPE noté, l'app regarde tes répétitions : si tu valides toutes tes séries au haut de la fourchette prévue (par exemple 3×12 pour 8–12), elle propose de monter la charge.</p>
     <p class="muted small" style="margin-top:10px">Plus la série est longue ou éloignée de l'échec, plus il est difficile de juger l'effort : le RPE est le plus fiable sur des séries courtes et proches de l'échec.</p>
@@ -3572,7 +3573,7 @@ function vidSectionHtml(l, N, top){
       <div class="row" style="margin-top:6px"><button class="link small" data-act="vidSave" data-id="${m.id}">Enregistrer dans Photos</button><button class="link small" style="color:var(--bad)" data-act="vidDel" data-id="${m.id}">${vidDel === m.id ? "Confirmer la suppression" : "Supprimer"}</button></div></div>`).join("");
   const rp = top ? (top.r1 || top.rpe || null) : null;
   const draft = vidDraft && vidDraft.key === key ? `<div class="panel" style="margin-top:12px"><p style="font-weight:600">Nouvelle vidéo · ${fmt(vidDraft.file.size / 1048576, 0) || "< 1"} Mo</p>
-      <div class="grid2"><div><label for="vc">Charge (kg)</label><input id="vc" inputmode="decimal" value="${top ? fmt(top.c) : ""}"></div><div><label for="vr">RPE</label><select id="vr"><option value="">Pas noté</option>${[5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10].map(v => `<option value="${v}" ${rp === v ? "selected" : ""}>${fmt(v)}</option>`).join("")}</select></div></div>
+      <div class="grid2"><div><label for="vc">Charge (kg)</label><input id="vc" inputmode="decimal" value="${top ? fmt(top.c) : ""}"></div><div><label for="vr">RPE</label><select id="vr"><option value="">Pas noté</option>${[3, 4, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10].map(v => `<option value="${v}" ${rp === v ? "selected" : ""}>${fmt(v)}</option>`).join("")}</select></div></div>
       <label for="vd">Date</label><input id="vd" type="date" value="${top && top.date ? top.date : D.today}">
       <button class="btn" style="margin-top:12px" data-act="vidAddGo">Enregistrer la vidéo</button><button class="btn ghost" style="margin-top:8px" data-act="vidCancel">Annuler</button></div>` : "";
   return `<h2 class="h2">Vidéos <span class="muted">${list.length || ""}</span></h2>${items || `<p class="muted small">Ajoute la vidéo de ta perf pour la revoir et voir tes progrès. Tu peux en garder autant que tu veux : une nouvelle ne remplace jamais l'ancienne.</p>`}${draft}
