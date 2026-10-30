@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Street Lifting">
-<meta name="sl-build" content="20261030123354">
+<meta name="sl-build" content="20261030152452">
 <meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
@@ -517,7 +517,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "61 · 30 oct. 2026";
+const APP_VER = "62 · 30 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -3768,6 +3768,23 @@ vidLoad().catch(() => {});
   const num = s => parseFloat(String(s).replace(",", "."));
   const toNum = w => { if (w == null) return null; const t = strip(w); return NUM_WORDS[t] ?? (isNaN(num(t)) ? null : num(t)); };
 
+  // Lot 1 du chantier progs (30/10) : unité du programme. Une charge sans unité vaut DEF_U (kg par défaut, lb si le
+  // programme l'annonce : « Weights in lbs », en-tête « Weight (lbs) », « Units: lb »). Une unité écrite dans la case gagne toujours.
+  let DEF_U = "kg";
+  function unitHint(cells) {
+    let lb = 0, kg = 0;
+    for (const c0 of cells) {
+      const c = strip(String(c0 ?? "")).trim(); if (!c || c.length > 80) continue;
+      if (/\((lbs?|pounds?)\)|\b(in|en)\s+(lbs?|pounds?|livres)\b|\bunit\w*\s*[:=]?\s*(lbs?|pounds?)\b|^(lbs?|pounds?)$|\b(weights?|loads?)\s*\(?\s*lbs?\b/.test(c)) lb++;
+      if (/\(kg\)|\b(in|en)\s+(kg|kilos?)\b|\bunit\w*\s*[:=]?\s*(kg|kilos?)\b|^kg$|\b(weights?|loads?|poids|charges?)\s*\(?\s*kg\b/.test(c)) kg++;
+    }
+    return lb && !kg ? "lb" : kg && !lb ? "kg" : null;
+  }
+  // Excel enregistre « 75 % » comme 0,75 : dans une colonne de %, un nombre nu ≤ 1,5 est une fraction.
+  const pctVal = c => { const n = num(c); return !/%/.test(c) && n > 0 && n <= 1.5 ? Math.round(n * 10000) / 100 : n; };
+  // Excel enregistre une durée « 3:00 » comme une fraction de jour (0,00208…).
+  const restVal = c => { if (!/^0?\.\d+$/.test(String(c || "").trim()) || num(c) >= 0.1) return c || null; const t = Math.round(num(c) * 86400); return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0"); };
+
   function canon(name) {
     const n = strip(name);
     for (const [re, c, cat] of EXOS) if (re.test(n)) return { canon: c, cat };
@@ -3794,20 +3811,20 @@ vidLoad().catch(() => {});
     let m;
     // v42 : élastique (résistance ou aide, jamais une charge) ; « assistance 14 » (ex. « / -14kg » aux tractions)
     if (/[ée]lastique|\bbands?\b|\bbande\b/i.test(s)) { const v = s.match(/(\d+(?:[.,]\d+)?)\s*kg/i); return { kind: "band", v: v ? num(v[1]) : null, u: "kg" }; }
-    if ((m = s.match(/assist\w*\s*(?:de\s*)?(\d+(?:[.,]\d+)?)\s*(?:kg)?/i))) return { kind: "assist", v: num(m[1]), u: "kg" };
-    if ((m = t.match(/bw\s*\+\s*(\d+(?:[.,]\d+)?)/i))) return { kind: "lest", v: num(m[1]), u: "kg" };
+    if ((m = s.match(/assist\w*\s*(?:de\s*)?(\d+(?:[.,]\d+)?)\s*(?:kg)?/i))) return { kind: "assist", v: num(m[1]), u: DEF_U };
+    if ((m = t.match(/bw\s*\+\s*(\d+(?:[.,]\d+)?)/i))) return { kind: "lest", v: num(m[1]), u: DEF_U };
     if ((m = t.match(/@\s*(\d+(?:[.,]\d+)?)\s*%/))) return { kind: "pct", v: num(m[1]) };
     if ((m = t.match(/[àa@]\s*-\s*(\d+(?:[.,]\d+)?)\s*%/))) return { kind: "rel", v: -num(m[1]) };
-    if ((m = t.match(/@\s*\+\s*(\d+(?:[.,]\d+)?)\s*(kg|lbs?)?/i))) return { kind: "lest", v: num(m[1]), u: (m[2] || "kg").replace(/s$/, "") };
-    if ((m = t.match(/(?:^|\s)\+\s*(\d+(?:[.,]\d+)?)\s*(?:(kg|lbs?)\b|(?=\s*(?:$|[,:;)(\/]|\d)))/i))) return { kind: "lest", v: num(m[1]), u: (m[2] || "kg").replace(/s$/, "") };
-    if ((m = t.match(/@\s*(\d+(?:[.,]\d+)?)(?![\d.,]|\s*%)\s*(kg|lbs?)?/i)) && !/rpe\s*$/i.test(t.slice(0, m.index)) && (m[2] || num(m[1]) > 10)) return { kind: "abs", v: num(m[1]), u: (m[2] || "kg").replace(/s$/, "") };
+    if ((m = t.match(/@\s*\+\s*(\d+(?:[.,]\d+)?)\s*(kg|lbs?)?/i))) return { kind: "lest", v: num(m[1]), u: (m[2] || DEF_U).replace(/s$/, "") };
+    if ((m = t.match(/(?:^|\s)\+\s*(\d+(?:[.,]\d+)?)\s*(?:(kg|lbs?)\b|(?=\s*(?:$|[,:;)(\/]|\d)))/i))) return { kind: "lest", v: num(m[1]), u: (m[2] || DEF_U).replace(/s$/, "") };
+    if ((m = t.match(/@\s*(\d+(?:[.,]\d+)?)(?![\d.,]|\s*%)\s*(kg|lbs?)?/i)) && !/rpe\s*$/i.test(t.slice(0, m.index)) && (m[2] || num(m[1]) > 10)) return { kind: "abs", v: num(m[1]), u: (m[2] || DEF_U).replace(/s$/, "") };
     if ((m = t.match(/(\d+(?:[.,]\d+)?)\s*(kg|lbs?)\b/i))) return { kind: "abs", v: num(m[1]), u: m[2].toLowerCase().replace(/s$/, "") };
-    if ((m = t.match(/(?:\s|^)[àa]\s+(\d{2,3}(?:[.,]\d+)?)(?![\d.,]|\s*%)/))) return { kind: "abs", v: num(m[1]), u: "kg" };
+    if ((m = t.match(/(?:\s|^)[àa]\s+(\d{2,3}(?:[.,]\d+)?)(?![\d.,]|\s*%)/))) return { kind: "abs", v: num(m[1]), u: DEF_U };
     if ((m = t.match(/(?<![\d.,])(\d+(?:[.,]\d+)?)\s*%/))) return { kind: "pct", v: num(m[1]) };
     for (const pm of s.matchAll(/\(([^)]*)\)/g)) { if (/\d/.test(pm[1]) && !/\(/.test(pm[1]) && /^\s*[+@]?\s*\d|^\s*bw/i.test(pm[1])) { const r = readLoad(" " + pm[1]); if (r) return r; } }
-    if ((m = s.match(/\((\d{2,3}(?:[.,]\d+)?)\s*(kg|lbs?)?\)/i))) return { kind: "abs", v: num(m[1]), u: (m[2] || "kg").toLowerCase().replace(/s$/, "") };   // « opener (190) »
-    if ((m = t.match(/\s(\d{2,3}(?:[.,]\d+)?)\s*$/))) return { kind: "abs", v: num(m[1]), u: "kg" };  // « 3x8 80 » en fin de ligne
-    if ((m = t.match(/\s(\d{2,3}(?:[.,]\d+)?)\s+(?:@\s*(?:10|[5-9](?:[.,]5)?)|rpe\s*\d+(?:[.,]\d+)?(?:\s*-\s*\d+(?:[.,]\d+)?)?)\s*$/i))) return { kind: "abs", v: num(m[1]), u: "kg" };  // « 3x3 140 @8 », « 3x3 140 rpe 8 »
+    if ((m = s.match(/\((\d{2,3}(?:[.,]\d+)?)\s*(kg|lbs?)?\)/i))) return { kind: "abs", v: num(m[1]), u: (m[2] || DEF_U).toLowerCase().replace(/s$/, "") };   // « opener (190) »
+    if ((m = t.match(/\s(\d{2,3}(?:[.,]\d+)?)\s*$/))) return { kind: "abs", v: num(m[1]), u: DEF_U };  // « 3x8 80 » en fin de ligne
+    if ((m = t.match(/\s(\d{2,3}(?:[.,]\d+)?)\s+(?:@\s*(?:10|[5-9](?:[.,]5)?)|rpe\s*\d+(?:[.,]\d+)?(?:\s*-\s*\d+(?:[.,]\d+)?)?)\s*$/i))) return { kind: "abs", v: num(m[1]), u: DEF_U };  // « 3x3 140 @8 », « 3x3 140 rpe 8 »
     return null;
   }
 
@@ -3831,7 +3848,7 @@ vidLoad().catch(() => {});
     let s = seg.trim();
     // v42 : « 4 x 10 (12kg) + 10 (6kg) » = dégressif dans chaque série : 1re charge gardée, détail en note
     const drop = s.match(/(\d+)\s*\(\s*(\d+(?:[.,]\d+)?)\s*kg\s*\)\s*\+\s*(\d+)\s*\(\s*(\d+(?:[.,]\d+)?)\s*kg\s*\)/i);
-    if (drop) s = s.replace(drop[0], drop[1] + " " + drop[2] + "kg");
+    if (drop) s = s.replace(drop[0], drop[1] + " " + drop[2] + DEF_U);
     const hits = [];
     let m;
     RE_PCT_X.lastIndex = 0;
@@ -3847,7 +3864,7 @@ vidLoad().catch(() => {});
     while ((m = RE_LXR.exec(s))) {
       if (hits.some(h => m.index < h.end && m.index + m[0].length > h.i)) continue;
       if (num(m[1]) <= 15) continue;
-      hits.push({ i: m.index, end: m.index + m[0].length, g: { sets: 1, reps: m[3] }, load: { kind: "abs", v: num(m[1]), u: (m[2] || "kg").replace(/s$/, "") } });
+      hits.push({ i: m.index, end: m.index + m[0].length, g: { sets: 1, reps: m[3] }, load: { kind: "abs", v: num(m[1]), u: (m[2] || DEF_U).replace(/s$/, "") } });
     }
     const add = (re, f) => { re.lastIndex = 0; let q; while ((q = re.exec(s))) { if (hits.some(h => q.index < h.end && q.index + q[0].length > h.i)) continue; const h = f(q); if (h) hits.push({ i: q.index, end: q.index + q[0].length, ...h }); } };
     add(RE_SETS_OF, q => { const a = toNum(q[1]); if (a == null || a > 15) return null; const reps = /max|amrap/i.test(q[2]) ? "max" : q[2].replace(/\s/g, ""); return { g: { sets: a, reps }, amrap: reps === "max" }; });
@@ -3975,10 +3992,11 @@ vidLoad().catch(() => {});
     if (C.e < 0) C.e = C.s > 0 ? C.s - 1 : 0;
     return C;
   }
-  function cellLoad(pcell) {
+  function cellLoad(pcell, isPct) {
     if (!pcell || pcell === "-" || !/\d/.test(pcell)) return null;
-    return /bw\s*\+/i.test(pcell) ? { kind: "lest", v: num(pcell.replace(/bw\s*\+/i, "")), u: "kg" }
-      : /%/.test(pcell) ? { kind: "pct", v: num(pcell) } : /^\d/.test(pcell) ? { kind: "abs", v: num(pcell), u: /lb/i.test(pcell) ? "lb" : "kg" } : null;
+    if (isPct && /^\s*\d+(?:[.,]\d+)?\s*%?\s*$/.test(pcell)) return { kind: "pct", v: pctVal(pcell) };
+    return /bw\s*\+/i.test(pcell) ? { kind: "lest", v: num(pcell.replace(/bw\s*\+/i, "")), u: DEF_U }
+      : /%/.test(pcell) ? { kind: "pct", v: num(pcell) } : /^\d/.test(pcell) ? { kind: "abs", v: num(pcell), u: /lb/i.test(pcell) ? "lb" : /kg/i.test(pcell) ? "kg" : DEF_U } : null;
   }
   function parseTable(lines, res, d) {
     const rows = lines.map(l => l.split(d).map(c => c.trim()));
@@ -4011,15 +4029,16 @@ vidLoad().catch(() => {});
       if (!amrap && /\d\s*\+\s*$/.test(repsRaw)) { amrap = true; repsRaw = repsRaw.replace(/\s*\+\s*$/, ""); }
       repsRaw = repsRaw.replace(/(\d)\s*(?:à|a)\s*(\d)/g, "$1-$2");
       let load;
-      if (C.ch >= 0 && C.pc >= 0 && C.ch !== C.pc) { load = cellLoad(r[C.ch]) || cellLoad(r[C.pc]); if (load && load.kind !== "pct" && /\d/.test(r[C.pc] || "")) notes.push(r[C.pc].replace(/\s*%$/, " %")); }
-      else load = cellLoad(C.p >= 0 ? r[C.p] : "");
+      if (C.ch >= 0 && C.pc >= 0 && C.ch !== C.pc) { load = cellLoad(r[C.ch]) || cellLoad(r[C.pc], true); if (load && load.kind !== "pct" && /\d/.test(r[C.pc] || "")) notes.push(pctVal(r[C.pc]) + " %"); }
+      else load = cellLoad(C.p >= 0 ? r[C.p] : "", C.p >= 0 && C.p === C.pc);
+      const c = canon(ex);
+      if (load && load.kind === "abs" && ["Tractions", "Dips", "Muscle-up"].includes(c.canon) && !/kg|lb/i.test(r[C.ch >= 0 ? C.ch : C.p] || "")) load = { kind: "lest", v: load.v, u: load.u };   // comme le lecteur de classeur
       C.res.forEach(k => { if (r[k]) notes.push("Fait " + C.H[k].toLowerCase() + " : " + r[k]); });
       if (C.n >= 0 && r[C.n]) notes.push(r[C.n]);
-      const c = canon(ex);
       const rpe = C.rpe >= 0 && r[C.rpe] && r[C.rpe] !== "-" ? r[C.rpe].replace(/(\d)\s*(?:à|a)\s*(\d)/g, "$1-$2") : null;
       day.exos.push({ raw: r.join(" | "), name: ex, canon: c.canon, cat: c.cat,
         groups: [{ sets: sets || 1, reps: amrap && /max|amrap/i.test(repsRaw) ? "max" : repsRaw, load, amrap }],
-        rpe, rest: C.rest >= 0 ? r[C.rest] || null : null, note: notes.join(" · ") || null, tempo: null, side });
+        rpe, rest: C.rest >= 0 ? restVal(r[C.rest]) : null, note: notes.join(" · ") || null, tempo: null, side });
     }
     return true;
   }
@@ -4037,6 +4056,10 @@ vidLoad().catch(() => {});
 
   // ---------- point d'entrée ----------
   function parseProgram(text) {
+    const prev = DEF_U;
+    try { DEF_U = unitHint(String(text || "").split(/[\n\t;]/)) || prev; return parseProgram0(text); } finally { DEF_U = prev; }
+  }
+  function parseProgram0(text) {
     const res = { weeks: [], notes: [], meta: {} };
     const raw = String(text || "").replace(/\r/g, "");
     const lines = raw.split("\n");
@@ -4064,6 +4087,9 @@ vidLoad().catch(() => {});
       const bullet = /^\s*[-*•](\s|\[)/.test(rawLine);
       const line = cleanLine(rawLine);
       if (!line) continue;
+      // lot 1 : « Training max: squat 315, bench 225 » ou « 1RM : squat 140 » = des maxima, jamais une charge de séance
+      const tm = line.match(/\b(training\s*max(?:es)?|t\.?m\.?|1\s*rm|maxes)\s*[:=]\s*(.+)$/i);
+      if (tm && !/\d\s*[x×*]\s*\d/.test(tm[2])) { res.notes.push(line); for (const m of tm[2].matchAll(/([a-zà-ÿ][a-zà-ÿ .]*?)\s*[:=]?\s*(\d{2,3}(?:[.,]\d+)?)/gi)) res.meta["TM " + m[1].trim()] = num(m[2]); continue; }
       const h = bullet ? null : readHeader(line);
       if (h && h.type === "week") {
         week = ensureWeek(res, h.label); day = null; notesMode = false; ROUNDS = 0;
@@ -4173,11 +4199,16 @@ vidLoad().catch(() => {});
   const H_NAME = /^(exercices?|exercise|mouvements?|movement|exo)$/;
   const H_SET = /^(s[ée]rie|set)\s*(\d+)$/;
   function parseWorkbook(sheets) {
+    const prev = DEF_U;
+    try { return parseWorkbook0(sheets, unitHint(sheets.flatMap(sh => sh.rows.flat())) || prev); } finally { DEF_U = prev; }
+  }
+  function parseWorkbook0(sheets, wbU) {
     const res = { weeks: [], notes: [], meta: {} };
     let any = false; const tableSheets = [];
     for (const sh of sheets) {
       const G = sh.rows.map(r => r.map(c => String(c ?? "").trim()));
       const at = (r, c) => (G[r] && G[r][c]) || "";
+      DEF_U = unitHint(G.flat()) || wbU;
       const sheetWeek = (sh.name.match(/^(?:s|sem(?:aine)?|week)\s*(\d+)$/i) || [])[1];
       // v42 : tableaux de coach sans titre « Exercice » (« série | rep | charge | % | RPE » sous « SEANCE n ») → lecteur de tableau collé
       if (G.some(r => isHeadRow(r) && !r.some(v => H_NAME.test(strip(v))))) { tableSheets.push(sh); continue; }
@@ -4236,9 +4267,9 @@ vidLoad().catch(() => {});
               const reps = C.r >= 0 ? at(rr, C.r) : "", amrap = /amrap|max/i.test(reps);
               const pc = C.p >= 0 ? at(rr, C.p) : "", ch = C.ch >= 0 ? at(rr, C.ch) : "";
               let load = null;
-              if (pc && /\d/.test(pc)) load = { kind: "pct", v: num(pc) };
+              if (pc && /\d/.test(pc)) load = { kind: "pct", v: pctVal(pc) };
               else if (ch && /^\s*-\s*\d+(?:[.,]\d+)?\s*%/.test(ch)) load = { kind: "rel", v: -num(ch.replace(/^\s*-\s*/, "")) };
-              else if (ch && /^\s*(bw\s*)?[+]?\s*\d/i.test(ch)) load = /%/.test(ch) ? { kind: "pct", v: num(ch) } : /bw\s*\+|^\+/i.test(ch) || street ? { kind: "lest", v: num(ch.replace(/bw\s*\+|\+/i, "")), u: "kg" } : { kind: "abs", v: num(ch), u: /lb/i.test(ch) ? "lb" : "kg" };
+              else if (ch && /^\s*(bw\s*)?[+]?\s*\d/i.test(ch)) load = /%/.test(ch) ? { kind: "pct", v: num(ch) } : /bw\s*\+|^\+/i.test(ch) || street ? { kind: "lest", v: num(ch.replace(/bw\s*\+|\+/i, "")), u: DEF_U } : { kind: "abs", v: num(ch), u: /lb/i.test(ch) ? "lb" : /kg/i.test(ch) ? "kg" : DEF_U };
               groups = [{ sets: toNum(C.s >= 0 ? at(rr, C.s) : "1") || 1, reps: amrap ? "max" : reps.replace(/\s/g, ""), load, amrap }];
               if (ch && !load) groups[0].note = ch;
             } else {
@@ -4246,7 +4277,7 @@ vidLoad().catch(() => {});
                 const v = at(rr, c); if (!v) continue;
                 let m, g = null;
                 if ((m = v.match(/^\s*(\+?)\s*(\d+(?:[.,]\d+)?)\s*(%|kg|lbs?)?\s*[x×*]\s*(\d+)\s*$/i)))
-                  g = { sets: 1, reps: m[4], load: m[3] === "%" ? { kind: "pct", v: num(m[2]) } : m[1] || street ? { kind: "lest", v: num(m[2]), u: "kg" } : { kind: "abs", v: num(m[2]), u: (m[3] || "kg").toLowerCase().replace(/s$/, "") } };
+                  g = { sets: 1, reps: m[4], load: m[3] === "%" ? { kind: "pct", v: num(m[2]) } : m[1] || street ? { kind: "lest", v: num(m[2]), u: DEF_U } : { kind: "abs", v: num(m[2]), u: (m[3] || DEF_U).toLowerCase().replace(/s$/, "") } };
                 else if ((m = v.match(/^\s*[x×*]\s*(\d+)\s*$/i))) g = { sets: 1, reps: m[1], load: null };
                 else { const ex = readExo("x " + v); if (ex) g = ex.groups[0]; }
                 if (!g) continue;
@@ -4261,6 +4292,7 @@ vidLoad().catch(() => {});
         });
       }
     }
+    DEF_U = wbU;
     if (tableSheets.length && any) {   // v42 : classeur mixte → les deux lectures sont réunies
       const t = parseProgram(tableSheets.map(sh => sh.rows.map(r => r.join("\t")).join("\n")).join("\n"));
       res.weeks.push(...t.weeks); res.notes.push(...t.notes);
