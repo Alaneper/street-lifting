@@ -1,0 +1,65 @@
+Date;Semaine;Jour;Exercice;Série;Reps;Charge (kg);RIR
+06/10/2026;S1;Haut;Développé couché (échauffement);W;10;40;
+06/10/2026;S1;Haut;Développé couché;1;8;80;2
+06/10/2026;S1;Haut;Développé couché;2;8;80;2
+06/10/2026;S1;Haut;Développé couché;3;6;80;1
+06/10/2026;S1;Haut;Rowing barre;1;10;70;2
+06/10/2026;S1;Haut;Rowing barre;2;10;70;2
+06/10/2026;S1;Haut;Rowing barre;3;10;70;1
+06/10/2026;S1;Haut;Développé militaire;1;8;42,5;2
+06/10/2026;S1;Haut;Développé militaire;2;8;42,5;2
+06/10/2026;S1;Haut;Développé militaire;3;8;42,5;1
+06/10/2026;S1;Haut;Tractions;1;8;;2
+06/10/2026;S1;Haut;Tractions;2;7;;2
+06/10/2026;S1;Haut;Tractions;3;6;;1
+06/10/2026;S1;Haut;Curl biceps;1;12;27,5;2
+06/10/2026;S1;Haut;Curl biceps;2;10;27,5;2
+06/10/2026;S1;Haut;Curl biceps;3;10;27,5;1
+06/10/2026;S1;Haut;Volume total;;;5760;
+08/10/2026;S1;Bas;Squat (échauffement);W;10;50;
+08/10/2026;S1;Bas;Squat;1;6;100;2
+08/10/2026;S1;Bas;Squat;2;6;100;2
+08/10/2026;S1;Bas;Squat;3;6;100;2
+08/10/2026;S1;Bas;Squat;4;6;100;1
+08/10/2026;S1;Bas;Romanian deadlift;1;8;90;2
+08/10/2026;S1;Bas;Romanian deadlift;2;8;90;2
+08/10/2026;S1;Bas;Romanian deadlift;3;8;90;1
+08/10/2026;S1;Bas;Presse à cuisses;1;12;180;2
+08/10/2026;S1;Bas;Presse à cuisses;2;12;180;2
+08/10/2026;S1;Bas;Presse à cuisses;3;12;180;1
+08/10/2026;S1;Bas;Leg curl;1;12;40;2
+08/10/2026;S1;Bas;Leg curl;2;12;40;2
+08/10/2026;S1;Bas;Leg curl;3;10;40;1
+08/10/2026;S1;Bas;Volume total;;;12400;
+13/10/2026;S2;Haut;Développé couché (échauffement);W;10;41,25;
+13/10/2026;S2;Haut;Développé couché;1;8;82,5;2
+13/10/2026;S2;Haut;Développé couché;2;8;82,5;2
+13/10/2026;S2;Haut;Développé couché;3;6;82,5;1
+13/10/2026;S2;Haut;Rowing barre;1;10;72,5;2
+13/10/2026;S2;Haut;Rowing barre;2;10;72,5;2
+13/10/2026;S2;Haut;Rowing barre;3;10;72,5;1
+13/10/2026;S2;Haut;Développé militaire;1;8;45;2
+13/10/2026;S2;Haut;Développé militaire;2;8;45;2
+13/10/2026;S2;Haut;Développé militaire;3;8;45;1
+13/10/2026;S2;Haut;Tractions;1;8;;2
+13/10/2026;S2;Haut;Tractions;2;7;;2
+13/10/2026;S2;Haut;Tractions;3;6;;1
+13/10/2026;S2;Haut;Curl biceps;1;12;30;2
+13/10/2026;S2;Haut;Curl biceps;2;10;30;2
+13/10/2026;S2;Haut;Curl biceps;3;10;30;1
+13/10/2026;S2;Haut;Volume total;;;6030;
+15/10/2026;S2;Bas;Squat (échauffement);W;10;51,25;
+15/10/2026;S2;Bas;Squat;1;6;102,5;2
+15/10/2026;S2;Bas;Squat;2;6;102,5;2
+15/10/2026;S2;Bas;Squat;3;6;102,5;2
+15/10/2026;S2;Bas;Squat;4;6;102,5;1
+15/10/2026;S2;Bas;Romanian deadlift;1;8;92,5;2
+15/10/2026;S2;Bas;Romanian deadlift;2;8;92,5;2
+15/10/2026;S2;Bas;Romanian deadlift;3;8;92,5;1
+15/10/2026;S2;Bas;Presse à cuisses;1;12;182,5;2
+15/10/2026;S2;Bas;Presse à cuisses;2;12;182,5;2
+15/10/2026;S2;Bas;Presse à cuisses;3;12;182,5;1
+15/10/2026;S2;Bas;Leg curl;1;12;42,5;2
+15/10/2026;S2;Bas;Leg curl;2;12;42,5;2
+15/10/2026;S2;Bas;Leg curl;3;10;42,5;1
+15/10/2026;S2;Bas;Volume total;;;12695;

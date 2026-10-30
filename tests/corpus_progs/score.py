@@ -7,15 +7,15 @@ HERE = pathlib.Path(__file__).resolve().parent; ROOT = HERE.parent.parent
 lot = sys.argv[1]; detail = "--detail" in sys.argv
 label = sys.argv[sys.argv.index("--label") + 1] if "--label" in sys.argv else datetime.date.today().isoformat()
 D = HERE / "out" / lot
-if lot == "controle":
-    if "--controle" not in sys.argv: sys.exit("Le lot « contrôle » ne se lance qu'avec --controle, une seule fois (étape 4 du chantier).")
-    lock = HERE / "CONTROLE.lock"
+if lot in ("controle", "neutre"):
+    if "--controle" not in sys.argv: sys.exit("Ce lot gelé ne se lance qu'avec --controle, une seule fois.")
+    lock = HERE / ("CONTROLE.lock" if lot == "controle" else "NEUTRE.lock")
     idx0 = json.loads((D / "index.json").read_text())
     if lock.exists():
         want = json.loads(lock.read_text())
         bad = [m["id"] for m in idx0 if want.get(m["id"]) != m["sha"]]
         if bad: sys.exit("Lot contrôle MODIFIÉ depuis le gel : " + ", ".join(bad) + ". Mesure refusée.")
-    with open(HERE / "CONTROLE_RUNS.log", "a") as f: f.write(f"{datetime.datetime.now().isoformat(timespec='seconds')} lancé ({label})\n")
+    with open(HERE / "CONTROLE_RUNS.log", "a") as f: f.write(f"{datetime.datetime.now().isoformat(timespec='seconds')} {lot} lancé ({label})\n")
 idx = json.loads((D / "index.json").read_text())
 def strip(s): return re.sub(r"\s+", " ", unicodedata.normalize("NFD", s or "").encode("ascii", "ignore").decode().lower()).strip()
 inputs = []

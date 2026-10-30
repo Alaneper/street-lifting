@@ -1,0 +1,4199 @@
+[
+ {
+  "id": "N01",
+  "lot": "neutre",
+  "kind": "note",
+  "title": "WhatsApp coach Maxime - semaine PPL",
+  "pieges": [
+   "messages horodatés au milieu",
+   "superset A1/A2",
+   "échauffement à ignorer",
+   "DC/Tracs/Élév lat abréviations",
+   "dips lestés +10kg",
+   "gainage chronométré"
+  ],
+  "source": "Export WhatsApp d'un coach fictif (Maxime) à son client Théo",
+  "note": "",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "DC",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      4,
+      "8",
+      "80 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Dév incliné haltères",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "10",
+      "28 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Dips lestés",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "6",
+      "+10 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Tracs poulie",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "12",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Élév lat",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "15",
+      "8 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Tractions lestées",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "5",
+      "+15 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Rowing barre",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "8",
+      "70 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Tirage horizontal",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "12",
+      "55 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Curl barre EZ",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "10",
+      "30 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Face pull",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "15",
+      "20 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "5",
+      "100 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "RDL",
+    "canon": "Soulevé de terre roumain",
+    "groups": [
+     [
+      4,
+      "8",
+      "90 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Presse",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "12",
+      "180 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Leg curl",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "12",
+      "40 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Mollets debout",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "15",
+      "60 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Gainage",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "45 s",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [
+   "echauff: 10 min rameur + 2x15 elastiques (ca compte pas)",
+   "echauff: 5 min velo + squat a vide x15",
+   "pense a bien boire entre les series",
+   "si t'es mort apres le rowing tu peux sauter le tirage hein",
+   "semaine prochaine on monte de 2,5kg partout si ca passe",
+   "lundi - push",
+   "mercredi - pull",
+   "vendredi - legs",
+   "salut theo, voici ta semaine"
+  ],
+  "file": "N01.txt",
+  "sha": "7450cb5135239107"
+ },
+ {
+  "id": "N02",
+  "lot": "neutre",
+  "kind": "note",
+  "title": "Notes iPhone en vrac - Karim",
+  "pieges": [
+   "notations hétérogènes (100kg x 5 x 3, 8/8/6/6, 3 séries de 10)",
+   "fautes de frappe",
+   "unilatéral 'chaque bras/jambe'",
+   "commentaires et échauffement"
+  ],
+  "source": "Note de téléphone d'un pratiquant fictif (Karim)",
+  "note": "",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "dc",
+    "canon": "Développé couché",
+    "groups": [
+     [
+      3,
+      "5",
+      "100 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "dév incliné hlt",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "10",
+      "26 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "oh press",
+    "canon": "Développé militaire",
+    "groups": [
+     [
+      2,
+      "8",
+      "40 kg",
+      false
+     ],
+     [
+      2,
+      "6",
+      "40 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "trac",
+    "canon": "Tractions",
+    "groups": [
+     [
+      3,
+      "10",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "rowing haltere",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "10",
+      "32 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": true
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "curl marteau",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "12",
+      "14 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "squat",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "5",
+      "110 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "sdt roumain",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "8",
+      "100 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "fentes bulgares",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "10",
+      "20 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": true
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "leg ext",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "15",
+      "45 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "mollets",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "20",
+      "80 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "gainage",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "45 s",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "tractions lestées",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "6",
+      "+20 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "dips",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "max",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "dc léger",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "12",
+      "60 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "tracs corde",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "15",
+      "25 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "abdos roue",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "10",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [
+   "prog sept",
+   "lundi haut",
+   "mercredi bas",
+   "samedi",
+   "(echauf 2x10 barre vide)",
+   "ca passe pas sur le dernier set de dc, rester 2 min de repos"
+  ],
+  "file": "N02.txt",
+  "sha": "87d6e5b2da3753a1"
+ },
+ {
+  "id": "N03",
+  "lot": "neutre",
+  "kind": "note",
+  "title": "Programme Force - Notion",
+  "pieges": [
+   "% de 1RM annoncé en haut",
+   "semaine 2 deload",
+   "cases à cocher markdown",
+   "tempo 3-1-X-0",
+   "ligne de total",
+   "échauffement coché"
+  ],
+  "source": "Page Notion exportée en markdown, coach fictif",
+  "note": "",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "5",
+      "75 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Squat pause",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "3",
+      "60 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Presse à cuisses",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "10",
+      "140 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": "3-1-X-0",
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Leg curl",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "12",
+      "40 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Mollets debout",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "15",
+      "70 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Développé couché",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "5",
+      "75 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "DC prise serrée",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "8",
+      "65 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Tractions",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "6",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Rowing T",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "10",
+      "50 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Face pull",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "15",
+      "20 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "5",
+      "60 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Squat pause",
+    "canon": null,
+    "groups": [
+     [
+      2,
+      "3",
+      "50 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Presse à cuisses",
+    "canon": null,
+    "groups": [
+     [
+      2,
+      "10",
+      "120 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": "3-1-X-0",
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Leg curl",
+    "canon": null,
+    "groups": [
+     [
+      2,
+      "12",
+      "30 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Mollets debout",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "15",
+      "60 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Développé couché",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "5",
+      "60 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "DC prise serrée",
+    "canon": null,
+    "groups": [
+     [
+      2,
+      "8",
+      "55 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Tractions",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "6",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Rowing T",
+    "canon": null,
+    "groups": [
+     [
+      2,
+      "10",
+      "40 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Face pull",
+    "canon": null,
+    "groups": [
+     [
+      2,
+      "15",
+      "15 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [
+   "# programme force - cycle 1",
+   "1rm actuels : squat 140 kg, developpe couche 100 kg",
+   "semaine 2 = deload, on garde la technique",
+   "echauffement : 10 min velo + 3 series progressives (a ignorer)",
+   "total semaine : 41 series",
+   "total semaine : 27 series",
+   "jour 1 - squat",
+   "jour 2 - bench"
+  ],
+  "file": "N03.txt",
+  "sha": "720657b39803f7bf"
+ },
+ {
+  "id": "N04",
+  "lot": "neutre",
+  "kind": "csv",
+  "title": "Export app de suivi - CSV Excel FR",
+  "pieges": [
+   "une série par ligne",
+   "séparateur ; et virgule décimale",
+   "lignes d'échauffement W",
+   "lignes de volume total",
+   "colonne RIR à ignorer"
+  ],
+  "source": "Export CSV d'une app de suivi fictive, locale FR",
+  "note": "",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Développé couché",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "8",
+      "80 kg",
+      false
+     ],
+     [
+      1,
+      "8",
+      "80 kg",
+      false
+     ],
+     [
+      1,
+      "6",
+      "80 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Rowing barre",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "10",
+      "70 kg",
+      false
+     ],
+     [
+      1,
+      "10",
+      "70 kg",
+      false
+     ],
+     [
+      1,
+      "10",
+      "70 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Développé militaire",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "8",
+      "42.5 kg",
+      false
+     ],
+     [
+      1,
+      "8",
+      "42.5 kg",
+      false
+     ],
+     [
+      1,
+      "8",
+      "42.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Tractions",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "8",
+      null,
+      false
+     ],
+     [
+      1,
+      "7",
+      null,
+      false
+     ],
+     [
+      1,
+      "6",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Curl biceps",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "12",
+      "27.5 kg",
+      false
+     ],
+     [
+      1,
+      "10",
+      "27.5 kg",
+      false
+     ],
+     [
+      1,
+      "10",
+      "27.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "6",
+      "100 kg",
+      false
+     ],
+     [
+      1,
+      "6",
+      "100 kg",
+      false
+     ],
+     [
+      1,
+      "6",
+      "100 kg",
+      false
+     ],
+     [
+      1,
+      "6",
+      "100 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Romanian deadlift",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "8",
+      "90 kg",
+      false
+     ],
+     [
+      1,
+      "8",
+      "90 kg",
+      false
+     ],
+     [
+      1,
+      "8",
+      "90 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Presse à cuisses",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "12",
+      "180 kg",
+      false
+     ],
+     [
+      1,
+      "12",
+      "180 kg",
+      false
+     ],
+     [
+      1,
+      "12",
+      "180 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Leg curl",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "12",
+      "40 kg",
+      false
+     ],
+     [
+      1,
+      "12",
+      "40 kg",
+      false
+     ],
+     [
+      1,
+      "10",
+      "40 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Développé couché",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "8",
+      "82.5 kg",
+      false
+     ],
+     [
+      1,
+      "8",
+      "82.5 kg",
+      false
+     ],
+     [
+      1,
+      "6",
+      "82.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Rowing barre",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "10",
+      "72.5 kg",
+      false
+     ],
+     [
+      1,
+      "10",
+      "72.5 kg",
+      false
+     ],
+     [
+      1,
+      "10",
+      "72.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Développé militaire",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "8",
+      "45 kg",
+      false
+     ],
+     [
+      1,
+      "8",
+      "45 kg",
+      false
+     ],
+     [
+      1,
+      "8",
+      "45 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Tractions",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "8",
+      null,
+      false
+     ],
+     [
+      1,
+      "7",
+      null,
+      false
+     ],
+     [
+      1,
+      "6",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Curl biceps",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "12",
+      "30 kg",
+      false
+     ],
+     [
+      1,
+      "10",
+      "30 kg",
+      false
+     ],
+     [
+      1,
+      "10",
+      "30 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "6",
+      "102.5 kg",
+      false
+     ],
+     [
+      1,
+      "6",
+      "102.5 kg",
+      false
+     ],
+     [
+      1,
+      "6",
+      "102.5 kg",
+      false
+     ],
+     [
+      1,
+      "6",
+      "102.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Romanian deadlift",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "8",
+      "92.5 kg",
+      false
+     ],
+     [
+      1,
+      "8",
+      "92.5 kg",
+      false
+     ],
+     [
+      1,
+      "8",
+      "92.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Presse à cuisses",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "12",
+      "182.5 kg",
+      false
+     ],
+     [
+      1,
+      "12",
+      "182.5 kg",
+      false
+     ],
+     [
+      1,
+      "12",
+      "182.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Leg curl",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "12",
+      "42.5 kg",
+      false
+     ],
+     [
+      1,
+      "12",
+      "42.5 kg",
+      false
+     ],
+     [
+      1,
+      "10",
+      "42.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [
+   "squat (echauffement)",
+   "developpe couche (echauffement)",
+   "volume total",
+   "developpe couche (echauffement)",
+   "rowing barre (echauffement)",
+   "developpe militaire (echauffement)",
+   "tractions (echauffement)",
+   "curl biceps (echauffement)",
+   "squat (echauffement)",
+   "romanian deadlift (echauffement)",
+   "presse a cuisses (echauffement)",
+   "leg curl (echauffement)"
+  ],
+  "file": "N04.csv",
+  "sha": "740e618e52bc0dd1"
+ },
+ {
+  "id": "N05",
+  "lot": "neutre",
+  "kind": "csv",
+  "title": "5/3/1 BBB - CSV anglais",
+  "pieges": [
+   "lb",
+   "AMRAP '5+'",
+   "séries de montée une par ligne",
+   "champ entre guillemets avec virgule",
+   "BW",
+   "lignes warmup/total"
+  ],
+  "source": "CSV d'un template 5/3/1 Boring But Big (fictif)",
+  "note": "",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "5",
+      "165 lb",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "5",
+      "190 lb",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "5",
+      "215 lb",
+      true
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Squat BBB",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "10",
+      "135 lb",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Leg curl",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "12",
+      "70 lb",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Ab wheel",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "15",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Bench press",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "5",
+      "105 lb",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Bench press",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "5",
+      "120 lb",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Bench press",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "5",
+      "135 lb",
+      true
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Bench BBB",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "10",
+      "85 lb",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "DB row",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "10",
+      "60 lb",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": true
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Chin-up",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "10",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Deadlift",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "5",
+      "225 lb",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Deadlift",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "5",
+      "255 lb",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Deadlift",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "5",
+      "290 lb",
+      true
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "DL BBB",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "10",
+      "185 lb",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Hanging leg raise",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "10",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Face pull",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "15",
+      "40 lb",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [
+   "warmup",
+   "total reps"
+  ],
+  "file": "N05.csv",
+  "sha": "69bb1314be90ada5"
+ },
+ {
+  "id": "N06",
+  "lot": "neutre",
+  "kind": "xlsx",
+  "title": "Hypertrophie Léa - 2 séances",
+  "pieges": [
+   "cellules fusionnées (titre, blocs verticaux)",
+   "couleurs de fond",
+   "onglet Légende",
+   "ligne de volume",
+   "fourchette de reps 6-8",
+   "tempo en remarque",
+   "unilatéral par jambe"
+  ],
+  "source": "Classeur Excel d'une coach fictive (Léa Dumont)",
+  "note": "",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Développé couché barre",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "6-8",
+      "80 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Tractions prise large",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "8",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Rowing Yates",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "10",
+      "60 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Développé incliné haltères",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "10",
+      "30 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Élévations latérales",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "15",
+      "10 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Oiseau poulie",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "15",
+      "15 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Curl incliné",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "12",
+      "12 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "6-8",
+      "100 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": "3-1-X-0",
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "RDL",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "8",
+      "90 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Presse à cuisses",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "12",
+      "200 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Fentes marchées",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "10",
+      "24 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": true
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Leg curl assis",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "12",
+      "45 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Mollets debout",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "15",
+      "80 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [
+   "programme hypertrophie - seance a (haut du corps)",
+   "programme hypertrophie - seance b (bas du corps)",
+   "coach : lea dumont",
+   "volume seance : 24 series",
+   "volume seance : 20 series",
+   "legende",
+   "jaune = bloc force",
+   "bleu = bloc hypertrophie",
+   "repos : 2 min force, 90 s hypertrophie",
+   "force",
+   "hypertrophie"
+  ],
+  "file": "N06.xlsx",
+  "sha": "fb8a910c1aeaec7b"
+ },
+ {
+  "id": "N07",
+  "lot": "neutre",
+  "kind": "xlsx",
+  "title": "Cycle force 4 semaines - semaines en colonnes",
+  "pieges": [
+   "semaines en colonnes (S1..S4)",
+   "prescription entière dans une cellule",
+   "×, x, virgule décimale, +lest",
+   "S4 deload",
+   "titre fusionné",
+   "note de bas de page"
+  ],
+  "source": "Classeur Excel d'un cycle de force, coach fictif",
+  "note": "",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Dév couché",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "8",
+      "70 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Dév couché",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "8",
+      "72.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 0,
+    "name": "Dév couché",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "6",
+      "77.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 3,
+    "d": 0,
+    "name": "Dév couché",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "8",
+      "55 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Dév militaire",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "8",
+      "40 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Dév militaire",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "8",
+      "42.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 0,
+    "name": "Dév militaire",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "6",
+      "45 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 3,
+    "d": 0,
+    "name": "Dév militaire",
+    "canon": null,
+    "groups": [
+     [
+      2,
+      "8",
+      "32.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Dips",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "8",
+      "+10 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Dips",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "8",
+      "+12.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 0,
+    "name": "Dips",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "6",
+      "+15 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 3,
+    "d": 0,
+    "name": "Dips",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "8",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "5",
+      "100 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "5",
+      "105 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 1,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "3",
+      "115 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 3,
+    "d": 1,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "5",
+      "80 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "SDT",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "5",
+      "120 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "SDT",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "5",
+      "127.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 1,
+    "name": "SDT",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "3",
+      "140 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 3,
+    "d": 1,
+    "name": "SDT",
+    "canon": null,
+    "groups": [
+     [
+      2,
+      "5",
+      "100 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Tractions",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "5",
+      "+5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Tractions",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "5",
+      "+7.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 1,
+    "name": "Tractions",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "4",
+      "+10 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 3,
+    "d": 1,
+    "name": "Tractions",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "5",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [
+   "cycle force - 4 semaines",
+   "exercice",
+   "s4 = deload (volume reduit)"
+  ],
+  "file": "N07.xlsx",
+  "sha": "fea3d4c8268c278d"
+ },
+ {
+  "id": "N08",
+  "lot": "neutre",
+  "kind": "xlsx",
+  "title": "Plan 12 semaines en % du 1RM",
+  "pieges": [
+   "% stocké en fraction (0.725)",
+   "kg ET % sur le squat",
+   "1RM annoncé en haut",
+   "deload S4 et S8",
+   "colonne Remarque"
+  ],
+  "source": "Plan linéaire 12 semaines squat/bench, coach fictif",
+  "note": "",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "5",
+      "98 kg · 70 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Bench",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "8",
+      "65 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "5",
+      "101.5 kg · 72.5 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Bench",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "8",
+      "67.5 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "4",
+      "105 kg · 75 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 2,
+    "d": 0,
+    "name": "Bench",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "6",
+      "70 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 3,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "5",
+      "84 kg · 60 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 3,
+    "d": 0,
+    "name": "Bench",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "6",
+      "55 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 4,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "4",
+      "105 kg · 75 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 4,
+    "d": 0,
+    "name": "Bench",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "6",
+      "70 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 5,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "3",
+      "108.5 kg · 77.5 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 5,
+    "d": 0,
+    "name": "Bench",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "5",
+      "72.5 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 6,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "3",
+      "112 kg · 80 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 6,
+    "d": 0,
+    "name": "Bench",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "4",
+      "75 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 7,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "5",
+      "84 kg · 60 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 7,
+    "d": 0,
+    "name": "Bench",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "6",
+      "55 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 8,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "3",
+      "115.5 kg · 82.5 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 8,
+    "d": 0,
+    "name": "Bench",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "4",
+      "77.5 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 9,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "3",
+      "119 kg · 85 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 9,
+    "d": 0,
+    "name": "Bench",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "3",
+      "80 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 10,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "2",
+      "122.5 kg · 87.5 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 10,
+    "d": 0,
+    "name": "Bench",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "2",
+      "82.5 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 11,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      2,
+      "2",
+      "126 kg · 90 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 11,
+    "d": 0,
+    "name": "Bench",
+    "canon": null,
+    "groups": [
+     [
+      2,
+      "2",
+      "85 %",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [
+   "plan 12 semaines - squat / bench",
+   "1rm squat (kg)",
+   "1rm bench (kg)",
+   "deload",
+   "pic - viser une belle top serie"
+  ],
+  "file": "N08.xlsx",
+  "sha": "8c768ffb4c608055"
+ },
+ {
+  "id": "N09",
+  "lot": "neutre",
+  "kind": "sheet",
+  "title": "Suivi Sheet avec cases à cocher",
+  "pieges": [
+   "colonne Fait TRUE/FALSE",
+   "jour affiché seulement sur la 1re ligne du jour",
+   "virgule décimale 62,5",
+   "onglet par semaine",
+   "ligne TOTAL et légende"
+  ],
+  "source": "Google Sheet partagé coach/client fictifs",
+  "note": "",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Développé couché",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "8",
+      "62.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Écartés poulie",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "12",
+      "15 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Développé militaire haltères",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "10",
+      "20 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Triceps corde",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "12",
+      "25 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Tractions",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "6",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Rowing barre",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "8",
+      "60 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Curl marteau",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "12",
+      "14 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Face pull",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "15",
+      "22.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Développé couché",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "8",
+      "65 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Écartés poulie",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "12",
+      "15 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Développé militaire haltères",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "10",
+      "22.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Triceps corde",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "12",
+      "25 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Tractions",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "7",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Rowing barre",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "8",
+      "62.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Curl marteau",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "12",
+      "14 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Face pull",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "15",
+      "22.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [
+   "total series",
+   "legende : fait = case cochee quand la seance est terminee",
+   "lundi - push",
+   "mercredi - pull"
+  ],
+  "file": "N09.sheet.json",
+  "sha": "926a8e199735caca"
+ },
+ {
+  "id": "N10",
+  "lot": "neutre",
+  "kind": "sheet",
+  "title": "Sheet RPE / tempo / repos",
+  "pieges": [
+   "colonne Repos '3:00' (pas des reps)",
+   "RPE simple et fourchette 8-9",
+   "tempo 3-1-X-0",
+   "'3x10 / jambe' unilatéral",
+   "% et kg mélangés",
+   "lignes de jour et légende"
+  ],
+  "source": "Google Sheet d'un coach fictif, 3 jours",
+  "note": "",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "6",
+      "80 %",
+      false
+     ]
+    ],
+    "rpe": "7",
+    "tempo": "3-1-X-0",
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "RDL",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "8",
+      "90 kg",
+      false
+     ]
+    ],
+    "rpe": "8",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Fentes bulgares",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "10",
+      "20 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": true
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Leg curl couché",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "12",
+      "35 kg",
+      false
+     ]
+    ],
+    "rpe": "9",
+    "tempo": "2-0-1-0",
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Développé couché",
+    "canon": null,
+    "groups": [
+     [
+      5,
+      "5",
+      "77.5 kg",
+      false
+     ]
+    ],
+    "rpe": "8",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Tractions",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "6",
+      null,
+      false
+     ]
+    ],
+    "rpe": "8-9",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Dips",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "10",
+      "+10 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Rowing haltère",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "10",
+      "30 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": true
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Soulevé de terre",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "3",
+      "85 %",
+      false
+     ]
+    ],
+    "rpe": "8",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Presse à cuisses",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "12",
+      "180 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Hip thrust",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "10",
+      "100 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Gainage latéral",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "30 s",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": true
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Mollets debout",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "15",
+      "60 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [
+   "1rm : squat 140 / deadlift 170 / bench 100",
+   "jour 1 - jambes",
+   "jour 2 - haut",
+   "jour 3 - full body",
+   "legende : rpe = effort percu sur 10, repos = pause entre series (min:s)"
+  ],
+  "file": "N10.sheet.json",
+  "sha": "6571cd4cf898c232"
+ },
+ {
+  "id": "N11",
+  "lot": "neutre",
+  "kind": "sheet",
+  "title": "Powerlifting top set + back-off",
+  "pieges": [
+   "top set et back-off = 2 entrées",
+   "RPE en fourchette 8-9",
+   "onglet par semaine",
+   "ligne tonnage",
+   "légende"
+  ],
+  "source": "Google Sheet d'un powerlifter fictif (Yanis)",
+  "note": "",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "3",
+      "140 kg",
+      false
+     ]
+    ],
+    "rpe": "8-9",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "5",
+      "120 kg",
+      false
+     ]
+    ],
+    "rpe": "7",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Pause bench",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "4",
+      "80 kg",
+      false
+     ]
+    ],
+    "rpe": "7",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Rowing barre",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "8",
+      "65 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Bench",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "3",
+      "95 kg",
+      false
+     ]
+    ],
+    "rpe": "8-9",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Bench",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "6",
+      "82.5 kg",
+      false
+     ]
+    ],
+    "rpe": "7",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Soulevé de terre",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "2",
+      "180 kg",
+      false
+     ]
+    ],
+    "rpe": "8-9",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Soulevé de terre",
+    "canon": null,
+    "groups": [
+     [
+      2,
+      "5",
+      "150 kg",
+      false
+     ]
+    ],
+    "rpe": "7",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Tractions",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "6",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "3",
+      "142.5 kg",
+      false
+     ]
+    ],
+    "rpe": "8-9",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "5",
+      "122.5 kg",
+      false
+     ]
+    ],
+    "rpe": "7",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Pause bench",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "4",
+      "82.5 kg",
+      false
+     ]
+    ],
+    "rpe": "7",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 0,
+    "name": "Rowing barre",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "8",
+      "67.5 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Bench",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "3",
+      "97.5 kg",
+      false
+     ]
+    ],
+    "rpe": "8-9",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Bench",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "6",
+      "85 kg",
+      false
+     ]
+    ],
+    "rpe": "7",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Soulevé de terre",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "2",
+      "185 kg",
+      false
+     ]
+    ],
+    "rpe": "8-9",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Soulevé de terre",
+    "canon": null,
+    "groups": [
+     [
+      2,
+      "5",
+      "155 kg",
+      false
+     ]
+    ],
+    "rpe": "7",
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 1,
+    "d": 1,
+    "name": "Tractions",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "6",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [
+   "jour 1",
+   "jour 2",
+   "tonnage seance",
+   "legende : rpe 8-9 = 1 a 2 reps en reserve"
+  ],
+  "file": "N11.sheet.json",
+  "sha": "fe487e7125596c1f"
+ },
+ {
+  "id": "N12",
+  "lot": "neutre",
+  "kind": "xlsx",
+  "title": "Bodybuilding 3 jours - drop sets",
+  "pieges": [
+   "drop set 12/10/8 avec charges dégressives",
+   "superset A1/A2",
+   "AMRAP pompes",
+   "'3 x max'",
+   "onglet Résumé à ignorer",
+   "cellules fusionnées et fond"
+  ],
+  "source": "Classeur Excel d'un coach fictif (Sofiane)",
+  "note": "",
+  "truth": [
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Développé couché",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "10",
+      "80 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Rowing 1 bras",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "12",
+      "30 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": true
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Pompes",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "max",
+      null,
+      true
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Pec deck",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "12",
+      "45 kg",
+      false
+     ],
+     [
+      1,
+      "10",
+      "35 kg",
+      false
+     ],
+     [
+      1,
+      "8",
+      "25 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 0,
+    "name": "Tractions",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "max",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Squat",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "8",
+      "100 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Presse à cuisses",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "15",
+      "200 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Leg extension",
+    "canon": null,
+    "groups": [
+     [
+      1,
+      "15",
+      "60 kg",
+      false
+     ],
+     [
+      1,
+      "12",
+      "50 kg",
+      false
+     ],
+     [
+      1,
+      "10",
+      "40 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "RDL",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "10",
+      "80 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 1,
+    "name": "Mollets debout",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "20",
+      "80 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Développé militaire",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "8",
+      "45 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Élévations latérales",
+    "canon": null,
+    "groups": [
+     [
+      4,
+      "15",
+      "10 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Curl barre",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "10",
+      "30 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Barre front",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "10",
+      "35 kg",
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   },
+   {
+    "w": 0,
+    "d": 2,
+    "name": "Gainage",
+    "canon": null,
+    "groups": [
+     [
+      3,
+      "60 s",
+      null,
+      false
+     ]
+    ],
+    "rpe": null,
+    "tempo": null,
+    "side": false
+   }
+  ],
+  "noise": [
+   "lundi - poitrine / dos",
+   "mardi - jambes",
+   "jeudi - epaules / bras",
+   "coach sofiane - repos 90 s entre series",
+   "resume de la semaine",
+   "series totales : 55",
+   "seances : 3"
+  ],
+  "file": "N12.xlsx",
+  "sha": "746055f77f5093c0"
+ }
+]

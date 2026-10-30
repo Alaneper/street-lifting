@@ -1,0 +1,210 @@
+[
+ {
+  "name": "Semaine 1",
+  "rows": [
+   [
+    "Jour",
+    "Exercice",
+    "Séries",
+    "Reps",
+    "Charge (kg)",
+    "Fait",
+    "Notes"
+   ],
+   [
+    "Lundi - Push",
+    "Développé couché",
+    "4",
+    "8",
+    "62,5",
+    "TRUE",
+    "facile, +2,5 la semaine prochaine"
+   ],
+   [
+    "",
+    "Écartés poulie",
+    "3",
+    "12",
+    "15",
+    "TRUE",
+    ""
+   ],
+   [
+    "",
+    "Développé militaire haltères",
+    "3",
+    "10",
+    "20",
+    "TRUE",
+    ""
+   ],
+   [
+    "",
+    "Triceps corde",
+    "3",
+    "12",
+    "25",
+    "TRUE",
+    ""
+   ],
+   [
+    "Mercredi - Pull",
+    "Tractions",
+    "4",
+    "6",
+    "",
+    "TRUE",
+    "7 reps en semaine 2"
+   ],
+   [
+    "",
+    "Rowing barre",
+    "4",
+    "8",
+    "60",
+    "TRUE",
+    ""
+   ],
+   [
+    "",
+    "Curl marteau",
+    "3",
+    "12",
+    "14",
+    "TRUE",
+    ""
+   ],
+   [
+    "",
+    "Face pull",
+    "3",
+    "15",
+    "22,5",
+    "TRUE",
+    ""
+   ],
+   [
+    "",
+    "TOTAL séries",
+    "28",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Légende : Fait = case cochée quand la séance est terminée",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ]
+  ]
+ },
+ {
+  "name": "Semaine 2",
+  "rows": [
+   [
+    "Jour",
+    "Exercice",
+    "Séries",
+    "Reps",
+    "Charge (kg)",
+    "Fait",
+    "Notes"
+   ],
+   [
+    "Lundi - Push",
+    "Développé couché",
+    "4",
+    "8",
+    "65",
+    "FALSE",
+    ""
+   ],
+   [
+    "",
+    "Écartés poulie",
+    "3",
+    "12",
+    "15",
+    "FALSE",
+    ""
+   ],
+   [
+    "",
+    "Développé militaire haltères",
+    "3",
+    "10",
+    "22,5",
+    "FALSE",
+    ""
+   ],
+   [
+    "",
+    "Triceps corde",
+    "3",
+    "12",
+    "25",
+    "FALSE",
+    ""
+   ],
+   [
+    "Mercredi - Pull",
+    "Tractions",
+    "4",
+    "7",
+    "",
+    "FALSE",
+    ""
+   ],
+   [
+    "",
+    "Rowing barre",
+    "4",
+    "8",
+    "62,5",
+    "FALSE",
+    ""
+   ],
+   [
+    "",
+    "Curl marteau",
+    "3",
+    "12",
+    "14",
+    "FALSE",
+    ""
+   ],
+   [
+    "",
+    "Face pull",
+    "3",
+    "15",
+    "22,5",
+    "FALSE",
+    ""
+   ],
+   [
+    "",
+    "TOTAL séries",
+    "28",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Légende : Fait = case cochée quand la séance est terminée",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ]
+  ]
+ }
+]

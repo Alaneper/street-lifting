@@ -1,0 +1,236 @@
+[
+ {
+  "name": "Sem 1",
+  "rows": [
+   [
+    "Mouvement",
+    "Type",
+    "Séries x reps",
+    "Charge (kg)",
+    "RPE",
+    "Notes"
+   ],
+   [
+    "JOUR 1",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Squat",
+    "Top set",
+    "1x3",
+    "140",
+    "8-9",
+    "arrêter si la vitesse chute"
+   ],
+   [
+    "Squat",
+    "Back-off",
+    "3x5",
+    "120",
+    "7",
+    ""
+   ],
+   [
+    "Pause bench",
+    "Volume",
+    "4x4",
+    "80",
+    "7",
+    "pause 2 s"
+   ],
+   [
+    "Rowing barre",
+    "Accessoire",
+    "4x8",
+    "65",
+    "",
+    ""
+   ],
+   [
+    "JOUR 2",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Bench",
+    "Top set",
+    "1x3",
+    "95",
+    "8-9",
+    ""
+   ],
+   [
+    "Bench",
+    "Back-off",
+    "3x6",
+    "82,5",
+    "7",
+    ""
+   ],
+   [
+    "Soulevé de terre",
+    "Top set",
+    "1x2",
+    "180",
+    "8-9",
+    ""
+   ],
+   [
+    "Soulevé de terre",
+    "Back-off",
+    "2x5",
+    "150",
+    "7",
+    ""
+   ],
+   [
+    "Tractions",
+    "Accessoire",
+    "4x6",
+    "",
+    "",
+    "poids du corps"
+   ],
+   [
+    "Tonnage séance",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Légende : RPE 8-9 = 1 à 2 reps en réserve",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ]
+  ]
+ },
+ {
+  "name": "Sem 2",
+  "rows": [
+   [
+    "Mouvement",
+    "Type",
+    "Séries x reps",
+    "Charge (kg)",
+    "RPE",
+    "Notes"
+   ],
+   [
+    "JOUR 1",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Squat",
+    "Top set",
+    "1x3",
+    "142,5",
+    "8-9",
+    "arrêter si la vitesse chute"
+   ],
+   [
+    "Squat",
+    "Back-off",
+    "3x5",
+    "122,5",
+    "7",
+    ""
+   ],
+   [
+    "Pause bench",
+    "Volume",
+    "4x4",
+    "82,5",
+    "7",
+    "pause 2 s"
+   ],
+   [
+    "Rowing barre",
+    "Accessoire",
+    "4x8",
+    "67,5",
+    "",
+    ""
+   ],
+   [
+    "JOUR 2",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Bench",
+    "Top set",
+    "1x3",
+    "97,5",
+    "8-9",
+    ""
+   ],
+   [
+    "Bench",
+    "Back-off",
+    "3x6",
+    "85",
+    "7",
+    ""
+   ],
+   [
+    "Soulevé de terre",
+    "Top set",
+    "1x2",
+    "185",
+    "8-9",
+    ""
+   ],
+   [
+    "Soulevé de terre",
+    "Back-off",
+    "2x5",
+    "155",
+    "7",
+    ""
+   ],
+   [
+    "Tractions",
+    "Accessoire",
+    "4x6",
+    "",
+    "",
+    "poids du corps"
+   ],
+   [
+    "Tonnage séance",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Légende : RPE 8-9 = 1 à 2 reps en réserve",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ]
+  ]
+ }
+]

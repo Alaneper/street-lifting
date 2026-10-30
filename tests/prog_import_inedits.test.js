@@ -11,7 +11,7 @@ const T = {
   H3: { days: 4, checks: [[/Lundi/, "Développé couché", 4, "6", null], [/Lundi/, "Tractions", 4, "6", null], [/Mardi/, "Squat", 4, "5", null],
     [/Mardi/, "Soulevé de terre roumain", 3, "8", null], [/Jeudi/, "Développé incliné", 4, "10-12", null], [/Jeudi/, "Tirage vertical", 4, "12", null],
     [/Vendredi/, "Hip thrust", 4, "10", null], [/Vendredi/, "Mollets", 4, "15", null]] },
-  H4: { days: 3, checks: [[/1/, "Tractions", 5, "5/5/4/4/3", "+30 kg"], [/1/, "Dips", 4, "5/5/5/4", "+45 kg"], [/1/, "Squat", 4, "5", "110 kg"],
+  H4: { days: 3, checks: [[/1/, "Tractions", 2, "5", "+30 kg"], [/1/, "Dips", 3, "5", "+45 kg"], [/1/, "Squat", 4, "5", "110 kg"],
     [/1/, "Muscle-up", 10, "1", null], [/2/, "Tractions", 4, "10", null], [/2/, "Dips", 3, "8", "+40 kg"], [/3/, "Squat", 3, "5", "90 kg"]] },
 };
 const loadTxt = g => (g.load ? fmtGroup({ sets: 0, reps: 0, load: g.load }).split(" · ")[1] : null);

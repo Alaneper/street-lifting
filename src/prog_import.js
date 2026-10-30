@@ -41,14 +41,14 @@
     [/hip.?thrust|glute\s*bridge|pont\s*fessier/, "Hip thrust", "squat"],
     [/muscle.?up|^mup?\b|\bmup?$/, "Muscle-up", "mu"],
     [/tractions?\s*australienne|australian|inverted\s*row|rowing\s*invers/, "Rowing inversé", "pull"],
-    [/traction|pull.?ups?\b|chin.?ups?/, "Tractions", "pull"],
+    [/traction|pull.?ups?\b|chin.?ups?|^tracs?$/, "Tractions", "pull"],
     [/\bdips?\b/, "Dips", "dip"],
     [/(dc|d[ée]v\w*|bench|banc|press)\s*(couch[ée]\s*)?(halt[eè]res\s*)?incl|incl\w*\s*(db|dumbbell|halt|barbell|bench|press|d[ée]v)/, "Développé incliné", "bench"],
     [/(dc|d[ée]v\w*\s*couch[ée]|bench|banc|\bbp\b).*(serr|close)|close.?grip/, "Développé couché prise serrée", "bench"],
     [/(dc|d[ée]v\w*\s*couch[ée]|bench|banc|\bbp\b).*pause|banc\s*pause|pause.*(bench|banc|couch)|\d\s*ct\b.*(bench|banc)/, "Développé couché pause", "bench"],
     [/pec\w*\s*(push|machine)|chest\s*press|presse\s*pectorale/, "Développé machine", "bench"],
     [/^(dc|banc|couch[ée])\b|d[ée]velopp[ée]\s*couch[ée]|d[ée]v\w*\.?\s*couch|bench|\bbp\b|\bbanc\b|\bdc\b|machine\s*convergente/, "Développé couché", "bench"],
-    [/militaire|military|\bohp\b|overhead|strict\s*press|push\s*press|presse?\s*([ée]paules|shoulder)|shoulder\s*press|d[ée]v\w*\.?\s*([ée]paules?|militaire)/, "Développé militaire", "bench"],
+    [/militaire|military|\bohp\b|\boh\s*press\b|overhead|strict\s*press|push\s*press|presse?\s*([ée]paules|shoulder)|shoulder\s*press|d[ée]v\w*\.?\s*([ée]paules?|militaire)/, "Développé militaire", "bench"],
     [/tirage\s*menton|upright/, "Tirage menton", ""],
     [/appui\s*poitrine|chest.?supported|pendlay/, "Rowing", "pull"],
     [/tirage\s*(vertical|poitrine|nuque)|lat\s*pull|pull.?down\b(?!s)/, "Tirage vertical", "pull"],
@@ -179,6 +179,7 @@
     if (drop) s = s.replace(drop[0], drop[1] + " " + drop[2] + DEF_U);
     s = s.replace(/([x×*])\s*\((\d+\s*-\s*\d+)\)/g, "$1$2");   // « 4×(8-10) »
     s = wordsToDigits(s);
+    s = s.replace(/(?<![\d.,])(\d+(?:[.,]\d+)?)\s*(kg|lbs?)\s*[x×*]\s*(\d+)\s*[x×*]\s*(\d+)(?![\d.,]*\s*[x×*])/gi, "$4x$3 @$1$2");   // « 100kg x 5 x 3 » = 3×5 à 100 kg
     s = s.replace(/\bavec\s+(\d+(?:[.,]\d+)?)\s*(kg|lbs?)\s+de\s+lest\b/gi, "+$1 $2").replace(/\bwith\s+(\d+(?:[.,]\d+)?)\s*(kg|lbs?)\s+(?:added|extra)\b/gi, "+$1 $2");
     // « Fractionné 30 min : 6 x 3 min vite, récup 2 min » : la durée qui suit le nom est la consigne, le détail va en note
     const tm = timedLine(s);
@@ -208,7 +209,11 @@
     }
     const add = (re, f) => { re.lastIndex = 0; let q; while ((q = re.exec(s))) { if (hits.some(h => q.index < h.end && q.index + q[0].length > h.i)) continue; const h = f(q); if (h) hits.push({ i: q.index, end: q.index + q[0].length, ...h }); } };
     add(RE_SETS_OF, q => { const a = toNum(q[1]); if (a == null || a > 15) return null; const reps = /max|amrap/i.test(q[2]) ? "max" : q[2].replace(/\s/g, ""); return { g: { sets: a, reps }, amrap: reps === "max" }; });
-    add(RE_LIST, q => { const l = q[1].replace(/\s/g, "").split("/"); return { g: { sets: l.length, reps: l.every(x => x === l[0]) ? l[0] : l.join("/") } }; });
+    add(RE_LIST, q => {   // « 8/8/6/6 » = 2×8 puis 2×6 ; « 12/10/8 » = une série de chaque
+      const l = q[1].replace(/\s/g, "").split("/"), gs = [];
+      for (const x of l) { const last = gs[gs.length - 1]; if (last && last.reps === x) last.sets++; else gs.push({ sets: 1, reps: x }); }
+      return { g: gs[0], gs };
+    });
     RE_SINGLE.lastIndex = 0;
     while ((m = RE_SINGLE.exec(s))) {
       if (hits.some(h => m.index < h.end && m.index + m[0].length > h.i)) continue;
@@ -233,7 +238,8 @@
     const tempo = (s.match(/tempo\s*(\d-\d-[\dx](?:-\d)?)/i) || [])[1] || null;
     const side = /\/\s*(jambe|bras|c[oô]t[ée])|par\s*(bras|jambe|c[oô]t[ée])|chaque\s*(bras|jambe|c[oô]t[ée])|\/\s*leg|per side|\d\s*\/\s*c\b/i.test(s);
     hits.forEach(h => { if (!/^\d+$/.test(h.g.reps)) return; const after = s.slice(h.end); if (/^\s*(s|sec|secondes?|seconds?|")(?![a-zà-ÿ])/i.test(after)) h.g = { ...h.g, reps: h.g.reps + " s" }; else if (/^\s*(min|mn|minutes?|')(?![a-zà-ÿ])/i.test(after)) h.g = { ...h.g, reps: h.g.reps + " min" }; });
-    const groups = hits.map(h => ({ ...h.g, load: h.load || null, amrap: !!h.amrap }));
+    const groups = hits.flatMap(h => (h.gs || [h.g]).map(g => ({ ...g, load: h.load || null, amrap: !!h.amrap })));
+    spreadLoads(groups, s.slice(hits[hits.length - 1].end));
     // v42 : lest porté (« pompes lestées … 11 kg », « sac lesté 10kg ») ; indications gardées en note
     if (/lest[ée]|\bsac\b|gilet|ceinture|weighted/i.test(s)) groups.forEach(g => { if (g.load && g.load.kind === "abs") g.load = { ...g.load, kind: "lest" }; });
     const note = [];
@@ -245,6 +251,22 @@
     const ct = s.match(/(\d)\s*ct\b/i); if (ct) note.push("pause " + ct[1] + " temps");
     const alt = s.match(/(\d+(?:[.,]\d+)?)\s*(?:kg|lbs?)?\s*(ou|or)\s*(\d+(?:[.,]\d+)?)\s*(kg|lbs?)\b/i); if (alt) note.push("charge au choix : " + alt[0]);
     return { name, groups, rpe, tempo, side, note: note.join(" · ") || null };
+  }
+
+  // « 12/10/8 … 45 → 35 → 25 » : une charge par série (dégressif / pyramide) quand leur nombre est celui des séries
+  function spreadLoads(groups, text) {
+    const n = groups.reduce((a, g) => a + (+g.sets || 1), 0);
+    const m = String(text || "").match(/(\d+(?:[.,]\d+)?)\s*(kg|lbs?)?(?:\s*(?:→|->|=>|>|\/|,|puis)\s*\d+(?:[.,]\d+)?\s*(?:kg|lbs?)?)+/i);
+    if (!m) return false;
+    const vals = [...m[0].matchAll(/(\d+(?:[.,]\d+)?)\s*(kg|lbs?)?/gi)];
+    if (vals.length < 2 || vals.length !== n) return false;
+    const unit = (m[0].match(/kg|lbs?/i) || [DEF_U])[0].toLowerCase().replace(/s$/, "");
+    const flat = groups.flatMap(g => Array.from({ length: +g.sets || 1 }, () => ({ ...g, sets: 1 })));
+    flat.forEach((g, i) => { g.load = { kind: "abs", v: num(vals[i][1]), u: unit }; });
+    const out = [];
+    for (const g of flat) { const l = out[out.length - 1]; if (l && l.reps === g.reps && l.load.v === g.load.v && l.amrap === g.amrap) l.sets++; else out.push(g); }
+    groups.splice(0, groups.length, ...out);
+    return true;
   }
 
   function mkExo(raw, ex) {
@@ -318,6 +340,8 @@
       return { type: "day", label: l, key: l, rest: "" };
     if ((m = l.match(/^(day|jours?|j)\s*(\d+)\b\s*(.*)$/i)))
       return { type: "day", label: "Jour " + m[2], key: "Jour " + m[2], rest: m[3].replace(/^(accessor(y|ies)|accessoires?)\s*/i, "").replace(/^[:\-—]\s*/, "") };
+    if ((m = l.match(/^(day|jours?)\s+([a-f])(?![\w'])\s*(.*)$/i)))   // « Jour A – Push », « Day B »
+      return { type: "day", label: "Jour " + m[2].toUpperCase(), key: "Jour " + m[2].toUpperCase(), rest: m[3].replace(/^[:\-—–]\s*/, "") };
     if ((m = (l.match(/^(?:s[ée]ances?|workout|training|routine)\s+([a-z0-9]+)\b\s*(.*)$/i) || l.match(/^entra[iî]nement\s+(\d+|[a-z])\b\s*(.*)$/i))))
       return { type: "day", label: "Séance " + m[1].toUpperCase(), key: "Séance " + m[1].toUpperCase(), rest: m[2] };
     if ((m = l.match(/^(push|pull|legs|leg day|jambes|upper|lower|haut du corps|bas du corps|full ?body)(?![-\w])(?!\s*(?:ups?|overs?|downs?|day\s*\d*\s*:?\s*\d|over)\b)\s*(\d+|[A-Fa-f](?![\w']))?\s*(.*)$/i)) && !/\d\s*(?:[x×]\s*\d|s[ée]ries?|sets?)/i.test(l))
@@ -407,15 +431,30 @@
     const prev = DEF_U;
     try { DEF_U = unitHint(String(text || "").split(/[\n\t;]/)) || prev; return parseProgram0(text); } finally { DEF_U = prev; }
   }
+  // découpe CSV qui respecte les guillemets : "each arm, dumbbells" reste une seule cellule
+  function splitRow(l, d) {
+    if (!l.includes('"')) return l.split(d);
+    const out = []; let cur = "", q = false;
+    for (let i = 0; i < l.length; i++) {
+      const ch = l[i];
+      if (ch === '"') { if (q && l[i + 1] === '"') { cur += '"'; i++; } else q = !q; }
+      else if (ch === d && !q) { out.push(cur); cur = ""; }
+      else cur += ch;
+    }
+    out.push(cur); return out;
+  }
+
   function parseProgram0(text) {
     const res = { weeks: [], notes: [], meta: {} };
     const raw = String(text || "").replace(/\r/g, "");
-    const lines = raw.split("\n");
+    // exports de messagerie : « [12/10 08:17] Coach : … », « 12/10/2026, 08:17 - Coach : … » → seul le message est lu
+    const CHAT = /^\s*\[?\d{1,2}[\/.]\d{1,2}(?:[\/.]\d{2,4})?,?\s+\d{1,2}[:h]\d{2}(?::\d{2})?\]?\s*(?:[-–]\s*)?[^:\n]{1,40}:\s*/;
+    const lines = raw.split("\n").map(l => l.replace(CHAT, ""));
     for (const d of ["\t", ";", ","]) {
-      const tl0 = lines.filter(l => l.split(d).length >= 3);
+      const tl0 = lines.filter(l => splitRow(l, d).length >= 3);
       if (!(tl0.length >= (d === "\t" ? 2 : 3) && tl0.some(l => isHeadRow(l.split(d).map(c => c.trim()))))) continue;
       const tl = d === "\t" ? lines.filter(l => l.split(d).length >= 2 || (l.trim() && readHeader(cleanLine(l)))) : tl0;
-      const gr = readGrid([{ name: "", rows: lines.map(l => l.includes(d) ? l.split(d).map(c => c.trim().replace(/^"(.*)"$/, "$1")) : [l.trim()]) }]);
+      const gr = readGrid([{ name: "", rows: lines.map(l => l.includes(d) ? splitRow(l, d).map(c => c.trim()) : [l.trim()]) }]);
       if (gr) { gr.notes.unshift(...res.notes); finish(gr); return gr; }
       if (parseTable(tl, res, d)) { if (d !== "\t") res.notes.unshift(...lines.filter(l => l.trim() && !l.includes(d))); finish(res); return res; }
     }
@@ -476,6 +515,7 @@
       if (NOTES_HDR.test(line) && !/\d\s*[x×]\s*\d/.test(line)) { notesMode = true; const t = line.replace(/:\s*$/, ""); if (!/^notes?$/i.test(t)) res.notes.push(t); continue; }
       if (notesMode) { res.notes.push(line); continue; }
       if (isProse(line)) { if (!day) day = ensureDay(W(), "Séance 1"); proseLine(line, day); continue; }
+      if (/^\(?\s*(?:warm[\s-]?up|[ée]chauf+\w*)(?![a-zà-ÿ])/i.test(line)) { (day ? day.notes : W().notes).push(line); continue; }
       const exos = readExoLine(line.replace(/^(strength|force|wod|metcon|conditioning|conditionnement|accessor(?:y|ies)|accessoires?|warm[\s-]?up|[ée]chauffement|cool[\s-]?down|retour au calme|finisher|skill|cardio|part\s+[a-e]|partie\s+[a-e]|bloc\s+[a-e])\s*[:\-–]\s*(?=\S)/i, ""));
       // v42 : jours de course (« Jour 4 : Fractionné », « Sortie EF ») : lignes sans nom rattachées au jour
       const run = day && day.sub && canon(day.sub).cat === "cardio" ? canon(day.sub) : null;
@@ -593,7 +633,7 @@
     if (/distance|\bkm\b/.test(h)) return "km";
     if (/^(duree|duration|temps|time)\b|\(min\)/.test(h)) return "dur";
     if (/^(notes?|remarques?|commentaires?|consignes?|cues?|comments?|indications?)\b/.test(h)) return "note";
-    if (/^(s|sem|semaine|week|w)\s*\d+$/.test(h)) return "wcol";
+    if (/^(s|sem|semaine|week|w)\s*\d+(\s+[a-z].*)?$/.test(h)) return "wcol";
     return "tag";
   }
   const PRESC = ["sets", "reps", "sxr", "set", "wcol", "load", "pct", "hold", "lest"];
@@ -611,7 +651,8 @@
     return null;
   }
   const REST_NAME = /^(repos|rest|off|r[ée]cup[ée]ration|jour off|rest day)\b/i;
-  const JUNK_NAME = /^(total|recap|r[ée]cap|bilan|moyenne|sum|somme)\b|^[#=]/i;
+  const JUNK_NAME = /^((volume|tonnage)\s+)?(total|recap|r[ée]cap|bilan|moyenne|sum|somme)\b|^(volume|tonnage)\b|^[#=]/i;
+  const WARM_NAME = /^(warm[\s-]?up|[ée]chauf+\w*)(?![a-zà-ÿ])|\((?:warm[\s-]?up|[ée]chauf+\w*)\)\s*$/i;   // échauffement : jamais une ligne de la séance
   const isErr = c => /^#[A-Z/0!?]+[!?]?$|^=/.test(String(c || "").trim());
   function normReps(t) {
     let s = String(t || "").trim(), side = false, amrap = false;
@@ -661,8 +702,9 @@
       const sw = shName.match(/^(?:s|sem(?:aine)?|week|wk|w)\.?\s*(\d+)$/i);
       let wk = ensureWeek(res, sw ? "Semaine " + sw[1] : (res.weeks.length ? res.weeks[res.weeks.length - 1].label : "Programme"));
       let day = null, dayRaw = null, H = null, wkRaw = null;
-      const newDay = label => { day = { label: label || "Séance " + (wk.days.length + 1), notes: [], exos: [] }; wk.days.push(day); return day; };
+      const newDay = label => { if (day && !day.exos.length && !day.notes.length && wk.days[wk.days.length - 1] === day) { day.label = label || day.label; return day; } day = { label: label || "Séance " + (wk.days.length + 1), notes: [], exos: [] }; wk.days.push(day); return day; };
       const curDay = () => day || newDay(null);
+      if (!sw) { const hh = readHeader(cleanLine(shName)); if (hh && hh.type === "day") newDay(shName); }   // onglet « Jour A – Push » = une séance
       const banner = text => {
         const t = cleanLine(text); if (!t) return;
         const h = readHeader(t);
@@ -711,6 +753,7 @@
           const cell = role => { const i = inSeg(role); return i >= 0 ? r[i] || "" : ""; };
           let nm = r[c0] || "";
           if (!nm || JUNK_NAME.test(nm) || !/[a-zà-ÿ]{2}/i.test(nm)) return;
+          if (WARM_NAME.test(nm) || /^(w|wu|warm[\s-]?up|[ée]chauf+\w*)$/i.test(cell("set") || cell("sets"))) return;
           const segData = H.detail || R.some((x, k) => k >= c0 && k < c1 && (PRESC.includes(x) || ["rpe", "bo", "km", "dur"].includes(x)) && r[k] && !isErr(r[k]));
           if (!segData) { if (!REST_NAME.test(nm)) wk.notes.push(r.slice(c0, c1).filter(Boolean).join(" · ")); return; }
           if (H.detail) {
@@ -764,7 +807,7 @@
               const hold = cell("hold"); if (!reps && hold && /\d/.test(hold)) reps = /[a-z"']/i.test(hold) ? normReps(hold).reps : num(hold) + " s";
               const dur = cell("dur"); if (!reps && dur && /\d/.test(dur)) reps = num(dur) + " min";
               groups = [{ sets: toNum(setsC) || 1, reps, amrap: n.amrap, load: null }];
-              if (/^\d+$/.test(setsC)) groups[0]._setv = +setsC;
+              if (/^\d+$/.test(setsC)) { groups[0]._setv = +setsC; groups[0]._num = /^(s[ée]rie|set|n[°o]?|#)$/.test(strip(hdr("sets"))); }   // « Série » au singulier = numéro de la série
             }
             if (!groups.length) { const L0 = gridLoad(cell("load"), unit, street); if (L0) groups = [{ sets: 1, reps: "", amrap: false, load: null }]; }
             const lc = cell("load"), pc = cell("pct"), ls = cell("lest");
@@ -774,7 +817,8 @@
             const pv = pc && /^\s*\d+(?:[.,]\d+)?\s*%?\s*$/.test(pc) ? pctVal(pc) : null;
             if (pc && pv == null && !L) L = gridLoad(pc, unit, street);
             if (pv != null) L = L && (L.kind === "abs" || L.kind === "lest") ? { ...L, pct: pv } : L || { kind: "pct", v: pv };
-            if (L) groups.forEach(g => { if (!g.load) g.load = L; });
+            if (lc && /→|->|=>/.test(lc) && spreadLoads(groups, lc)) { /* une charge par série */ }
+            else if (L) groups.forEach(g => { if (!g.load) g.load = L; });
             const km = cell("km"); if (km && /\d/.test(km)) groups.forEach(g => { g.km = num(km); });
           }
           const rc = cell("rpe");
@@ -782,7 +826,7 @@
           const rir = cell("rir"); if (rir) notes.push("RIR " + rir);
           tempo = cell("tempo") || tempo;
           const rest = cell("rest");
-          const nt = cell("note"); if (nt) { notes.push(nt); if (/^(par|chaque|each|per)\s+(bras|jambe|c[oô]t[ée]|side|leg|arm)\b|\/\s*(c[oô]t[ée]|jambe|bras)\b/i.test(nt)) side = true; }
+          const nt = cell("note"); if (nt) { notes.push(nt); const tp = nt.match(/tempo\s*:?\s*(\d-\d-[\dx](?:-\d)?)/i); if (tp && !tempo) tempo = tp[1]; if (/^(par|chaque|each|per)\s+(bras|jambe|c[oô]t[ée]|side|leg|arm)\b|\/\s*(c[oô]t[ée]|jambe|bras)\b/i.test(nt)) side = true; }
           R.forEach((x, i) => { if ((x === "done" || x === "wcol") && i > c0 && i < c1 && r[i] && !isErr(r[i])) notes.push((/^fait\b/i.test(H.r[i]) ? String(H.r[i]) : "Fait " + String(H.r[i]).toLowerCase()) + " : " + r[i]); });
           const exo = { raw: r.slice(c0, c1).filter(Boolean).join(" | "), name: nm, canon: k.canon, cat: k.cat, groups, rpe: rpe || null, rest: rest ? restVal(rest) : null, note: notes.join(" · ") || null, tempo: tempo || null, side };
           const d = curDay();
@@ -797,13 +841,13 @@
         for (let i = 0; i < d.exos.length; i++) {
           const e = d.exos[i];
           let j = i; while (j + 1 < d.exos.length && d.exos[j + 1].name === e.name && d.exos[j + 1].groups.length === 1 && d.exos[j + 1].groups[0]._setv === j + 2 - i) j++;
-          if (j - i >= 2 && e.groups.length === 1 && e.groups[0]._setv === 1) {
+          if ((j - i >= 2 || (j - i >= 1 && e.groups[0]._num)) && e.groups.length === 1 && e.groups[0]._setv === 1) {
             const m = Object.assign({}, e, { groups: d.exos.slice(i, j + 1).map(x => ({ ...x.groups[0], sets: 1 })) });
             out.push(m); i = j;
           } else out.push(e);
         }
         d.exos = out;
-        d.exos.forEach(e => e.groups.forEach(g => delete g._setv));
+        d.exos.forEach(e => e.groups.forEach(g => { delete g._setv; delete g._num; }));
       }
       DEF_U = prevU;
     }
@@ -814,8 +858,46 @@
     const prev = DEF_U;
     try { return parseWorkbook0(sheets, unitHint(sheets.flatMap(sh => sh.rows.flat())) || prev); } finally { DEF_U = prev; }
   }
+  // « Sem | Squat S | Squat R | Squat % | Squat kg | Bench S … » : une ligne par semaine, un bloc de colonnes par mouvement
+  function readLiftTable(sheets) {
+    const COL = /^(.+?)\s+(s|series?|sets?|r|reps?|repetitions?|%|pct|kg|lbs?|charge|poids)$/;
+    const ROLE = { s: "sets", serie: "sets", series: "sets", set: "sets", sets: "sets", r: "reps", rep: "reps", reps: "reps", repetition: "reps", repetitions: "reps", "%": "pct", pct: "pct", kg: "kg", lb: "kg", lbs: "kg", charge: "kg", poids: "kg" };
+    for (const sh of sheets) {
+      const G = (sh.rows || []).map(r => (r || []).map(c => String(c ?? "").trim()));
+      const hi = G.findIndex(r => { const lifts = {}; r.forEach(c => { const m = strip(c).match(COL); if (m) (lifts[m[1]] = lifts[m[1]] || {})[ROLE[m[2]]] = 1; }); return Object.values(lifts).some(o => o.sets && o.reps); });
+      if (hi < 0) continue;
+      const lifts = {}; const used = new Set();
+      G[hi].forEach((c, i) => { const m = strip(c).match(COL); if (m) { (lifts[m[1]] = lifts[m[1]] || { name: c.replace(COL.test(c) ? /\s+\S+$/ : /$/, "").trim() })[ROLE[m[2]]] = i; used.add(i); } });
+      const WK = /^(s|sem|semaine|week|w)\s*\.?\s*(\d+)\b/i;
+      const rows = G.slice(hi + 1).filter(r => WK.test(r[0] || ""));
+      if (rows.length < 2) continue;
+      const wbU = unitHint(G.flat()) || DEF_U;
+      const res = { weeks: [], notes: [], meta: {} };
+      G.slice(0, hi).forEach(r => { const t = r.filter(Boolean).join(" · "); if (t) res.notes.push(t); });
+      for (const r of rows) {
+        const wk = ensureWeek(res, "Semaine " + r[0].match(WK)[2]), day = ensureDay(wk, "Séance 1");
+        for (const L of Object.values(lifts)) {
+          if (L.sets == null || L.reps == null || !r[L.sets] || !r[L.reps]) continue;
+          const kgv = L.kg != null ? r[L.kg] : "", pc = L.pct != null ? r[L.pct] : "";
+          const n = normReps(r[L.reps]);
+          let load = null;
+          if (/\d/.test(kgv)) load = { kind: "abs", v: num(kgv), u: wbU }, /\d/.test(pc) && (load.pct = pctVal(pc));
+          else if (/\d/.test(pc)) load = { kind: "pct", v: pctVal(pc) };
+          const c = canon(L.name);
+          day.exos.push({ raw: L.name + " | " + r.join(" | "), name: L.name, canon: c.canon, cat: c.cat, groups: [{ sets: toNum(r[L.sets]) || 1, reps: n.reps, amrap: n.amrap, load }], rpe: null, rest: null, note: null, tempo: null, side: n.side });
+        }
+        const rem = r.filter((c, i) => c && i > 0 && !used.has(i) && !/^[\d.,%\s]+$/.test(c)).join(" · ");
+        if (rem) wk.notes.push(rem);
+      }
+      return res;
+    }
+    return null;
+  }
+
   function parseWorkbook0(sheets, wbU) {
     DEF_U = wbU;
+    const lt = readLiftTable(sheets);
+    if (lt) { finish(lt); return lt; }
     const gr = readGrid(sheets);
     if (gr) { finish(gr); return gr; }
     const res = { weeks: [], notes: [], meta: {} };

@@ -1,0 +1,38 @@
+# Programme Force - Cycle 1
+> 1RM actuels : squat 140 kg, développé couché 100 kg
+> 💡 Semaine 2 = deload, on garde la technique
+
+## Semaine 1
+### Jour 1 - Squat
+- [x] Échauffement : 10 min vélo + 3 séries progressives (à ignorer)
+- [ ] Squat 5x5 @ 75%
+- [ ] Squat pause 3x3 @ 60%
+- [ ] Presse à cuisses 3x10 @140kg tempo 3-1-X-0
+- [ ] Leg curl 3x12 @40kg
+- [ ] Mollets debout 4x15 @70kg
+### Jour 2 - Bench
+- [x] Échauffement : 10 min vélo + 3 séries progressives (à ignorer)
+- [ ] Développé couché 5x5 @ 75%
+- [ ] DC prise serrée 3x8 @ 65%
+- [ ] Tractions 4x6
+- [ ] Rowing T 3x10 @50kg
+- [ ] Face pull 3x15 @20kg
+**Total semaine : 41 séries**
+
+## Semaine 2 (deload)
+### Jour 1 - Squat
+- [x] Échauffement : 10 min vélo + 3 séries progressives (à ignorer)
+- [ ] Squat 3x5 @ 60%
+- [ ] Squat pause 2x3 @ 50%
+- [ ] Presse à cuisses 2x10 @120kg tempo 3-1-X-0
+- [ ] Leg curl 2x12 @30kg
+- [ ] Mollets debout 3x15 @60kg
+### Jour 2 - Bench
+- [x] Échauffement : 10 min vélo + 3 séries progressives (à ignorer)
+- [ ] Développé couché 3x5 @ 60%
+- [ ] DC prise serrée 2x8 @ 55%
+- [ ] Tractions 3x6
+- [ ] Rowing T 2x10 @40kg
+- [ ] Face pull 2x15 @15kg
+**Total semaine : 27 séries**
+
