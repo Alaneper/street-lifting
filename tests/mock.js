@@ -68,7 +68,12 @@
       const book = sheets[input.spreadsheetId];
       if (tool === "get_spreadsheet") return {payload:{sheets:Object.keys(book).map(t => ({properties:{title:t}}))}};
       const {t} = parseRange(input.range), g = book[t] || (book[t] = [[]]);
-      if (tool === "get_values") return {payload:{range:input.range, values:trim(g)}};
+      if (tool === "get_values") {   /* comme l'API : seule la plage demandée (A1:CZ1000 = tout l'onglet en pratique) */
+        const a = input.range.match(/!\$?([A-Z]+)\$?(\d+)(?::\$?([A-Z]+)\$?(\d+))?$/), cn = x => x.split("").reduce((v, ch) => v * 26 + ch.charCodeAt(0) - 64, 0) - 1;
+        if (!a) return {payload:{range:input.range, values:trim(g)}};
+        const c0 = cn(a[1]), r0 = +a[2] - 1, c1 = a[3] ? cn(a[3]) : c0, r1 = a[4] ? +a[4] - 1 : r0;
+        const out = g.slice(r0, r1 + 1).map(r => (r || []).slice(c0, c1 + 1)); const t2 = trim(out); while (t2.length && !t2[t2.length - 1].length) t2.pop();
+        return {payload:{range:input.range, values:t2}}; }
       if (tool === "append_values") { const start = g.length; input.values.forEach(v => g.push(v.map(x => typeof x === "number" ? fr(x) : x))); return {payload:{updates:{updatedRange:t + "!A" + (start + 1) + ":I" + g.length}}}; }
       if (tool === "update_values") { const m = input.range.match(/!([A-Z]+)(\d+)/), col = m[1].split("").reduce((a, ch) => a * 26 + ch.charCodeAt(0) - 64, 0) - 1, row = +m[2] - 1;
         input.values.forEach((v, i) => put(g, row + i, col, v.map(x => typeof x === "number" ? fr(x) : x))); return {payload:{updatedRange:input.range}}; }

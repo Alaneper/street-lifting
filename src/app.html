@@ -452,6 +452,7 @@ html,body{overflow-x:clip}body{margin-top:0}
 @media (prefers-reduced-motion:reduce){.sw,.sw::after,.dcard{transition:none}}
 .impstp{display:flex;gap:6px;align-items:center;margin:0 0 14px}.impstp i{font-style:normal;width:26px;height:26px;border-radius:50%;background:var(--deck2);color:var(--dust);display:flex;align-items:center;justify-content:center;font:700 13px var(--f-text);flex:none}
 .impstp i.on{background:var(--brand);color:#fff}.impstp i.done{background:var(--ok);color:var(--floor)}.impstp u{flex:1;height:2px;background:var(--deck2);text-decoration:none}.impstp span{margin-left:8px;font:600 13px var(--f-text);color:var(--steel-hi)}
+.comtxt{width:100%;min-height:72px;font:500 16px/1.4 var(--f-text);color:var(--chalk);background:var(--deck2);border:1px solid var(--seam);border-radius:var(--r-sm);padding:10px 12px;resize:vertical;margin-top:6px}
 .imptxt{width:100%;min-height:220px;font:500 15px/1.45 var(--f-text);color:var(--chalk);background:var(--deck);border:1px solid var(--seam);border-radius:var(--r-sm);padding:12px;resize:vertical}
 .imptitle{margin-top:6px;font:800 28px/1.1 var(--f-show);background:transparent;border:0;border-bottom:1px dashed rgba(255,255,255,.4);border-radius:0;padding:4px 0;color:#fff;min-height:44px}
 .impchip{background:rgba(255,255,255,.16);color:#fff;min-height:28px;padding:4px 10px;font-size:12px}.impchip.ok{background:rgba(43,182,115,.3)}.impchip.warn{background:rgba(227,179,65,.3)}
@@ -492,7 +493,7 @@ html,body{overflow-x:clip}body{margin-top:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "60 · 30 oct. 2026";
+const APP_VER = "61 · 30 oct. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -668,6 +669,7 @@ function parseSets(s, defC, carnet){
 /* Séries notées dans la prog, vérifiées contre la prescription.
    « 85,90,95 » sur un 3×5 à 95 kg = des charges, pas des reps : on le relit comme 3 séries de 5. */
 function setsFromComment(e, c){
+  if (e.noComSets) return null;
   const raw = String(e.commentaire ?? "").trim(); if (!raw) return null;
   const head = ((raw.match(/^[\d\s.,;/+x*@]+/i) || [""])[0]).trim().replace(/[\s.,;+\/]+$/, ""); if (!head) return null;
   const reps1 = isNumTxt(e.reps) ? num(e.reps) : null, ns = num(e.series);
@@ -755,7 +757,7 @@ const Account = {
   token(){ return typeof auth !== "undefined" ? auth.tok : null; }
 };
 const Store = (() => {
-  const LAST = {PROFIL:"C", PR:"G", POIDS:"C", OBJECTIFS:"C", COMPETITIONS:"E", SERIES:"I", BLOCS:"C", CHECKLIST:"C", BILAN:"I", HISTORIQUE:"Q", REPAS:"J", ALIMENTS:"I", MES_REPAS:"I"};
+  const LAST = {PROFIL:"C", PR:"G", POIDS:"C", OBJECTIFS:"C", COMPETITIONS:"E", SERIES:"J", BLOCS:"C", CHECKLIST:"C", BILAN:"I", HISTORIQUE:"Q", REPAS:"J", ALIMENTS:"I", MES_REPAS:"I"};
   let cache = {P:[], OB:[], BL:[]};   /* lignes brutes des tableaux clé/valeur, pour retrouver la bonne ligne à modifier */
   const endCol = (from, n) => String.fromCharCode(from.charCodeAt(0) + n - 1);
   /* ajoute des enregistrements ; renvoie l'identifiant du premier (0 si inconnu) */
@@ -861,7 +863,7 @@ const Store = (() => {
   return {
     /* lecture : tout le carnet d'un coup (onglets ajoutés plus tard : absents tolérés) */
     async readAll(){
-      const R = ["PROFIL!A1:C60","PR!A1:G3000","POIDS!A1:C10000","OBJECTIFS!A1:C60","COMPETITIONS!A1:E200","SERIES!A1:I10000","BLOCS!A1:C200","CHECKLIST!A1:C500","BILAN!A1:I1000"];
+      const R = ["PROFIL!A1:C60","PR!A1:G3000","POIDS!A1:C10000","OBJECTIFS!A1:C60","COMPETITIONS!A1:E200","SERIES!A1:J10000","BLOCS!A1:C200","CHECKLIST!A1:C500","BILAN!A1:I1000"];
       const opt = r => getVals(APP_ID, r).catch(() => null);
       const res = await Promise.all([Promise.all(R.map(r => getVals(APP_ID, r))), Promise.all(["REPAS!A1:J40000", "ALIMENTS!A1:I5000", "HISTORIQUE!A1:Q30000", "MES_REPAS!A1:I3000"].map(opt))]);
       const [[P, PR, PO, OB, CO, SE, BL, CH, BI], [RP, AL, HI, MR]] = res; cache = {P, OB, BL};
@@ -876,7 +878,7 @@ const Store = (() => {
       const objectifs = {}; OB.slice(1).forEach(r => { if (r[0]) objectifs[norm(r[0])] = num(r[1]); });
       const comps = CO.map((r, i) => ({id:i + 1, date:toIso(r[0]), nom:String(r[1] || "").trim(), lieu:String(r[2] || "").trim(), note:String(r[3] || "").trim(), tbc:/confirmer/i.test(r[4] || "")}))
         .slice(1).filter(c => c.date && c.nom).sort((a, b) => a.date < b.date ? -1 : 1);
-      const seRow = (r, i) => ({id:i + 1, date:toIso(r[0]), bloc:num(r[1]), semaine:String(r[2] ?? "").trim(), seance:String(r[3] ?? "").trim(), ex:norm(r[4]).replace(/ ·$/, ""), charge:num(r[5]), note:String(r[8] || ""), src:String(r[7] || "")});
+      const seRow = (r, i) => ({id:i + 1, date:toIso(r[0]), bloc:num(r[1]), semaine:String(r[2] ?? "").trim(), seance:String(r[3] ?? "").trim(), ex:norm(r[4]).replace(/ ·$/, ""), charge:num(r[5]), note:String(r[8] || ""), src:String(r[7] || ""), com:String(r[9] ?? "").trim()});
       const series = SE.map((r, i) => ({...seRow(r, i), sets:parseSets(r[6], num(r[5]), true)})).slice(1).filter(x => x.ex && x.sets);
       /* v40 : le cardio (minutes, km) vit dans SERIES mais dans une liste à part : il n'entre jamais dans les records, le 1RM ni le tonnage */
       const cardio = SE.map((r, i) => ({...seRow(r, i), sets:parseCardio(r[6])})).slice(1).filter(x => x.ex && x.sets);
@@ -892,7 +894,8 @@ const Store = (() => {
         (mesRepas[n] = mesRepas[n] || []).push({id:i + 2, nom:String(r[1]), q:num(r[4]) || 0, k:num(r[5]) || 0, p:num(r[6]) || 0, g:num(r[7]) || 0, l:num(r[8]) || 0}); }); }
       /* archive des blocs : format propre à l'archive (une ligne = un exercice d'une séance passée) */
       const archive = HI ? HI.map((r, i) => ({id:i + 1, r})).slice(1).filter(x => x.r[0] && x.r[1]) : null;
-      return {profil, prs, poids, objectifs, comps, series, cardio, blocs, checks, bilans, repas, aliments, mesRepas, archive};
+      const serComHdr = !!String((SE[0] || [])[9] ?? "").trim();   /* v61 : en-tête « Commentaire » déjà présent en J1 */
+      return {profil, prs, poids, objectifs, comps, series, cardio, blocs, checks, bilans, repas, aliments, mesRepas, archive, serComHdr};
     },
     ensureTabs: () => ensureTabs(APP_ID),
     get canArchive(){ return typeof writeMany === "function"; },   /* le carnet accepte les écritures groupées (archive des blocs) */
@@ -909,7 +912,7 @@ const Store = (() => {
       if (!(v || []).some(row => (row || []).some(x => String(x ?? "").startsWith("Street Lifting · programme")))) throw new Error("Cet onglet n'a pas été créé par l'app : je ne le supprime pas.");
       await gapi(API + id + ":batchUpdate", {method:"POST", body:JSON.stringify({requests:[{deleteSheet:{sheetId:sh.sheetId}}]})});
     } },
-    series:{ add:row => add("SERIES", [row]), update:(id, row) => set("SERIES", id, row) },
+    series:{ add:row => add("SERIES", [row]), update:(id, row) => set("SERIES", id, row), comHeader:() => set("SERIES", 1, ["Commentaire"], "J") },
     competitions:{ add:row => add("COMPETITIONS", [row]), update:(id, row) => set("COMPETITIONS", id, row), remove:id => clear("COMPETITIONS", id) },
     checklist:{ add:rows => add("CHECKLIST", rows), setDone:(id, done) => set("CHECKLIST", id, [done ? "TRUE" : "FALSE"], "C") },
     bilan:{ add:row => add("BILAN", [row]) },
@@ -931,6 +934,7 @@ const Store = (() => {
       get canBatch(){ return typeof getMany === "function"; },
       readBlocs:names => getMany(coachId(), names.map(t => q(t) + "!A1:CZ1000")),
       readBloc:name => getVals(coachId(), q(name) + "!A1:CZ1000"),
+      readRange:(sheet, a1) => getVals(coachId(), q(sheet) + "!" + a1),
       setCell:async (sheet, col, row, val) => { const cid = coachId();
         if (!ob.length) { try { return await putVals(cid, q(sheet) + "!" + colL(col) + row, [[val]]); } catch(e){ if (!isOffline(e)) throw e; } }
         enqueue({t:"cell", k:"cell|" + cid + "|" + sheet + "|" + col + "|" + row, cid, sheet, col, row, val}); }
@@ -955,7 +959,7 @@ async function loadApp(){
   /* onglet absent (carnet ancien) : on garde ce qu'on avait déjà */
   const nutTabs = x.repas !== null, mrTab = x.mesRepas !== null;
   if (x.archive) { ARCH = x.archive; archTab = true; } else { ARCH = []; archTab = false; }
-  D = {profil:x.profil, prs:x.prs, poids:x.poids, objectifs:x.objectifs, comps:x.comps, series:x.series, cardio:x.cardio || [], blocs:x.blocs, checks:x.checks, bilans:x.bilans,
+  D = {serComHdr:!!x.serComHdr, profil:x.profil, prs:x.prs, poids:x.poids, objectifs:x.objectifs, comps:x.comps, series:x.series, cardio:x.cardio || [], blocs:x.blocs, checks:x.checks, bilans:x.bilans,
     repas:nutTabs ? x.repas : (D && D.repas) || [], aliments:nutTabs ? x.aliments : (D && D.aliments) || [], mesRepas:mrTab ? x.mesRepas : (D && D.mesRepas) || {},
     _mrTab:mrTab, _nutTabs:nutTabs, today:isoOf(new Date())};
   if (!Store.pending() && !live) Store.clearIds();   /* les numéros de ligne sont à nouveau les vrais */
@@ -989,6 +993,9 @@ function ownLabels(v){
    Lecture seule : l'onglet est traduit en mémoire vers les libellés de l'app, jamais modifié, et aucune écriture ne part vers ce Sheet. */
 const WEEK_RE = /^\s*WEEK\s*(\d+)\s*$/i, DAY_RE = /^DAY\s*(\d+)$/i;
 function weekModelOk(v){ for (let r = 0; r + 1 < v.length; r++) if (DAY_RE.test(String((v[r] || [])[0] ?? "").trim()) && norm(String((v[r + 1] || [])[1] ?? "")) === "EXERCISE") return true; return false; }
+/* v61 : colonne où le sportif écrit son ressenti (commentaire, ressenti, feedback, retour, remarque…), jamais celle du coach */
+const ATHLETE_NOTE_RE = /^(COMMENTAIRES?|COMMENTS?|RESSENTIS?|FEEDBACKS?|RETOURS?|REMARQUES?)( (ATHL[EÈ]TE|SPORTIF|ATHLETE|DE L'ATHL[EÈ]TE|DU SPORTIF|PERSO|PERSONNEL))?$|^(NOTES?|COMMENTAIRES?|RESSENTIS?) (ATHL[EÈ]TE|SPORTIF|ATHLETE)$/;
+const isAthleteNoteHdr = h => { const t = norm(h); return !!t && ATHLETE_NOTE_RE.test(t) && !/COACH|ENTRA[IÎ]NEUR|CONSIGNE|INDICATION/.test(t); };
 function weekToAts(v){
   const g = v.map(r => (r || []).map(x => x ?? ""));
   const cell = (r, c) => String((g[r] && g[r][c]) ?? ""), set = (r, c, x) => { g[r] = g[r] || []; while (g[r].length <= c) g[r].push(""); g[r][c] = x; };
@@ -1001,7 +1008,7 @@ function weekToAts(v){
       if (t === "EXERCISE") set(h, k, "MOUVEMENT"); else if (t === "SERIES" || t === "SÉRIES") set(h, k, "SÉRIES");
       else if (t === "REPS") set(h, k, reps++ ? "REPS FAITES" : "RÉPÉTITIONS"); else if (t === "INDICATIONS") set(h, k, "COMMENTAIRE DU COACH");
       else if (t === "RPE") set(h, k, "INTENSITÉ CIBLE"); else if (t === "CHARGE") { set(h, k, "CONSIGNE"); cc = k; }
-      else if (t === "CHARGES") set(h, k, "CHARGES FAITES"); else if (!t && cc >= 0 && k === cc + 1) set(h, k, "CHARGE"); }
+      else if (t === "CHARGES") set(h, k, "CHARGES FAITES"); else if (isAthleteNoteHdr(t)) set(h, k, "COMMENTAIRE ATHLÈTE"); else if (!t && cc >= 0 && k === cc + 1) set(h, k, "CHARGE"); }
     for (let rr = h + 1; rr < g.length; rr++) {
       if (DAY_RE.test(cell(rr, 0).trim())) break;
       if (/^HEURE DE SOMMEIL/.test(norm(cell(rr, 1)))) { set(rr, 1, ""); set(rr + 1, 1, ""); continue; }
@@ -1145,7 +1152,8 @@ async function loadBloc(n, pre){
     seances = []; weeks = {};
     tabs.forEach((t, i) => { const r = parseBloc(weekToAts(vals[i] || []), t, n, String(+t.match(WEEK_RE)[1])); seances.push(...r.seances); });
     /* v47 (28/10, accord d'Alane) : on n'écrit que dans les colonnes « faites » du coach (Reps et Charges du bloc EFFECTUE), jamais dans ses cibles */
-    seances.forEach(s => { s.cols = {repsDone:s.cols.repsDone, chargesDone:s.cols.chargesDone}; s.week = true; s.recapRow = 0; s.pdcCol = 0; s.pdc = ""; });
+    seances.forEach(s => { s.cols = {repsDone:s.cols.repsDone, chargesDone:s.cols.chargesDone, commentaire:s.cols.commentaire}; s.week = true; s.recapRow = 0; s.pdcCol = 0; s.pdc = "";
+      s.exercices.forEach(e => e.noComSets = true); });   /* v61 : ici les reps ont leur propre colonne ; le commentaire n'est jamais relu comme des reps */
   } else { const v = pre || await Store.coach.readBloc(blocNames[n]); ({seances, weeks} = parseBloc(v, blocNames[n], n)); }
   fixJours(seances);
   seances.forEach(s => { s.free = !(norm(s.jour) in JOUR_IDX); });
@@ -1188,6 +1196,8 @@ function parseBloc(v, sheet, bloc, forcedWeek){
       if (norm(cell(r, c)) !== "MOUVEMENT") continue;
       const cols = {};
       for (let k = c; k < Math.min(c + 20, width); k++){ const h = norm(cell(r, k)); if (!h) continue; if (k > c && h === "MOUVEMENT") break; if (!(h in cols)) cols[h] = k; }
+      if (!("COMMENTAIRE ATHLÈTE" in cols)) { const a = Object.keys(cols).find(isAthleteNoteHdr); if (a) cols["COMMENTAIRE ATHLÈTE"] = cols[a]; }
+      const lastCol = Math.max(...Object.values(cols)) + 1;   /* dernière colonne à en-tête de la séance (1 = A) */
       let seance = "", jour = "", semaine = "", nb = 0;
       for (let up = r - 1; up >= Math.max(0, r - 200); up--){
         const x = norm(cell(up, c));
@@ -1227,7 +1237,7 @@ function parseBloc(v, sheet, bloc, forcedWeek){
       }
       if (!ex.length) continue;
       const k = h => (h in cols) ? cols[h] + 1 : 0;
-      seances.push({key:sheet + "|" + semaine + "|" + (r + 1), sheet, bloc, own, semaine, jour, seance, headerRow:r + 1, idx:nb, recapRow, pdc, pdcCol:c + 3,
+      seances.push({key:sheet + "|" + semaine + "|" + (r + 1), sheet, bloc, own, semaine, jour, seance, headerRow:r + 1, lastCol, idx:nb, recapRow, pdc, pdcCol:c + 3,
         cols:{mouvement:c + 1, rpe1:k("RPE S1"), rpeLast:k("RPE DERNIÈRE SÉRIE"), commentaire:k("COMMENTAIRE ATHLÈTE"), charge:k("CHARGE"), repsDone:k("REPS FAITES"), chargesDone:k("CHARGES FAITES")},
         exercices:ex, faite:ex.some(e => e.rpe1 || e.rpeLast)});
     }
@@ -1865,6 +1875,9 @@ function rLive(){
     </section>
     ${showR1 ? rpeRow("rpe1", "RPE de la 1re série") : ""}
     ${showRL ? rpeRow("rpeLast", "RPE de la dernière série") : ""}
+    ${(() => { const c0 = liveCom(s, k), coachTxt = s.own || !s.sheet ? "" : " pour ton coach";
+      return st.comOpen || c0 ? `<div style="margin-top:14px"><label for="lcom" class="small" style="font-weight:700">Commentaire${coachTxt}</label><textarea id="lcom" class="comtxt" rows="2" maxlength="300" data-inp="setCom" placeholder="Ressenti, douleur, technique…">${esc(c0)}</textarea><p class="muted tiny" style="margin-top:4px">${coachTxt ? "Gardé dans ton carnet et envoyé dans ton Sheet quand l'exercice est enregistré (au moins une série validée)." : "Gardé dans ton carnet avec l'exercice (au moins une série validée)."}</p></div>`
+        : `<button class="link small" style="margin-top:10px;min-height:44px" data-act="comOpen">+ Commentaire${coachTxt}</button>`; })()}
     <div id="prbox"></div>
     ${s.archived ? "" : `<div class="grid2" style="margin-top:12px"><button class="btn line sm" data-act="swapOpen">Changer l'exercice</button><button class="btn line sm" data-act="editOpen">Modifier la séance</button></div>`}
     ${nx ? `<div class="nextup"><span class="eyebrow" style="color:var(--faint)">Ensuite</span><span class="dot8" style="--c:${nl ? LCOL[nl] : isCardioEx(nx) ? LCOL.CARDIO : "var(--faint)"}"></span><b>${esc(norm(nx.mouvement) === "RENFO" ? title(nx.variation) : (nl ? LNAME[nl] : title(nx.mouvement)) + " " + title(nx.variation).toLowerCase())}</b><span class="muted small">${isCardioEx(nx) ? esc(nx.reps) : esc(nx.series) + " × " + esc(nx.reps)}</span></div>` : ""}
@@ -2085,6 +2098,38 @@ function editHtml(){
     <p class="muted tiny" style="margin-top:10px">Le programme de ton coach n'est jamais modifié : tes changements restent dans ton carnet.</p>
     <button class="btn" style="margin-top:12px" data-act="closeSheet">Terminé</button>`;
 }
+/* v61 · COMMENTAIRE DU SPORTIF
+   Carnet : colonne J de SERIES. Sheet du coach : sa colonne commentaire / ressenti si elle existe ; sinon une petite case
+   « Commentaire athlète » créée juste à droite des colonnes de la séance, seulement si cette colonne est vide sur toute la séance.
+   Jamais un texte que l'app n'a pas écrit n'est remplacé. */
+const comLog = (s, e) => (isCardioEx(e) ? D.cardio || [] : D.series).find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === exKey(e) && (!x.note || x.note === "L" + e.row));
+function liveCom(s, k){ const st = live.rows[k]; if (st.com !== undefined) return st.com; const lg = comLog(s, s.exercices[k]); return lg && lg.com ? lg.com : ""; }
+async function ensureComCol(s){
+  if (s.cols.commentaire) return s.cols.commentaire;
+  if (s.own || s.archived || !s.sheet || !s.headerRow || !s.lastCol) return 0;
+  const rows = s.exercices.filter(x => !x._mod).map(x => x.row); if (!rows.length) return 0;
+  const c = s.lastCol + 1;
+  try {
+    const v = await Store.coach.readRange(s.sheet, colL(c) + s.headerRow + ":" + colL(c) + Math.max(...rows));
+    if ((v || []).some(r => String((r || [])[0] ?? "").trim())) return 0;   /* colonne déjà utilisée : on n'y touche pas */
+    await Store.coach.setCell(s.sheet, c, s.headerRow, "Commentaire athlète");
+  } catch(err){ return 0; }
+  s.cols.commentaire = c; s.exercices.forEach(x => { if (x.commentaire === undefined) x.commentaire = ""; });
+  return c;
+}
+/* Case commentaire du coach. sep : les reps vivent dans la même case (« 8,8,9 · texte ») quand la séance n'a pas de colonne de reps faites. */
+async function coachCom(s, e, repsT, wantReps, com, prevCom){
+  if (e._mod || !s.sheet || s.archived) return;
+  const col = s.cols.commentaire || (com ? await ensureComCol(s) : 0);
+  if (!col) { if (com && !s.own && !s._comWarn) { s._comWarn = 1; toast("Pas de case commentaire libre dans ce Sheet : ton commentaire est gardé dans ton carnet."); } return; }
+  const sep = !s.cols.repsDone, cur = String(e.commentaire ?? "").trim(), m = cur.match(/^([\d\s,]+) · ([\s\S]*)$/);
+  const mine = !cur || !!(prevCom && (cur === prevCom || (sep && m && m[2] === prevCom))) || (sep && !!repsOnly(cur));
+  if (!mine) { if (com && com !== prevCom) toast("La case commentaire de ton Sheet contient déjà un texte que l'app n'a pas écrit : je ne l'ai pas remplacé. Ton commentaire est gardé dans ton carnet.", true); return; }
+  let val;
+  if (sep) val = com ? (repsT ? repsT + " · " + com : com) : wantReps ? repsT : (m ? m[1].trim() : cur === prevCom ? "" : cur);
+  else val = com;
+  if (val !== cur) { await Store.coach.setCell(s.sheet, col, e.row, val); e.commentaire = val; }
+}
 async function saveRow(k){
   const s = seanceByKey(live.key), e = s.exercices[k], st = live.rows[k];
   if (!st || !st.dirty) return true;
@@ -2097,9 +2142,13 @@ async function saveRow(k){
         const same = x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row);
         let ex = D.cardio.find(same);
         if (ex && !ex.id) { await loadApp(); ex = D.cardio.find(same); }
-        if (ex && ex.id) { await Store.series.update(ex.id, row); ex.sets = done; ex.note = "L" + e.row; ex.date = D.today; }
+        const prevCom = (ex && ex.com) || "", com = st.com !== undefined ? String(st.com).trim().slice(0, 300) : prevCom;
+        if (com || prevCom) row[9] = com;
+        if (com && !D.serComHdr) { await Store.series.comHeader(); D.serComHdr = true; }
+        if (ex && ex.id) { await Store.series.update(ex.id, row); ex.sets = done; ex.note = "L" + e.row; ex.date = D.today; ex.com = com; }
         else { const id = await Store.series.add(row);
-          D.cardio.push({id:id, date:D.today, bloc:s.bloc, semaine:s.semaine, seance:s.seance, ex:key, charge:row[5], sets:done, note:"L" + e.row}); }
+          D.cardio.push({id:id, date:D.today, bloc:s.bloc, semaine:s.semaine, seance:s.seance, ex:key, charge:row[5], sets:done, note:"L" + e.row, com}); }
+        if (com !== prevCom && s.cols.commentaire) await coachCom(s, e, "", false, com, prevCom);
         s.faite = true;
       }
       st.dirty = false; persistLive(); saveCache(); return true;
@@ -2117,9 +2166,12 @@ async function saveRow(k){
       const ex = D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
       if (ex && !ex.id) await loadApp();
       const ex2 = ex && D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
-      if (ex2 && ex2.id) { await Store.series.update(ex2.id, row); ex2.sets = done; ex2.note = "L" + e.row; ex2.date = D.today; ex2.src = row[7]; }
+      const prevCom = (ex2 && ex2.com) || "", com = st.com !== undefined ? String(st.com).trim().slice(0, 300) : prevCom;
+      if (com || prevCom) row[9] = com;   /* sans commentaire, la ligne reste exactement comme avant (9 colonnes) */
+      if (com && !D.serComHdr) { await Store.series.comHeader(); D.serComHdr = true; }
+      if (ex2 && ex2.id) { await Store.series.update(ex2.id, row); ex2.sets = done; ex2.note = "L" + e.row; ex2.date = D.today; ex2.src = row[7]; ex2.com = com; }
       else { const id = await Store.series.add(row);
-        D.series.push({id:id, date:D.today, bloc:s.bloc, semaine:s.semaine, seance:s.seance, ex:key, charge:row[5], sets:done, note:"L" + e.row, src:row[7]}); }
+        D.series.push({id:id, date:D.today, bloc:s.bloc, semaine:s.semaine, seance:s.seance, ex:key, charge:row[5], sets:done, note:"L" + e.row, src:row[7], com}); }
       s.faite = true; _dm = null;
       if (s.week && !e._mod) {   /* Sheet du coach : reps et charges faites, dans ses colonnes « faites » (bloc EFFECTUE = zone du sportif) */
         const fr = v => String(v).replace(".", ","), repsT = done.map(x => x.r).join(", "), chT = sameC ? fr(done[0].c) : done.map(x => fr(x.c)).join(", ");
@@ -2127,7 +2179,8 @@ async function saveRow(k){
           if (col && String(e[f] || "").trim() !== val) { await Store.coach.setCell(s.sheet, col, e.row, val); e[f] = val; }
       }
       const asPresc = isNumTxt(e.reps) && done.length === (num(e.series) || 0) && done.every(x => x.r === num(e.reps));
-      if (s.cols.commentaire && !e._mod && (!e.commentaire || repsOnly(e.commentaire)) && (norm(e.mouvement) === "RENFO" || !asPresc)) { const t = done.map(x => x.r).join(","); await Store.coach.setCell(s.sheet, s.cols.commentaire, e.row, t); e.commentaire = t; }
+      /* case commentaire du coach : reps faites (comme avant) et, depuis la v61, le commentaire du sportif */
+      if ((s.cols.commentaire || com) && !e._mod) await coachCom(s, e, done.map(x => x.r).join(","), norm(e.mouvement) === "RENFO" || !asPresc, com, prevCom);
     }
     for (const f of ["rpe1","rpeLast"]) if (st[f] !== null && st[f] !== undefined && st[f] !== num(e[f]) && s.cols[f] && !e._mod) {
       await Store.coach.setCell(s.sheet, s.cols[f], e.row, st[f]); e[f] = String(st[f]).replace(".", ","); s.faite = true; }
@@ -2790,6 +2843,7 @@ const ACT = {
     st.dirty = true; persistLive(); saveCache(); renderLayer();
     try { await Store.profil.set("ex_modes", nextStr); toast(v === "T" ? "Cet exercice se note maintenant en temps" : "Cet exercice se note maintenant en reps"); }
     catch (err) { toast("Choix gardé sur ce téléphone, pas encore dans ton carnet. " + errMsg(err), true); } },
+  comOpen:() => { const st = live.rows[live.i]; st.comOpen = true; renderLayer(); setTimeout(() => { const t = $("#lcom"); if (t) t.focus(); }, 50); },
   delSet:() => { const st = live.rows[live.i]; if (st.sets.length > 1) { st.sets.pop(); st.dirty = true; persistLive(); renderLayer(); } },
   rpe:d => { const st = live.rows[live.i]; st[d.f] = st[d.f] === +d.v ? null : +d.v; st.dirty = true; persistLive(); renderLayer(); },
   finishLive:() => finishLive(),
@@ -3064,7 +3118,7 @@ async function saveFood(f){
   (D.aliments = D.aliments || []).push({...f});
 }
 /* saisie : suggestions au fil de la frappe */
-document.addEventListener("input", ev => { const t = ev.target; if (t && t.dataset.inp === "mnName" && mnDraft) { mnDraft.name = t.value; return; } if (t && t.dataset.inp === "mnQ" && mnDraft) { mnDraft.q = t.value; const l = $("#mnlist"); if (l) l.innerHTML = mnList(); return; } if (t && t.dataset.inp === "mnQty" && mnDraft && mnDraft.pick) { mnDraft.pick.q = num(t.value); return; } if (t && t.dataset.inp === "swapQ") { swapQ = t.value; const l = $("#swaplist"); if (l) l.innerHTML = swapList(); return; } if (t && t.dataset.inp === "hw") return hwRefresh(); if (!t || t.dataset.inp !== "nutQ") return; nutQ = t.value; nutPick = null; offRes = null; nutCreate = false;
+document.addEventListener("input", ev => { const t = ev.target; if (t && t.dataset.inp === "setCom" && live && live.rows[live.i]) { const st = live.rows[live.i]; st.com = t.value; st.comOpen = true; st.dirty = true; persistLive(); return; } if (t && t.dataset.inp === "mnName" && mnDraft) { mnDraft.name = t.value; return; } if (t && t.dataset.inp === "mnQ" && mnDraft) { mnDraft.q = t.value; const l = $("#mnlist"); if (l) l.innerHTML = mnList(); return; } if (t && t.dataset.inp === "mnQty" && mnDraft && mnDraft.pick) { mnDraft.pick.q = num(t.value); return; } if (t && t.dataset.inp === "swapQ") { swapQ = t.value; const l = $("#swaplist"); if (l) l.innerHTML = swapList(); return; } if (t && t.dataset.inp === "hw") return hwRefresh(); if (!t || t.dataset.inp !== "nutQ") return; nutQ = t.value; nutPick = null; offRes = null; nutCreate = false;
   clearTimeout(t._h); t._h = setTimeout(nutRefresh, 80);
   /* moins de 3 résultats dans la table : les produits de marque (Open Food Facts) sont cherchés tout seuls */
   clearTimeout(t._o); t._o = setTimeout(() => { const q = parseFoodLine(nutQ).txt; if (FOODS && q && q.length >= 3 && !nutPick && !offRes && searchFoods(q).length < 3 && navigator.onLine !== false) ACT.nutOff({auto:1}); }, 900); });
