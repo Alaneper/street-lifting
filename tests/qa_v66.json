@@ -57,7 +57,9 @@
   "cibles_moins_24": [],
   "cibles_moins_44": [],
   "debordements": [],
-  "textes_coupes": [],
+  "textes_coupes": [
+   "INPUT"
+  ],
   "champs_zoom_ios": [],
   "defilement_horizontal": false,
   "axe": []
@@ -264,7 +266,9 @@
   "cibles_moins_24": [],
   "cibles_moins_44": [],
   "debordements": [],
-  "textes_coupes": [],
+  "textes_coupes": [
+   "INPUT"
+  ],
   "champs_zoom_ios": [],
   "defilement_horizontal": false,
   "axe": []
@@ -417,7 +421,7 @@
   "cibles<24": 0,
   "cibles<44": 6,
   "debordements": 0,
-  "textes_coupes": 2,
+  "textes_coupes": 4,
   "champs_zoom_ios": 0,
   "axe": 0
  }

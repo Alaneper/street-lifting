@@ -42,7 +42,7 @@ with sync_playwright() as p:
     worst = min(min(cr(x[1], deck), cr(x[2], deck) / 1.5 * 1.5, cr(x[3], deck)) for x in r) if r else 0
     check("héros : 4 mouvements en carte sombre", len(r) == 4 and all(x[0] == deck for x in r), r)
     check("héros : chiffre ≥ 3:1, petits textes ≥ 4,5:1", all(cr(x[1], deck) >= 3 and cr(x[2], deck) >= 4.5 and cr(x[3], deck) >= 4.5 for x in r), [[round(cr(x[i], deck), 2) for i in (1, 2, 3)] for x in r])
-    check("héros : le bleu acier reste pour le total / J-X", pg.evaluate("(() => { setTab('home'); const h = document.querySelector('#v-home .hero'); return !h.classList.contains('mv') && getComputedStyle(h).backgroundColor === 'rgb(47, 99, 181)'; })()"))
+    check("héros du total / J-X : carte sombre, chiffre en bleu acier", pg.evaluate("(() => { setTab('home'); const h = document.querySelector('#v-home .hero'); return !h.classList.contains('mv') && getComputedStyle(h).backgroundColor === 'rgb(22, 21, 19)' && getComputedStyle(h.querySelector('.hb')).color === 'rgb(111, 160, 218)'; })()"))
     # Couleurs d'état neutres
     pg.evaluate("setTab('prog')"); pg.wait_for_timeout(600)
     r = pg.evaluate("[...document.querySelectorAll('.tag.ok')].map(t => getComputedStyle(t).backgroundColor)")
