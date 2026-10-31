@@ -1,11 +1,12 @@
-/* Street Lifting : ouverture instantanée et hors ligne.
+/* B2Strong : ouverture instantanée et hors ligne.
    - L'app (index.html, icônes, table des aliments) s'affiche depuis le téléphone, sans attendre le réseau.
      En arrière-plan, la version en ligne est relue ; si son numéro de build est plus récent, elle remplace
      l'ancienne et l'app est prévenue (installée tout de suite si rien n'a été touché, sinon bandeau).
    - Chart.js, JSZip et les polices : cache d'abord.
    - Les données Google et Open Food Facts ne passent jamais par ce cache. */
-const V = "sl-v31";
-const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png", "aliments.json", "zxing.min.js"];
+const V = "sl-v32";
+const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png", "aliments.json", "zxing.min.js",
+  "fonts/bs.woff2", "fonts/fg.woff2", "fonts/mm.woff2"];
 /* cache:"reload" : ignore le cache HTTP du navigateur (GitHub Pages garde les fichiers 10 min). */
 self.addEventListener("install", e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL.map(u => new Request(u, {cache:"reload"}))))); self.skipWaiting(); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

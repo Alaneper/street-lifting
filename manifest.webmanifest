@@ -1,17 +1,32 @@
 {
-  "name": "Street Lifting",
-  "short_name": "Street Lifting",
-  "description": "Prog du coach, records, total, RIS, poids, alimentation et compétitions.",
+  "name": "B2Strong",
+  "short_name": "B2Strong",
+  "description": "Le carnet des athlètes de force : records, total, points IPF GL et RIS, prog du coach, poids et compétitions.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0A0B0D",
-  "theme_color": "#0A0B0D",
+  "background_color": "#0C0B0A",
+  "theme_color": "#0C0B0A",
   "icons": [
-    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
-    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
-    {"src": "icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

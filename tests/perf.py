@@ -41,12 +41,8 @@ def build_site(tmp):
         if (P / f).exists(): shutil.copy(P / f, site / f)
     shutil.copy(B / "node_modules/chart.js/dist/chart.umd.js", vend / "chart.umd.min.js")
     shutil.copy(B / "node_modules/jszip/dist/jszip.min.js", vend / "jszip.min.js")
-    css = ""
-    for fam, slug, ws in [("Barlow", "barlow", [400, 500, 600, 700]), ("Barlow Condensed", "barlow-condensed", [600, 700, 800])]:
-        for w in ws:
-            fn = f"{slug}-latin-{w}-normal.woff2"; shutil.copy(B / f"node_modules/@fontsource/{slug}/files/{fn}", vend / fn)
-            css += f"@font-face{{font-family:'{fam}';font-weight:{w};font-display:swap;src:url(http://127.0.0.1:8124/{fn}) format('woff2');}}\n"
-    (vend / "fonts.css").write_text(css)
+    if (P / "fonts").is_dir(): shutil.copytree(P / "fonts", site / "fonts")
+    (vend / "fonts.css").write_text("")
     html = (P / "test-build.html").read_text()
     html = re.sub(r'https://fonts\.googleapis\.com/css2\?[^"]+', "http://127.0.0.1:8124/fonts.css", html)
     html = re.sub(r'https://cdnjs\.cloudflare\.com/ajax/libs/Chart\.js/[^"]+', "http://127.0.0.1:8124/chart.umd.min.js", html)

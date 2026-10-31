@@ -102,7 +102,7 @@ async function addProgTab(id, title, rows){
   try { await style(false); } catch(e){ try { await style(true); } catch(e2){ console.warn("mise en forme", e2); } }
 }
 async function createBook(p){
-  const r = await gapi(API, {method:"POST", body:JSON.stringify({properties:{title:"Street Lifting – " + (p.prenom || "carnet"), locale:"fr_FR"},
+  const r = await gapi(API, {method:"POST", body:JSON.stringify({properties:{title:"B2Strong – " + (p.prenom || "carnet"), locale:"fr_FR"},
     sheets:Object.keys(TABS).map(t => ({properties:{title:t, gridProperties:{frozenRowCount:1}}}))})});
   const id = r.spreadsheetId;
   /* v28 : catégories automatiques d'après la pesée (modifiables dans les réglages) ; plus de « muscle-up acquis » */
@@ -146,11 +146,11 @@ function prenomOf(title){
 function onboard(step, why){
   obStep = step; obErr = why || ""; document.body.classList.add("ob");
   document.querySelectorAll(".view").forEach(v => v.hidden = v.id !== "v-home");
-  const plates = `<div class="hero" style="margin-top:18px;min-height:150px">${DECO}<svg width="64" height="64" viewBox="0 0 40 40" aria-hidden="true" style="position:relative;background:#fff;border-radius:16px;padding:6px"><circle cx="20" cy="10.5" r="4.2" fill="#1F5FD0"/><path d="M7 17h26" stroke="#1F5FD0" stroke-width="3.6" stroke-linecap="round"/><path d="M11 17l4.5 9 4.5-3.5 4.5 3.5 4.5-9" stroke="#1F5FD0" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><p class="hu" style="margin-top:14px">Ta prog, tes records, ta prochaine compétition.</p></div>`;
+  const plates = `<div class="hero" style="margin-top:18px;min-height:150px">${DECO}<svg width="92" height="77" viewBox="0 0 120 100" aria-hidden="true" style="position:relative"><g fill="none" stroke="var(--chalk)" stroke-linecap="butt" stroke-linejoin="miter"><line x1="11" y1="0" x2="11" y2="100" stroke-width="22"/><path d="M11 9.5H38A19.25 19.25 0 0 1 38 48H11" stroke-width="19"/><path d="M11 48H43A21.25 21.25 0 0 1 43 90.5H11" stroke-width="19"/></g><path d="M6 30C6 12 20 2 34 2C50 2 61 12 61 27C61 39 53 48 41 58L24 73H61V96H4V77L34 50C40 44 45 38 45 30C45 22 41 17 34 17C26 17 22 23 22 32Z" fill="var(--acc)" transform="translate(76 0) scale(0.44)"/></svg><p class="hu" style="margin-top:14px">Be too strong. Mieux qu'hier, chaque séance.</p></div>`;
   const err = obErr ? `<p class="small" style="color:var(--bad);margin-top:12px">${esc(obErr)}</p>` : "";
   let h = "";
   if (step === "config") h = `<div class="empty"><p>L'identifiant Google de l'app n'est pas encore configuré.</p></div>`;
-  else if (step === "login") h = `${plates}<p class="show" style="font-size:44px;font-weight:800;margin-top:22px;line-height:1">Street Lifting</p>
+  else if (step === "login") h = `${plates}<p class="show" style="font-size:44px;font-weight:800;margin-top:22px;line-height:1">B2Strong</p>
     <p class="muted" style="margin-top:12px">Connecte ton compte Google. Tes données restent dans ton propre Google Sheet : personne d'autre n'y a accès.</p>
     <button class="btn" style="margin-top:22px" data-act="obLogin">Continuer avec Google</button>${err}
     <p class="muted tiny" style="margin-top:14px">Google peut afficher « application non validée » : c'est normal pour une app en test. Touche « Continuer ».</p>`;

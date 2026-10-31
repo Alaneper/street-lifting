@@ -151,7 +151,7 @@ with sync_playwright() as p:
     # 14. Barre d'onglets : libellés inactifs lisibles
     pg.wait_for_timeout(500)   # la couleur des onglets a une transition de 0,2 s
     r = pg.evaluate("getComputedStyle(document.querySelector('.tabs button:not([aria-current=page])')).color")
-    check("onglets inactifs en gris lisible (#8A9099)", r == "rgb(138, 144, 153)", r)
+    check("onglets inactifs en gris lisible (#B4AFA7)", r == "rgb(180, 175, 167)", r)
     check("aucune erreur console", not errs, errs[:5])
     br.close()
 print("requêtes inattendues :", odd)

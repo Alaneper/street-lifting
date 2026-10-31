@@ -26,15 +26,15 @@ def cut(start, end, new):
 head = """<!doctype html>
 <html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0A0B0D">
+<meta name="theme-color" content="#0C0B0A">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Street Lifting">
+<meta name="apple-mobile-web-app-title" content="B2Strong">
 <meta name="sl-build" content="__BUILD__">
-<meta name="description" content="Suivi de street lifting : PR, total, RIS, prog du coach, poids de corps et compétitions.">
+<meta name="description" content="B2Strong : le carnet des athlètes de force. Records, total, points IPF GL et RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
-<link rel="preconnect" href="https://sheets.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://sheets.googleapis.com">
 """
 rep('<meta name="claude:viewport-fit-sides" content="cover">\n', "")
 import time as _t

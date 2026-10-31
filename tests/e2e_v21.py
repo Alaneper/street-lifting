@@ -38,11 +38,11 @@ with sync_playwright() as p:
     pg.evaluate("""(() => { setTab('seance'); const el = document.querySelector('#v-seance');
       el.insertAdjacentHTML('afterbegin', ['MU','PULL','DIP','SQUAT'].map(l => heroCard({color:LCOL[l], small:'Mercredi 21 octobre · bloc 7, semaine 2', big:'Séance 2', sub:'À venir'})).join('')); })()""")
     r = pg.evaluate("""[...document.querySelectorAll('#v-seance .hero.mv')].slice(0, 4).map(h => [getComputedStyle(h).backgroundColor, getComputedStyle(h.querySelector('.hb')).color, getComputedStyle(h.querySelector('.hs')).color, getComputedStyle(h.querySelector('.hu')).color])""")
-    deck = "rgb(22, 24, 28)"
+    deck = "rgb(22, 21, 19)"
     worst = min(min(cr(x[1], deck), cr(x[2], deck) / 1.5 * 1.5, cr(x[3], deck)) for x in r) if r else 0
     check("héros : 4 mouvements en carte sombre", len(r) == 4 and all(x[0] == deck for x in r), r)
     check("héros : chiffre ≥ 3:1, petits textes ≥ 4,5:1", all(cr(x[1], deck) >= 3 and cr(x[2], deck) >= 4.5 and cr(x[3], deck) >= 4.5 for x in r), [[round(cr(x[i], deck), 2) for i in (1, 2, 3)] for x in r])
-    check("héros : le bleu plein reste pour le total / J-X", pg.evaluate("(() => { setTab('home'); const h = document.querySelector('#v-home .hero'); return !h.classList.contains('mv') && getComputedStyle(h).backgroundColor === 'rgb(31, 95, 208)'; })()"))
+    check("héros : le bleu acier reste pour le total / J-X", pg.evaluate("(() => { setTab('home'); const h = document.querySelector('#v-home .hero'); return !h.classList.contains('mv') && getComputedStyle(h).backgroundColor === 'rgb(47, 99, 181)'; })()"))
     # Couleurs d'état neutres
     pg.evaluate("setTab('prog')"); pg.wait_for_timeout(600)
     r = pg.evaluate("[...document.querySelectorAll('.tag.ok')].map(t => getComputedStyle(t).backgroundColor)")
@@ -50,7 +50,7 @@ with sync_playwright() as p:
     r = pg.evaluate("[...document.querySelectorAll('#v-prog span.small[style*=color]')].map(e => getComputedStyle(e).color).filter(c => c === 'rgb(43, 182, 115)' || c === 'rgb(255, 111, 97)')")
     check("progrès : écarts sans vert ni rouge", r == [], r)
     pg.wait_for_function("charts['c-vol']", timeout=10000)
-    check("infobulle sombre", pg.evaluate("charts['c-vol'].options.plugins.tooltip.backgroundColor") == "#2A2E34")
+    check("infobulle sombre", pg.evaluate("charts['c-vol'].options.plugins.tooltip.backgroundColor") == "#2A2825")
 
     # 3A. Pesée du matin : carte sous le héros, bouton et marge mis à jour en direct, disparaît une fois pesé
     pg.evaluate("D.poids = D.poids.filter(p => p.date !== D.today); setTab('home')"); pg.wait_for_timeout(300)
