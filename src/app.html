@@ -321,11 +321,11 @@ details>summary::-webkit-details-marker{display:none}
 .slothd{display:flex;justify-content:space-between;margin:14px 2px 6px;font-size:13px;font-weight:700;color:var(--dust);text-transform:uppercase;letter-spacing:.4px}
 .macrorings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:14px 8px}.mring{display:flex;flex-direction:column;align-items:center;gap:2px}.mring .mrv{fill:var(--chalk);font:800 19px var(--f-show)}.mring .mrl{font-size:13px;font-weight:600}.mring .mrs{font-size:12px;color:var(--dust)}
 .replay{display:flex;gap:10px;overflow-x:auto;margin:8px -16px 0;padding:0 16px 4px;scrollbar-width:none}.replay::-webkit-scrollbar{display:none}.rcard{flex:0 0 132px;min-height:96px;border:0;border-radius:16px;background:var(--deck);color:var(--chalk);padding:12px;text-align:left;display:flex;flex-direction:column;justify-content:space-between;font-family:inherit}.rcard:active{transform:scale(.97)}.rcard .rname{font-size:13px;font-weight:600;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.rcard .rk{font:800 24px var(--f-show)}.rcard .rk small{font:500 12px var(--f-text);color:var(--dust)}
-.restpill{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:45;max-width:536px;margin:0 auto;background:#fff;color:var(--floor);border-radius:28px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 18px 40px rgba(0,0,0,.5);animation:up .35s var(--ease)}
+.restpill{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:45;max-width:536px;margin:0 auto;background:var(--deck2);box-shadow:inset 0 0 0 1px var(--seam),0 8px 24px rgba(0,0,0,.45);color:var(--chalk);border-radius:28px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 18px 40px rgba(0,0,0,.5);animation:up .35s var(--ease)}
 .restpill .show{font-size:32px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
-.restpill .rb{width:44px;height:44px;border-radius:22px;background:#EEF0F3;font:700 13px var(--f-text);color:var(--floor);flex:none}
-.restpill .go2{height:44px;padding:0 14px;border-radius:22px;background:var(--floor);color:var(--chalk);font:700 14px var(--f-text);flex:none}
-.restpill.over{background:var(--brand);color:#fff}
+.restpill .rb{width:46px;height:46px;border-radius:23px;background:var(--chalk);font:700 13px var(--f-text);color:var(--floor);flex:none}
+.restpill .go2{height:44px;padding:0 14px;border-radius:22px;background:var(--deck3);color:var(--chalk);font:700 14px var(--f-text);flex:none}
+.restpill.over{background:var(--acc);color:var(--floor)}.restpill.over .go2{background:var(--floor)}
 .live.resting{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 110px)}
 
 /* ---------- v6 « Cap sur la compét » ---------- */
@@ -391,6 +391,7 @@ html,body{overflow-x:clip}body{margin-top:0}
 .wk-d span{font:600 11px var(--f-text);opacity:.7}.wk-d b{font:800 20px/1 var(--f-show)}.wk-d i{width:5px;height:5px;border-radius:3px}
 .wk-d i.ok{background:var(--acc)}.wk-d i.todo{background:var(--dust)}
 .wk-d.now{background:var(--chalk);color:var(--floor)}.wk-d.now i.todo{background:var(--floor)}
+.wkline{margin:10px 2px 0;font:13px var(--f-text);color:var(--dust)}.wkline b{color:var(--chalk)}
 .wk-d:disabled{opacity:.45}.wk-d.now:disabled{opacity:1}
 .pbar{margin-top:12px;border-radius:14px;background:var(--deck);padding:10px 10px 10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .pb-t{display:flex;flex-direction:column;gap:2px;min-width:0}.pb-s{font:12px var(--f-text);color:var(--faint);display:flex;align-items:center;gap:6px}.pb-s i{width:7px;height:7px;border-radius:4px;background:var(--acc)}
@@ -410,13 +411,22 @@ html,body{overflow-x:clip}body{margin-top:0}
 .tdr-k{font:800 22px var(--f-show);color:var(--chalk);text-align:right}.tdr-k.txt{font:600 14px var(--f-text);color:var(--dust);max-width:44%}
 .tdr-ph{flex:none;width:48px;height:48px;border-radius:12px;background:var(--deck3);color:var(--dust);font:800 20px var(--f-show);display:flex;align-items:center;justify-content:center}
 .tdr-more{justify-content:space-between;color:var(--dust);font:600 14px var(--f-text);min-height:48px}
-/* Séance en direct (v3) : barre chargée + carte musculaire */
-.lg{display:flex;gap:12px;align-items:center;margin:14px 0;padding:12px;border-radius:var(--r-lg);background:var(--deck);box-shadow:inset 0 0 0 1px var(--seam)}
-.lg-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}.lg-lab{font:600 11px var(--f-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--faint)}
-.lg-bar{display:flex;flex-direction:column;gap:6px}.lg-svg{width:100%;height:auto;max-height:96px;display:block}
-.lg-t{font:13px var(--f-text);color:var(--dust)}.lg-t b{color:var(--chalk)}.lg-warn{color:var(--warn)}
-.lg-mu{margin:0;font:13px var(--f-text);color:var(--dust)}.lg-mu b{color:var(--chalk);font-weight:600}
-.mplate.lg-plate{--mh:112px;width:92px;padding:6px 4px;border-radius:14px;flex:none}
+/* Séance en direct (v3) */
+.lh-c{text-align:center;min-width:0}.lh-n{font:700 16px var(--f-text);color:var(--chalk);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lh-s{font:600 11px var(--f-mono);letter-spacing:.03em;color:var(--faint);margin-top:2px}
+.live .hero,.live .hero.mv{background:none;box-shadow:none;padding:6px 0 0;margin-top:6px}.live .hero .hs{font:600 12px var(--f-mono);text-transform:uppercase;letter-spacing:.04em;color:var(--faint)}
+.live .hero .hb{font-size:72px;line-height:.9;color:var(--chalk)}.live .hero .hu{color:var(--dust);line-height:1.35;margin-top:10px}
+.ldelta{margin:8px 0 0;font:13px var(--f-text);color:var(--dust)}.ldelta b{padding:3px 9px;border-radius:99px;background:var(--deck3);color:var(--chalk);margin-right:6px;font-weight:700}.ldelta.up b{background:color-mix(in srgb,var(--acc) 30%,var(--deck3))}
+.lgc{display:flex;gap:12px;align-items:center;margin-top:12px;padding:10px 14px;border-radius:18px;background:#F1EDE4;color:#2F2B27}
+.lgc-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}.lgc-t b{font:700 13px var(--f-text)}.lgc-t span{font:12px/1.3 var(--f-text);color:#5C5750}.lgc-t .lgc-c{font-weight:600}
+.lgc .mplate.lg-plate{--mh:72px;width:auto;padding:0;background:none;border-radius:0;flex:none}
+.lgb{margin-top:10px;border-radius:16px;background:var(--deck);padding:8px 12px 10px;display:flex;flex-direction:column;gap:6px;box-shadow:inset 0 0 0 1px var(--seam)}
+.lg-lab{font:600 11px var(--f-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--faint)}
+.lg-bar{display:flex;flex-direction:column;gap:6px;align-items:center}.lg-svg{width:100%;height:auto;max-height:96px;display:block}
+.lg-t{font:13px var(--f-text);color:var(--dust);align-self:flex-start}.lg-t b{color:var(--chalk)}.lg-warn{color:var(--warn)}
+.vbar{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 12px);background:linear-gradient(transparent,var(--floor) 38%);max-width:560px;margin:0 auto}
+.live{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 92px)}
+body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
+.live.resting{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 190px)}
 /* Carte musculaire : planche craie (v3), principal rouge, secondaire rouge clair */
 .mplate{--paper:#F1EDE4;--sk:#DCD7CD;--skd:#D1CBC0;--ink:#2A2622;--lne:#6E675E;--fib:#9D968B;--rdf:#DC3A1C;--rdd:#B02A11;--rd2:#EFA893;--fibr:#8E2010;background:var(--paper);border-radius:var(--r-lg);padding:10px;display:flex;align-items:center;justify-content:center;gap:2px;height:var(--mh,240px);overflow:hidden}
 .mplate .fig{height:100%;width:auto;display:block}
@@ -1737,7 +1747,7 @@ function rHome(){
   const heroH = mw && !nc ? heroMu : nc ? heroCard({small:`${esc(nc.nom)}, ${dlong(nc.date)}`, big:days(D.today, nc.date) === 0 ? "Jour J" : "J−" + days(D.today, nc.date), sub:[nc.tbc ? "date à confirmer" : "", rem ? `encore ${rem} séance${rem > 1 ? "s" : ""} dans le ${blocLow(activeBloc())}` : ""].filter(Boolean).join(" · "), act:`data-act="tab" data-t="agenda" role="button" tabindex="0"`})
     : heroCard({small:tsmall, big:`${fmt(t)}<small>kg</small>`, sub:tsub, act:`data-act="tab" data-t="prog" role="button" tabindex="0"`});
   const pauseBar = sess && !sess.free && lv && lv.key === sess.key ? pauseBarHtml(sess, lv) : "";
-  const left = `${S.length ? weekStrip(weekRef) : ""}${pauseBar}${sess && !sess.free ? todayCard(sess, lv, !!pauseBar, nc) : ""}${weighed ? "" : weighCard(pw)}
+  const left = `${S.length ? weekStrip(weekRef) : ""}${mw ? `<p class="wkline"><b>Cette semaine</b> · ${mw.done}${mw.planned > mw.done ? "/" + mw.planned : ""} séance${mw.done > 1 ? "s" : ""}${mw.min ? " · " + fmt(mw.min, 0) + " min de cardio" : ""}${mw.km ? " · " + fmt(mw.km, 1) + " km" : ""}</p>` : ""}${pauseBar}${sess && !sess.free ? todayCard(sess, lv, !!pauseBar, nc) : ""}${weighed ? "" : weighCard(pw)}
     ${sess && sess.free ? freeWeekHtml(sess) : `${S.length ? (sess ? "" : `<p class="muted small">Aucune séance datée cette semaine.</p>`) : !coachId() ? impEmptyHtml() : `<div class="row" style="padding:14px 0"><span class="muted">${esc(seanceErr) || "Chargement de ta prog…"}</span>${seanceErr ? "" : `<div class="spin"></div>`}</div>`}`}
     ${impCan() && coachId() && S.length && !sess && !remainingInBloc() ? `<div class="panel" style="margin-top:14px"><p style="font-weight:700">Bloc terminé</p><p class="muted small" style="margin-top:4px">Prépare le suivant : l'app reprend ta dernière semaine et ajuste les charges d'après tes RPE. Tu vérifies avant d'enregistrer.</p><button class="btn" style="margin-top:12px" data-act="impNext">Préparer le bloc suivant</button></div>` : ""}
     ${sess && sess.free ? `<button class="btn" style="margin-top:16px" data-act="startLive" data-k="${esc(sess.key)}">${lv && lv.key === sess.key ? "Reprendre la séance" : "Commencer la séance " + jourBtn}</button>${sess.free ? `<button class="btn ghost" style="margin-top:8px" data-act="tab" data-t="seance">Faire une autre séance</button>` : ""}` : ""}`;
@@ -1940,11 +1950,12 @@ function barbellHtml(total){
   return `<svg viewBox="0 0 260 96" role="img" aria-label="Barre chargée : ${esc(side)} par côté" class="lg-svg"><rect x="0" y="44" width="260" height="8" rx="3" fill="#B4AFA7"/><rect x="22" y="40" width="238" height="16" rx="3" fill="#6E6961"/>${pl}<rect x="${x + 1}" y="36" width="7" height="24" rx="2" fill="#B4AFA7"/></svg>
     <span class="lg-t"><b>Par côté</b> ${esc(side)}${c.left > 0 ? ` · <span class="lg-warn">chargé ${fmt(c.reached, 2)} kg avec ces disques</span>` : ""}</span>`;
 }
-function liveGear(l, c){
+function liveGear(l, c, e){
   if (!l) return "";
-  const bb = BARBELL_LIFTS.includes(l), ml = muscleList(l);
-  return `<div class="lg" id="lgear"><div class="lg-main">${bb ? `<span class="lg-lab">Chargement · barre ${BAR_KG} kg</span><div class="lg-bar">${barbellHtml(c)}</div>` : `<span class="lg-lab">Muscles sollicités</span>`}
-    <p class="lg-mu"><b>${esc(ml.p.join(", "))}</b>${ml.s.length ? " · " + esc(ml.s.join(", ")) : ""}</p></div>${muscleFig(l, {view:"both", cls:"lg-plate"})}</div>`;
+  const bb = BARBELL_LIFTS.includes(l), ml = muscleList(l), rc = e ? rpeCible(e) : null;
+  const line = e ? [e.series && e.reps ? esc(e.series) + " × " + esc(e.reps) : "", rc ? esc(rc.lab) : "", e.repos ? "repos " + esc(e.repos) : ""].filter(Boolean).join(" · ") : "";
+  return `<div id="lgear"><div class="lgc">${muscleFig(l, {view:"both", cls:"lg-plate"})}<div class="lgc-t"><b>${esc(ml.p.join(", "))}</b>${ml.s.length ? `<span>${esc(ml.s.join(", "))}</span>` : ""}${line ? `<span class="lgc-c">${line}</span>` : ""}</div></div>
+    ${bb ? `<div class="lgb"><span class="lg-lab">Chargement · barre ${BAR_KG} kg</span><div class="lg-bar">${barbellHtml(c)}</div></div>` : ""}</div>`;
 }
 function rLive(){
   const s = seanceByKey(live.key); if (!s) { live = null; return ""; }
@@ -1962,7 +1973,7 @@ function rLive(){
   const rpeRow = (f, lab) => `<div><h2 class="h2">${lab} <span class="muted">pour ton coach</span> <button class="chip" style="min-height:32px;padding:4px 10px;font-size:12px" data-act="rpeInfo" aria-label="C'est quoi le RPE ?">?</button></h2><div class="rpe">${RPE_OPTS.map(v => `<button class="${inT(v) ? "tgt" : ""}" aria-pressed="${st[f] === v}" data-act="rpe" data-f="${f}" data-v="${v}">${fmt(v)}</button>`).join("")}</div></div>`;
   return `<div class="live ${sheet === "rest" ? "resting" : ""}" role="dialog" aria-label="Séance en cours"><div class="wrap">
     <div class="livehead"><button class="iconbtn" data-act="closeLive" aria-label="Fermer la séance"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-      <div style="text-align:center"><p class="small" style="font-weight:700">${esc(s.seance)}</p><p class="muted tiny">${el} min · exercice ${k + 1} sur ${s.exercices.length}</p></div>
+      <div class="lh-c"><p class="lh-n">${esc(name)}</p><p class="lh-s">Exercice ${k + 1} sur ${s.exercices.length} · ${el} min</p></div>
       <button class="endbtn" data-act="finishLive">Terminer</button></div>
     <div class="live-progress">${s.exercices.map((x, j) => { const lj = liftOf(x.mouvement), dn = live.rows[j] && live.rows[j].sets.some(z => z.done);
       return `<i class="${j === k ? "cur" : dn ? "on" : ""}" style="--c:${lj ? LCOL[lj] : isCardioEx(x) ? LCOL.CARDIO : "var(--dust)"}"></i>`; }).join("")}</div>
@@ -1970,8 +1981,12 @@ function rLive(){
       if (cardio) { const mn = cur.r ?? durMin(e.reps);
         return heroCard({color:LCOL.CARDIO, deco:true, small:`Cardio · ${esc(name)}`, big:mn ? `${fmt(mn, 1)}<small>min</small>` : `<small style="font-size:.5em">Durée libre</small>`, sub:durMin(e.reps) !== null ? `Prévu : ${esc(e.reps)}${e.coach ? "" : ""}` : "Note ta durée, et la distance si tu veux"}); }
       const asTxt = ASSIST_RE.test(String(e.charge ?? "")) ? String(e.charge).trim() : "";   /* élastique : affiché tel qu'écrit, jamais converti en kg */
-      return heroCard({color:l ? col : "var(--deck2)", deco:!!l, small:`Exercice ${k + 1} sur ${s.exercices.length} · ${esc(name)}`, big:asTxt && (c0 === null || c0 === undefined || c0 === "" || !num(c0)) ? `<small style="font-size:.42em;line-height:1.1;display:block">${esc(asTxt)}</small>` : c0 !== null && c0 !== undefined && c0 !== "" ? `${fmt(num(c0))}<small>kg</small>` : timedOf(e) ? `${timedOf(e)}<small>s</small>` : (isBW ? "0<small>kg de lest</small>" : e.charge ? esc(e.charge) : "<small style=\"font-size:.5em\">Poids du corps</small>"), sub:`${esc(e.series)} série${num(e.series) > 1 ? "s" : ""} de ${esc(e.reps)}${e.tempo ? " · tempo " + esc(e.tempo) : ""}${e.repos ? " · repos " + esc(e.repos) : ""}${(() => { const b = backoffOf(s, e, k, live.rows); return b ? ` · ${esc(String(e.charge).trim())} de ${fmt(b.base)} kg = ${fmt(Math.ceil(b.lo * 4) / 4)} à ${fmt(Math.floor(b.hi * 4) / 4)} kg` : chargeGuess(e) !== null && !isNumTxt(e.charge) && String(e.charge).trim() ? " · prévu : " + esc(String(e.charge).trim()) : ""; })()}`}); })()}
-    ${(() => { const cur = st.sets[curJ < 0 ? st.sets.length - 1 : curJ] || {}; return cardio ? "" : liveGear(l, cur.c ?? chargeGuess(e)); })()}
+      return heroCard({color:l ? col : "var(--deck2)", deco:false, small:`Série ${curJ < 0 ? st.sets.length : curJ + 1} sur ${st.sets.length}`, big:asTxt && (c0 === null || c0 === undefined || c0 === "" || !num(c0)) ? `<small style="font-size:.42em;line-height:1.1;display:block">${esc(asTxt)}</small>` : c0 !== null && c0 !== undefined && c0 !== "" ? `${fmt(num(c0))}<small>kg</small>` : timedOf(e) ? `${timedOf(e)}<small>s</small>` : (isBW ? "0<small>kg de lest</small>" : e.charge ? esc(e.charge) : "<small style=\"font-size:.5em\">Poids du corps</small>"), sub:`${esc(e.series)} série${num(e.series) > 1 ? "s" : ""} de ${esc(e.reps)}${e.tempo ? " · tempo " + esc(e.tempo) : ""}${e.repos ? " · repos " + esc(e.repos) : ""}${(() => { const b = backoffOf(s, e, k, live.rows); return b ? ` · ${esc(String(e.charge).trim())} de ${fmt(b.base)} kg = ${fmt(Math.ceil(b.lo * 4) / 4)} à ${fmt(Math.floor(b.hi * 4) / 4)} kg` : chargeGuess(e) !== null && !isNumTxt(e.charge) && String(e.charge).trim() ? " · prévu : " + esc(String(e.charge).trim()) : ""; })()}`}); })()}
+    ${(() => { const j = curJ < 0 ? st.sets.length - 1 : curJ, cur = st.sets[j] || {}, c0 = cur.c ?? chargeGuess(e), pp = prev && prev.sets[Math.min(j, prev.sets.length - 1)];
+      if (cardio || !pp || isTimedEx(e) || num(c0) === null || pp.c === null || pp.c === undefined || isNaN(+pp.c)) return "";
+      const d = Math.round((num(c0) - +pp.c) * 100) / 100;
+      return `<p class="ldelta ${d > 0 ? "up" : d < 0 ? "dn" : ""}"><b>${d > 0 ? "▲ " + fmt(d, 2) + " kg" : d < 0 ? "▼ " + fmt(-d, 2) + " kg" : "= identique"}</b> vs ${esc(prev.where)} · ${fmt(pp.c)} × ${pp.r}</p>`; })()}
+    ${(() => { const cur = st.sets[curJ < 0 ? st.sets.length - 1 : curJ] || {}; return cardio ? "" : liveGear(l, cur.c ?? chargeGuess(e), e); })()}
     ${(() => { const rc = rpeCible(e); if (!rc) return ""; const got = [st.rpe1, st.rpeLast].filter(v => v !== null && v !== undefined), over = rc.hi !== null && got.some(v => v > rc.hi);
       return `<div class="rpecible ${over ? "over" : ""}" role="note"><b>${esc(rc.lab)}</b><span>${over ? "Au-dessus de la consigne : baisse la charge sur les séries suivantes." : rc.max ? "À ne pas dépasser, sur toutes les séries." : "Consigne de ton coach, à respecter."}</span></div>`; })()}
     ${ASSIST_RE.test(String(e.charge ?? "")) ? `<div class="coachnote"><b>Assistance.</b> ${esc(String(e.charge).trim())}</div>` : ""}
@@ -2000,7 +2015,7 @@ function rLive(){
       ${k < s.exercices.length - 1 ? `<button class="btn" data-act="liveNav" data-d="1">Exercice suivant</button>` : `<button class="btn" data-act="finishLive">Terminer</button>`}
     </div>
     <p class="muted tiny" style="text-align:center;margin-top:12px">${doneN}/${st.sets.length} ${cardio ? "blocs faits" : "séries faites"}. Tout est enregistré quand tu changes d'exercice.</p>
-  </div></div>`;
+  </div>${(() => { const allDone = curJ < 0; return `<div class="vbar">${allDone ? (k < s.exercices.length - 1 ? `<button class="btn" data-act="liveNav" data-d="1">Exercice suivant</button>` : `<button class="btn" data-act="finishLive">Terminer la séance</button>`) : `<button class="btn" data-act="doneSet" data-j="${curJ}">${cardio ? "Valider le bloc " : "Valider la série "}${curJ + 1}</button>`}</div>`; })()}</div>`;
 }
 /* Dernière fois : même séance, même ligne de l'exercice, semaine précédente du même bloc d'abord, puis blocs précédents. */
 /* Dernière fois en cardio : même ligne la semaine d'avant, sinon le dernier cardio du même nom noté dans le carnet. */
@@ -2697,7 +2712,7 @@ function renderLayer(){
 }
 function restPill(){
   return `<section id="restbox" class="restpill" role="timer" aria-label="Repos">
-    <svg width="52" height="52" viewBox="0 0 54 54" aria-hidden="true" style="flex:none"><circle cx="27" cy="27" r="23" fill="none" stroke="rgba(11,12,15,.15)" stroke-width="5"/><circle id="restring" cx="27" cy="27" r="23" fill="none" stroke="var(--brand)" stroke-width="5" stroke-linecap="round" pathLength="628" stroke-dasharray="628" stroke-dashoffset="0" transform="rotate(-90 27 27)" style="transition:stroke-dashoffset .25s linear"/></svg>
+    <svg width="52" height="52" viewBox="0 0 54 54" aria-hidden="true" style="flex:none"><circle cx="27" cy="27" r="23" fill="none" stroke="var(--deck3)" stroke-width="5"/><circle id="restring" cx="27" cy="27" r="23" fill="none" stroke="var(--acc)" stroke-width="5" stroke-linecap="round" pathLength="628" stroke-dasharray="628" stroke-dashoffset="0" transform="rotate(-90 27 27)" style="transition:stroke-dashoffset .25s linear"/></svg>
     <div style="flex:1;min-width:0"><p class="small" style="font-weight:600;opacity:.7" id="resttitle">Repos</p><p class="show" id="restval">0:00</p></div>
     <button class="rb" id="restpp" data-act="restPause" aria-label="Mettre le repos en pause">${rest && rest.pauseAt ? "▶" : "❚❚"}</button><button class="go2" data-act="closeSheet">Passer</button></section>`;
 }
