@@ -28,7 +28,7 @@ with sync_playwright() as p:
     check("principal = rouge", col(".m.quadriceps.a1") == "rgb(220, 58, 28)", col(".m.quadriceps.a1"))
     check("secondaire = rose", col(".m.abdos.a2") == "rgb(239, 168, 147)", col(".m.abdos.a2"))
     check("fond planche craie", ev("getComputedStyle(document.querySelector('#tstmap .mplate')).backgroundColor") == "rgb(241, 237, 228)")
-    pg.locator("#tstmap").screenshot(path=str(H / "audit" / "carte-v67.png")) if (H / "audit").exists() else pg.locator("#tstmap").screenshot(path="/tmp/carte-v67.png")
+    pg.locator("#tstmap").screenshot(path="/tmp/carte-v67.png")
     check("aucune erreur console", not errs, errs[:3])
     br.close()
 print("ÉCHECS :", fails)
