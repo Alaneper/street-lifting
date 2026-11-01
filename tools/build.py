@@ -69,6 +69,7 @@ n = s.count('"sl4-live"'); s = s.replace('"sl4-live"', 'ck("sl4-live")'); assert
 rep('window.claude?.use("downloads").catch(() => null)', "Promise.resolve(dlr)", 2)
 _pi = (HERE / "prog_import.js").read_text()
 rep("/*__PROG_IMPORT__*/", _pi)
+rep("/*__MUSCLES__*/", (HERE / "muscles.js").read_text())
 layer = (HERE / "pwa_layer.js").read_text().replace("__CLIENT_ID__", CLIENT_ID)
 
 # 3. Messages d'erreur propres à la web app

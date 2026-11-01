@@ -385,6 +385,17 @@ html,body{overflow-x:clip}body{margin-top:0}
 .liftrow .top .val{font:700 22px var(--f-show)}
 .liftrow .bar{height:6px;margin:10px 0 6px;background:var(--deck2)}
 .liftrow .meta{display:flex;justify-content:space-between;font-size:13px;color:var(--dust)}
+/* Carte musculaire : planche craie (v3), principal rouge, secondaire rouge clair */
+.mplate{--paper:#F1EDE4;--sk:#DCD7CD;--skd:#D1CBC0;--ink:#2A2622;--lne:#6E675E;--fib:#9D968B;--rdf:#DC3A1C;--rdd:#B02A11;--rd2:#EFA893;--fibr:#8E2010;background:var(--paper);border-radius:var(--r-lg);padding:10px;display:flex;align-items:center;justify-content:center;gap:2px;height:var(--mh,240px);overflow:hidden}
+.mplate .fig{height:100%;width:auto;display:block}
+.mplate .sk{fill:var(--sk);stroke:var(--ink);stroke-width:2;stroke-linejoin:round}
+.mplate .ol{fill:none;stroke:var(--ink);stroke-width:2;stroke-linejoin:round}
+.mplate .m .b{fill:var(--sk);stroke:var(--lne);stroke-width:1.1;stroke-linejoin:round}
+.mplate .m.dk .b{fill:var(--skd)}
+.mplate .m .f{fill:none;stroke:var(--fib);stroke-width:1;opacity:.42;stroke-linecap:round}
+.mplate .m.a1 .b{fill:var(--rdf)}.mplate .m.a1.dk .b{fill:var(--rdd)}.mplate .m.a2 .b{fill:var(--rd2)}
+.mplate .m.a1 .f,.mplate .m.a2 .f{stroke:var(--fibr)}
+.mplate.thumb{--mh:48px;width:48px;padding:3px 0;border-radius:12px;flex:none}
 .segc{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--deck);border-radius:12px;padding:3px;margin-top:6px}
 .segc button{position:relative;min-height:38px;padding:8px 0;border-radius:9px;font:600 13px var(--f-text);color:var(--dust)}
 .segc button[aria-pressed="true"]{background:var(--deck2);color:#fff}
@@ -508,6 +519,7 @@ const LNAME = {MU:"Muscle-up", PULL:"Tractions", DIP:"Dips", SQUAT:"Squat", BENC
 const LCOL = {MU:"var(--mu)", PULL:"var(--pull)", DIP:"var(--dip)", SQUAT:"var(--squat)", BENCH:"var(--bench)", DEADLIFT:"var(--deadlift)"};
 LCOL.CARDIO = "var(--cardio)";   /* v40 : le cardio a sa couleur, il ne compte ni dans un total ni dans un classement */
 const BW_LIFTS = ["MU","PULL","DIP"];
+/*__MUSCLES__*/
 const RPE_OPTS = [3,4,5,6,6.5,7,7.5,8,8.5,9,9.5,10];   /* v60 : à partir de 3 (demande des testeurs) */
 const CATS_H = [-66,-73,-80,-87,-94,-101,101], CATS_F = [-52,-57,-63,-70,70];
 let CATS = CATS_H;
