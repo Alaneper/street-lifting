@@ -399,6 +399,13 @@ html,body{overflow-x:clip}body{margin-top:0}
 .tdr-k{font:800 22px var(--f-show);color:var(--chalk);text-align:right}.tdr-k.txt{font:600 14px var(--f-text);color:var(--dust);max-width:44%}
 .tdr-ph{flex:none;width:48px;height:48px;border-radius:12px;background:var(--deck3);color:var(--dust);font:800 20px var(--f-show);display:flex;align-items:center;justify-content:center}
 .tdr-more{justify-content:space-between;color:var(--dust);font:600 14px var(--f-text);min-height:48px}
+/* Séance en direct (v3) : barre chargée + carte musculaire */
+.lg{display:flex;gap:12px;align-items:center;margin:14px 0;padding:12px;border-radius:var(--r-lg);background:var(--deck);box-shadow:inset 0 0 0 1px var(--seam)}
+.lg-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}.lg-lab{font:600 11px var(--f-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--faint)}
+.lg-bar{display:flex;flex-direction:column;gap:6px}.lg-svg{width:100%;height:auto;max-height:96px;display:block}
+.lg-t{font:13px var(--f-text);color:var(--dust)}.lg-t b{color:var(--chalk)}.lg-warn{color:var(--warn)}
+.lg-mu{margin:0;font:13px var(--f-text);color:var(--dust)}.lg-mu b{color:var(--chalk);font-weight:600}
+.mplate.lg-plate{--mh:112px;width:92px;padding:6px 4px;border-radius:14px;flex:none}
 /* Carte musculaire : planche craie (v3), principal rouge, secondaire rouge clair */
 .mplate{--paper:#F1EDE4;--sk:#DCD7CD;--skd:#D1CBC0;--ink:#2A2622;--lne:#6E675E;--fib:#9D968B;--rdf:#DC3A1C;--rdd:#B02A11;--rd2:#EFA893;--fibr:#8E2010;background:var(--paper);border-radius:var(--r-lg);padding:10px;display:flex;align-items:center;justify-content:center;gap:2px;height:var(--mh,240px);overflow:hidden}
 .mplate .fig{height:100%;width:auto;display:block}
@@ -1886,6 +1893,30 @@ function autoResume(){
   if (Date.now() - (lv.at || lv.start || 0) > 3 * 3600e3) return false;
   startLive(lv.key); return true;
 }
+/* v67 étape D : chargement de la barre disque par disque (barre 20 kg ; disques standard 25 · 20 · 15 · 10 · 5 · 2,5 · 1,25 kg).
+   Couleurs IPF. Le plus lourd est collé à la barre. Si la charge n'est pas atteignable avec ces disques, on l'écrit au lieu de la cacher. */
+const BAR_KG = 20, PLATE_SET = [25, 20, 15, 10, 5, 2.5, 1.25], BARBELL_LIFTS = ["SQUAT", "BENCH", "DEADLIFT"];
+const PLATE_STYLE = {25:["#E0412B", 84, 12], 20:["#2F63B5", 84, 11], 15:["#FFC930", 84, 10], 10:["#2E9E5B", 84, 9], 5:["#EDEAE3", 58, 7], 2.5:["#2A2825", 46, 6], 1.25:["#8A857D", 38, 5]};
+function plateCalc(total){
+  const t = num(total); if (t === null || !(t >= BAR_KG)) return null;
+  let r = Math.round((t - BAR_KG) / 2 * 100) / 100; const out = [];
+  for (const p of PLATE_SET) while (r >= p - 1e-9) { out.push(p); r = Math.round((r - p) * 100) / 100; }
+  return {out, left:r, reached:BAR_KG + 2 * out.reduce((a, b) => a + b, 0)};
+}
+function barbellHtml(total){
+  const c = plateCalc(total);
+  if (!c) return `<span class="lg-t">${num(total) === null ? "Saisis la charge pour voir les disques" : "Moins que la barre à vide (" + BAR_KG + " kg)"}</span>`;
+  let x = 34; const pl = c.out.map(p => { const [col, h, w] = PLATE_STYLE[p], r = `<rect x="${x}" y="${48 - h / 2}" width="${w}" height="${h}" rx="2" fill="${col}" stroke="#0C0B0A" stroke-width="1"/>`; x += w + 1; return r; }).join("");
+  const side = c.out.length ? c.out.map(p => fmt(p)).join(" + ") : "barre à vide";
+  return `<svg viewBox="0 0 260 96" role="img" aria-label="Barre chargée : ${esc(side)} par côté" class="lg-svg"><rect x="0" y="44" width="260" height="8" rx="3" fill="#B4AFA7"/><rect x="22" y="40" width="238" height="16" rx="3" fill="#6E6961"/>${pl}<rect x="${x + 1}" y="36" width="7" height="24" rx="2" fill="#B4AFA7"/></svg>
+    <span class="lg-t"><b>Par côté</b> ${esc(side)}${c.left > 0 ? ` · <span class="lg-warn">chargé ${fmt(c.reached, 2)} kg avec ces disques</span>` : ""}</span>`;
+}
+function liveGear(l, c){
+  if (!l) return "";
+  const bb = BARBELL_LIFTS.includes(l), ml = muscleList(l);
+  return `<div class="lg" id="lgear"><div class="lg-main">${bb ? `<span class="lg-lab">Chargement · barre ${BAR_KG} kg</span><div class="lg-bar">${barbellHtml(c)}</div>` : `<span class="lg-lab">Muscles sollicités</span>`}
+    <p class="lg-mu"><b>${esc(ml.p.join(", "))}</b>${ml.s.length ? " · " + esc(ml.s.join(", ")) : ""}</p></div>${muscleFig(l, {view:"both", cls:"lg-plate"})}</div>`;
+}
 function rLive(){
   const s = seanceByKey(live.key); if (!s) { live = null; return ""; }
   const k0 = live.i, bo0 = live.rows[k0] && live.rows[k0].bo ? backoffOf(s, s.exercices[k0], k0, live.rows) : null;
@@ -1911,6 +1942,7 @@ function rLive(){
         return heroCard({color:LCOL.CARDIO, deco:true, small:`Cardio · ${esc(name)}`, big:mn ? `${fmt(mn, 1)}<small>min</small>` : `<small style="font-size:.5em">Durée libre</small>`, sub:durMin(e.reps) !== null ? `Prévu : ${esc(e.reps)}${e.coach ? "" : ""}` : "Note ta durée, et la distance si tu veux"}); }
       const asTxt = ASSIST_RE.test(String(e.charge ?? "")) ? String(e.charge).trim() : "";   /* élastique : affiché tel qu'écrit, jamais converti en kg */
       return heroCard({color:l ? col : "var(--deck2)", deco:!!l, small:`Exercice ${k + 1} sur ${s.exercices.length} · ${esc(name)}`, big:asTxt && (c0 === null || c0 === undefined || c0 === "" || !num(c0)) ? `<small style="font-size:.42em;line-height:1.1;display:block">${esc(asTxt)}</small>` : c0 !== null && c0 !== undefined && c0 !== "" ? `${fmt(num(c0))}<small>kg</small>` : timedOf(e) ? `${timedOf(e)}<small>s</small>` : (isBW ? "0<small>kg de lest</small>" : e.charge ? esc(e.charge) : "<small style=\"font-size:.5em\">Poids du corps</small>"), sub:`${esc(e.series)} série${num(e.series) > 1 ? "s" : ""} de ${esc(e.reps)}${e.tempo ? " · tempo " + esc(e.tempo) : ""}${e.repos ? " · repos " + esc(e.repos) : ""}${(() => { const b = backoffOf(s, e, k, live.rows); return b ? ` · ${esc(String(e.charge).trim())} de ${fmt(b.base)} kg = ${fmt(Math.ceil(b.lo * 4) / 4)} à ${fmt(Math.floor(b.hi * 4) / 4)} kg` : chargeGuess(e) !== null && !isNumTxt(e.charge) && String(e.charge).trim() ? " · prévu : " + esc(String(e.charge).trim()) : ""; })()}`}); })()}
+    ${(() => { const cur = st.sets[curJ < 0 ? st.sets.length - 1 : curJ] || {}; return cardio ? "" : liveGear(l, cur.c ?? chargeGuess(e)); })()}
     ${(() => { const rc = rpeCible(e); if (!rc) return ""; const got = [st.rpe1, st.rpeLast].filter(v => v !== null && v !== undefined), over = rc.hi !== null && got.some(v => v > rc.hi);
       return `<div class="rpecible ${over ? "over" : ""}" role="note"><b>${esc(rc.lab)}</b><span>${over ? "Au-dessus de la consigne : baisse la charge sur les séries suivantes." : rc.max ? "À ne pas dépasser, sur toutes les séries." : "Consigne de ton coach, à respecter."}</span></div>`; })()}
     ${ASSIST_RE.test(String(e.charge ?? "")) ? `<div class="coachnote"><b>Assistance.</b> ${esc(String(e.charge).trim())}</div>` : ""}
@@ -2945,6 +2977,7 @@ const CHG = {
     /* les séries suivantes (pas encore faites) qui avaient la même charge suivent ; une charge modifiée à la main reste telle quelle */
     if (nv !== null && old !== nv && !liveCardio()) for (let i = j + 1; i < st.sets.length; i++) if (!st.sets[i].done && st.sets[i].c === old) { st.sets[i].c = nv;
       const inp = document.querySelector('[data-chg="setC"][data-j="' + i + '"]'); if (inp && inp !== el) inp.value = String(nv).replace(".", ","); }
+    { const cj = st.sets.findIndex(x => !x.done), gb = document.querySelector("#lgear .lg-bar"); if (gb && (cj === j || cj < 0)) gb.innerHTML = barbellHtml(nv); }
     persistLive(); },
   setR:(d, el) => { const st = live.rows[live.i]; st.sets[+d.j].r = el.value === "" ? null : liveCardio() ? Math.round(num(el.value) * 10) / 10 : isTimedEx(seanceByKey(live.key).exercices[live.i]) ? parseDur(el.value) : Math.round(num(el.value)); st.dirty = true; persistLive(); },
   blocDate:async (d, el) => { const b = +d.b, v = toIso(el.value); if (!v) return;
