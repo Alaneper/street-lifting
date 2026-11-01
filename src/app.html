@@ -432,6 +432,17 @@ html,body{overflow-x:clip}body{margin-top:0}
 .pdots{display:flex;gap:8px;margin-top:12px}
 .pdots span{flex:1;height:34px;border-radius:17px;background:var(--deck3);color:var(--faint);font:600 12px var(--f-text);display:flex;align-items:center;justify-content:center}
 .pdots span.ok{background:var(--acc);color:#fff}
+.cc{margin-top:14px;padding:16px}
+.cc-n{display:block;font:700 18px var(--f-text);margin-top:6px}
+.cc-s{display:block;font:500 13px var(--f-text);color:var(--dust);margin-top:3px}
+.cc .pw-l{min-width:0}
+.cc-d{font:800 52px/.9 var(--f-show);color:var(--chalk);white-space:nowrap;flex:none}
+.cctiles{display:flex;gap:8px;margin-top:14px}
+.cct{flex:1;min-width:0;background:var(--deck2);border-radius:14px;padding:11px 10px;display:flex;flex-direction:column;gap:4px}
+.cct b{font:800 26px/1 var(--f-show)}
+.cct b small{font-size:.5em;margin-left:3px;color:var(--dust)}
+.cct span:last-child{font:500 11px var(--f-text);color:var(--faint)}
+.check-row .box{border-radius:50%}
 .chart{position:relative;height:190px}
 /* Fin de séance (v3) */
 .sheet.full{top:0;max-height:none;border-radius:0;background:var(--floor);padding-top:calc(env(safe-area-inset-top,0px) + 6px)}
@@ -2705,6 +2716,17 @@ function parseImport(raw){
 /* =====================================================================
    AGENDA ET MODE COMPÉT
    ===================================================================== */
+/* v67 étape H : carte « Prochaine compétition » v3 (données existantes seulement : date, lieu, catégorie, pesée, total). */
+function compCard(c){
+  const t = D.today, d = days(t, c.date), lim = catLimit(), w = bw(), wt = weightTrend(), proj = wt && d >= 0 ? wt.at(c.date) : null, tp = totalSeries(curDisc()).at(-1);
+  const tile = (k, v, sub, col) => `<div class="cct"><span class="lg-lab">${k}</span><b>${v}</b><span style="${col ? "color:" + col : ""}">${sub}</span></div>`;
+  const marge = lim && w ? lim - w : null, tiles = [
+    lim ? tile("Catégorie", "−" + lim + "<small>kg</small>", marge === null ? "pesée à ajouter" : marge >= 0 ? "marge " + fmt(marge, 1) + " kg" : fmt(-marge, 1) + " kg au-dessus", marge !== null && marge < 0 ? "var(--warn)" : "var(--data)") : "",
+    w ? tile("Poids", fmt(w, 1) + "<small>kg</small>", proj !== null ? "~" + fmt(proj, 1) + " kg le jour J" : "aujourd'hui") : "",
+    tp ? tile("Total", fmt(tp.v) + "<small>kg</small>", "dernier record") : ""].filter(Boolean);
+  return `<section class="panel cc"><div class="pw-top"><span class="pw-l"><span class="lg-lab">Prochaine compétition</span><b class="cc-n">${esc(c.nom)}</b><span class="cc-s">${c.tbc ? "Date à confirmer · " : ""}${cap(dlong(c.date))}${c.lieu ? " · " + esc(c.lieu) : ""}</span></span>
+    <b class="cc-d">${d === 0 ? "Jour J" : d < 0 ? "Passée" : "J−" + d}</b></div>${tiles.length ? `<div class="cctiles">${tiles.join("")}</div>` : ""}</section>`;
+}
 function rAgenda(){
   if (agendaSeg === "amis") return rAmis();
   const t = D.today; if (!calMonth) { const n = nextComp(); calMonth = (n ? n.date : t).slice(0, 7); }
@@ -2714,7 +2736,7 @@ function rAgenda(){
     return `<div class="d ${d.getMonth() !== m - 1 ? "out" : ""} ${iso === t ? "today" : ""} ${c ? "comp" + (c.tbc ? " tbc" : "") : ""}" ${c ? `title="${esc(c.nom)}"` : ""}>${d.getDate()}${ss && !c ? `<i class="${ss.every(z => z.faite) ? "" : "todo"}"></i>` : ""}</div>`; }).join("");
   const nc = nextComp(), prep = nc && days(t, nc.date) <= 42, up = D.comps.filter(c => c.date >= t), past = D.comps.filter(c => c.date < t).reverse(), ec = armed && armed.edit ? D.comps.find(c => c.id === armed.edit) : null;
   $("#v-agenda").innerHTML = `${agendaSegHtml()}
-    ${nc ? heroCard({small:`${esc(nc.nom)}${nc.tbc ? " · date à confirmer" : ""}`, big:days(t, nc.date) === 0 ? "Jour J" : "J−" + days(t, nc.date), sub:`${cap(dlong(nc.date))}${nc.lieu ? ", " + esc(nc.lieu) : ""}`}) : `<div class="emptycard" style="margin-top:14px"><b>Aucune compétition prévue</b><p>Ajoute ta prochaine compétition plus bas : l'app compte les jours et prépare ta checklist.</p></div>`}
+    ${nc ? compCard(nc) : `<div class="emptycard" style="margin-top:14px"><b>Aucune compétition prévue</b><p>Ajoute ta prochaine compétition plus bas : l'app compte les jours et prépare ta checklist.</p></div>`}
     ${prep ? prepHtml(nc) : ""}
     ${powerOn() ? `<h2 class="h2">Tes catégories</h2><div class="group" style="background:var(--deck)">
       ${streetOn() ? `<button class="catrow" data-act="catPick" data-k="street"><span class="grow"><b>Street lifting</b><span>Official Streetlifting</span></span><span class="val">${catTxt(cat()).replace(" kg", "<small>kg</small>")}</span>${CHEV}</button>` : ""}
@@ -2739,7 +2761,7 @@ function rAgenda(){
 }
 function prepHtml(c){
   const lim = catLimit(), wt = weightTrend(), proj = wt ? wt.at(c.date) : null, ch = D.checks.filter(x => x.date === c.date)
-  return `<h2 class="h2">Préparation</h2>
+  return `<h2 class="h2">Jour J, étape par étape</h2>
     <div class="panel">
       <p style="font-weight:700">Pesée</p>
       <p class="small muted" style="margin-top:4px">${bw() ? `Aujourd'hui ${fmt(bw(), 1)} kg${lim ? `, limite ${lim} kg` : ""}.` : "Aucune pesée."} ${proj ? `Au rythme des 3 dernières semaines : environ <b style="color:var(--chalk)">${fmt(proj, 1)} kg</b> le jour J (estimation).` : (() => { const n = Math.max(1, 4 - D.poids.filter(p => p.date >= addDays(D.today, -21)).length); return n + (n > 1 ? " pesées" : " pesée") + " de plus et l'app estime ton poids le jour J."; })()}</p>

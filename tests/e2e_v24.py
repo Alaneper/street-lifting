@@ -119,7 +119,7 @@ with sync_playwright() as p:
     check("après relance de l'app : la vidéo est toujours là", pg.evaluate("document.querySelectorAll('.sheet .vid').length") == 1)
     # ---------- 5. Libellés « compétition », pays sans drapeau (v25) ----------
     pg.evaluate("ACT.closeSheet && ACT.closeSheet()")
-    check("onglet « Comp »", pg.evaluate("[...document.querySelectorAll('nav button')].pop().textContent.trim()") == "Comp")
+    check("onglet « Classement »", pg.evaluate("[...document.querySelectorAll('nav button')].pop().textContent.trim()") == "Classement")
     pg.evaluate("setTab('agenda')"); pg.wait_for_timeout(200)
     check("segment « Compétitions »", "Compétitions" in pg.evaluate("document.querySelector('#v-agenda .segc').textContent"))
     pg.evaluate("setTab('prog')"); pg.wait_for_timeout(300)
