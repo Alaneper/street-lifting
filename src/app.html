@@ -411,6 +411,16 @@ html,body{overflow-x:clip}body{margin-top:0}
 .tdr-k{font:800 22px var(--f-show);color:var(--chalk);text-align:right}.tdr-k.txt{font:600 14px var(--f-text);color:var(--dust);max-width:44%}
 .tdr-ph{flex:none;width:48px;height:48px;border-radius:12px;background:var(--deck3);color:var(--dust);font:800 20px var(--f-show);display:flex;align-items:center;justify-content:center}
 .tdr-more{justify-content:space-between;color:var(--dust);font:600 14px var(--f-text);min-height:48px}
+/* Fin de séance (v3) */
+.sheet.full{top:0;max-height:none;border-radius:0;background:var(--floor);padding-top:calc(env(safe-area-inset-top,0px) + 6px)}
+.fin-d{font:600 13px var(--f-mono);color:var(--dust);text-transform:uppercase;letter-spacing:.03em}
+.fin-t{margin:6px 0 0;font:800 40px/.95 var(--f-show);color:var(--chalk)}
+.fts{display:flex;gap:8px;margin-top:16px}.ft{flex:1;border-radius:14px;background:var(--deck);padding:11px;display:flex;flex-direction:column;gap:3px;box-shadow:inset 0 0 0 1px var(--seam)}
+.ft span{font:600 11px var(--f-mono);text-transform:uppercase;color:var(--faint)}.ft b{font:800 25px/1 var(--f-show);color:var(--chalk)}
+.ft.hot{background:color-mix(in srgb,var(--acc) 12%,var(--deck))}.ft.hot span,.ft.hot b{color:var(--acc)}
+.fin-c{margin:10px 2px 0;font:13px var(--f-text);color:var(--dust)}
+.fin-r{margin-top:8px}.fchip{font:700 13px var(--f-text);padding:4px 10px;border-radius:99px;background:var(--deck3);color:var(--chalk);flex:none}.fchip.up{background:color-mix(in srgb,var(--acc) 30%,var(--deck3))}
+.fin-rec{margin-top:14px}.fin-rec>p:first-child{font-weight:600}.fin-rec .small{margin-top:4px}
 /* Séance en direct (v3) */
 .lh-c{text-align:center;min-width:0}.lh-n{font:700 16px var(--f-text);color:var(--chalk);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lh-s{font:600 11px var(--f-mono);letter-spacing:.03em;color:var(--faint);margin-top:2px}
 .live .hero,.live .hero.mv{background:none;box-shadow:none;padding:6px 0 0;margin-top:6px}.live .hero .hs{font:600 12px var(--f-mono);text-transform:uppercase;letter-spacing:.04em;color:var(--faint)}
@@ -2332,7 +2342,12 @@ async function finishLive(){
     both.push(k); prevTon += pt; tonSame += t; });
   if (!both.length) { prevTon = null; tonSame = null; }
   const recs = [...new Set(s.exercices.map(exKey))].map(k => { const o = pts.find(z => z.key === k); if (!o) return null; const cur = o.pts.find(p => p.sk === s.key), oth = o.pts.filter(p => p.sk !== s.key); if (!cur || !oth.length) return null; const prev = Math.max(...oth.map(p => p.e1rmBest)); return cur.e1rmBest > prev + .05 ? exName(o.key) + " : " + fmt(cur.e1rmBest, 1) + " kg (avant : " + fmt(prev, 1) + " kg)" : null; }).filter(Boolean);
-  live.summary = {dur, ton, reps, sets:all.length, cardioMin:cdT.min, cardioKm:cdT.km, prevTon, tonSame, nSame:both.length, recs, repRecs:live.recs || []};
+  const exs = [], liftSet = new Set(); let plannedSets = 0;
+  Object.entries(live.rows).forEach(([k, r]) => { const e = s.exercices[+k]; if (!e || isCd(k)) return; plannedSets += r.sets.length; const dn = r.sets.filter(x => x.done && x.r); if (!dn.length) return;
+    const l = liftOf(e.mouvement); if (l) liftSet.add(l);
+    const bs = a => a.slice().sort((x, y) => (num(y.c) || 0) - (num(x.c) || 0) || (y.r || 0) - (x.r || 0))[0], b = bs(dn), pv = prevRowSets(s, +k), pb = pv && pv.sets.length ? bs(pv.sets) : null, rn = norm(e.mouvement) === "RENFO";
+    exs.push({l, timed:isTimedEx(e), name:rn ? title(e.variation) : l ? LNAME[l] + " " + title(e.variation).toLowerCase() : title(e.mouvement), c:num(b.c), r:b.r, d:pb && num(pb.c) !== null && num(b.c) !== null ? Math.round((num(b.c) - num(pb.c)) * 100) / 100 : null}); });
+  live.summary = {exs, lifts:[...liftSet], planned:plannedSets, dur, ton, reps, sets:all.length, cardioMin:cdT.min, cardioKm:cdT.km, prevTon, tonSame, nSame:both.length, recs, repRecs:live.recs || []};
   store.del("sl4-live"); try { wakeLock && wakeLock.release(); } catch(e){}
   openSheet("summary");
 }
@@ -2702,7 +2717,7 @@ function renderLayer(){
   if (page) h += page.type === "imp" ? rImpPage() : page.type === "lift" ? rLiftPage(page.l) : rExPage(page.k);
   if (sheet === "rest") h += restPill();
   else if (sheet === "scan") h += scanHtml();
-  else if (sheet) h += `<div class="scrim" data-act="closeSheet"></div><div class="sheet" role="dialog"><div class="wrap"><div class="grab"></div>${rSheet()}</div></div>`;
+  else if (sheet) h += `<div class="scrim" data-act="closeSheet"></div><div class="sheet${sheet === "summary" ? " full" : ""}" role="dialog"><div class="wrap"><div class="grab"></div>${rSheet()}</div></div>`;
   const keepScroll = document.querySelector(".page, .live, .sheet"), ksel = keepScroll ? "." + keepScroll.classList[0] : "", st = keepScroll ? keepScroll.scrollTop : 0;
   $("#layer").innerHTML = h;
   const nw = ksel && document.querySelector(ksel); if (nw && keepScroll) { nw.style.animation = "none"; nw.scrollTop = st; const sc = nw.previousElementSibling; if (ksel === ".sheet" && sc && sc.classList.contains("scrim")) sc.style.animation = "none"; }
@@ -2763,14 +2778,21 @@ function rSheet(){
     return `<p class="show t-m">Ton poids ce matin</p><p class="muted small" style="margin-top:4px">Ton coach le demande au début de chaque séance. Il va dans le récap de la séance et dans ta courbe.</p>
       <div class="stepper" style="margin-top:14px"><button data-act="stepW" data-d="-0.1" aria-label="Moins 100 g">−</button><input id="pw" inputmode="decimal" value="${tw ? fmt(tw.poids, 1) : last ? fmt(last.poids, 1) : ""}" aria-label="Poids en kg"><button data-act="stepW" data-d="0.1" aria-label="Plus 100 g">+</button></div>
       <button class="btn" style="margin-top:14px" data-act="pdcSave">Enregistrer et commencer</button><button class="btn line" style="margin-top:8px" data-act="pdcSkip">Passer</button>`; }
-  if (sheet === "summary") { const m = live.summary, s = seanceByKey(live.key), d = m.prevTon ? (m.tonSame - m.prevTon) / m.prevTon * 100 : null;
-    return `<p class="muted">${esc(s.seance)} terminée</p><p class="show t-l" style="margin-top:4px">Bien joué ${esc(D.profil.prenom || "")}</p>
-      <div class="grid3" style="margin-top:18px"><div><p class="muted small">Durée</p><p class="show t-m">${m.dur}<span class="unit">min</span></p></div>${m.sets ? `<div><p class="muted small">Séries</p><p class="show t-m">${m.sets}</p></div><div><p class="muted small">Reps</p><p class="show t-m">${m.reps}</p></div>` : m.cardioMin ? `<div><p class="muted small">Cardio</p><p class="show t-m">${fmt(m.cardioMin, 1)}<span class="unit">min</span></p></div>${m.cardioKm ? `<div><p class="muted small">Distance</p><p class="show t-m">${fmt(m.cardioKm, 2)}<span class="unit">km</span></p></div>` : ""}` : ""}</div>
-      ${m.sets && m.cardioMin ? `<div class="panel" style="margin-top:14px;background:var(--deck2)"><p class="muted small"><span class="d10" style="--c:var(--cardio);display:inline-block;margin-right:6px"></span>Cardio</p><p class="show t-m" style="margin-top:4px">${fmt(m.cardioMin, 1)}<span class="unit">min</span>${m.cardioKm ? ` · ${fmt(m.cardioKm, 2)}<span class="unit">km</span>` : ""}</p></div>` : ""}
-      ${m.sets ? `<div class="panel" style="margin-top:14px;background:var(--deck2)"><p class="muted small">Tonnage des charges ajoutées</p><p class="show t-m" style="margin-top:4px">${fmt(m.ton, 0)}<span class="unit">kg</span></p>${d !== null ? `<p class="small" style="margin-top:4px;color:${d >= 0 ? "var(--chalk)" : "var(--dust)"}">${d >= 0 ? "+" : ""}${fmt(d, 0)} % sur ${m.nSame} exercice${m.nSame > 1 ? "s" : ""} fait${m.nSame > 1 ? "s" : ""} aussi la semaine passée</p>` : ""}</div>` : ""}
-      ${m.repRecs && m.repRecs.length ? `<div style="margin-top:14px"><p style="font-weight:600">Records de reps</p>${m.repRecs.map(r => `<p class="small" style="margin-top:4px"><span class="d10" style="--c:${LCOL[r.l]};display:inline-block;margin-right:6px"></span>${LNAME[r.l]} · ${r.r} rep${r.r > 1 ? "s" : ""} : <b>${fmt(r.c)} kg</b> <span class="muted">(+${fmt(r.d)})</span></p>`).join("")}</div>` : ""}
-      ${m.recs.length ? `<div style="margin-top:14px"><p style="font-weight:600">Meilleur 1RM estimé</p>${m.recs.map(r => `<p class="small" style="margin-top:4px">${esc(r)}</p>`).join("")}</div>` : ""}
-      <button class="btn" style="margin-top:18px" data-act="closeSummary">Fermer</button>`; }
+  if (sheet === "summary") { const m = live.summary, s = seanceByKey(live.key), d = m.prevTon ? (m.tonSame - m.prevTon) / m.prevTon * 100 : null, nrec = (m.repRecs ? m.repRecs.length : 0) + m.recs.length;
+    const better = (nrec > 0 || (d !== null && d > 0) || m.exs.some(x => x.d !== null && x.d > 0)) && !(d !== null && d < -10),   /* « Mieux qu'hier » seulement si c'est vrai : pas avec un tonnage nettement en baisse */
+       nm = D.profil.prenom ? esc(D.profil.prenom) + "." : "";
+    const dur = m.dur >= 60 ? Math.floor(m.dur / 60) + " h " + String(m.dur % 60).padStart(2, "0") : m.dur + " min", ml = m.lifts.length ? muscleList(m.lifts) : null;
+    const tile = (k, v, hot) => `<div class="ft${hot ? " hot" : ""}"><span>${k}</span><b>${v}</b></div>`;
+    return `<div class="fin"><p class="fin-d">${esc(dlong(D.today))} · ${dur}</p>
+      <p class="fin-t">${better ? "Mieux qu'hier," : "Bien joué,"}${nm ? "<br>" + nm : ""}</p>
+      <div class="fts">${m.sets ? tile("Séries", m.sets + (m.planned ? "/" + m.planned : "")) + tile("Tonnage", m.ton >= 1000 ? fmt(m.ton / 1000, 1) + " t" : fmt(m.ton, 0) + " kg") + tile("Record" + (nrec > 1 ? "s" : ""), String(nrec), nrec > 0) : m.cardioMin ? tile("Cardio", fmt(m.cardioMin, 1) + " min") + (m.cardioKm ? tile("Distance", fmt(m.cardioKm, 2) + " km") : "") : tile("Durée", dur)}</div>
+      ${m.sets && d !== null ? `<p class="fin-c">${d >= 0 ? "+" : ""}${fmt(d, 0)} % de tonnage sur ${m.nSame} exercice${m.nSame > 1 ? "s" : ""} fait${m.nSame > 1 ? "s" : ""} aussi la semaine passée</p>` : ""}
+      ${m.sets && m.cardioMin ? `<p class="fin-c">Cardio : ${fmt(m.cardioMin, 1)} min${m.cardioKm ? " · " + fmt(m.cardioKm, 2) + " km" : ""}</p>` : ""}
+      ${ml ? `<div class="lgc" style="margin-top:12px">${muscleFig(m.lifts, {view:"both", cls:"lg-plate"})}<div class="lgc-t"><span class="lgc-c">Ce que tu as travaillé</span><b>${esc(ml.p.join(", "))}</b>${ml.s.length ? `<span>${esc(ml.s.join(", "))}</span>` : ""}</div></div>` : ""}
+      ${m.exs.length ? `<div class="fin-r">${m.exs.map(x => `<div class="tdr">${x.l ? muscleFig(x.l, {cls:"thumb"}) : `<span class="tdr-ph" aria-hidden="true">${esc(String(x.name).trim().charAt(0).toUpperCase())}</span>`}<span class="tdr-t"><b>${esc(x.name)}</b><span>Meilleure série ${x.timed ? (x.c ? fmt(x.c) + " kg · " : "") + fmtDur(x.r) : (x.c !== null ? fmt(x.c) + " × " : "") + x.r}</span></span>${x.d === null ? "" : `<span class="fchip ${x.d > 0 ? "up" : ""}">${x.d > 0 ? "▲ " + fmt(x.d, 2) + " kg" : x.d < 0 ? "▼ " + fmt(-x.d, 2) + " kg" : "="}</span>`}</div>`).join("")}</div>` : ""}
+      ${m.repRecs && m.repRecs.length ? `<div class="fin-rec"><p>Records de reps</p>${m.repRecs.map(r => `<p class="small"><span class="d10" style="--c:${LCOL[r.l]};display:inline-block;margin-right:6px"></span>${LNAME[r.l]} · ${r.r} rep${r.r > 1 ? "s" : ""} : <b>${fmt(r.c)} kg</b> <span class="muted">(+${fmt(r.d)})</span></p>`).join("")}</div>` : ""}
+      ${m.recs.length ? `<div class="fin-rec"><p>Meilleur 1RM estimé</p>${m.recs.map(r => `<p class="small">${esc(r)}</p>`).join("")}</div>` : ""}
+      <button class="btn" style="margin-top:18px" data-act="closeSummary">Fermer</button></div>`; }
   if (sheet && sheet.startsWith("bilan|")) { const wk = weekMeta[sheet.slice(6)]; if (!wk) return `<p>Bilan introuvable.</p>`; const v = Object.assign({}, wk.vals, wk.draft || {});
     return `<p class="show t-m">Bilan de la semaine ${esc(wk.semaine)}</p><p class="muted small" style="margin-top:4px">${esc(blocLabel(wk.bloc))}. Note chaque critère de 1 à 10, comme dans le template de ton coach.</p>
       ${BILAN_CRIT.map(k => `<label>${k}</label><div class="score">${Array.from({length:10}, (_, i) => `<button aria-pressed="${v[k] === i + 1}" data-act="score" data-k="${k}" data-v="${i + 1}">${i + 1}</button>`).join("")}</div>`).join("")}
