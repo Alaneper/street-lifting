@@ -31,7 +31,7 @@ with sync_playwright() as p:
     r = pg.evaluate("(() => { const t = document.querySelector('.topbar').getBoundingClientRect(); const e = document.elementFromPoint(195, t.top + 10); return e && !!e.closest('.topbar'); })()")
     check("en-tête : le contenu passe dessous, pas dessus", r is True, r)
     pg.evaluate("scrollTo(0, 0)"); pg.wait_for_timeout(300)
-    check("en-tête : nom de l'onglet masqué en haut de page", pg.evaluate("getComputedStyle(document.querySelector('#tabname')).opacity") == "0")
+    check("en-tête : grand titre de l'onglet visible", pg.evaluate("getComputedStyle(document.querySelector('#tabname')).opacity") == "1")
     pg.evaluate("setTab('prog')"); check("en-tête : nom de l'onglet suit l'onglet", pg.evaluate("document.querySelector('#tabname').textContent") == "Progrès")
     # v67 : 4 onglets (Séance, Corps, Progrès, Classement) ; Séance = Aujourd'hui + Programme
     check("nav : 4 onglets", pg.evaluate("document.querySelectorAll('.tabs button').length") == 4)

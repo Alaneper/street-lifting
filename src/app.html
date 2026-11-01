@@ -334,14 +334,12 @@ details>summary::-webkit-details-marker{display:none}
 .topbar{display:flex;align-items:center;justify-content:space-between;min-height:52px;position:sticky;top:0;z-index:25;padding:calc(env(safe-area-inset-top,0px) + 4px) 0 4px}
 .topbar::before{content:"";position:absolute;inset:0 calc(50% - 50vw);z-index:-1;background:color-mix(in srgb,var(--floor) 86%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);border-bottom:1px solid transparent;transition:border-color .2s}
 body.scrolled .topbar::before{border-bottom-color:var(--seam)}
-.tabname{color:var(--dust);font-weight:600;opacity:0;transition:opacity .2s}.tabname::before{content:"· "}
-body.scrolled .tabname{opacity:1}
+.tabname{font:800 40px/1 var(--f-show);letter-spacing:-.005em;color:var(--chalk);margin:6px 0 0}
 html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 64px)}
 html,body{overflow-x:clip}body{margin-top:0}
 .brandmark{white-space:nowrap;min-width:0}
-@media (max-width:374px){.tabname{display:none}}
 @media (max-height:500px){.topbar{position:static}}
-.brandmark{display:flex;align-items:center;gap:8px;font:700 17px var(--f-text)}
+.brandmark{display:flex;align-items:center}
 .hero{position:relative;overflow:hidden;border-radius:var(--r-lg);padding:20px;color:var(--chalk);margin-top:14px;
   background:radial-gradient(130% 110% at 100% 0%,color-mix(in srgb,var(--hc,var(--data)) 20%,transparent),transparent 64%),var(--deck);
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--hc,var(--data)) 26%,transparent)}
@@ -443,6 +441,36 @@ html,body{overflow-x:clip}body{margin-top:0}
 .cct b small{font-size:.5em;margin-left:3px;color:var(--dust)}
 .cct span:last-child{font:500 11px var(--f-text);color:var(--faint)}
 .check-row .box{border-radius:50%}
+/* v67 rattrapage : Programme v3 */
+.blk{margin-top:14px;padding:16px}
+.blk-n{display:block;font:800 28px/1 var(--f-show);margin-top:5px}
+.blk-s{display:block;font:500 13px var(--f-text);color:var(--dust);margin-top:5px}
+.blk-w{display:flex;flex-direction:column;align-items:flex-end}.blk-w b{font:800 34px/1 var(--f-show)}.blk-w span{font:500 12px var(--f-text);color:var(--faint)}
+.wkbar{display:flex;gap:3px;margin-top:14px}
+.wkbar button{flex:1;height:7px;border-radius:4px;background:var(--deck3);position:relative;padding:0}
+.wkbar button::after{content:"";position:absolute;inset:-18px 0}
+.wkbar button.ok{background:var(--acc)}.wkbar button.cur{background:var(--warn)}
+.wkl{display:flex;flex-direction:column}
+.wkr{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--seam);text-align:left;width:100%;border-radius:12px}
+.wkr.sel{background:var(--deck)}
+.wkr .grow b{display:block;font:600 15px var(--f-text)}.wkr .grow span{display:block;font:400 13px var(--f-text);color:var(--dust);margin-top:2px}
+.wkb{width:28px;height:28px;border-radius:50%;border:2px solid var(--deck3);display:grid;place-items:center;flex:none;box-sizing:border-box;color:var(--dust)}
+.wkb.ok{background:var(--deck3);border:0}.wkb.now{background:var(--acc);border:0;color:#fff}
+.wkt{font:500 13px var(--f-text);color:var(--faint);display:flex}
+.wkimp{display:flex;align-items:center;gap:12px;width:100%;margin-top:14px;padding:12px 14px;border-radius:16px;background:var(--deck);text-align:left;font:400 14px var(--f-text);color:var(--dust)}
+.wki{width:34px;height:34px;border-radius:10px;background:rgba(111,160,218,.16);color:var(--data);display:grid;place-items:center}
+/* v67 rattrapage : Historique v3 */
+.hcal{margin-top:14px;padding:12px}
+.hnav{margin-bottom:8px}.hnav b{white-space:nowrap;font:600 15px var(--f-text)}.hnav .iconbtn{width:36px;height:36px;min-height:36px}
+.hleg{display:flex;align-items:center;gap:5px;font:500 11px var(--f-text);color:var(--faint)}
+.hleg i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.hgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.hd{font:600 11px var(--f-text);color:var(--faint);text-align:center;padding-bottom:2px}
+.hc{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font:600 12px var(--f-text);color:var(--faint);padding:0}
+.l0{background:var(--deck2)}.l1{background:rgba(255,74,43,.28);color:var(--chalk)}.l2{background:rgba(255,74,43,.6);color:var(--chalk)}.l3{background:var(--acc);color:var(--floor)}
+.hst{display:flex;margin-top:8px;padding:12px 14px}.hst>span{flex:1;display:flex;flex-direction:column;gap:3px}.hst b{font:800 24px/1 var(--f-show)}
+.hrow{display:flex;align-items:center;gap:12px;width:100%;padding:11px 0;border-bottom:1px solid var(--seam);text-align:left}
+.hrow .grow b{display:block;font:600 15px var(--f-text)}.hrow .grow span{display:block;font:400 13px var(--f-text);color:var(--dust);margin-top:2px}
 .chart{position:relative;height:190px}
 /* Fin de séance (v3) */
 .sheet.full{top:0;max-height:none;border-radius:0;background:var(--floor);padding-top:calc(env(safe-area-inset-top,0px) + 6px)}
@@ -571,7 +599,7 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 </style>
 
 <main id="app">
-  <div class="topbar"><div class="brandmark" id="topdate"><svg width="30" height="25" viewBox="0 0 120 100" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="butt" stroke-linejoin="miter"><line x1="11" y1="0" x2="11" y2="100" stroke-width="22"/><path d="M11 9.5H38A19.25 19.25 0 0 1 38 48H11" stroke-width="19"/><path d="M11 48H43A21.25 21.25 0 0 1 43 90.5H11" stroke-width="19"/></g><path d="M6 30C6 12 20 2 34 2C50 2 61 12 61 27C61 39 53 48 41 58L24 73H61V96H4V77L34 50C40 44 45 38 45 30C45 22 41 17 34 17C26 17 22 23 22 32Z" fill="var(--acc)" transform="translate(76 0) scale(0.44)"/></svg>B2Strong<span class="tabname" id="tabname" aria-hidden="true">Aujourd'hui</span></div><button class="avatar" data-act="settings" aria-label="Réglages et synchronisation"><span id="initial">·</span><span class="dot busy" id="syncdot"></span></button></div>
+  <div class="topbar"><div class="brandmark" id="topdate"><h1 class="tabname" id="tabname">Séance</h1></div><button class="avatar" data-act="settings" aria-label="Réglages et synchronisation"><span id="initial">·</span><span class="dot busy" id="syncdot"></span></button></div>
   <div class="segc" id="subseance" role="group" aria-label="Séance" style="margin:12px 0 0"><button data-sub="home" aria-pressed="true">Aujourd'hui</button><button data-sub="seance" aria-pressed="false">Programme</button><button data-sub="histo" aria-pressed="false">Historique</button></div>
   <section id="v-home" class="view"><div class="skel" style="height:190px;margin-top:18px"></div><div class="skel" style="height:150px;margin-top:14px"></div><p class="muted small" style="margin-top:14px">La première fois, Claude te demande d'autoriser l'accès à Google Sheets. Touche « Autoriser ».</p></section>
   <section id="v-seance" class="view" hidden></section>
@@ -1772,11 +1800,30 @@ function pauseBarHtml(s, lv){
   const nm = ex ? (l ? LNAME[l] : title(ex.mouvement)) : "";
   return `<div class="pbar"><span class="pb-t"><span class="pb-s"><i></i>En pause${at ? " depuis " + day + " " + hh : ""}</span>${nm ? `<b>${esc(nm)} · exercice ${lv.i + 1} sur ${s.exercices.length}</b>` : ""}</span><button class="pb-b" data-act="startLive" data-k="${esc(s.key)}">Reprendre</button></div>`;
 }
+/* v67 rattrapage : Historique v3 (calendrier du mois, statistiques, dernières séances). Données : séances faites + séries notées. */
+let histMonth = "";
+const sessStats = z => { const rows = D.series.filter(x => x.bloc === z.bloc && x.semaine === z.semaine && x.seance === z.seance && Array.isArray(x.sets)); let ton = 0, ns = 0;
+  rows.forEach(x => x.sets.forEach(t => { ns++; ton += (+t.c || 0) * (+t.r || 0); })); return {ton, ns}; };
 function rHisto(){
-  const done = S.filter(z => z.faite && dateOf(z)).sort((a, b) => dateOf(a) < dateOf(b) ? 1 : -1).slice(0, 80);
-  $("#v-histo").innerHTML = done.length ? `<h2 class="h2">Séances faites <span class="muted">${done.length}</span></h2>${done.map(z => { const d = dateOf(z), dd = dObj(d), n = z.exercices.filter(e => e.mouvement).length;
-    return `<button class="day done" data-act="openSeance" data-k="${esc(z.key)}"><span class="dn"><b>${dd.getDate()}</b><span>${["dim.","lun.","mar.","mer.","jeu.","ven.","sam."][dd.getDay()]}</span></span><span class="grow">${esc(sessLabel(z))}<span>${esc(blocLabel(z.bloc))}${z.semaine ? " · S" + esc(z.semaine) : ""} · ${n} exercice${n > 1 ? "s" : ""}</span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--steel-hi)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-label="Faite"><path d="M5 12l5 5 9-10"/></svg></button>`; }).join("")}`
-    : `<div class="empty" style="margin-top:24px"><p>Aucune séance terminée pour l'instant.</p><p class="muted small" style="margin-top:6px">Elles apparaîtront ici dès ta première séance.</p></div>`;
+  const done = S.filter(z => z.faite && dateOf(z)).sort((a, b) => dateOf(a) < dateOf(b) ? 1 : -1);
+  if (!done.length) { $("#v-histo").innerHTML = `<div class="empty" style="margin-top:24px"><p>Aucune séance terminée pour l'instant.</p><p class="muted small" style="margin-top:6px">Elles apparaîtront ici dès ta première séance.</p></div>`; return; }
+  if (!histMonth) histMonth = done.some(z => dateOf(z).slice(0, 7) === D.today.slice(0, 7)) ? D.today.slice(0, 7) : dateOf(done[0]).slice(0, 7);
+  const [y, m] = histMonth.split("-").map(Number), off = (new Date(y, m - 1, 1).getDay() + 6) % 7, nd = new Date(y, m, 0).getDate();
+  const byD = {}; done.forEach(z => { const d = dateOf(z); (byD[d] = byD[d] || []).push(z); });
+  const mo = done.filter(z => dateOf(z).slice(0, 7) === histMonth), st = mo.map(sessStats), tons = {};
+  mo.forEach((z, i) => { tons[dateOf(z)] = (tons[dateOf(z)] || 0) + st[i].ton; });
+  const tv = Object.values(tons).filter(v => v > 0).sort((a, b) => a - b), lvl = d => { if (!byD[d]) return 0; const v = tons[d] || 0; if (!tv.length || !v) return 1; const r = tv.indexOf(v) / Math.max(1, tv.length - 1); return r > .66 ? 3 : r > .33 ? 2 : 1; };
+  const cells = Array.from({length:Math.ceil((off + nd) / 7) * 7}, (_, k) => { const dn = k - off + 1; if (dn < 1 || dn > nd) return `<span></span>`; const iso = histMonth + "-" + String(dn).padStart(2, "0"), l = lvl(iso);
+    return byD[iso] ? `<button class="hc l${l}" data-act="openSeance" data-k="${esc(byD[iso][0].key)}" aria-label="${dn} ${MOIS_L[m - 1]} : ${byD[iso].length} séance${byD[iso].length > 1 ? "s" : ""}">${dn}</button>` : `<span class="hc l0">${dn}</span>`; }).join("");
+  const sumTon = sum(st.map(x => x.ton)), sumSets = sum(st.map(x => x.ns));
+  const row = z => { const d = dateOf(z), dd = dObj(d), x = sessStats(z), ls = liftsOf(z);
+    return `<button class="hrow" data-act="openSeance" data-k="${esc(z.key)}">${ls.length ? muscleFig(ls, {cls:"thumb"}) : ""}<span class="grow"><b>${esc(z.seance)}</b><span>${cap(["dim.","lun.","mar.","mer.","jeu.","ven.","sam."][dd.getDay()])} ${dd.getDate()} ${["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."][dd.getMonth()]}${x.ton ? " · " + fmt(x.ton / 1000, 1) + " t" : ""}${x.ns ? " · " + x.ns + " séries" : ""}</span></span>${CHEV}</button>`; };
+  $("#v-histo").innerHTML = `
+    <section class="panel hcal"><div class="row hnav"><span class="row" style="gap:6px"><button class="iconbtn" data-act="histMo" data-d="-1" aria-label="Mois précédent">‹</button><b>${cap(MOIS_L[m - 1])} ${y}</b><button class="iconbtn" data-act="histMo" data-d="1" aria-label="Mois suivant" ${histMonth >= D.today.slice(0, 7) ? "disabled" : ""}>›</button></span>
+      <span class="hleg"><span>Moins</span><i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><span>Plus</span></span></div>
+      <div class="hgrid">${["L","M","M","J","V","S","D"].map(x => `<span class="hd">${x}</span>`).join("")}${cells}</div></section>
+    <section class="panel hst"><span><span class="lg-lab">Séances</span><b>${mo.length}</b></span><span><span class="lg-lab">Tonnage</span><b>${sumTon ? fmt(sumTon / 1000, 1) + " t" : "—"}</b></span><span><span class="lg-lab">Séries</span><b>${sumSets || "—"}</b></span></section>
+    <h2 class="h2">Dernières séances</h2><div>${done.slice(0, 20).map(row).join("")}</div>`;
 }
 function rHome(){
   if (document.activeElement && document.activeElement.id === "hw") return;   /* ne pas fermer le clavier pendant la saisie du poids */
@@ -1812,21 +1859,16 @@ function rSeance(){
   const weeks = [...new Set(inB.map(x => x.semaine))], maxIdx = Math.max(...inB.map(x => x.idx)) + 1, ns = nextSeance(), st = blocStart(s.bloc), d = dateOf(s);
   const pts = exercisePoints(), wk = weekMeta[s.sheet + "|" + s.semaine], lv = store.get("sl4-live");
   el.innerHTML = `
-    <div class="chips" style="margin-top:6px">${blocs.map(b => `<button class="chip" aria-pressed="${b === s.bloc}" data-act="pickBloc" data-b="${b}">${esc(blocLabel(b))}</button>`).join("")}</div>
-    <h2 class="h2">${esc(blocLabel(s.bloc))} <span class="muted">${inB.filter(x => x.faite).length} sur ${inB.length} séances faites</span></h2>
-    <div>
-      <div class="grid-bloc" style="grid-template-columns:30px repeat(${maxIdx}, minmax(46px,1fr))">
-        <span></span>${Array.from({length:maxIdx}, (_, k) => { const x0 = inB.find(y => y.idx === k); return `<span class="h">${esc(x0 && x0.jour ? x0.jour.slice(0, 3) : "Séance " + (k + 1))}</span>`; }).join("")}
-        ${weeks.map(w => `<span class="wk" title="Semaine ${esc(w)}">S${esc(w)}</span>` + Array.from({length:maxIdx}, (_, k) => {
-          const x = inB.find(y => y.semaine === w && y.idx === k); if (!x) return `<span></span>`;
-          const dd = dateOf(x);
-          return `<button class="cell ${x.faite ? "done" : ""} ${x === ns ? "next" : ""}" aria-current="${x === s}" aria-label="Semaine ${esc(w)}, ${esc(x.seance)}" data-act="sel" data-k="${esc(x.key)}">${x.faite ? "✓<br>" : ""}${dd ? `${+dd.slice(8)}/${+dd.slice(5, 7)}` : esc(x.seance)}</button>`;
-        }).join("")).join("")}
-      </div>
-      <details style="margin-top:12px"><summary class="small muted">${st ? (st.est ? "Dates estimées, bloc commencé le " : "Bloc commencé le ") + dfr(st.d) + ". Modifier" : "Ajouter la date de début du bloc"}</summary>
-        <label for="bd">Lundi de la semaine 1 du ${esc(blocLow(s.bloc))}</label><input id="bd" type="date" value="${st ? st.d : ""}" data-chg="blocDate" data-b="${s.bloc}"></details>
-    </div>
-
+    <section class="panel blk"><div class="pw-top"><span class="pw-l"><span class="lg-lab">${ns && ns.bloc === s.bloc ? "Bloc en cours" : "Bloc"}</span><b class="blk-n">${esc(blocLabel(s.bloc))}</b><span class="blk-s">${maxIdx} séance${maxIdx > 1 ? "s" : ""} / semaine · ${inB.filter(x => x.faite).length} sur ${inB.length} faites</span></span>
+      <span class="blk-w"><b>S${esc(s.semaine)}</b><span>sur ${weeks.length}</span></span></div>
+      <div class="wkbar" role="group" aria-label="Semaines du bloc">${weeks.map(w => { const ws = inB.filter(x => x.semaine === w); return `<button class="${w === s.semaine ? "cur" : ws.every(x => x.faite) ? "ok" : ""}" data-act="sel" data-k="${esc(ws[0].key)}" aria-label="Semaine ${esc(w)}" aria-pressed="${w === s.semaine}"></button>`; }).join("")}</div>
+      <div class="row" style="margin-top:7px"><span class="lg-lab">${weeks.filter(w => inB.filter(x => x.semaine === w).every(x => x.faite)).length} semaine${weeks.filter(w => inB.filter(x => x.semaine === w).every(x => x.faite)).length > 1 ? "s" : ""} faite${weeks.filter(w => inB.filter(x => x.semaine === w).every(x => x.faite)).length > 1 ? "s" : ""}</span><span class="lg-lab">Semaine ${esc(s.semaine)}</span></div></section>
+    <h2 class="h2">Cette semaine</h2>
+    <div class="wkl">${inB.filter(x => x.semaine === s.semaine).sort((x, y) => x.idx - y.idx).map(x => { const dx = dateOf(x), e0 = x.exercices[0], isN = x === ns, today = dx === D.today;
+      const sub = e0 ? `${title(e0.mouvement)}${e0.variation && norm(e0.mouvement) !== "RENFO" ? " " + title(e0.variation).toLowerCase() : e0.variation ? " " + title(e0.variation) : ""} · ${x.exercices.length} exercice${x.exercices.length > 1 ? "s" : ""}` : "";
+      return `<button class="wkr${x === s ? " sel" : ""}" data-act="sel" data-k="${esc(x.key)}" aria-current="${x === s}"><span class="wkb ${x.faite ? "ok" : isN ? "now" : ""}">${x.faite ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>` : isN ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>` : ""}</span>
+        <span class="grow"><b>${esc((x.jour ? x.jour.slice(0, 3) + ". · " : "") + x.seance)}</b><span>${esc(sub)}</span></span>${x.faite ? `<span class="wkt">Fait</span>` : today || isN ? `<span class="fchip">${today ? "Aujourd'hui" : "Prochaine"}</span>` : `<span class="wkt">${CHEV}</span>`}</button>`; }).join("")}</div>
+    <h2 class="h2">Détail de la séance</h2>
     ${heroCard({color:liftsOf(s)[0] ? LCOL[liftsOf(s)[0]] : "var(--brand)", small:`${d ? cap(dlong(d)) : esc(s.jour || "")} · ${esc(blocLow(s.bloc))}${s.semaine ? ", semaine " + esc(s.semaine) : ""}`, big:esc(s.seance), sub:s.faite ? "Faite" : s === ns ? "Prochaine séance" : d && d < D.today && (!ns || S.indexOf(s) < S.indexOf(ns)) ? "Pas notée" : "À venir"})}
     <div class="list" style="margin-top:8px">${s.exercices.map((e, k) => {
       const l = liftOf(e.mouvement), key = exKey(e), o = pts.find(z => z.key === key), p = o && o.pts.find(z => z.label === blocShort(s.bloc) + " S" + s.semaine || (z.date && z.date === d));
@@ -1838,7 +1880,12 @@ function rSeance(){
         <span class="muted small" style="display:block;margin-top:2px">${presc(e)}</span>
         ${logged ? `<span class="done-sets" style="display:block">Fait : ${esc(logged)}</span>` : ""}</span></button>`; }).join("")}</div>
     ${s.archived ? `<p class="muted small" style="margin-top:14px">Bloc conservé dans ton historique (onglet HISTORIQUE de ton carnet) : il se consulte, il ne se modifie plus.</p>` : `<button class="btn" style="margin-top:14px" data-act="startLive" data-k="${esc(s.key)}">${lv && lv.key === s.key ? "Reprendre" : s.faite ? "Revoir et modifier" : "Commencer"} la séance</button><button class="btn ghost" style="margin-top:8px" data-act="editOpen" data-k="${esc(s.key)}">Modifier cette séance</button>`}
-    ${wk ? `<button class="btn line" style="margin-top:10px" data-act="bilan" data-w="${esc(wk.sheet + "|" + wk.semaine)}">${BILAN_CRIT.every(k => wk.vals[k]) ? "Bilan de la semaine " + esc(wk.semaine) + " : fait, modifier" : "Bilan de la semaine " + esc(wk.semaine)}</button>` : ""}`;
+    ${wk ? `<button class="btn line" style="margin-top:10px" data-act="bilan" data-w="${esc(wk.sheet + "|" + wk.semaine)}">${BILAN_CRIT.every(k => wk.vals[k]) ? "Bilan de la semaine " + esc(wk.semaine) + " : fait, modifier" : "Bilan de la semaine " + esc(wk.semaine)}</button>` : ""}
+    ${impCan() ? `<button class="wkimp" data-act="impOpen"><span class="wki"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v14M7 12l5 5 5-5M4 21h16"/></svg></span><span class="grow">${coachId() ? "Ajouter un autre programme" : "Importer un programme (Excel, PDF, photo)"}</span>${CHEV}</button>` : ""}
+    <h2 class="h2">Autres blocs</h2>
+    <div class="chips">${blocs.map(b => `<button class="chip" aria-pressed="${b === s.bloc}" data-act="pickBloc" data-b="${b}">${esc(blocLabel(b))}</button>`).join("")}</div>
+    <details style="margin-top:12px"><summary class="small muted">${st ? (st.est ? "Dates estimées, bloc commencé le " : "Bloc commencé le ") + dfr(st.d) + ". Modifier" : "Ajouter la date de début du bloc"}</summary>
+      <label for="bd">Lundi de la semaine 1 du ${esc(blocLow(s.bloc))}</label><input id="bd" type="date" value="${st ? st.d : ""}" data-chg="blocDate" data-b="${s.bloc}"></details>`;
 }
 /* RPE visé écrit par le coach (colonne « INTENSITÉ CIBLE ») : « 7 », « RPE 7 », « @7 », « 7-8 », « ≤ 7 », « max 7 ».
    Un pourcentage (« 75 % ») reste affiché tel quel. Renvoie null si la case est vide. */
@@ -3006,6 +3053,7 @@ function barChart(id, labels, sets, unit){
 const ACT = {
   tab:d => setTab(d.t),
   openSeance:d => { sel = d.k; setTab("seance"); },
+  histMo:d => { const [y, m] = histMonth.split("-").map(Number), n = new Date(y, m - 1 + (+d.d), 1); histMonth = n.getFullYear() + "-" + String(n.getMonth() + 1).padStart(2, "0"); rHisto(); },
   progDel:async d => {
     if (progDelAsk !== d.t) { progDelAsk = d.t; return renderLayer(); }
     progDelAsk = null;
