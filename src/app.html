@@ -385,6 +385,20 @@ html,body{overflow-x:clip}body{margin-top:0}
 .liftrow .top .val{font:700 22px var(--f-show)}
 .liftrow .bar{height:6px;margin:10px 0 6px;background:var(--deck2)}
 .liftrow .meta{display:flex;justify-content:space-between;font-size:13px;color:var(--dust)}
+/* Carte du jour (v3) */
+.tdc{margin-top:14px;border-radius:var(--r-lg);background:var(--deck);box-shadow:inset 0 0 0 1px var(--seam);padding:14px;display:flex;flex-direction:column;gap:12px}
+.tdc-top{display:flex;align-items:center;gap:10px}.tdc-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.tdc-eye{font:600 11px var(--f-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--faint)}
+.tdc-ttl{font:800 30px/1 var(--f-show);color:var(--chalk);overflow-wrap:anywhere}
+.tdc-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:3px}.tdc-chips span{font:600 12px var(--f-text);color:var(--dust);background:var(--deck3);border-radius:99px;padding:4px 10px}
+.mplate.tdc-plate{--mh:112px;width:92px;padding:6px 4px;border-radius:14px;flex:none}
+.tdc-coach{display:flex;align-items:center;gap:10px;margin:0}.tdc-coach b{flex:none;width:26px;height:26px;border-radius:13px;background:var(--deck3);color:var(--dust);font:700 10px var(--f-text);display:flex;align-items:center;justify-content:center}
+.tdc-coach span{font:italic 13px var(--f-text);color:var(--dust)}
+.tdr{display:flex;align-items:center;gap:12px;width:100%;padding:10px 0;text-align:left;border-bottom:1px solid var(--seam);min-height:64px}
+.tdr-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.tdr-t b{font:600 16px var(--f-text);color:var(--chalk)}.tdr-t span{font:13px var(--f-text);color:var(--dust)}
+.tdr-k{font:800 22px var(--f-show);color:var(--chalk);text-align:right}.tdr-k.txt{font:600 14px var(--f-text);color:var(--dust);max-width:44%}
+.tdr-ph{flex:none;width:48px;height:48px;border-radius:12px;background:var(--deck3);color:var(--dust);font:800 20px var(--f-show);display:flex;align-items:center;justify-content:center}
+.tdr-more{justify-content:space-between;color:var(--dust);font:600 14px var(--f-text);min-height:48px}
 /* Carte musculaire : planche craie (v3), principal rouge, secondaire rouge clair */
 .mplate{--paper:#F1EDE4;--sk:#DCD7CD;--skd:#D1CBC0;--ink:#2A2622;--lne:#6E675E;--fib:#9D968B;--rdf:#DC3A1C;--rdd:#B02A11;--rd2:#EFA893;--fibr:#8E2010;background:var(--paper);border-radius:var(--r-lg);padding:10px;display:flex;align-items:center;justify-content:center;gap:2px;height:var(--mh,240px);overflow:hidden}
 .mplate .fig{height:100%;width:auto;display:block}
@@ -1656,6 +1670,24 @@ function muscuWeek(ref){
   const tot = cardioTot(cd.flatMap(x => x.sets));
   return {done:ss.filter(z => z.faite).length, planned:ss.length, min:tot.min, km:tot.km};
 }
+/* v67 étape C : carte de la séance du jour (planche v3) */
+function todayCard(s, lv){
+  const exs = s.exercices.filter(e => e.mouvement), lifts = [...new Set(exs.map(e => liftOf(e.mouvement)).filter(Boolean))];
+  const d = dateOf(s), sets = exs.reduce((n, e) => n + (isNumTxt(e.series) ? num(e.series) : 0), 0);
+  const coach = (exs.find(e => e.coach && String(e.coach).trim()) || {}).coach;
+  const eye = (d === D.today ? "Aujourd'hui" : d ? JOURS[dObj(d).getDay()] : "Prochaine séance") + (s.semaine ? " · semaine " + s.semaine : "");
+  const resume = lv && lv.key === s.key;
+  const row = e => { const l = liftOf(e.mouvement), kgTxt = isNumTxt(e.charge) ? kg(num(e.charge)) : (e.charge ? esc(e.charge) : "");
+    return `<button class="tdr" data-act="openSeance" data-k="${esc(s.key)}">${l ? muscleFig(l, {cls:"thumb"}) : `<span class="tdr-ph" aria-hidden="true">${esc(String(e.mouvement).trim().charAt(0).toUpperCase())}</span>`}
+      <span class="tdr-t"><b>${esc(e.mouvement)}</b><span>${[e.series && e.reps ? esc(e.series) + " × " + esc(e.reps) : "", e.rpe1 ? "RPE " + esc(e.rpe1) : ""].filter(Boolean).join(" · ")}</span></span>${kgTxt ? `<span class="tdr-k${isNumTxt(e.charge) ? "" : " txt"}">${kgTxt}</span>` : ""}</button>`; };
+  const shown = exs.slice(0, 4), more = exs.length - shown.length;
+  return `<div class="tdc"><div class="tdc-top"><div class="tdc-main"><span class="tdc-eye">${esc(eye)}</span><span class="tdc-ttl">${esc(sessLabel(s))}</span>
+      <span class="tdc-chips"><span>${exs.length} exercice${exs.length > 1 ? "s" : ""}</span>${sets ? `<span>${sets} séries</span>` : ""}</span></div>
+      ${lifts.length ? muscleFig(lifts, {view:"both", cls:"tdc-plate"}) : ""}</div>
+    ${coach ? `<p class="tdc-coach"><b>CO</b><span>« ${esc(coach)} »</span></p>` : ""}
+    <button class="btn" data-act="startLive" data-k="${esc(s.key)}">${resume ? "Reprendre la séance" : "Commencer la séance"}</button></div>
+    ${shown.length ? `<h2 class="h2">Au programme</h2><div>${shown.map(row).join("")}${more > 0 ? `<button class="tdr tdr-more" data-act="openSeance" data-k="${esc(s.key)}"><span>+ ${more} exercice${more > 1 ? "s" : ""}</span><span>Voir tout ›</span></button>` : ""}</div>` : ""}`;
+}
 function rHome(){
   if (document.activeElement && document.activeElement.id === "hw") return;   /* ne pas fermer le clavier pendant la saisie du poids */
   const cd = curDisc(), t = totalOf(cd), ts = todaySeance(), ns = nextSeance(), sess = ts && !ts.faite ? ts : ns, nc = nextComp(), pw = D.poids.at(-1), weighed = pw && pw.date === D.today;
@@ -1667,11 +1699,11 @@ function rHome(){
   const heroMu = mw ? heroCard({small:"Cette semaine", big:`${mw.done}<small>${mw.planned > mw.done ? "/" + mw.planned : ""} séance${mw.done > 1 ? "s" : ""}</small>`, sub:[mw.min ? `${fmt(mw.min, 0)} min de cardio` : "", mw.km ? `${fmt(mw.km, 1)} km` : "", rem ? `encore ${rem} séance${rem > 1 ? "s" : ""} dans le ${blocLow(activeBloc())}` : ""].filter(Boolean).join(" · ") || "Ta régularité compte plus que tout", act:`data-act="tab" data-t="prog" role="button" tabindex="0"`}) : "";
   const heroH = mw && !nc ? heroMu : nc ? heroCard({small:`${esc(nc.nom)}, ${dlong(nc.date)}`, big:days(D.today, nc.date) === 0 ? "Jour J" : "J−" + days(D.today, nc.date), sub:[nc.tbc ? "date à confirmer" : "", rem ? `encore ${rem} séance${rem > 1 ? "s" : ""} dans le ${blocLow(activeBloc())}` : ""].filter(Boolean).join(" · "), act:`data-act="tab" data-t="agenda" role="button" tabindex="0"`})
     : heroCard({small:tsmall, big:`${fmt(t)}<small>kg</small>`, sub:tsub, act:`data-act="tab" data-t="prog" role="button" tabindex="0"`});
-  const left = `${heroH}${weighed ? "" : weighCard(pw)}
+  const left = `${sess && !sess.free ? todayCard(sess, lv) : ""}${heroH}${weighed ? "" : weighCard(pw)}
     ${sess && sess.free ? freeWeekHtml(sess) : `<h2 class="h2">Cette semaine <span class="muted">${sess ? esc(blocLabel(sess.bloc)) + (sess.semaine ? ", semaine " + esc(sess.semaine) : "") : ""}</span></h2>
     ${S.length ? (wr || `<p class="muted small">Aucune séance datée cette semaine.</p>`) : !coachId() ? impEmptyHtml() : `<div class="row" style="padding:14px 0"><span class="muted">${esc(seanceErr) || "Chargement de ta prog…"}</span>${seanceErr ? "" : `<div class="spin"></div>`}</div>`}`}
     ${impCan() && coachId() && S.length && !sess && !remainingInBloc() ? `<div class="panel" style="margin-top:14px"><p style="font-weight:700">Bloc terminé</p><p class="muted small" style="margin-top:4px">Prépare le suivant : l'app reprend ta dernière semaine et ajuste les charges d'après tes RPE. Tu vérifies avant d'enregistrer.</p><button class="btn" style="margin-top:12px" data-act="impNext">Préparer le bloc suivant</button></div>` : ""}
-    ${sess ? `<button class="btn" style="margin-top:16px" data-act="startLive" data-k="${esc(sess.key)}">${lv && lv.key === sess.key ? "Reprendre la séance" : "Commencer la séance " + jourBtn}</button>${sess.free ? `<button class="btn ghost" style="margin-top:8px" data-act="tab" data-t="seance">Faire une autre séance</button>` : ""}` : ""}`;
+    ${sess && sess.free ? `<button class="btn" style="margin-top:16px" data-act="startLive" data-k="${esc(sess.key)}">${lv && lv.key === sess.key ? "Reprendre la séance" : "Commencer la séance " + jourBtn}</button>${sess.free ? `<button class="btn ghost" style="margin-top:8px" data-act="tab" data-t="seance">Faire une autre séance</button>` : ""}` : ""}`;
   const right = `${nc && !mw ? `<div class="desk-only">${heroCard({plain:true, small:tsmall, big:`${fmt(t)}<small>kg</small>`, sub:tsub})}</div>` : mw && nc ? `<div class="desk-only">${heroMu}</div>` : ""}
     ${shownLifts().length ? "" : mw ? `<div class="panel" style="margin-top:14px"><p style="font-weight:700">Tester ton max ?</p><p class="muted small" style="margin-top:4px">Choisis les mouvements dont tu veux suivre le record et le 1RM estimé. Tu peux aussi ajouter le street lifting ou le powerlifting.</p><button class="btn ghost" style="margin-top:12px" data-act="settings">Ouvrir les réglages</button></div>` : ""}
     ${bil ? `<h2 class="h2">Pour ton coach</h2>${vrow("Bilan de la semaine " + esc(bil.semaine), "sommeil, fatigue, motivation… en 30 secondes", "›", null, `data-act="bilan" data-w="${esc(bil.sheet + "|" + bil.semaine)}"`)}` : ""}`;

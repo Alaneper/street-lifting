@@ -12,9 +12,14 @@ const MUSCLE_MAP = {
 };
 let _muscleN = 0;
 const MUSCLE_NAMES = {quadriceps:"Quadriceps", fessiers:"Fessiers", ischios:"Ischio-jambiers", lombaires:"Lombaires", abdos:"Abdominaux", adducteurs:"Adducteurs", mollets:"Mollets", mollets_d:"Mollets", pectoral:"Pectoraux", deltoide:"Épaules", deltoide_d:"Épaules", triceps:"Triceps", biceps:"Biceps", serratus:"Dentelé", dorsaux:"Dorsaux", trapeze_d:"Trapèzes", trapeze:"Trapèzes", avant_bras:"Avant-bras", obliques:"Obliques"};
+function muscleMap(lift){   /* un mouvement, ou une liste (séance) : principal l'emporte sur secondaire */
+  const L = (Array.isArray(lift) ? lift : [lift]).filter(l => MUSCLE_MAP[l]), out = {};
+  L.forEach(l => Object.keys(MUSCLE_MAP[l]).forEach(k => { out[k] = Math.min(out[k] || 9, MUSCLE_MAP[l][k]); }));
+  return L.length ? out : null;
+}
 function muscleFig(lift, o){
   o = o || {};
-  const map = MUSCLE_MAP[lift]; if (!map) return "";
+  const map = muscleMap(lift); if (!map) return "";
   const has = (v, k) => MUSCLE_SVG[v].includes('class="m ' + k + '"') || MUSCLE_SVG[v].includes('class="m ' + k + ' dk"');
   const score = v => Object.keys(map).reduce((n, k) => n + (map[k] === 1 && has(v, k) ? 2 : map[k] === 2 && has(v, k) ? 1 : 0), 0);
   let views = o.view === "both" ? ["front", "back"] : o.view === "front" || o.view === "back" ? [o.view] : [score("front") >= score("back") ? "front" : "back"];
@@ -28,7 +33,7 @@ function muscleFig(lift, o){
   return '<div class="mplate' + (o.cls ? " " + o.cls : "") + '">' + views.map(fig).join("") + "</div>";
 }
 function muscleList(lift){
-  const map = MUSCLE_MAP[lift] || {}, seen = new Set(), out = {p:[], s:[]};
+  const map = muscleMap(lift) || {}, seen = new Set(), out = {p:[], s:[]};
   Object.keys(map).forEach(k => { const nm = MUSCLE_NAMES[k] || k; if (seen.has(nm)) return; seen.add(nm); (map[k] === 1 ? out.p : out.s).push(nm); });
   return out;
 }
