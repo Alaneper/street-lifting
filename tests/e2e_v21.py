@@ -54,7 +54,7 @@ with sync_playwright() as p:
     worst = min(min(cr(x[1], deck), cr(x[2], deck) / 1.5 * 1.5, cr(x[3], deck)) for x in r) if r else 0
     check("héros : 4 mouvements en carte sombre", len(r) == 4 and all(x[0] == deck for x in r), r)
     check("héros : chiffre ≥ 3:1, petits textes ≥ 4,5:1", all(cr(x[1], deck) >= 3 and cr(x[2], deck) >= 4.5 and cr(x[3], deck) >= 4.5 for x in r), [[round(cr(x[i], deck), 2) for i in (1, 2, 3)] for x in r])
-    check("héros du total / J-X : carte sombre, chiffre en bleu acier", pg.evaluate("(() => { setTab('home'); const h = document.querySelector('#v-home .hero'); return !h.classList.contains('mv') && getComputedStyle(h).backgroundColor === 'rgb(22, 21, 19)' && getComputedStyle(h.querySelector('.hb')).color === 'rgb(111, 160, 218)'; })()"))
+    check("héros du total (Progrès) : carte sombre, chiffre en bleu acier", pg.evaluate("(() => { setTab('prog'); const h = document.querySelector('#v-prog .hero'); return !h.classList.contains('mv') && getComputedStyle(h).backgroundColor === 'rgb(22, 21, 19)' && getComputedStyle(h.querySelector('.hb')).color === 'rgb(111, 160, 218)'; })()"))
     # Couleurs d'état neutres
     pg.evaluate("setTab('prog')"); pg.wait_for_timeout(600)
     r = pg.evaluate("[...document.querySelectorAll('.tag.ok')].map(t => getComputedStyle(t).backgroundColor)")
@@ -66,8 +66,8 @@ with sync_playwright() as p:
 
     # 3A. Pesée du matin : carte sous le héros, bouton et marge mis à jour en direct, disparaît une fois pesé
     pg.evaluate("D.poids = D.poids.filter(p => p.date !== D.today); setTab('home')"); pg.wait_for_timeout(300)
-    r = pg.evaluate("""(() => { const h = document.querySelector('#v-home .hero'), w = document.querySelector('#v-home .weigh'); return [!!w, w && h.nextElementSibling === w, document.querySelector('#hwbtn').textContent, (document.querySelector('#hwlim') || {}).textContent]; })()""")
-    check("pesée : carte juste sous le héros", r[0] and r[1], r)
+    r = pg.evaluate("""(() => { const h = document.querySelector('#v-home .tdc'), w = document.querySelector('#v-home .weigh'); return [!!w, w && !!(h.compareDocumentPosition(w) & 4), document.querySelector('#hwbtn').textContent, (document.querySelector('#hwlim') || {}).textContent]; })()""")
+    check("pesée : carte après la carte du jour", r[0] and r[1], r)
     pg.click(".weigh [data-act=stepW][data-d='0.1']"); pg.wait_for_timeout(150)
     r2 = pg.evaluate("[document.querySelector('#hw').value, document.querySelector('#hwbtn').textContent, (document.querySelector('#hwlim') || {}).textContent]")
     check("pesée : « + » met à jour le bouton et la marge", r2[1] != r[2] and r2[0] in r2[1] and (r2[2] or "") != (r[3] or ""), [r, r2])
@@ -96,7 +96,7 @@ with sync_playwright() as p:
     pg.click("[data-act=closeLive]"); pg.wait_for_timeout(800)
     pg.reload(); pg.wait_for_function("typeof D !== 'undefined' && D && S.length > 0", timeout=20000); pg.wait_for_timeout(1500)
     check("reprise : pas de réouverture d'une séance fermée avec ×", pg.evaluate("!live && !document.querySelector('.live')"))
-    check("reprise : « Reprendre la séance » reste proposé", "Reprendre la séance" in pg.evaluate("document.querySelector('#v-home').textContent"))
+    check("reprise : « Reprendre » reste proposé (barre En pause)", "Reprendre" in pg.evaluate("(document.querySelector('#v-home .pbar') || {textContent: ''}).textContent"))
     pg.evaluate(f"""(() => {{ const k = ck('sl4-live'), v = store.get(k); v.paused = false; v.at = Date.now() - 4 * 3600e3; v.start = v.at; store.set(k, v); }})()""")
     pg.reload(); pg.wait_for_function("typeof D !== 'undefined' && D && S.length > 0", timeout=20000); pg.wait_for_timeout(1500)
     check("reprise : pas après 3 h", pg.evaluate("!live"))

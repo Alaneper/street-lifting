@@ -80,7 +80,7 @@ with sync_playwright() as p:
     t = pg.evaluate("document.querySelector('#v-prog').innerText")
     check("Progrès power : total power et IPF GL", "Mon total power" in t and "IPF GL" in t and "Bench" in t and "Deadlift" in t, t[:300])
     pg.screenshot(path=str(OUT / "v28-progres-power.png"))
-    check("accueil : total power quand power est choisi", "Mon total power" in pg.evaluate("(rHome(), document.querySelector('#v-home').innerText)"))
+    check("Progrès : total power quand power est choisi (le total a quitté l'accueil en v3)", "Mon total power" in pg.evaluate("(rProg(), document.querySelector('#v-prog').innerText)"))
 
     # 4. Equipped : le squat equipped ne compte pas en street
     pg.evaluate("ACT.powerMode({k:'EQUIPPED'})"); pg.wait_for_timeout(500)

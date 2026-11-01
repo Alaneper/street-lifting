@@ -385,6 +385,17 @@ html,body{overflow-x:clip}body{margin-top:0}
 .liftrow .top .val{font:700 22px var(--f-show)}
 .liftrow .bar{height:6px;margin:10px 0 6px;background:var(--deck2)}
 .liftrow .meta{display:flex;justify-content:space-between;font-size:13px;color:var(--dust)}
+/* Aujourd'hui v3 : bande de la semaine, barre de reprise */
+.wk{display:flex;gap:2px;margin-top:12px}
+.wk-d{flex:1;height:58px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--chalk)}
+.wk-d span{font:600 11px var(--f-text);opacity:.7}.wk-d b{font:800 20px/1 var(--f-show)}.wk-d i{width:5px;height:5px;border-radius:3px}
+.wk-d i.ok{background:var(--acc)}.wk-d i.todo{background:var(--dust)}
+.wk-d.now{background:var(--chalk);color:var(--floor)}.wk-d.now i.todo{background:var(--floor)}
+.wk-d:disabled{opacity:.45}.wk-d.now:disabled{opacity:1}
+.pbar{margin-top:12px;border-radius:14px;background:var(--deck);padding:10px 10px 10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pb-t{display:flex;flex-direction:column;gap:2px;min-width:0}.pb-s{font:12px var(--f-text);color:var(--faint);display:flex;align-items:center;gap:6px}.pb-s i{width:7px;height:7px;border-radius:4px;background:var(--acc)}
+.pb-t b{font:600 15px var(--f-text);color:var(--chalk)}.pb-b{flex:none;height:44px;padding:0 16px;border-radius:10px;background:var(--chalk);color:var(--floor);font:700 14px var(--f-text)}
+.tdc-chips .comp{background:color-mix(in srgb,var(--comp) 28%,var(--deck3));color:var(--chalk)}
 /* Carte du jour (v3) */
 .tdc{margin-top:14px;border-radius:var(--r-lg);background:var(--deck);box-shadow:inset 0 0 0 1px var(--seam);padding:14px;display:flex;flex-direction:column;gap:12px}
 .tdc-top{display:flex;align-items:center;gap:10px}.tdc-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
@@ -508,9 +519,10 @@ html,body{overflow-x:clip}body{margin-top:0}
 
 <main id="app">
   <div class="topbar"><div class="brandmark" id="topdate"><svg width="30" height="25" viewBox="0 0 120 100" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="butt" stroke-linejoin="miter"><line x1="11" y1="0" x2="11" y2="100" stroke-width="22"/><path d="M11 9.5H38A19.25 19.25 0 0 1 38 48H11" stroke-width="19"/><path d="M11 48H43A21.25 21.25 0 0 1 43 90.5H11" stroke-width="19"/></g><path d="M6 30C6 12 20 2 34 2C50 2 61 12 61 27C61 39 53 48 41 58L24 73H61V96H4V77L34 50C40 44 45 38 45 30C45 22 41 17 34 17C26 17 22 23 22 32Z" fill="var(--acc)" transform="translate(76 0) scale(0.44)"/></svg>B2Strong<span class="tabname" id="tabname" aria-hidden="true">Aujourd'hui</span></div><button class="avatar" data-act="settings" aria-label="Réglages et synchronisation"><span id="initial">·</span><span class="dot busy" id="syncdot"></span></button></div>
-  <div class="segc" id="subseance" role="group" aria-label="Séance" style="margin:12px 0 0"><button data-sub="home" aria-pressed="true">Aujourd'hui</button><button data-sub="seance" aria-pressed="false">Programme</button></div>
+  <div class="segc" id="subseance" role="group" aria-label="Séance" style="margin:12px 0 0"><button data-sub="home" aria-pressed="true">Aujourd'hui</button><button data-sub="seance" aria-pressed="false">Programme</button><button data-sub="histo" aria-pressed="false">Historique</button></div>
   <section id="v-home" class="view"><div class="skel" style="height:190px;margin-top:18px"></div><div class="skel" style="height:150px;margin-top:14px"></div><p class="muted small" style="margin-top:14px">La première fois, Claude te demande d'autoriser l'accès à Google Sheets. Touche « Autoriser ».</p></section>
   <section id="v-seance" class="view" hidden></section>
+  <section id="v-histo" class="view" hidden></section>
   <section id="v-prog" class="view" hidden></section>
   <section id="v-corps" class="view" hidden></section>
   <section id="v-agenda" class="view" hidden></section>
@@ -1535,8 +1547,8 @@ let corpsManual = "";   /* jour où tu as choisi Alimentation/Poids toi-même */
 function setTab(t){
   if (t === "corps" && tab !== "corps" && !(D && corpsManual === D.today)) corpsTab = D && new Date().getHours() < 12 && !D.poids.some(p => p.date === D.today) ? "poids" : "nutri";
   tab = t;
-  const tn = $("#tabname"); if (tn) tn.textContent = {home:"Séance", seance:"Séance", prog:"Progrès", corps:"Corps", agenda:"Classement"}[t] || "";
-  const top = t === "seance" ? "home" : t;   /* Séance regroupe Aujourd'hui et Programme */
+  const tn = $("#tabname"); if (tn) tn.textContent = {home:"Séance", seance:"Séance", histo:"Séance", prog:"Progrès", corps:"Corps", agenda:"Classement"}[t] || "";
+  const top = t === "seance" || t === "histo" ? "home" : t;   /* Séance regroupe Aujourd'hui et Programme */
   document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.tab === top ? "page" : "false"));
   const ss = $("#subseance"); if (ss) { ss.hidden = top !== "home"; ss.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.sub === t))); }
   document.querySelectorAll(".view").forEach(v => v.hidden = v.id !== "v-" + t);
@@ -1546,7 +1558,7 @@ addEventListener("scroll", () => document.body.classList.toggle("scrolled", scro
 function render(){
   if (!D) return;
   renderTop();
-  ({home:rHome, seance:rSeance, prog:rProg, corps:rCorps, agenda:rAgenda})[tab]();
+  ({home:rHome, seance:rSeance, histo:rHisto, prog:rProg, corps:rCorps, agenda:rAgenda})[tab]();
   renderLayer();
 }
 function renderTop(){
@@ -1678,7 +1690,7 @@ function muscuWeek(ref){
   return {done:ss.filter(z => z.faite).length, planned:ss.length, min:tot.min, km:tot.km};
 }
 /* v67 étape C : carte de la séance du jour (planche v3) */
-function todayCard(s, lv){
+function todayCard(s, lv, bar, nc){
   const exs = s.exercices.filter(e => e.mouvement), lifts = [...new Set(exs.map(e => liftOf(e.mouvement)).filter(Boolean))];
   const d = dateOf(s), sets = exs.reduce((n, e) => n + (isNumTxt(e.series) ? num(e.series) : 0), 0);
   const coach = (exs.find(e => e.coach && String(e.coach).trim()) || {}).coach;
@@ -1689,11 +1701,29 @@ function todayCard(s, lv){
       <span class="tdr-t"><b>${esc(e.mouvement)}</b><span>${[e.series && e.reps ? esc(e.series) + " × " + esc(e.reps) : "", e.rpe1 ? "RPE " + esc(e.rpe1) : ""].filter(Boolean).join(" · ")}</span></span>${kgTxt ? `<span class="tdr-k${isNumTxt(e.charge) ? "" : " txt"}">${kgTxt}</span>` : ""}</button>`; };
   const shown = exs.slice(0, 4), more = exs.length - shown.length;
   return `<div class="tdc"><div class="tdc-top"><div class="tdc-main"><span class="tdc-eye">${esc(eye)}</span><span class="tdc-ttl">${esc(sessLabel(s))}</span>
-      <span class="tdc-chips"><span>${exs.length} exercice${exs.length > 1 ? "s" : ""}</span>${sets ? `<span>${sets} séries</span>` : ""}</span></div>
+      <span class="tdc-chips"><span>${exs.length} exercice${exs.length > 1 ? "s" : ""}</span>${sets ? `<span>${sets} séries</span>` : ""}${nc ? `<span class="comp">${days(D.today, nc.date) === 0 ? "Jour J" : "J−" + days(D.today, nc.date)} · ${esc(nc.nom)}</span>` : ""}</span></div>
       ${lifts.length ? muscleFig(lifts, {view:"both", cls:"tdc-plate"}) : ""}</div>
     ${coach ? `<p class="tdc-coach"><b>CO</b><span>« ${esc(coach)} »</span></p>` : ""}
-    <button class="btn" data-act="startLive" data-k="${esc(s.key)}">${resume ? "Reprendre la séance" : "Commencer la séance"}</button></div>
+    ${bar ? "" : `<button class="btn" data-act="startLive" data-k="${esc(s.key)}">${resume ? "Reprendre la séance" : "Commencer la séance"}</button>`}</div>
     ${shown.length ? `<h2 class="h2">Au programme</h2><div>${shown.map(row).join("")}${more > 0 ? `<button class="tdr tdr-more" data-act="openSeance" data-k="${esc(s.key)}"><span>+ ${more} exercice${more > 1 ? "s" : ""}</span><span>Voir tout ›</span></button>` : ""}</div>` : ""}`;
+}
+/* v67 : bande de la semaine, barre de reprise, historique (écran Aujourd'hui v3) */
+function weekStrip(ref){
+  const mon = addDays(ref, -((dObj(ref).getDay() + 6) % 7)), L = ["L", "M", "M", "J", "V", "S", "D"];
+  return `<div class="wk" role="group" aria-label="Cette semaine">${L.map((l, i) => { const d = addDays(mon, i), ss = S.filter(z => dateOf(z) === d), done = ss.length && ss.every(z => z.faite);
+    return `<button class="wk-d${d === D.today ? " now" : ""}" ${ss.length ? `data-act="openSeance" data-k="${esc(ss[0].key)}" aria-label="${esc(JOURS[dObj(d).getDay()])} ${dObj(d).getDate()} : ${esc(sessLabel(ss[0]))}${done ? ", faite" : ""}"` : "disabled"}><span>${l}</span><b>${dObj(d).getDate()}</b><i class="${done ? "ok" : ss.length ? "todo" : ""}"></i></button>`; }).join("")}</div>`;
+}
+function pauseBarHtml(s, lv){
+  const at = lv.at ? new Date(lv.at) : null, hh = at ? String(at.getHours()).padStart(2, "0") + ":" + String(at.getMinutes()).padStart(2, "0") : "";
+  const day = at ? (isoOf(at) === D.today ? "aujourd'hui" : isoOf(at) === addDays(D.today, -1) ? "hier" : dfr(isoOf(at))) : "", ex = s.exercices[lv.i], l = ex ? liftOf(ex.mouvement) : null;
+  const nm = ex ? (l ? LNAME[l] : title(ex.mouvement)) : "";
+  return `<div class="pbar"><span class="pb-t"><span class="pb-s"><i></i>En pause${at ? " depuis " + day + " " + hh : ""}</span>${nm ? `<b>${esc(nm)} · exercice ${lv.i + 1} sur ${s.exercices.length}</b>` : ""}</span><button class="pb-b" data-act="startLive" data-k="${esc(s.key)}">Reprendre</button></div>`;
+}
+function rHisto(){
+  const done = S.filter(z => z.faite && dateOf(z)).sort((a, b) => dateOf(a) < dateOf(b) ? 1 : -1).slice(0, 80);
+  $("#v-histo").innerHTML = done.length ? `<h2 class="h2">Séances faites <span class="muted">${done.length}</span></h2>${done.map(z => { const d = dateOf(z), dd = dObj(d), n = z.exercices.filter(e => e.mouvement).length;
+    return `<button class="day done" data-act="openSeance" data-k="${esc(z.key)}"><span class="dn"><b>${dd.getDate()}</b><span>${["dim.","lun.","mar.","mer.","jeu.","ven.","sam."][dd.getDay()]}</span></span><span class="grow">${esc(sessLabel(z))}<span>${esc(blocLabel(z.bloc))}${z.semaine ? " · S" + esc(z.semaine) : ""} · ${n} exercice${n > 1 ? "s" : ""}</span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--steel-hi)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-label="Faite"><path d="M5 12l5 5 9-10"/></svg></button>`; }).join("")}`
+    : `<div class="empty" style="margin-top:24px"><p>Aucune séance terminée pour l'instant.</p><p class="muted small" style="margin-top:6px">Elles apparaîtront ici dès ta première séance.</p></div>`;
 }
 function rHome(){
   if (document.activeElement && document.activeElement.id === "hw") return;   /* ne pas fermer le clavier pendant la saisie du poids */
@@ -1706,13 +1736,12 @@ function rHome(){
   const heroMu = mw ? heroCard({small:"Cette semaine", big:`${mw.done}<small>${mw.planned > mw.done ? "/" + mw.planned : ""} séance${mw.done > 1 ? "s" : ""}</small>`, sub:[mw.min ? `${fmt(mw.min, 0)} min de cardio` : "", mw.km ? `${fmt(mw.km, 1)} km` : "", rem ? `encore ${rem} séance${rem > 1 ? "s" : ""} dans le ${blocLow(activeBloc())}` : ""].filter(Boolean).join(" · ") || "Ta régularité compte plus que tout", act:`data-act="tab" data-t="prog" role="button" tabindex="0"`}) : "";
   const heroH = mw && !nc ? heroMu : nc ? heroCard({small:`${esc(nc.nom)}, ${dlong(nc.date)}`, big:days(D.today, nc.date) === 0 ? "Jour J" : "J−" + days(D.today, nc.date), sub:[nc.tbc ? "date à confirmer" : "", rem ? `encore ${rem} séance${rem > 1 ? "s" : ""} dans le ${blocLow(activeBloc())}` : ""].filter(Boolean).join(" · "), act:`data-act="tab" data-t="agenda" role="button" tabindex="0"`})
     : heroCard({small:tsmall, big:`${fmt(t)}<small>kg</small>`, sub:tsub, act:`data-act="tab" data-t="prog" role="button" tabindex="0"`});
-  const left = `${sess && !sess.free ? todayCard(sess, lv) : ""}${heroH}${weighed ? "" : weighCard(pw)}
-    ${sess && sess.free ? freeWeekHtml(sess) : `<h2 class="h2">Cette semaine <span class="muted">${sess ? esc(blocLabel(sess.bloc)) + (sess.semaine ? ", semaine " + esc(sess.semaine) : "") : ""}</span></h2>
-    ${S.length ? (wr || `<p class="muted small">Aucune séance datée cette semaine.</p>`) : !coachId() ? impEmptyHtml() : `<div class="row" style="padding:14px 0"><span class="muted">${esc(seanceErr) || "Chargement de ta prog…"}</span>${seanceErr ? "" : `<div class="spin"></div>`}</div>`}`}
+  const pauseBar = sess && !sess.free && lv && lv.key === sess.key ? pauseBarHtml(sess, lv) : "";
+  const left = `${S.length ? weekStrip(weekRef) : ""}${pauseBar}${sess && !sess.free ? todayCard(sess, lv, !!pauseBar, nc) : ""}${weighed ? "" : weighCard(pw)}
+    ${sess && sess.free ? freeWeekHtml(sess) : `${S.length ? (sess ? "" : `<p class="muted small">Aucune séance datée cette semaine.</p>`) : !coachId() ? impEmptyHtml() : `<div class="row" style="padding:14px 0"><span class="muted">${esc(seanceErr) || "Chargement de ta prog…"}</span>${seanceErr ? "" : `<div class="spin"></div>`}</div>`}`}
     ${impCan() && coachId() && S.length && !sess && !remainingInBloc() ? `<div class="panel" style="margin-top:14px"><p style="font-weight:700">Bloc terminé</p><p class="muted small" style="margin-top:4px">Prépare le suivant : l'app reprend ta dernière semaine et ajuste les charges d'après tes RPE. Tu vérifies avant d'enregistrer.</p><button class="btn" style="margin-top:12px" data-act="impNext">Préparer le bloc suivant</button></div>` : ""}
     ${sess && sess.free ? `<button class="btn" style="margin-top:16px" data-act="startLive" data-k="${esc(sess.key)}">${lv && lv.key === sess.key ? "Reprendre la séance" : "Commencer la séance " + jourBtn}</button>${sess.free ? `<button class="btn ghost" style="margin-top:8px" data-act="tab" data-t="seance">Faire une autre séance</button>` : ""}` : ""}`;
-  const right = `${nc && !mw ? `<div class="desk-only">${heroCard({plain:true, small:tsmall, big:`${fmt(t)}<small>kg</small>`, sub:tsub})}</div>` : mw && nc ? `<div class="desk-only">${heroMu}</div>` : ""}
-    ${shownLifts().length ? "" : mw ? `<div class="panel" style="margin-top:14px"><p style="font-weight:700">Tester ton max ?</p><p class="muted small" style="margin-top:4px">Choisis les mouvements dont tu veux suivre le record et le 1RM estimé. Tu peux aussi ajouter le street lifting ou le powerlifting.</p><button class="btn ghost" style="margin-top:12px" data-act="settings">Ouvrir les réglages</button></div>` : ""}
+  const right = `${shownLifts().length ? "" : mw ? `<div class="panel" style="margin-top:14px"><p style="font-weight:700">Tester ton max ?</p><p class="muted small" style="margin-top:4px">Choisis les mouvements dont tu veux suivre le record et le 1RM estimé. Tu peux aussi ajouter le street lifting ou le powerlifting.</p><button class="btn ghost" style="margin-top:12px" data-act="settings">Ouvrir les réglages</button></div>` : ""}
     ${bil ? `<h2 class="h2">Pour ton coach</h2>${vrow("Bilan de la semaine " + esc(bil.semaine), "sommeil, fatigue, motivation… en 30 secondes", "›", null, `data-act="bilan" data-w="${esc(bil.sheet + "|" + bil.semaine)}"`)}` : ""}`;
   $("#v-home").innerHTML = `<div class="homegrid"><div>${left}</div><div>${right}</div></div>`;
   firstPaint = false;
