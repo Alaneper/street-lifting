@@ -71,7 +71,7 @@ with sync_playwright() as p:
         pg.wait_for_function("typeof D !== 'undefined' && D && S.length > 0", timeout=20000); pg.wait_for_timeout(3000)
         snap("03-aujourdhui")
         for t, n in [("seance", "04-prog"), ("prog", "05-progres"), ("corps", "06-corps-alimentation"), ("agenda", "08-compet")]:
-            pg.evaluate("ACT.closeSheet && ACT.closeSheet()"); pg.click(f"[data-tab={t}]"); pg.wait_for_timeout(1500); snap(n)
+            pg.evaluate("ACT.closeSheet && ACT.closeSheet()"); pg.click("[data-sub=seance]" if t == "seance" else f"[data-tab={t}]"); pg.wait_for_timeout(1500); snap(n)
             if t == "corps":
                 pg.click("[data-act=corpsTab][data-k=poids]"); pg.wait_for_timeout(900); snap("07-corps-poids")
                 pg.click("[data-act=corpsTab][data-k=nutri]"); pg.wait_for_timeout(300)

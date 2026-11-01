@@ -18,7 +18,7 @@ with sync_playwright() as p:
     print("chargement initial (mock) :", round(t1 - t0, 2), "s | appels API :", len(pg.evaluate("window.__api || []")))
     shot("03-home")
     for t in ["seance", "prog", "corps", "agenda"]:
-        pg.evaluate("ACT.closeSheet && ACT.closeSheet()"); pg.click(f"[data-tab={t}]"); pg.wait_for_timeout(1800); shot(f"04-{t}")
+        pg.evaluate("ACT.closeSheet && ACT.closeSheet()"); pg.click("[data-sub=seance]" if t == "seance" else f"[data-tab={t}]"); pg.wait_for_timeout(1800); shot(f"04-{t}")
     pg.click("[data-tab=corps]"); pg.wait_for_timeout(500); pg.click("[data-act=corpsTab][data-k=poids]"); pg.wait_for_timeout(800); shot("04-corps-poids")
     pg.click("[data-act=corpsTab][data-k=nutri]"); pg.wait_for_timeout(300)
     pg.click("[data-tab=prog]"); pg.wait_for_timeout(500)

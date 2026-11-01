@@ -33,6 +33,18 @@ with sync_playwright() as p:
     pg.evaluate("scrollTo(0, 0)"); pg.wait_for_timeout(300)
     check("en-tête : nom de l'onglet masqué en haut de page", pg.evaluate("getComputedStyle(document.querySelector('#tabname')).opacity") == "0")
     pg.evaluate("setTab('prog')"); check("en-tête : nom de l'onglet suit l'onglet", pg.evaluate("document.querySelector('#tabname').textContent") == "Progrès")
+    # v67 : 4 onglets (Séance, Corps, Progrès, Classement) ; Séance = Aujourd'hui + Programme
+    check("nav : 4 onglets", pg.evaluate("document.querySelectorAll('.tabs button').length") == 4)
+    check("nav : libellés Séance/Corps/Progrès/Classement", pg.evaluate("[...document.querySelectorAll('.tabs button')].map(b=>b.textContent.trim()).join('|')") == "Séance|Corps|Progrès|Classement")
+    pg.click("[data-tab=home]"); pg.wait_for_timeout(300)
+    check("nav : sous-onglets visibles sur Séance", pg.evaluate("!document.querySelector('#subseance').hidden"))
+    pg.click("[data-sub=seance]"); pg.wait_for_timeout(500)
+    check("nav : Programme garde l'onglet Séance actif", pg.evaluate("document.querySelector('.tabs [data-tab=home]').getAttribute('aria-current')") == "page" and pg.evaluate("tab") == "seance")
+    pg.click("[data-tab=corps]"); pg.wait_for_timeout(300)
+    check("nav : sous-onglets masqués hors Séance", pg.evaluate("document.querySelector('#subseance').hidden"))
+    pg.click("[data-tab=agenda]"); pg.wait_for_timeout(300)
+    check("nav : Classement affiche la compétition", pg.evaluate("document.querySelector('#tabname').textContent") == "Classement" and pg.evaluate("!document.querySelector('#v-agenda').hidden"))
+    pg.click("[data-tab=home]"); pg.wait_for_timeout(300)
 
     # 2B. Héros des mouvements : carte sombre, chiffre en couleur, contrastes AA
     pg.evaluate("""(() => { setTab('seance'); const el = document.querySelector('#v-seance');
