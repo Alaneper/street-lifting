@@ -24,6 +24,6 @@ with sync_playwright() as p:
     print("coach :", pg.evaluate("D.profil.coach_sheet_id"), pg.evaluate("Object.keys(window.__sheets)"), pg.evaluate("seanceErr"))
     print("ordre nouvelle prog :", pg.evaluate("progOrder.map(blocLabel)"))
     print("bloc actif :", pg.evaluate("blocLabel(activeBloc())"), "| séances archivées :", pg.evaluate("S.filter(s=>s.archived).length"))
-    pg.click("[data-tab=prog]"); pg.wait_for_timeout(1500); pg.screenshot(path=str(OUT/"progres-semaine.png"), full_page=True)
-    print("semaine :", pg.locator("#v-prog .hero").nth(1).inner_text().replace("\n"," | ")[:150])
+    pg.click("[data-tab=prog]"); pg.wait_for_timeout(800); pg.click("[data-act=progSeg][data-k=courbes]"); pg.wait_for_timeout(1500); pg.screenshot(path=str(OUT/"progres-semaine.png"), full_page=True)
+    print("semaine :", pg.locator("#v-prog .hero").first.inner_text().replace("\n"," | ")[:150])
     print("ERRORS:", errs[:10])

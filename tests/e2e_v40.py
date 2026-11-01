@@ -79,7 +79,7 @@ with sync_playwright() as p:
     pg.evaluate("(k) => { sel = k; tab = 'seance'; render(); }", key); pg.wait_for_timeout(400)
     tx = pg.evaluate("document.querySelector('#v-seance').innerText")
     check("onglet séance : « Fait : 25 min 6,5 km + 5 min »", "25 min 6,5 km + 5 min" in tx, tx[-400:])
-    pg.evaluate("(k) => { tab = 'prog'; render(); }", key); pg.wait_for_timeout(500)
+    pg.evaluate("(k) => { tab = 'prog'; progSeg = 'courbes'; render(); }", key); pg.wait_for_timeout(500)
     tp = pg.evaluate("document.querySelector('#v-prog').innerText")
     check("onglet progrès : bloc Cardio", "Cardio" in tp and "30 min" in tp, tp[:600])
     check("aucune erreur JS (street + cardio)", not errs, errs)

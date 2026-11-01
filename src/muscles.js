@@ -10,6 +10,8 @@ const MUSCLE_MAP = {
   DIP:{pectoral:1, triceps:1, deltoide:2, abdos:2},
   MU:{dorsaux:1, pectoral:1, triceps:1, biceps:1, abdos:2, deltoide:2}
 };
+/* vue la plus parlante d'un mouvement seul (vignettes) */
+const MUSCLE_VIEW = {SQUAT:"front", BENCH:"front", DIP:"front", DEADLIFT:"back", PULL:"back", MU:"back"};
 let _muscleN = 0;
 const MUSCLE_NAMES = {quadriceps:"Quadriceps", fessiers:"Fessiers", ischios:"Ischio-jambiers", lombaires:"Lombaires", abdos:"Abdominaux", adducteurs:"Adducteurs", mollets:"Mollets", mollets_d:"Mollets", pectoral:"Pectoraux", deltoide:"Épaules", deltoide_d:"Épaules", triceps:"Triceps", biceps:"Biceps", serratus:"Dentelé", dorsaux:"Dorsaux", trapeze_d:"Trapèzes", trapeze:"Trapèzes", avant_bras:"Avant-bras", obliques:"Obliques"};
 function muscleMap(lift){   /* un mouvement, ou une liste (séance) : principal l'emporte sur secondaire */
@@ -22,7 +24,8 @@ function muscleFig(lift, o){
   const map = muscleMap(lift); if (!map) return "";
   const has = (v, k) => MUSCLE_SVG[v].includes('class="m ' + k + '"') || MUSCLE_SVG[v].includes('class="m ' + k + ' dk"');
   const score = v => Object.keys(map).reduce((n, k) => n + (map[k] === 1 && has(v, k) ? 2 : map[k] === 2 && has(v, k) ? 1 : 0), 0);
-  let views = o.view === "both" ? ["front", "back"] : o.view === "front" || o.view === "back" ? [o.view] : [score("front") >= score("back") ? "front" : "back"];
+  const pref = !Array.isArray(lift) && MUSCLE_VIEW[lift];
+  let views = o.view === "both" ? ["front", "back"] : o.view === "front" || o.view === "back" ? [o.view] : [pref || (score("front") >= score("back") ? "front" : "back")];
   const fig = v => {
     const n = ++_muscleN;
     return MUSCLE_SVG[v]
