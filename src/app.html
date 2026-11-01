@@ -415,6 +415,23 @@ html,body{overflow-x:clip}body{margin-top:0}
 /* Progrès (v3) */
 .ftd{font:600 11px var(--f-text);color:var(--data);font-style:normal}.ftd.none{visibility:hidden}
 .liftrow .top .mplate.thumb{margin-right:2px}
+/* v67 étape G : Corps v3 */
+.pw-l .lg-lab{white-space:nowrap}
+.pw-r .lg-lab{text-transform:none;letter-spacing:0;font:500 13px var(--f-text)}
+.fchip{display:inline-block;font:700 13px var(--f-text);color:var(--chalk);background:var(--deck3);border-radius:999px;padding:5px 11px}
+.pw-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.pw-r{display:flex;flex-direction:column;align-items:flex-end;gap:8px;text-align:right}
+.pw-big{display:block;font:800 56px/1 var(--f-show);color:var(--chalk);margin-top:4px}
+.pw-big small{font:700 .38em var(--f-show);margin-left:5px;color:var(--dust)}
+.pw-leg{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin-top:10px;font:500 13px var(--f-text);color:var(--dust)}
+.pw-leg i{display:inline-block;margin-right:6px;vertical-align:middle}
+.pw-leg .pw-av{margin-left:auto}
+.kbar{display:block;height:8px;border-radius:4px;background:var(--deck3);margin-top:16px;overflow:hidden;position:relative}
+.kbar i{display:block;height:100%;border-radius:4px;background:var(--acc)}
+.kbar.over i{background:var(--warn)}
+.pdots{display:flex;gap:8px;margin-top:12px}
+.pdots span{flex:1;height:34px;border-radius:17px;background:var(--deck3);color:var(--faint);font:600 12px var(--f-text);display:flex;align-items:center;justify-content:center}
+.pdots span.ok{background:var(--acc);color:#fff}
 .chart{position:relative;height:190px}
 /* Fin de séance (v3) */
 .sheet.full{top:0;max-height:none;border-radius:0;background:var(--floor);padding-top:calc(env(safe-area-inset-top,0px) + 6px)}
@@ -2631,28 +2648,25 @@ function weightTrend(){ const P = D.poids.filter(p => p.date >= addDays(D.today,
   let a = 0, c = 0; x.forEach((xi, i) => { a += (xi - mx) * (y[i] - my); c += (xi - mx) ** 2; }); return c ? {perDay:a / c, at:d => my + a / c * (days(P[0].date, d) - mx)} : null; }
 function rPoids(){
   const P = D.poids, last = P.at(-1), lim = catLimit(), V = inRange(P, pwRange), mm = avg7(P), mmV = mm.slice(P.length - V.length), tw = P.find(p => p.date === D.today);
-  const delta = V.length > 1 ? mmV.at(-1) - mmV[0] : null, av = V.length ? sum(V.map(p => p.poids)) / V.length : null;
+  const wt = weightTrend(), cur = mm.length ? mm.at(-1) : null, perWeek = wt ? wt.perDay * 7 : null, nc = nextComp(), dd = nc ? days(D.today, nc.date) : null;
+  const av = V.length ? sum(V.map(p => p.poids)) / V.length : null, proj = wt && nc && dd !== null && dd >= 0 ? wt.at(nc.date) : null;
+  const marge = lim && last ? lim - last.poids : null;
   $("#v-corps").innerHTML = `
-    ${heroCard({plain:true, small:tw ? "Pesée de ce matin" : last ? "Dernière pesée, " + dlong(last.date) : "Aucune pesée", big:last ? `${fmt(last.poids, 1)}<small>kg</small>` : "—",
-      sub:lim && last ? (last.poids <= lim ? fmt(lim - last.poids, 1) + " kg sous la limite des −" + lim : fmt(last.poids - lim, 1) + " kg au-dessus de la limite des −" + lim) : "",
-      extra:`<div class="hbtns"><button class="pm" data-act="stepW" data-d="-0.1" aria-label="Moins 100 g">−</button><input id="cw" inputmode="decimal" value="${last ? fmt(tw ? tw.poids : last.poids, 1) : ""}" aria-label="Poids en kg"><button class="pm" data-act="stepW" data-d="0.1" aria-label="Plus 100 g">+</button></div>
-        <div class="grid2" style="margin-top:8px;position:relative;grid-template-columns:1.15fr 1fr"><input id="cwd" type="date" value="${D.today}" aria-label="Date" style="background:var(--deck3);border:0;color:var(--chalk)"><button class="btn" style="min-height:48px" data-act="saveW" data-src="cw">${tw ? "Corriger" : "Enregistrer"}</button></div>`})}
-    <h2 class="h2">Évolution</h2>
-    <div class="segc">${RANGES.map(([k, t]) => `<button aria-pressed="${k === pwRange}" data-act="pwRange" data-k="${k}">${t}</button>`).join("")}</div>
-    <div style="margin-top:14px">
-      <div class="grid3" style="margin-bottom:12px">
-        <div><p class="muted small">Tendance</p><p class="show t-s" style="margin-top:4px">${delta === null ? "–" : (delta > 0 ? "+" : "") + fmt(delta, 1) + " kg"}</p></div>
-        <div><p class="muted small">Moyenne</p><p class="show t-s" style="margin-top:4px">${av ? fmt(av, 1) : "–"}</p></div>
-        <div><p class="muted small">Min, max</p><p class="show t-s" style="margin-top:4px">${V.length ? fmt(Math.min(...V.map(p => p.poids)), 1) + ", " + fmt(Math.max(...V.map(p => p.poids)), 1) : "–"}</p></div>
-      </div>
-      ${V.length > 1 ? `<canvas id="c-pw" aria-label="Courbe de poids"></canvas>` : `<div class="emptycard"><b>${V.length ? "Une seule pesée sur cette période" : "Aucune pesée sur cette période"}</b><p>Pèse-toi chaque matin, à jeun. La courbe apparaît dès la 2e pesée.</p></div>`}
-      <p class="muted tiny" style="margin-top:8px">La ligne claire est ta moyenne sur 7 jours, plus fiable que la pesée brute. Pèse-toi le matin, à jeun.</p>
-    </div>
-    <h2 class="h2">Importer un historique</h2>
+    <div class="panel" style="margin-top:6px;padding:16px 14px 12px"><div class="pw-top"><span class="pw-l"><span class="lg-lab">Ton poids · tendance</span><b class="pw-big">${cur !== null ? fmt(cur, 1) : "—"}<small>kg</small></b></span>
+      <span class="pw-r">${perWeek !== null && Math.abs(perWeek) >= .05 ? `<span class="fchip">${perWeek > 0 ? "▲" : "▼"} ${fmt(Math.abs(perWeek), 1)} kg / sem.</span>` : ""}<span class="lg-lab">${tw ? "Pesée du jour " + fmt(tw.poids, 1) : last ? "Dernière pesée " + fmt(last.poids, 1) : "Aucune pesée"}</span></span></div>
+      <div style="margin-top:10px">${V.length > 1 ? `<div class="chart"><canvas id="c-pw" aria-label="Courbe de poids"></canvas></div>` : `<div class="emptycard"><b>${V.length ? "Une seule pesée sur cette période" : "Aucune pesée sur cette période"}</b><p>Pèse-toi chaque matin, à jeun. La courbe apparaît dès la 2e pesée.</p></div>`}</div>
+      <p class="pw-leg"><span><i style="background:var(--chalk);width:14px;height:3px"></i>Moyenne 7 j</span><span><i style="background:var(--dust);width:6px;height:6px;border-radius:3px"></i>Pesées</span>${av ? `<span class="pw-av">Moy. ${fmt(av, 1)} · min ${fmt(Math.min(...V.map(p => p.poids)), 1)} · max ${fmt(Math.max(...V.map(p => p.poids)), 1)}</span>` : ""}</p></div>
+    <div class="segc" style="margin-top:10px">${RANGES.map(([k, t]) => `<button aria-pressed="${k === pwRange}" data-act="pwRange" data-k="${k}">${t}</button>`).join("")}</div>
+    ${lim && last ? `<div class="panel" style="margin-top:10px"><p style="font-weight:600">Catégorie −${lim} kg · ${marge >= 0 ? "marge " + fmt(marge, 1) + " kg" : fmt(-marge, 1) + " kg au-dessus"}</p>
+      ${nc && dd >= 0 ? `<p class="muted small" style="margin-top:4px">${esc(nc.nom)} dans ${dd} jour${dd > 1 ? "s" : ""}${proj !== null ? ` · au rythme actuel : ${fmt(proj, 1)} kg le jour J (${proj <= lim ? "sous la limite" : fmt(proj - lim, 1) + " kg au-dessus"})` : ""}</p>` : ""}</div>` : ""}
+    <div class="panel" style="margin-top:10px"><p style="font-weight:600">${tw ? "Corriger la pesée du jour" : "Ajouter une pesée"}</p><p class="muted small" style="margin:2px 0 10px">Le matin, à jeun, après les toilettes.</p><div class="hbtns"><button class="pm" data-act="stepW" data-d="-0.1" aria-label="Moins 100 g">−</button><input id="cw" inputmode="decimal" value="${last ? fmt(tw ? tw.poids : last.poids, 1) : ""}" aria-label="Poids en kg"><button class="pm" data-act="stepW" data-d="0.1" aria-label="Plus 100 g">+</button></div>
+        <div class="grid2" style="margin-top:8px;position:relative;grid-template-columns:1.15fr 1fr"><input id="cwd" type="date" value="${D.today}" aria-label="Date" style="background:var(--deck3);border:0;color:var(--chalk)"><button class="btn" style="min-height:48px" data-act="saveW" data-src="cw">${tw ? "Corriger" : "Enregistrer"}</button></div></div>
+    <h2 class="h2">Dernières pesées</h2><div>${P.slice().reverse().slice(0, 15).map(p => vrow(cap(dlong(p.date)), "", kg(p.poids, 1))).join("")}</div>
+    <details class="more" style="margin-top:22px"><summary class="h2" style="margin:0">Importer un historique</summary>
     <div><p class="small muted">Le fichier ZIP de MyFitnessPal (compte gratuit compris) ou tout tableau CSV avec une colonne date et une colonne poids.</p>
       <details style="margin-top:8px"><summary class="small">Récupérer ses pesées MyFitnessPal</summary><p class="small muted" style="margin-top:6px">Sur myfitnesspal.com (navigateur, pas l'app) : ton profil, Paramètres, Compte, « Télécharger tes données », puis demande l'export. Tu reçois un e-mail avec un fichier ZIP : choisis-le ici tel quel, l'app lit les pesées du fichier « measurements ».</p></details>
       <label class="btn ghost" style="margin-top:12px;display:flex;align-items:center;justify-content:center;cursor:pointer">Choisir le fichier (ZIP ou CSV)<input id="imp" type="file" accept=".csv,.zip,text/csv,text/plain,application/zip" data-chg="import" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></label><div id="impres"></div></div>
-    <h2 class="h2">Dernières pesées</h2><div>${P.slice().reverse().slice(0, 15).map(p => vrow(cap(dlong(p.date)), "", kg(p.poids, 1))).join("")}</div>`;
+    </details>`;
   if (V.length > 1) { const ds = [{label:"Pesée", data:V.map(p => p.poids), color:getCss("var(--dust)"), width:1, pts:V.length <= 45, faint:true}, {label:"Moyenne 7 j", data:mmV.map(v => +v.toFixed(2)), color:getCss("var(--chalk)"), width:2.5, pts:false}];
     if (lim && Math.max(...V.map(p => p.poids)) > lim - 2.5) ds.push({label:"Limite", data:V.map(() => lim), color:getCss("var(--squat)"), dash:true, pts:false, width:1.5});
     lineChart("c-pw", V.map(p => dfr(p.date)), ds, {unit:" kg"}); }
@@ -3096,6 +3110,7 @@ const CHG = {
    ALIMENTATION : table Ciqual 2025 (Anses) + Open Food Facts pour les marques
    Carnet : onglet REPAS (une ligne par aliment pesé) et ALIMENTS (aliments de marque ou créés).
    ===================================================================== */
+let nutView = "jour";
 let corpsTab = "nutri", nutDate = null, FOODS = null, foodsLoading = null, nutQ = "", nutSlot = null, nutTab = null, nutPick = null, offRes = null, offBusy = false, nutCreate = false, nutDup = null, nutDupOk = false;
 const NUT_ACT = [[1.375, "Peu actif (1 à 3 séances)"], [1.55, "Actif (4 à 5 séances)"], [1.725, "Très actif (6+ séances ou travail physique)"]];
 const NUT_OBJ = [["suivi", "Juste suivre ce que je mange"], ["maintien", "Garder mon poids"], ["perte", "Perdre du poids"], ["prise", "Prendre du poids"], ["compet", "Faire le poids pour une compétition"]];
@@ -3169,7 +3184,7 @@ function nutTargets(day){
 }
 
 /* ---------- Écran ---------- */
-function corpsSeg(){ return `<div class="segc" style="margin-bottom:14px">${[["nutri", "Alimentation"], ["poids", "Poids"]].map(([k, t]) => `<button aria-pressed="${corpsTab === k}" data-act="corpsTab" data-k="${k}">${t}</button>`).join("")}</div>`; }
+function corpsSeg(){ return `<div class="segc" style="margin-bottom:14px">${[["poids", "Poids"], ["nutri", "Alimentation"]].map(([k, t]) => `<button aria-pressed="${corpsTab === k}" data-act="corpsTab" data-k="${k}">${t}</button>`).join("")}</div>`; }
 function rCorps(){ if (corpsTab === "poids") { rPoids(); $("#v-corps").insertAdjacentHTML("afterbegin", corpsSeg()); return; } rNutri(); }
 function dayRows(d){ return (D.repas || []).filter(x => x.date === d); }
 const SLOTS = ["Petit-déjeuner", "Déjeuner", "Collation", "Dîner"], SLOT_HM = ["08:00", "12:30", "16:00", "19:30"];
@@ -3183,8 +3198,30 @@ function macroRing(lab, v, tg, col, sub){
   const R = 30, C = 2 * Math.PI * R, f = tg ? Math.min(1, v / tg) : 0;
   return `<div class="mring"><svg width="76" height="76" viewBox="0 0 76 76" role="img" aria-label="${lab} : ${fmt(v, 0)} g${tg ? " sur " + fmt(tg, 0) + " g" : ""}"><circle cx="38" cy="38" r="${R}" fill="none" stroke="var(--deck3)" stroke-width="7"/><circle cx="38" cy="38" r="${R}" fill="none" stroke="${col}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(f * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 38 38)" style="transition:stroke-dasharray .4s cubic-bezier(.2,.8,.2,1)"/><text x="38" y="43" text-anchor="middle" class="mrv">${fmt(v, 0)}</text></svg><span class="mrl">${lab}</span><span class="mrs">${tg ? "sur " + fmt(tg, 0) + " g" : (sub || "g")}</span></div>`;
 }
+/* v67 étape G : Corps v3. Semaine d'alimentation (moyenne, barres, protéines atteintes), poids en tendance. */
+const nutToggle = () => `<div class="segc" role="group" aria-label="Période" style="margin:0 0 10px">${[["jour", "Jour"], ["semaine", "Semaine"]].map(([k, t]) => `<button aria-pressed="${nutView === k}" data-act="nutView" data-k="${k}">${t}</button>`).join("")}</div>`;
+function rNutriWeek(){
+  const mon = addDays(nutDate, -((dObj(nutDate).getDay() + 6) % 7)), L = ["L", "M", "M", "J", "V", "S", "D"];
+  const day = i => { const d = addDays(mon, i), R = dayRows(d), k = sum(R.map(x => x.k)), p = sum(R.map(x => x.p)), T = nutTargets(d); return {d, k, p, n:R.length, T, goal:T.kcal && T.obj !== "suivi" ? T.kcal : null, future:d > D.today}; };
+  const W = Array.from({length:7}, (_, i) => day(i)), logged = W.filter(x => x.n > 0), avg = logged.length ? sum(logged.map(x => x.k)) / logged.length : null;
+  const goal = W.find(x => x.goal) ? W.find(x => x.goal).goal : null, pct = avg !== null && goal ? Math.round(avg / goal * 100) : null;
+  const top = Math.max(goal || 0, ...W.map(x => x.k), 1) * 1.12, H = 150, Y = v => 10 + (1 - v / top) * (H - 36);
+  const bars = W.map((x, i) => { const px = 10 + i * 46, y = Y(x.k), now = x.d === D.today;
+    return `<rect x="${px}" y="${x.k > 0 ? y.toFixed(1) : H - 26}" width="30" height="${x.k > 0 ? (H - 26 - y).toFixed(1) : 0}" rx="7" fill="${x.k > 0 ? "var(--data)" : "none"}"${now && !x.k ? ` stroke="var(--data)" stroke-width="2" stroke-dasharray="4 3" height="${H - 26 - Y(goal || top * .5)}" y="${Y(goal || top * .5).toFixed(1)}"` : ""}/><text x="${px + 15}" y="${H - 8}" text-anchor="middle" fill="${now ? "var(--chalk)" : "var(--faint)"}" style="font:600 12px var(--f-text)">${L[i]}</text>`; }).join("");
+  const gl = goal ? `<line x1="0" y1="${Y(goal).toFixed(1)}" x2="326" y2="${Y(goal).toFixed(1)}" stroke="var(--chalk)" stroke-opacity=".55" stroke-width="1.5" stroke-dasharray="5 4"/><text x="326" y="${(Y(goal) - 6).toFixed(1)}" text-anchor="end" fill="var(--dust)" style="font:11px var(--f-text)">Objectif ${fmt(goal, 0)}</text>` : "";
+  const pj = W.filter(x => x.T.p && x.T.obj !== "suivi" && !x.future), pok = pj.filter(x => x.n > 0 && x.p >= x.T.p).length;
+  const PW = D.poids.filter(p => p.date >= mon && p.date <= addDays(mon, 6)), dw = PW.length > 1 ? PW.at(-1).poids - PW[0].poids : null;
+  $("#v-corps").innerHTML = corpsSeg() + nutToggle() + `
+    <div class="row" style="margin-bottom:10px"><button class="iconbtn" data-act="nutDay" data-d="-7" aria-label="Semaine précédente">‹</button><b>Semaine du ${esc(dlong(mon).replace(/^[a-zé]+ /i, ""))}</b><button class="iconbtn" data-act="nutDay" data-d="7" aria-label="Semaine suivante" ${addDays(mon, 7) > D.today ? "disabled" : ""}>›</button></div>
+    <div class="panel" style="padding:16px 14px 10px"><div class="pw-top"><span class="pw-l"><span class="lg-lab">Moyenne par jour</span><b class="pw-big">${avg !== null ? fmt(avg, 0) : "—"}<small>kcal</small></b></span>${pct !== null ? `<span class="pw-r"><span class="fchip">${pct} % de l'objectif</span></span>` : ""}</div>
+      ${logged.length ? `<svg viewBox="0 0 326 ${H}" width="100%" role="img" aria-label="Calories par jour" style="margin-top:10px">${bars}${gl}</svg>` : `<div class="emptycard" style="margin-top:12px"><b>Rien de noté cette semaine</b><p>Les barres apparaissent dès le premier repas noté dans « Jour ».</p></div>`}</div>
+    ${pj.length ? `<div class="panel" style="margin-top:8px"><div class="row"><b>Protéines atteintes</b><span class="show t-s">${pok} / ${pj.length}</span></div><div class="pdots">${W.map((x, i) => `<span class="${x.n > 0 && x.T.p && x.p >= x.T.p ? "ok" : ""}">${L[i]}</span>`).join("")}</div></div>` : ""}
+    ${dw !== null ? `<button class="vrow" style="margin-top:8px" data-act="corpsTab" data-k="poids"><span class="grow"><b>Poids : ${dw > 0 ? "+" : "−"}${fmt(Math.abs(dw), 1)} kg cette semaine</b><span>Voir la tendance dans Poids</span></span><span class="val">›</span></button>` : ""}
+`;
+}
 function rNutri(){
   if (!nutDate) nutDate = D.today;
+  if (nutView === "semaine") { rNutriWeek(); return; }
   if (!FOODS) loadFoods().then(() => { const l = $("#nutload"); if (l) l.remove(); nutRefresh(); }).catch(() => { const l = $("#nutload"); if (l) l.textContent = "Table des aliments indisponible hors connexion pour l'instant."; });
   const R = dayRows(nutDate), tot = R.reduce((a, x) => ({k:a.k + x.k, p:a.p + x.p, g:a.g + x.g, l:a.l + x.l}), {k:0, p:0, g:0, l:0}), T = nutTargets(nutDate);
   const hasT = T.kcal && T.obj !== "suivi", left = hasT ? T.kcal - tot.k : null;
@@ -3193,9 +3230,9 @@ function rNutri(){
   const cur = nutSlotSel(), tab = nutTab || (Object.keys(D.mesRepas || {}).length ? "meals" : "foods");
   const rows = [0, 1, 2, 3].map(s => { const L = R.filter(x => slotOf(x.h) === s).sort((a, b) => (a.h || "") < (b.h || "") ? -1 : 1);
     return `<div class="slotc${s === cur ? " cur" : ""}"><div class="slotrow"><span class="sloti"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SLOT_ICO[s]}</svg></span><span class="grow" style="flex:1;min-width:0"><b style="display:block">${SLOTS[s]}</b><span class="muted small">${L.length ? fmt(sum(L.map(x => x.k)), 0) + " kcal" : "Rien d'enregistré"}</span></span><button class="iconbtn plus" data-act="nutSlot" data-s="${s}" aria-label="Ajouter au ${SLOTS[s].toLowerCase()}">+</button></div>${L.length ? `<div class="list">${L.map(itemHtml).join("")}</div>` : ""}</div>`; }).join("");
-  $("#v-corps").innerHTML = corpsSeg() + `
+  $("#v-corps").innerHTML = corpsSeg() + nutToggle() + `
     <div class="row" style="margin-bottom:10px"><button class="iconbtn" data-act="nutDay" data-d="-1" aria-label="Jour précédent">‹</button><b>${nutDate === D.today ? "Aujourd'hui" : cap(dlong(nutDate))}</b><button class="iconbtn" data-act="nutDay" data-d="1" aria-label="Jour suivant" ${nutDate >= D.today ? "disabled" : ""}>›</button></div>
-    ${heroCard({small:hasT ? "Calories du jour" : "Calories du jour (suivi)", big:`${fmt(tot.k, 0)}<small>${hasT ? " / " + fmt(T.kcal, 0) : ""} kcal</small>`, sub:hasT ? (left >= 0 ? "reste " + fmt(left, 0) + " kcal" : fmt(-left, 0) + " kcal au-dessus") : R.length ? R.length + " aliment" + (R.length > 1 ? "s" : "") + " noté" + (R.length > 1 ? "s" : "") : "Aucun aliment noté", deco:false})}
+    ${heroCard({small:hasT ? (left >= 0 ? "Il te reste" : "Au-dessus de l'objectif") : "Calories du jour (suivi)", big:`${fmt(hasT ? Math.abs(left) : tot.k, 0)}<small> kcal</small>`, sub:hasT ? `${fmt(tot.k, 0)} / ${fmt(T.kcal, 0)} kcal mangées / objectif` : R.length ? R.length + " aliment" + (R.length > 1 ? "s" : "") + " noté" + (R.length > 1 ? "s" : "") : "Aucun aliment noté", extra:hasT ? `<span class="kbar${left < 0 ? " over" : ""}"><i style="width:${Math.min(100, Math.max(0, tot.k / T.kcal * 100)).toFixed(1)}%"></i></span>` : "", deco:false})}
     <div class="panel macrorings" style="margin-top:12px" role="group" aria-label="Protéines, glucides et lipides du jour">${[["Protéines", tot.p, T.p, "var(--brand)", 4], ["Glucides", tot.g, T.g, "var(--chalk)", 4], ["Lipides", tot.l, T.l, "var(--dust)", 9]].map(([lab, v, tg, col, kc]) => macroRing(lab, v, hasT ? tg : 0, col, hasT ? "" : (tot.k > 0 ? fmt(v * kc / tot.k * 100, 0) + " % des kcal" : ""))).join("")}</div>
     ${Object.keys(D.mesRepas || {}).length ? `<div class="row" style="margin-top:18px;align-items:baseline"><h2 class="h2" style="margin:0">Rejouer un repas</h2><button class="link small muted" data-act="mealsManage" style="min-height:44px">Voir tout</button></div>
     <div class="replay">${Object.entries(D.mesRepas).slice().reverse().map(([n, L]) => `<button class="rcard" data-act="mealAdd" data-n="${esc(n)}" aria-label="Ajouter le repas ${esc(n)}"><span class="rname">${esc(n)}</span><span class="rk">${fmt(sum(L.map(x => x.k)), 0)}<small> kcal</small></span></button>`).join("")}</div>` : ""}
@@ -3253,6 +3290,7 @@ function nutGoalHtml(T){
 async function nutEnsureTabs(){ if (D._nutTabs) return; await Store.ensureTabs(); D._nutTabs = true; }
 Object.assign(ACT, {
   progSeg:d => { progSeg = d.k; rProg(); window.scrollTo(0, 0); },
+  nutView:d => { nutView = d.k; rNutri(); },
   corpsTab:d => { corpsTab = d.k; corpsManual = D.today; rCorps(); },
   nutDay:d => { nutDate = addDays(nutDate || D.today, +d.d); if (nutDate > D.today) nutDate = D.today; nutPick = null; rNutri(); },
   nutPickFood:d => { const p = parseFoodLine(nutQ), f = searchFoods(p.txt)[+d.i]; if (!f) return; nutPick = {f, q:p.q || (p.n && f.por ? p.n * f.por : null), n:p.n}; offRes = null; nutRefresh(); setTimeout(() => { const q = $("#nq"); if (q) q.focus(); }, 50); },
