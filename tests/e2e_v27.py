@@ -6,6 +6,10 @@ fails = []
 def check(name, cond, info=""):
     print(("OK  " if cond else "KO  ") + name, "" if cond else info)
     if not cond: fails.append(name)
+def selset(j):   # en direct, une seule série est éditable à la fois : on touche la rangée pour la rouvrir
+    if not pg.evaluate("!!document.querySelector('[data-chg=setC][data-j=\"%d\"]')" % j):
+        if pg.evaluate("!!document.querySelector('.lmore')"): pg.click('.lmore'); pg.wait_for_timeout(250)
+        pg.click('.lsr[data-j="%d"]' % j); pg.wait_for_timeout(250)
 with sync_playwright() as p:
     br = p.chromium.launch()
     c = br.new_context(viewport={"width":390, "height":844}, device_scale_factor=2, service_workers="block"); c.route("**/*", route)
@@ -40,11 +44,12 @@ with sync_playwright() as p:
     pg.evaluate("(async () => { store.del(ck('sl4-live')); live = null; await startLive(T.s2, T.k); })()"); pg.wait_for_timeout(600)
     r = pg.evaluate("live.rows[T.k].sets.map(x => x.c)")
     check("départ : séries à 50 (comme « Précédent »)", r == [50, 50, 50], r)
-    pg.fill('[data-chg=setC][data-j="0"]', "86"); pg.press('[data-chg=setC][data-j="0"]', "Tab"); pg.wait_for_timeout(300)
+    selset(0); pg.fill('[data-chg=setC][data-j="0"]', "86"); pg.press('[data-chg=setC][data-j="0"]', "Tab"); pg.wait_for_timeout(300)
+    if pg.evaluate("!!document.querySelector('.lmore')"): pg.click('.lmore'); pg.wait_for_timeout(250)   # « + 2 séries » : déplie les séries suivantes
     r = pg.evaluate("[live.rows[T.k].sets.map(x => x.c), [...document.querySelectorAll('[data-chg=setC]')].map(i => i.value)]")
-    check("charge 86 en série 1 : séries 2 et 3 suivent (valeurs et écran)", r[0] == [86, 86, 86] and r[1][:3] == ["86", "86", "86"], r)
-    pg.fill('[data-chg=setC][data-j="1"]', "60"); pg.press('[data-chg=setC][data-j="1"]', "Tab"); pg.wait_for_timeout(200)
-    pg.fill('[data-chg=setC][data-j="0"]', "90"); pg.press('[data-chg=setC][data-j="0"]', "Tab"); pg.wait_for_timeout(200)
+    check("charge 86 en série 1 : séries 2 et 3 suivent (valeurs et écran)", r[0] == [86, 86, 86] and r[1][:1] == ["86"] and pg.evaluate("[...document.querySelectorAll('.lsr')].filter(e => /86/.test(e.innerText)).length") >= 2, r)
+    selset(1); pg.fill('[data-chg=setC][data-j="1"]', "60"); pg.press('[data-chg=setC][data-j="1"]', "Tab"); pg.wait_for_timeout(200)
+    selset(0); pg.fill('[data-chg=setC][data-j="0"]', "90"); pg.press('[data-chg=setC][data-j="0"]', "Tab"); pg.wait_for_timeout(200)
     r = pg.evaluate("live.rows[T.k].sets.map(x => x.c)")
     check("série 2 mise à 60 : la série 3 (qui la suivait) suit ; une charge à la main n'est plus écrasée par la série 1", r == [90, 60, 60], r)
     # prog mise à jour après l'ouverture : valeurs intactes → elles suivent la prog
