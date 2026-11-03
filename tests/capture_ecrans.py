@@ -15,6 +15,7 @@ ECRANS = {
   "courbes": "progSeg='courbes';setTab('prog')",
   "fiche-squat": "page={type:'lift',l:'SQUAT'};liftMetric='1rm';renderLayer()", "fiche-exercice": "page={type:'ex',k:exercisePoints().find(o=>o.lift).key};exMetric='e1rm';renderLayer()",
   "reglages": "ACT.settings&&ACT.settings({})",
+  "serie-validee": "setTab('home');startLive((todaySeance()||nextSeance()).key, 1);ACT.closeSheet&&ACT.closeSheet();onSetDone(0)",
   "direct": "setTab('home');startLive((todaySeance()||nextSeance()).key, 1);ACT.closeSheet&&ACT.closeSheet()",
 }
 with sync_playwright() as p:
