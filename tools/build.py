@@ -33,7 +33,7 @@ head = """<!doctype html>
 <meta name="sl-build" content="__BUILD__">
 <meta name="description" content="B2Strong : le carnet des athlètes de force. Records, total, points IPF GL et RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=b2"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=b2">
 <link rel="preconnect" href="https://sheets.googleapis.com">
 """
 rep('<meta name="claude:viewport-fit-sides" content="cover">\n', "")

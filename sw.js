@@ -4,7 +4,7 @@
      l'ancienne et l'app est prévenue (installée tout de suite si rien n'a été touché, sinon bandeau).
    - Chart.js, JSZip et les polices : cache d'abord.
    - Les données Google et Open Food Facts ne passent jamais par ce cache. */
-const V = "sl-v32";
+const V = "sl-v33";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png", "aliments.json", "zxing.min.js",
   "fonts/bs.woff2", "fonts/fg.woff2", "fonts/mm.woff2"];
 /* cache:"reload" : ignore le cache HTTP du navigateur (GitHub Pages garde les fichiers 10 min). */

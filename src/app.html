@@ -713,13 +713,11 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 .netbar.off{background:#2B2410}.netbar.err{background:#32140D}
 .netbar .link{min-height:44px;padding:0 4px;color:var(--chalk);font-weight:700}
 /* ÉCRAN DE LANCEMENT (v3, planche Identité) : logo, devise, barre de chargement sans progression simulée */
-.launch{min-height:calc(100dvh - 180px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center}
-.launch b{font:800 26px var(--f-show);letter-spacing:.06em;color:var(--chalk)}
-.launch .lbar{display:block;width:170px;height:4px;border-radius:2px;background:var(--deck2);overflow:hidden;margin-top:56px}
-.launch .lbar u{display:block;width:40%;height:100%;border-radius:2px;background:var(--acc);animation:lbar 1.3s var(--ease) infinite}
-.launch p{max-width:260px;font-size:12.5px;line-height:1.4;color:var(--faint);margin-top:10px}
-body:has(.launch) .topbar,body:has(.launch) nav.tabs,body:has(.launch) #subseance{visibility:hidden}
-@keyframes lbar{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
+/* Lancement (retours vidéo, lot F) : écran plein à chaque ouverture, sans barre de progression simulée. Il part quand les données sont là (0,5 s au minimum). */
+.splash{position:fixed;inset:0;z-index:300;background:var(--floor);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;transition:opacity .22s var(--ease)}
+.splash.out{opacity:0;pointer-events:none}
+.splash b{font:800 26px var(--f-show);letter-spacing:.06em;color:var(--chalk)}
+.splash svg{width:120px;height:auto}
 /* SCANNER : produit trouvé (planche Corps_3) */
 .scanfull:has(.scansheet) .scanhint{display:none}.scanfull:has(.scansheet) .scanframe{opacity:.55}
 .scanpanel:has(.scansheet){margin:0;max-height:none;overflow:visible;margin-top:auto}
@@ -916,13 +914,14 @@ body:has(.launch) .topbar,body:has(.launch) nav.tabs,body:has(.launch) #subseanc
   <div class="topbar"><div class="brandmark" id="topdate"><svg class="b2m" viewBox="0 0 120 100" aria-hidden="true"><g fill="none" stroke="var(--chalk)"><line x1="11" y1="0" x2="11" y2="100" stroke-width="22"/><path d="M11 9.5H38A19.25 19.25 0 0 1 38 48H11" stroke-width="19"/><path d="M11 48H43A21.25 21.25 0 0 1 43 90.5H11" stroke-width="19"/></g><path d="M6 30C6 12 20 2 34 2C50 2 61 12 61 27C61 39 53 48 41 58L24 73H61V96H4V77L34 50C40 44 45 38 45 30C45 22 41 17 34 17C26 17 22 23 22 32Z" fill="var(--acc)" transform="translate(76 0) scale(0.44)"/></svg><h1 class="tabname" id="tabname">Séance</h1></div><button class="avatar" data-act="settings" aria-label="Réglages et synchronisation"><span id="initial">·</span><span class="dot busy" id="syncdot"></span></button></div>
   <div id="netbar" class="netbar" role="status" aria-live="polite" hidden></div>
   <div class="segc" id="subseance" role="group" aria-label="Séance" style="margin:12px 0 0"><button data-sub="home" aria-pressed="true">Aujourd'hui</button><button data-sub="seance" aria-pressed="false">Programme</button><button data-sub="histo" aria-pressed="false">Historique</button></div>
-  <section id="v-home" class="view"><div class="launch" role="status" aria-label="Chargement"><svg viewBox="0 0 120 100" width="120" aria-hidden="true"><g fill="none" stroke="var(--chalk)" stroke-linecap="butt" stroke-linejoin="miter"><line x1="11" y1="0" x2="11" y2="100" stroke-width="22"/><path d="M11 9.5H38A19.25 19.25 0 0 1 38 48H11" stroke-width="19"/><path d="M11 48H43A21.25 21.25 0 0 1 43 90.5H11" stroke-width="19"/></g><path d="M6 30C6 12 20 2 34 2C50 2 61 12 61 27C61 39 53 48 41 58L24 73H61V96H4V77L34 50C40 44 45 38 45 30C45 22 41 17 34 17C26 17 22 23 22 32Z" fill="var(--acc)" transform="translate(76 0) scale(0.44)"/></svg><b>BE TOO STRONG</b><i class="lbar"><u></u></i></div></section>
+  <section id="v-home" class="view"></section>
   <section id="v-seance" class="view" hidden></section>
   <section id="v-histo" class="view" hidden></section>
   <section id="v-prog" class="view" hidden></section>
   <section id="v-corps" class="view" hidden></section>
   <section id="v-agenda" class="view" hidden></section>
 </main>
+<div id="splash" class="splash" role="status" aria-label="Chargement"><svg viewBox="0 0 120 100" width="120" aria-hidden="true"><g fill="none" stroke="var(--chalk)" stroke-linecap="butt" stroke-linejoin="miter"><line x1="11" y1="0" x2="11" y2="100" stroke-width="22"/><path d="M11 9.5H38A19.25 19.25 0 0 1 38 48H11" stroke-width="19"/><path d="M11 48H43A21.25 21.25 0 0 1 43 90.5H11" stroke-width="19"/></g><path d="M6 30C6 12 20 2 34 2C50 2 61 12 61 27C61 39 53 48 41 58L24 73H61V96H4V77L34 50C40 44 45 38 45 30C45 22 41 17 34 17C26 17 22 23 22 32Z" fill="var(--acc)" transform="translate(76 0) scale(0.44)"/></svg><b>BE TOO STRONG</b></div>
 <div id="layer"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -4738,13 +4737,21 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 setInterval(() => { if (document.visibilityState === "visible" && D) { flushOutbox().finally(() => { if (Date.now() - lastSync > 10 * 60000 && !live) syncAll(true); }); } }, 60000);
 function fatal(msg){ $("#v-home").innerHTML = `<div class="empty"><p>${esc(msg)}</p><button class="btn ghost sm" data-act="boot">Réessayer</button></div>`; }
 ACT.boot = () => boot();
+const SPLASH_MIN = 500, splashT0 = Date.now();
+function hideSplash(){
+  const el = document.getElementById("splash"); if (!el || el.dataset.go) return; el.dataset.go = "1";
+  setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 260); }, Math.max(0, SPLASH_MIN - (Date.now() - splashT0)));
+}
+setTimeout(hideSplash, 12000);   /* filet de sécurité : l'écran de lancement ne reste jamais bloqué */
 async function boot(){
-  const cached = loadCache();
-  if (cached) { render(); autoResume(); }
-  try { mcp = window.claude ? await window.claude.use("mcp") : null; } catch(e){ mcp = null; }
-  if (!mcp) { setDot("off"); if (!cached) fatal("Ouvre cette app dans Claude (claude.ai dans Safari), connecté à ton compte, pour accéder à tes Google Sheets."); return; }
-  await flushOutbox();
-  await syncAll(true);
+  try {
+    const cached = loadCache();
+    if (cached) { render(); autoResume(); hideSplash(); }   /* données déjà sur le téléphone : l'écran de lancement dure son minimum puis laisse la place */
+    try { mcp = window.claude ? await window.claude.use("mcp") : null; } catch(e){ mcp = null; }
+    if (!mcp) { setDot("off"); if (!cached) fatal("Ouvre cette app dans Claude (claude.ai dans Safari), connecté à ton compte, pour accéder à tes Google Sheets."); return; }
+    await flushOutbox();
+    await syncAll(true);
+  } finally { hideSplash(); }   /* sans cache : il part quand la première lecture est finie (ou a échoué) */
 }
 boot();
 </script>
