@@ -15,7 +15,7 @@
   --floor:#0C0B0A; --deck:#161513; --deck2:#1E1C1A; --deck3:#2A2825; --seam:#24221F;
   --chalk:#F5F2EC; --dust:#B4AFA7; --faint:#8A857D; --steel:#8A857D; --steel-hi:#B4AFA7; --brand:#2F63B5;
   --acc:#FF4A2B; --data:#6FA0DA;
-  --mu:#E3B341; --pull:#4C8DF6; --dip:#2BB673; --squat:#F0524A; --bench:#A78BFA; --deadlift:#EC6FB0; --cardio:#4FD1C5;
+  --mu:#F1EDE4; --pull:#B8D0EE; --dip:#3A6BAA; --squat:#6FA0DA; --bench:#B8D0EE; --deadlift:#3A6BAA; --cardio:#8D877D;   /* v67 : plus de couleur par mouvement, une échelle bleu acier / craie à luminances distinctes (lisible en daltonisme) */
   --go:#FF4A2B; --comp:#2F63B5; --ok:#2BB673; --warn:#FFC930; --bad:#FF6F61;
   --f-show:"B2 Display","Arial Narrow",sans-serif;
   --f-text:"B2 Text",-apple-system,"Segoe UI",sans-serif;
@@ -298,7 +298,7 @@ details>summary::-webkit-details-marker{display:none}
 .livehead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 0 10px;position:sticky;top:calc(-1 * env(safe-area-inset-top,0px) - 8px);background:var(--floor);z-index:2}
 .endbtn{height:44px;padding:0 16px;border-radius:22px;background:var(--chalk);color:var(--floor);font:700 14px var(--f-text)}
 .setgrid{margin-top:4px;--cols:28px minmax(0,1fr) 66px 52px 46px}
-.setgrid .hd,.setrow{display:grid;grid-template-columns:var(--cols);gap:8px;align-items:center;padding:10px 0}
+.setgrid .hd,.setrow{display:grid;grid-template-columns:var(--cols);gap:8px;align-items:center;padding:10px}
 .setgrid .hd{font:600 12px var(--f-text);color:var(--faint);padding:0}
 .setgrid .hd span:nth-child(n+3){text-align:center}
 .setrow{border-bottom:1px solid var(--seam);transition:background .25s}
@@ -311,7 +311,7 @@ details>summary::-webkit-details-marker{display:none}
 .setrow.done .ck{background:var(--c);border-color:var(--c);color:#fff;animation:pop .3s var(--ease)}
 .setrow.done .n{color:var(--chalk)}
 @keyframes pop{50%{transform:scale(1.15)}}
-.setrow.cur{background:var(--deck);border-radius:16px;border-bottom-color:transparent;padding:10px;margin:6px -10px}
+.setrow.cur{background:var(--deck);border-radius:16px;border-bottom-color:transparent;margin:6px 0}
 .setrow.cur .ck{border-color:var(--c)}
 .nextup{display:flex;align-items:center;gap:10px;margin-top:16px;font-size:14px}
 .nextup b{font-weight:600}
@@ -485,7 +485,7 @@ html,body{overflow-x:clip}body{margin-top:0}
 .fin-rec{margin-top:14px}.fin-rec>p:first-child{font-weight:600}.fin-rec .small{margin-top:4px}
 /* Séance en direct (v3) */
 .lh-c{text-align:center;min-width:0}.lh-n{font:700 16px var(--f-text);color:var(--chalk);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lh-s{font:600 11px var(--f-mono);letter-spacing:.03em;color:var(--faint);margin-top:2px}
-.live .hero,.live .hero.mv{background:none;box-shadow:none;padding:6px 0 0;margin-top:6px}.live .hero .hs{font:600 12px var(--f-mono);text-transform:uppercase;letter-spacing:.04em;color:var(--faint)}
+.live .hero,.live .hero.mv{background:none;box-shadow:none;padding:6px 0 0;margin-top:6px;overflow:visible}.live .hero .hs{font:600 12px var(--f-mono);text-transform:uppercase;letter-spacing:.04em;color:var(--faint)}
 .live .hero .hb{font-size:72px;line-height:.9;color:var(--chalk)}.live .hero .hu{color:var(--dust);line-height:1.35;margin-top:10px}
 .ldelta{margin:8px 0 0;font:13px var(--f-text);color:var(--dust)}.ldelta b{padding:3px 9px;border-radius:99px;background:var(--deck3);color:var(--chalk);margin-right:6px;font-weight:700}.ldelta.up b{background:color-mix(in srgb,var(--acc) 30%,var(--deck3))}
 .lgc{display:flex;gap:12px;align-items:center;margin-top:12px;padding:10px 14px;border-radius:18px;background:#F1EDE4;color:#2F2B27}
@@ -2762,7 +2762,7 @@ function rPoids(){
       <label class="btn ghost" style="margin-top:12px;display:flex;align-items:center;justify-content:center;cursor:pointer">Choisir le fichier (ZIP ou CSV)<input id="imp" type="file" accept=".csv,.zip,text/csv,text/plain,application/zip" data-chg="import" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></label><div id="impres"></div></div>
     </details>`;
   if (V.length > 1) { const ds = [{label:"Pesée", data:V.map(p => p.poids), color:getCss("var(--dust)"), width:1, pts:V.length <= 45, faint:true}, {label:"Moyenne 7 j", data:mmV.map(v => +v.toFixed(2)), color:getCss("var(--chalk)"), width:2.5, pts:false}];
-    if (lim && Math.max(...V.map(p => p.poids)) > lim - 2.5) ds.push({label:"Limite", data:V.map(() => lim), color:getCss("var(--squat)"), dash:true, pts:false, width:1.5});
+    if (lim && Math.max(...V.map(p => p.poids)) > lim - 2.5) ds.push({label:"Limite", data:V.map(() => lim), color:getCss("var(--warn)"), dash:true, pts:false, width:1.5});
     lineChart("c-pw", V.map(p => dfr(p.date)), ds, {unit:" kg"}); }
 }
 /* ZIP MyFitnessPal : on cherche le CSV des mesures (poids) dans l'archive. */

@@ -12,7 +12,9 @@ ECRANS = {
   "poids": "corpsTab='poids';corpsManual=D.today;setTab('corps')", "alimentation": "corpsTab='nutri';corpsManual=D.today;setTab('corps')",
   "progres": "progSeg='records';setTab('prog')", "classement": "setTab('agenda')",
   "mouvements": "progSeg='mouvements';mvQ='';setTab('prog')", "mouvements-recherche": "progSeg='mouvements';mvQ='dip';setTab('prog')",
+  "courbes": "progSeg='courbes';setTab('prog')",
   "fiche-squat": "page={type:'lift',l:'SQUAT'};liftMetric='1rm';renderLayer()", "fiche-exercice": "page={type:'ex',k:exercisePoints().find(o=>o.lift).key};exMetric='e1rm';renderLayer()",
+  "direct": "setTab('home');startLive((todaySeance()||nextSeance()).key, 1);ACT.closeSheet&&ACT.closeSheet()",
 }
 with sync_playwright() as p:
     br = p.chromium.launch(); c = br.new_context(viewport={"width":390,"height":844}, device_scale_factor=2, service_workers="block"); c.route("**/*", route)
