@@ -9,3 +9,6 @@ tests/audit/v22/
 tests/audit/v23/
 tests/audit/v24/
 tests/audit/v66/
+tests/audit/run/
+tests/perf_run.json
+tests/qa_run.json
