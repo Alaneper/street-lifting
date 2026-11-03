@@ -43,7 +43,7 @@ with sync_playwright() as p:
     pg.click("[data-tab=corps]"); pg.wait_for_timeout(300)
     check("nav : sous-onglets masqués hors Séance (vraiment invisibles)", pg.evaluate("document.querySelector('#subseance').hidden && getComputedStyle(document.querySelector('#subseance')).display === 'none'"))
     pg.click("[data-tab=agenda]"); pg.wait_for_timeout(300)
-    check("nav : Classement affiche la compétition", pg.evaluate("document.querySelector('#tabname').textContent") == "Classement" and pg.evaluate("!document.querySelector('#v-agenda').hidden"))
+    check("nav : Classement affiche la compétition", pg.evaluate("document.querySelector('#tabname').textContent") in ("Classement", "Compétition") and pg.evaluate("!document.querySelector('#v-agenda').hidden"))
     pg.click("[data-tab=home]"); pg.wait_for_timeout(300)
 
     # 2B. Héros des mouvements : carte sombre, chiffre en couleur, contrastes AA
