@@ -718,6 +718,23 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 .launch p{max-width:260px;font-size:12.5px;line-height:1.4;color:var(--faint);margin-top:10px}
 body:has(.launch) .topbar,body:has(.launch) nav.tabs,body:has(.launch) #subseance{visibility:hidden}
 @keyframes lbar{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
+/* FICHE RECORD (v3, planche V3Direct_3) */
+.ptitle{display:flex;flex-direction:column;align-items:center;line-height:1.15}.ptitle b{font:700 17px var(--f-text)}.ptitle small{font:500 13px var(--f-text);color:var(--dust)}
+.rhero{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;margin-top:14px;padding:18px;border-radius:24px;background:var(--deck);box-shadow:var(--sh1)}
+.rhero .rtx{min-width:0}.rsm{font:500 14px var(--f-text);color:var(--dust)}
+.rbig{font:800 76px/.95 var(--f-show);color:var(--chalk);margin-top:6px}.rbig small{font:800 30px var(--f-show);color:var(--dust);margin-left:6px}
+.rchips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.rchip{display:inline-flex;align-items:center;min-height:32px;padding:0 12px;border-radius:12px;background:var(--deck2);font:700 14px var(--f-text);color:var(--chalk)}
+.rchip.up{background:color-mix(in srgb,var(--acc) 16%,transparent);color:var(--acc)}
+.rhero .mplate.rhm{--mh:112px;width:92px;flex:none;border-radius:14px;padding:6px 0}
+.rprog{margin-top:12px;padding:16px;border-radius:24px;background:var(--deck);box-shadow:var(--sh1)}
+.rph{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.rph b{font:500 15px var(--f-text);color:var(--dust)}
+.rph .rchip.up{background:color-mix(in srgb,var(--data) 16%,transparent);color:var(--data)}
+.bslist{margin-top:4px;border-top:1px solid var(--seam)}
+.bs.rm{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left;background:none;border-radius:0;padding:14px 2px;min-height:64px;border-bottom:1px solid var(--seam)}
+.bsl{display:flex;flex-direction:column;gap:3px;min-width:0}.bsl b{font:700 18px var(--f-text);color:var(--chalk)}.bsl .tiny{font-size:13px;color:var(--dust)}.bsr{font-size:14px;color:var(--dust);flex:none}
+.rwarn{display:flex;gap:10px;align-items:center;margin-top:14px;padding:14px 16px;border-radius:18px;background:color-mix(in srgb,var(--warn) 9%,var(--deck));font:400 14px/1.4 var(--f-text);color:var(--chalk)}
+.rwarn i{font:800 15px var(--f-text);font-style:normal;color:var(--warn);flex:none}
 /* COUCHES (v3) : 0 fond · 1 carte · 2 surélevé · 3 contrôle dans une carte · 4 feuille (flou). Une ombre par niveau, jamais de halo. */
 :root{--sh1:inset 0 1px 0 rgba(245,242,236,.045),0 10px 24px -12px rgba(0,0,0,.7);--sh2:inset 0 1px 0 rgba(245,242,236,.07),0 18px 40px -14px rgba(0,0,0,.8);--sh3:inset 0 1px 0 rgba(245,242,236,.08),0 -24px 64px rgba(0,0,0,.7)}
 .card,.panel,.tdc,.pbar,.hero{box-shadow:var(--sh1)}
@@ -1805,16 +1822,18 @@ const dShort = iso => !iso ? "" : iso.slice(0, 4) === D.today.slice(0, 4) ? dfr(
 const srcTxt = x => x.src === "PR" ? (x.coach ? "max de la prog" : (x.date ? dShort(x.date) : "") + " · PR") : x.src === "carnet" && !x.bloc ? (x.date ? dShort(x.date) : "") + " · noté"
   : (x.bloc !== undefined && x.bloc !== null ? blocShort(x.bloc) + " S" + x.sem : "") + (x.date ? " · " + dShort(x.date) : "");
 function repTableHtml(l){
-  if (!allLoaded) return `<h2 class="h2">Records par répétitions</h2><div class="empty"><div class="spin"></div><p class="small">Lecture de tous tes blocs…</p></div>`;
+  if (!allLoaded) return `<h2 class="h2">Tes meilleures séries</h2><div class="empty"><div class="spin"></div><p class="small">Lecture de tous tes blocs…</p></div>`;
   const sets = compSets(l), rm = repMaxes(sets), e = e1rmBest(l, sets), b = best(l), u = BW_LIFTS.includes(l) ? " de lest" : "";
-  const tiles = rm.map(({n, b:x}) => `<div class="rm${x ? "" : " off"}" role="button" tabindex="0" data-act="${x ? "rmInfo" : "rmAdd"}" data-l="${l}" data-n="${n}"><p class="muted tiny">${n} rep${n > 1 ? "s" : ""}</p><p class="show">${x ? fmt(x.c) : "—"}${x && x.rpe ? `<small class="rpe-at">@${fmt(x.rpe)}</small>` : ""}${VIDX[l + "|" + n] ? `<small class="vid-at" aria-label="${VIDX[l + "|" + n]} vidéo${VIDX[l + "|" + n] > 1 ? "s" : ""}">▶</small>` : ""}</p><p class="muted tiny">${x ? esc(srcTxt(x)) : "ajouter"}</p></div>`).join("");
-  const eh = e ? `<div class="panel" style="margin-top:0"><p class="muted small">1RM estimé</p>
+  const rows = rm.filter(({b:x}) => x).map(({n, b:x}) => { const ee = e1rmOf(l, {...x, r:n});
+    return `<button class="rm bs" data-act="rmInfo" data-l="${l}" data-n="${n}"><span class="bsl"><b>${fmt(x.c)} kg × ${n}${x.rpe ? `<small class="rpe-at">@${fmt(x.rpe)}</small>` : ""}${VIDX[l + "|" + n] ? `<small class="vid-at" aria-label="${VIDX[l + "|" + n]} vidéo${VIDX[l + "|" + n] > 1 ? "s" : ""}">▶</small>` : ""}</b><span class="tiny">${esc(srcTxt(x))}${ee ? " · 1RM estimé " + fmt(Math.floor(ee.v * 4) / 4) + " kg" : ""}</span></span><span class="bsr">${n} rep${n > 1 ? "s" : ""}</span></button>`; }).join("");
+  const eh = e ? `<div class="panel" style="margin-top:14px"><p class="muted small">1RM estimé</p>
       <p class="show t-m" style="margin-top:4px;color:${LCOL[l]}">${fmt(Math.floor(e.v * 4) / 4)}<small> kg${u}</small></p>
       <p class="muted small" style="margin-top:4px">D'après ${fmt(e.c)} kg × ${e.r}${e.rpe ? " à RPE " + fmt(e.rpe) : ""} (${esc(srcTxt(e))}).
       ${b !== null ? (e.v > b + .2 ? ` C'est ${fmt(e.v - b, 1)} kg au-dessus de ton PR (${fmt(b)}) : un potentiel, pas un acquis.` : ` Ton PR (${fmt(b)}) est déjà à ce niveau.`) : ""}</p></div>` : "";
-  return `<h2 class="h2">Records par répétitions <span class="muted">${LNAME[l].toLowerCase()} en compétition</span></h2>
-    ${eh}<div class="rmgrid" style="margin-top:10px">${tiles}</div>
-    <p class="muted tiny" style="margin-top:8px">${BW_LIFTS.includes(l) ? "Lest en kg. " : ""}Charge la plus lourde faite pour exactement ce nombre de reps, sur tous tes blocs (mouvement de compétition, sans pause ni tempo ni élastique) : lignes de ta prog avec un RPE, séances notées dans l'app et PR. Touche une case pour voir d'où vient la valeur. « — » : jamais fait.</p>`;
+  return `<h2 class="h2">Tes meilleures séries</h2>
+    ${rows ? `<div class="bslist">${rows}</div>` : `<p class="muted small">Aucune série avec un nombre de reps connu pour l'instant. Ajoute un record plus bas.</p>`}
+    ${eh}<p class="rwarn"><i aria-hidden="true">!</i>Le 1RM estimé vient d'une formule, pas d'un essai réel. À confirmer en salle.</p>
+    <p class="muted tiny" style="margin-top:8px">${BW_LIFTS.includes(l) ? "Lest en kg. " : ""}Charge la plus lourde faite pour exactement ce nombre de reps, sur tous tes blocs (mouvement de compétition, sans pause ni tempo ni élastique) : lignes de ta prog avec un RPE, séances notées dans l'app et PR. Touche une ligne pour voir d'où vient la valeur.</p>`;
 }
 const fmtSets = sets => { const c0 = sets[0].c; return sets.every(x => x.c === c0) ? fmt(c0) + " kg × " + sets.map(x => x.r).join(" · ") : sets.map(x => x.r + "@" + fmt(x.c)).join(" · "); };
 
@@ -2918,9 +2937,15 @@ function rLiftPage(l){
   const hist = D.prs.filter(p => p.lift === l).slice().reverse(), nr = record("NR BE", l), wr = record("WR", l), lock = false, oslRec = LIFTS.includes(l) && streetOn();
   return `<div class="page" role="dialog" aria-label="${LNAME[l]}"><div class="wrap">
     <div class="pagebar"><button class="iconbtn" data-act="closePage" aria-label="Retour"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button>
-      <span class="row" style="gap:8px;font-weight:700">${LNAME[l]}</span><span style="width:44px" aria-hidden="true"></span></div>
-    ${muscleCard(l)}
-    ${heroCard({plain:true, small:`${LNAME[l]} · record perso${!lock && hist.length ? " · " + dlong(D.prs.filter(p => p.lift === l && p.reps === 1).sort((a, c) => c.charge - a.charge)[0]?.date || hist[0].date) : ""}`, big:b === null ? "—" : `${fmt(b)}<small>kg</small>`, sub:b === null ? (LIFTS.includes(l) && streetOn() ? "Pas encore de record : 0 kg dans ton total" : "Pas encore de record") : BW_LIFTS.includes(l) && bw() ? fmt(b + bw(), 1) + " kg avec ton poids de corps" : ""})}
+      <span class="ptitle"><b>${LNAME[l]}</b><small>Ton record</small></span>${hist.length ? `<button class="iconbtn" data-act="share" data-l="${l}" aria-label="Créer la carte de mon record"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M8 8l4-4 4 4M5 13v6h14v-6"/></svg></button>` : `<span style="width:44px" aria-hidden="true"></span>`}</div>
+    ${(() => { const bs = bestSeries(l), pk = bs.at(-1), pv = bs.length > 1 ? bs.at(-2).v : null, wb = BW_LIFTS.includes(l) && bw() && b !== null ? fmt(b + bw(), 1) + " kg avec ton poids de corps" : "";
+      return `<section class="rhero"><div class="rtx"><p class="rsm">${BW_LIFTS.includes(l) ? "Lest · " : ""}1 répétition maximale</p>
+        <p class="rbig">${b === null ? "—" : fmt(b)}${b === null ? "" : "<small>kg</small>"}</p>
+        ${b === null ? `<p class="muted small">${LIFTS.includes(l) && streetOn() ? "Pas encore de record : 0 kg dans ton total" : "Pas encore de record"}</p>` : `<div class="rchips">${pv !== null && b > pv ? `<span class="rchip up">▲ ${fmt(b - pv, 2)} kg</span>` : ""}${pk ? `<span class="rchip">${esc(dShort(pk.date))}</span>` : ""}</div>${wb ? `<p class="muted small" style="margin-top:8px">${wb}</p>` : ""}`}</div>
+        ${muscleFig(l, {cls:"rhm"})}</section>`; })()}
+    <section class="rprog"><div class="rph"><b>${liftMetric === "1rm" ? "Progression sur 1 an" : "e1RM de la prog"}</b><span id="rgain"></span></div>
+      <div class="chips">${[["1rm","Tes PR"],["e1rm","e1RM de la prog"]].map(([k, tt]) => `<button class="chip" aria-pressed="${liftMetric === k}" data-act="liftMetric" data-k="${k}" data-l="${l}">${tt}</button>`).join("")}</div>
+      <canvas id="c-lift" aria-label="Historique"></canvas></section>
     ${lock ? "" : repTableHtml(l)}
     ${lock ? `<div class="panel" style="margin-top:16px"><p>Ton muscle-up n'est pas encore acquis. Active-le dans les réglages dès que tu l'as, il entrera dans ton total.</p><button class="btn ghost" style="margin-top:12px" data-act="settings">Ouvrir les réglages</button></div>` : `
 
@@ -2931,9 +2956,6 @@ function rLiftPage(l){
       ${o && b !== null ? `<p class="muted small" style="margin-top:10px">${o <= b ? "Objectif déjà atteint, remonte la barre." : "Il te manque " + fmt(o - b, 2) + " kg."}</p>` : ""}
     </div>
 
-    <h2 class="h2">Historique <span class="muted">${D.prs.filter(p => p.lift === l).length} PR</span></h2>
-    <div class="chips">${[["1rm","Tes PR"],["e1rm","e1RM de la prog"]].map(([k, t]) => `<button class="chip" aria-pressed="${liftMetric === k}" data-act="liftMetric" data-k="${k}" data-l="${l}">${t}</button>`).join("")}</div>
-    <div class="panel" style="margin-top:10px"><canvas id="c-lift" aria-label="Historique"></canvas></div>
 
     ${oslRec ? `    <h2 class="h2">Face aux records <span class="muted">${cat()} kg</span></h2>
     <div>${(() => { const top = Math.max(b || 0, ...[nr, wr].filter(Boolean).map(x => x.valeur)) || 1;
@@ -2951,14 +2973,14 @@ function rLiftPage(l){
       <label for="prn">Note</label><input id="prn" placeholder="Compétition, entraînement…">
       <button class="btn" style="margin-top:14px" data-act="addPR" data-l="${l}">Ajouter le record</button>
     </div>
-    ${hist.length ? `<div class="panel"><table>${hist.map(p => `<tr><td>${cap(dlong(p.date))}<div class="muted tiny">${esc(p.note)}</div></td><td><b>${fmt(p.charge)} kg</b>${p.reps > 1 ? " × " + p.reps : ""}</td></tr>`).join("")}</table></div>
-      <button class="btn line" style="margin-top:10px" data-act="share" data-l="${l}">Créer la carte de mon record</button>` : ""}`}
+    ${hist.length ? `<div class="panel"><table>${hist.map(p => `<tr><td>${cap(dlong(p.date))}<div class="muted tiny">${esc(p.note)}</div></td><td><b>${fmt(p.charge)} kg</b>${p.reps > 1 ? " × " + p.reps : ""}</td></tr>`).join("")}</table></div>` : ""}`}
   </div></div>`;
 }
 function drawLiftCharts(l){
   if (l === "MU" && !muOn()) return;
   const col = getCss(LCOL[l]);
-  const pts = liftMetric === "1rm" ? inRange(bestSeries(l), "all") : liftHistory(l).filter(p => p.src === "prog");
+  const all = bestSeries(l), yr = inRange(all, "1a"), pts = liftMetric === "1rm" ? (yr.length > 1 ? yr : all) : liftHistory(l).filter(p => p.src === "prog");
+  const g = $("#rgain"); if (g) g.innerHTML = liftMetric === "1rm" && pts.length > 1 && pts.at(-1).v > pts[0].v ? `<span class="rchip up">+${fmt(pts.at(-1).v - pts[0].v, 2)} kg</span>` : "";
   if (document.getElementById("c-lift")) {
     if (pts.length > 1) lineChart("c-lift", pts.map(p => dfr(p.date)), [{label:liftMetric === "1rm" ? "Meilleur 1RM" : "e1RM", data:pts.map(p => p.v), color:col, area:true}], {unit:" kg"});
     else document.getElementById("c-lift").outerHTML = `<p class="muted small" style="padding:18px 0;text-align:center">${liftMetric === "1rm" ? "La courbe apparaît dès ton 2e PR." : "Pas encore d'e1RM daté dans ta prog."}</p>`;

@@ -86,7 +86,7 @@ with sync_playwright() as p:
     check("date : min-width 0, apparence neutre, à gauche, dans son cadre", r[0] == "0px" and r[1] == "none" and r[2] == "left" and r[3], r)
 
     # 10. Fiche mouvement : titre lisible au lieu d'une pastille seule ; dates courtes qui tiennent dans les cases
-    r = pg.evaluate("document.querySelector('.page .pagebar').textContent.trim()")
+    r = pg.evaluate("document.querySelector('.page .pagebar .ptitle b').textContent.trim()")
     check("fiche : titre « Tractions » dans la barre", r == "Tractions", r)
     r = pg.evaluate("[...document.querySelectorAll('.rm .tiny')].filter(e => e.scrollWidth > e.clientWidth + 1).map(e => e.textContent)")
     check("records par reps : aucune date coupée", r == [], r)
