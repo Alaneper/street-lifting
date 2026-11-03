@@ -752,6 +752,19 @@ body:has(.launch) .topbar,body:has(.launch) nav.tabs,body:has(.launch) #subseanc
 /* POIDS allégé (retours vidéo, lot B) */
 .pmonth{margin-top:8px;border-radius:18px;background:var(--deck);padding:0 14px}.pmonth summary{display:flex;justify-content:space-between;align-items:baseline;gap:10px;min-height:52px;padding:12px 0;cursor:pointer;list-style:none}.pmonth summary::-webkit-details-marker{display:none}.pmonth[open] summary{border-bottom:1px solid var(--seam)}
 .prefsum{display:flex;align-items:center;min-height:48px;font:600 16px var(--f-text);cursor:pointer}
+/* PROGRÈS allégé (retours vidéo, lot C) */
+.dfilt{display:flex;gap:8px;margin:2px 0 8px}.dfilt button{min-height:44px;padding:0 14px;border-radius:999px;font:600 14px var(--f-text);color:var(--faint);background:transparent;border:1px solid var(--seam)}.dfilt button[aria-pressed="true"]{color:var(--chalk);background:var(--deck2);border-color:transparent;box-shadow:var(--sh1)}
+.liftrow .top .val.none{font:600 14px var(--f-text);color:var(--faint)}
+.fold{margin-top:12px;border-radius:var(--r-lg);background:var(--deck);overflow:hidden}.fold>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:64px;padding:12px 16px;cursor:pointer;list-style:none}.fold>summary::-webkit-details-marker{display:none}
+.fold>summary span{display:flex;flex-direction:column;gap:2px}.fold>summary b{font:700 18px var(--f-text);color:var(--chalk)}.fold>summary small{font:500 13px var(--f-text);color:var(--faint)}
+.fold>summary::after{content:"";width:9px;height:9px;border-right:2px solid var(--dust);border-bottom:2px solid var(--dust);transform:rotate(45deg);transition:transform .2s;flex:none;margin-right:4px}.fold[open]>summary::after{transform:rotate(225deg)}
+.foldb{padding:0 16px 16px}.foldb .panel{background:var(--deck2)}.foldb>.h3:first-child{margin-top:4px}
+.vt{margin-top:6px}.vt>summary{display:flex;align-items:center;min-height:44px;color:var(--data);font:600 15px var(--f-text);cursor:pointer;list-style:none}.vt>summary::-webkit-details-marker{display:none}
+.mgrp{margin-top:6px}.mlist2{display:flex;flex-direction:column;background:var(--deck);border-radius:var(--r-lg);padding:4px 12px}
+.mrow{display:flex;align-items:center;gap:12px;min-height:64px;padding:8px 0;text-align:left;width:100%}.mrow+.mrow{border-top:1px solid var(--seam)}
+.mrow .mplate.thumb{margin:0}.mrow .mph{width:48px;height:48px;border-radius:12px;background:var(--deck2);display:flex;align-items:center;justify-content:center;font:800 22px var(--f-show);color:var(--dust);flex:none}
+.mrt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.mrt b{font:700 16px/1.2 var(--f-text);color:var(--chalk);overflow-wrap:anywhere}.mrt .small{font-size:13px}
+.mrv{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:none}.mrv b{font:700 18px var(--f-show);color:var(--chalk)}.mrv small{font:500 12px var(--f-text);color:var(--faint)}.mrv.none{font:500 13px var(--f-text);color:var(--faint);text-align:right;max-width:96px}
 /* FICHE RECORD allégée (retours vidéo, lot A) */
 .e1l{display:inline-flex;align-items:center;gap:8px;min-height:44px;margin-top:6px;padding:0 4px 0 0;font:500 14px var(--f-text);color:var(--dust);text-align:left}
 .e1l b{color:var(--chalk);font-weight:700}.e1l i{width:20px;height:20px;border-radius:50%;background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn);font:800 12px/20px var(--f-text);font-style:normal;text-align:center;flex:none}
@@ -2794,9 +2807,9 @@ function weekHtml(){
   return `<div class="chips" style="margin-top:2px">${blocs.map(b => `<button class="chip" aria-pressed="${b === sel.b}" data-act="pickWeek" data-b="${b}">${esc(blocLabel(b))}</button>`).join("")}</div>
     <div class="chips" style="margin-top:8px">${ws.map(w => `<button class="chip" aria-pressed="${w === sel.w}" data-act="pickWeek" data-b="${sel.b}" data-w="${esc(w)}">S${esc(w)}</button>`).join("")}</div>
     ${heroCard({small:`${esc(blocLabel(sel.b))} · semaine ${esc(sel.w)}${st ? " · " + dfr(st).slice(0, 5) + "–" + dfr(addDays(st, 6)).slice(0, 5) : ""}`, big:`${done}<small>/${ss.length}</small>`, sub:`${done > 1 ? "séances faites" : "séance faite"}${recs.length ? " · " + recs.length + " record" + (recs.length > 1 ? "s" : "") + " de reps" : ""}`, deco:false})}
-    ${recs.length ? `<div class="list" style="margin-top:12px">${recs.map(r => vrow(`${LNAME[r.l]} · ${r.r} rep${r.r > 1 ? "s" : ""}`, r.first ? "première fois" : "nouveau record", kg(r.c), LCOL[r.l], `data-act="openLift" data-l="${r.l}"`)).join("")}</div>` : ""}
+    ${recs.length ? (() => { const rr = r => vrow(`${LNAME[r.l]} · ${r.r} rep${r.r > 1 ? "s" : ""}`, r.first ? "première fois" : "nouveau record", kg(r.c), LCOL[r.l], `data-act="openLift" data-l="${r.l}"`); return `<div class="list" style="margin-top:12px">${recs.slice(0, 5).map(rr).join("")}</div>${moreHtml(`<div class="list">${recs.slice(5).map(rr).join("")}</div>`, recs.length - 5, "records")}`; })() : ""}
     ${comp.length ? `<h3 class="h3">Mouvements de compétition</h3><div class="list">${comp.map(({l, t}) => `<button class="item" data-act="openEx" data-k="${esc(t.o.key)}"><span class="d10" style="--c:${LCOL[l]}"></span><span class="grow"><span class="ttl" style="display:block">${LNAME[l]}</span><span class="muted small">${esc(setTxt(t.bestSet, l))} · 1RM est. ${fmt(t.top.e1rmBest, 1)}</span></span>${delta(t.d, " kg")}</button>`).join("")}</div>` : ""}
-    ${others.length ? `<h3 class="h3">Variantes et renfo</h3><div class="list">${others.map(x => `<button class="item" data-act="openEx" data-k="${esc(x.o.key)}"><span class="grow"><span class="ttl" style="display:block">${esc(exName(x.o.key))}</span><span class="muted small">${esc(fmtSets(x.top.sets))}</span></span>${delta(x.d === null ? null : x.d / (x.prev.e1rmBest || 1) * 100, " %")}</button>`).join("")}</div>` : ""}
+    ${others.length ? `<h3 class="h3">Variantes et renfo</h3>${(() => { const ro = x => `<button class="item" data-act="openEx" data-k="${esc(x.o.key)}"><span class="grow"><span class="ttl" style="display:block">${esc(exName(x.o.key))}</span><span class="muted small">${esc(fmtSets(x.top.sets))}</span></span>${delta(x.d === null ? null : x.d / (x.prev.e1rmBest || 1) * 100, " %")}</button>`; return `<div class="list">${others.slice(0, 5).map(ro).join("")}</div>${moreHtml(`<div class="list">${others.slice(5).map(ro).join("")}</div>`, others.length - 5, "exercices")}`; })()}` : ""}
     ${!items.length ? `<p class="muted small" style="margin-top:12px">Rien de noté cette semaine pour l'instant.</p>` : ""}
     ${bil && bil.length ? `<h3 class="h3">Ton bilan</h3><div class="chips">${bil.map(([k, v]) => `<span class="chip" aria-pressed="false">${k} ${fmt(v)}</span>`).join("")}</div>` : ""}
     <p class="muted tiny" style="margin-top:8px">Écart comparé à la dernière fois que tu as fait le même exercice avant cette semaine.</p>`;
@@ -2865,20 +2878,29 @@ function rMovePage(l){
     <button class="btn" data-act="openLift" data-l="${l}" style="margin-top:12px">${b !== null ? "Voir mon record" : "Ajouter un record"}</button>
   </div></div>`;
 }
-let mvQ = "", mvG = "";
-const MV_GROUPS = [["", "Tous"], ["jambes", "Jambes"], ["pousser", "Pousser"], ["tirer", "Tirer"]];
+let mvQ = "";
+const mvOpen = {};
+const MV_GROUPS = [["jambes", "Jambes"], ["pousser", "Pousser"], ["tirer", "Tirer"], ["", "Autres"]];
 const mvGroupOf = lift => { const m = lift && MUSCLE_MAP[lift]; if (!m) return ""; const p = Object.keys(m).filter(k => m[k] === 1);
   return p.some(k => ["quadriceps", "fessiers", "ischios"].includes(k)) ? "jambes" : p.some(k => ["pectoral", "triceps", "deltoide"].includes(k)) && !p.includes("dorsaux") ? "pousser" : p.some(k => ["dorsaux", "biceps"].includes(k)) ? "tirer" : ""; };
 const mvNorm = t => String(t ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+/* Retours vidéo (lot C) : Mouvements regroupés (Jambes, Pousser, Tirer), UN chiffre par mouvement (meilleure charge + date). Les séries et les reps restent dans la fiche. */
 function mvGrid(){
-  const q = mvNorm(mvQ), lifts = ["SQUAT","BENCH","DEADLIFT","PULL","DIP","MU"].map(l => ({n:LNAME[l], l, v:best(l) === null ? "" : fmt(best(l)) + " kg"}));
-  const exs = allLoaded ? exercisePoints().map(o => ({n:exName(o.key), k:o.key, lift:o.lift, v:fmtSets(o.last.sets)})) : [];
-  const all = [...lifts, ...exs].filter(x => (!q || mvNorm(x.n).includes(q)) && (!mvG || mvGroupOf(x.l || x.lift) === mvG));
+  const q = mvNorm(mvQ), lifts = ["SQUAT","BENCH","DEADLIFT","PULL","DIP","MU"].map(l => { const b = best(l), pt = bestSeries(l).at(-1); return {n:LNAME[l], l, v:b === null ? "" : fmt(b) + " kg", d:b === null || !pt ? "" : dShort(pt.date)}; });
+  const exs = allLoaded ? exercisePoints().map(o => { const top = o.pts.reduce((a, p) => !a || p.charge > a.charge ? p : a, null); return {n:exName(o.key), k:o.key, lift:o.lift, v:top && top.charge > 0 ? fmt(top.charge) + " kg" : "", d:top && top.charge > 0 ? dShort(top.date) : ""}; }) : [];
+  const all = [...lifts, ...exs].filter(x => !q || mvNorm(x.n).includes(q));
   if (!all.length) return `<div class="empty mempty"><p>Aucun mouvement pour « ${esc(mvQ)} ».</p></div>`;
-  return `<div class="mgrid">${all.map(x => `<button class="mcard" ${x.l ? `data-act="openMove" data-l="${x.l}"` : `data-act="openEx" data-k="${esc(x.k)}"`}>${x.l || x.lift ? muscleFig(x.l || x.lift, {view:"both", cls:"mc"}) : `<span class="mph" aria-hidden="true">${esc(x.n.charAt(0).toUpperCase())}</span>`}<b>${esc(x.n)}</b>${(x.l || x.lift) && muscleList(x.l || x.lift) ? `<span class="muted small msub">${esc(muscleList(x.l || x.lift).p.slice(0, 2).join(", "))}</span>` : ""}${x.v ? `<span class="mv">${esc(x.v)}</span>` : ""}</button>`).join("")}</div>${allLoaded ? "" : `<p class="muted small" style="margin-top:12px">Lecture de tout l'historique de ta prog…</p>`}`;
+  const row = x => { const lf = x.l || x.lift, sub = lf && muscleList(lf) ? muscleList(lf).p.slice(0, 2).join(", ") : "";
+    return `<button class="mrow" ${x.l ? `data-act="openMove" data-l="${x.l}"` : `data-act="openEx" data-k="${esc(x.k)}"`}>${lf && muscleMap(lf) ? muscleFig(lf, {cls:"thumb"}) : `<span class="mph" aria-hidden="true">${esc(x.n.charAt(0).toUpperCase())}</span>`}
+      <span class="mrt"><b>${esc(x.n)}</b>${sub ? `<span class="muted small">${esc(sub)}</span>` : ""}</span>
+      ${x.v ? `<span class="mrv"><b>${esc(x.v)}</b><small>${esc(x.d)}</small></span>` : `<span class="mrv none">${x.l ? "Pas encore de record" : ""}</span>`}</button>`; };
+  const N = 5;
+  return MV_GROUPS.map(([g, t]) => { const L = all.filter(x => mvGroupOf(x.l || x.lift) === g); if (!L.length) return "";
+    const open = q || mvOpen[g], shown = open ? L : L.slice(0, N);
+    return `<section class="mgrp"><h2 class="h2">${t} <span class="muted">${L.length}</span></h2><div class="mlist2">${shown.map(row).join("")}</div>${!q && L.length > N ? `<button class="more-btn" data-act="mvAll" data-g="${g}">${mvOpen[g] ? "Réduire" : `Voir tout (${L.length})`}</button>` : ""}</section>`; }).join("") + (allLoaded ? "" : `<p class="muted small" style="margin-top:12px">Lecture de tout l'historique de ta prog…</p>`);
 }
 function mouvHtml(){
-  return `<div class="sfield"><input id="mvin" type="search" placeholder="Rechercher un mouvement" value="${esc(mvQ)}" autocomplete="off" data-inp="mvQ" aria-label="Rechercher un mouvement"></div><div class="chips" id="mvchips" role="group" aria-label="Groupe musculaire" style="margin-top:10px">${MV_GROUPS.map(([k, t]) => `<button class="chip" aria-pressed="${mvG === k}" data-act="mvGroup" data-k="${k}">${t}</button>`).join("")}</div><div id="mvlist">${mvGrid()}</div>`;
+  return `<div class="sfield"><input id="mvin" type="search" placeholder="Rechercher un mouvement" value="${esc(mvQ)}" autocomplete="off" data-inp="mvQ" aria-label="Rechercher un mouvement"></div><div id="mvlist">${mvGrid()}</div>`;
 }
 document.addEventListener("input", ev => { const t = ev.target; if (t && t.dataset && t.dataset.inp === "mvQ") { mvQ = t.value; const l = $("#mvlist"); if (l) l.innerHTML = mvGrid(); } });
 let crvSel = "total";
@@ -2910,8 +2932,12 @@ function crvTop(cd, bf){
       <div style="margin-top:8px">${pts.length > 1 ? areaSvg(pts) : `<div class="emptycard flat"><b>La courbe apparaît dès ton 2e record daté</b><p>Note un record avec sa date pour la voir évoluer.</p></div>`}</div></section>
     ${lifts.length ? `<div class="mt3s lt${lifts.length > 3 ? " four" : ""}">${lifts.map(l => { const bp = bestSeries(l), la = bp.at(-1), rf = refPoint(bp, 56), dl = la && rf && rf !== la ? Math.round((la.v - rf.v) * 100) / 100 : 0;
       return `<button class="mt3" data-act="openLift" data-l="${l}"><span>${LNAME[l]}</span><b>${fmt(best(l, bf))}</b>${dl > 0 ? `<i class="dl">+${fmt(dl, 2)} kg</i>` : `<i class="dl none">&nbsp;</i>`}</button>`; }).join("")}</div>` : ""}
-    ${allLoaded ? tonnageCard() : ""}`;
+    `;
 }
+/* Retours vidéo (lot C) : la discipline est un simple filtre en haut de Progrès, pas un 3e niveau de sélecteur. */
+const discFilterHtml = () => streetOn() && powerOn() ? `<div class="dfilt" role="group" aria-label="Discipline affichée">${[["street", "Street lifting"], ["power", "Powerlifting"]].map(([k, t]) => `<button aria-pressed="${curDisc() === k}" data-act="discSel" data-k="${k}">${t}</button>`).join("")}</div>` : "";
+const foldOpen = {vol:false, renfo:false};
+document.addEventListener("toggle", ev => { const d = ev.target; if (!d || !d.id || d.id.slice(0, 5) !== "fold-") return; foldOpen[d.id.slice(5)] = d.open; if (d.id === "fold-vol" && d.open && allLoaded) drawVolume(); }, true);
 function rProg(){
   const cd = curDisc(), t = totalOf(cd), r = scoreOf(cd, t, bw()), bf = cd === "power" && equipped() ? null : classicOnly;
   const oT = goalOf(cd), sd = cd === "power" ? 2 : 1;
@@ -2922,33 +2948,35 @@ function rProg(){
     const rowEx = o => { const v = o.pts.map(p => p.e1rm), d = trend4w(o.pts), col = o.lift ? LCOL[o.lift] : "var(--chalk)";
       return `<button class="item" data-act="openEx" data-k="${esc(o.key)}"><span class="grow"><span class="ttl" style="display:block">${esc(exName(o.key))}</span><span class="muted small">${esc(fmtSets(o.last.sets))}</span></span>
         ${sparkSVG(v.slice(-10), o.lift ? getCss(col) : getCss("var(--chalk)"))}<span class="small" style="width:52px;text-align:right;color:${d > 0 ? "var(--chalk)" : "var(--dust)"}">${d === null ? "" : (d > 0 ? "+" : "") + fmt(d, 0).replace("-", "−") + " %"}</span></button>`; };
-    exHtml = `${now.length ? `<div class="list">${now.map(rowEx).join("")}</div>` : `<p class="muted small">Aucune performance notée pour les exercices du ${esc(blocLow(ab))}. Lance une séance pour commencer.</p>`}
+    exHtml = `${now.length ? `<div class="list">${now.slice(0, 6).map(rowEx).join("")}</div>${moreHtml(now.slice(6).map(rowEx).join(""), now.length - 6, "exercices")}` : `<p class="muted small">Aucune performance notée pour les exercices du ${esc(blocLow(ab))}. Lance une séance pour commencer.</p>`}
       ${old.length ? `<details style="margin-top:14px"><summary class="small muted">Anciens exercices (${old.length})</summary><div class="list" style="margin-top:6px">${old.map(rowEx).join("")}</div></details>` : ""}`;
   } else ensureAllBlocs().then(() => { if (tab === "prog") rProg(); }).catch(() => {});
   const seg = `<div class="seg3">${(cd === "power" ? ["DEADLIFT","SQUAT","BENCH"] : ["SQUAT","DIP","PULL","MU"]).filter(l => best(l, bf)).map((l, i) => `<i style="width:${(best(l, bf) / (oT || 1) * 100).toFixed(1)}%;background:rgba(255,255,255,${[1, .75, .55, .4][i]})"></i>`).join("")}</div>`;
   const psg = `<div class="segc big" role="group" aria-label="Progrès" style="margin:6px 0 4px">${[["records", "Records"], ["courbes", "Courbes"], ["mouvements", "Mouvements"]].map(([k, t]) => `<button aria-pressed="${progSeg === k}" data-act="progSeg" data-k="${k}">${t}</button>`).join("")}</div>`;
+  const dfilt = progSeg !== "mouvements" && !muscuOnly() ? discFilterHtml() : "";
   const recordsHtml = `
-    ${muscuOnly() ? muscuTop() : `${discSegHtml(10)}
-    ${heroCard({small:cd === "power" ? `Mon total power · ${equipped() ? "equipped" : "classic"}` : "Mon total", big:`${fmt(t)}<small>kg</small>`, sub:`${scoreName(cd)} ${fmt(r, sd)} · objectif ${fmt(oT, 1)} kg`, extra:seg + totalDelta(cd), deco:false})}
+    ${muscuOnly() ? muscuTop() : `${heroCard({small:cd === "power" ? `Mon total power · ${equipped() ? "equipped" : "classic"}` : "Mon total", big:`${fmt(t)}<small>kg</small>`, sub:`${scoreName(cd)} ${fmt(r, sd)} · objectif ${fmt(oT, 1)} kg`, extra:seg + totalDelta(cd), deco:false})}
     <div class="tiles2" style="margin-top:12px"><div><p class="muted small">Total visé</p><p class="show">${fmt(oT, 2)}</p></div><div><p class="muted small">${scoreName(cd)} visé</p><p class="show">${fmt(scoreOf(cd, oT, bw()), sd)}</p></div></div>
     <h2 class="h2">Mouvements de compétition</h2>
     <div>${(cd === "power" ? POWER_LIFTS : ["PULL","DIP","SQUAT","MU"]).map(l => { const b = best(l, bf), o = D.objectifs[l];
-      return `<button class="liftrow" data-act="openLift" data-l="${l}"><span class="top">${muscleFig(l, {cls:"thumb"})}<b>${LNAME[l]}</b><span class="val">${kg(b)}</span></span>
+      return `<button class="liftrow" data-act="openLift" data-l="${l}"><span class="top">${muscleFig(l, {cls:"thumb"})}<b>${LNAME[l]}</b>${b === null ? `<span class="val none">Pas encore de record</span>` : `<span class="val">${kg(b)}</span>`}</span>
         <span class="bar" style="display:block;--c:var(--data)"><i style="width:${o && b ? pct(b, o) : 0}%"></i></span>
         <span class="meta"><span>${o ? "objectif " + kg(o) : "pas encore d'objectif"}</span><span>${o && b !== null ? (o <= b ? "atteint" : "encore " + fmt(o - b, 2) + " kg") : ""}</span></span></button>`; }).join("")}</div>`}`;
+  const fold = (id, ttl, sub, body) => `<details class="fold" id="fold-${id}"${foldOpen[id] ? " open" : ""}><summary><span><b>${ttl}</b><small>${sub}</small></span></summary><div class="foldb">${body}</div></details>`;
   const curvesHtml = `
     ${muscuOnly() ? "" : crvTop(cd, bf)}
-    <h2 class="h2">Par mouvement</h2>
-    ${allLoaded ? volumeHtml() : `<p class="muted small">Calcul en cours…</p>`}
-    <h2 class="h2">Semaine par semaine</h2>
-    ${weekHtml()}
-    ${cardioHtml()}
-    ${dpHtml()}
-    <h2 class="h2">Tous les exercices <span class="muted">${activeBloc() !== null ? esc(blocLow(activeBloc())) : ""}</span></h2>
-    <p class="muted small" style="margin:0 0 8px">Le pourcentage compare ton 1RM estimé à celui d'il y a environ 4 semaines.</p>
-    ${exHtml}`;
-  $("#v-prog").innerHTML = psg + (progSeg === "courbes" ? curvesHtml : progSeg === "mouvements" ? mouvHtml() : recordsHtml);
-  if (progSeg === "courbes") { if (allLoaded) drawVolume(); }
+    ${fold("vol", "Volume", "Tonnage, semaine par semaine, cardio", `${allLoaded ? tonnageCard() : ""}
+      <h3 class="h3">Par mouvement</h3>
+      ${allLoaded ? volumeHtml() : `<p class="muted small">Calcul en cours…</p>`}
+      <h3 class="h3">Semaine par semaine</h3>
+      ${weekHtml()}
+      ${cardioHtml()}`)}
+    ${fold("renfo", "Renforcement", "Double progression et exercices du bloc", `${dpHtml()}
+      <h3 class="h3">Tous les exercices <span class="muted">${activeBloc() !== null ? esc(blocLow(activeBloc())) : ""}</span></h3>
+      <p class="muted small" style="margin:0 0 8px">Le pourcentage compare ton 1RM estimé à celui d'il y a environ 4 semaines.</p>
+      ${exHtml}`)}`;
+  $("#v-prog").innerHTML = dfilt + psg + (progSeg === "courbes" ? curvesHtml : progSeg === "mouvements" ? mouvHtml() : recordsHtml);
+  if (progSeg === "courbes" && allLoaded && foldOpen.vol) drawVolume();
 }
 /* Évolution du 1RM estimé : dernière séance comparée à celle d'il y a 4 semaines environ (sinon la plus ancienne).
    Une valeur à moins de la moitié ou plus du double de la médiane est ignorée (saisie aberrante). */
@@ -2969,13 +2997,15 @@ function dpData(){
     return {key:o.key, c:o.last.charge, reps, lo, hi, full, left, date:o.last.date};
   }).filter(Boolean).sort((a, b) => (b.full - a.full) || (a.left - b.left));
 }
+const moreHtml = (inner, n, what) => n > 0 ? `<details class="vt"><summary>Voir tout (${n} de plus)</summary><div>${inner}</div></details>` : "";
 function dpHtml(){
   const L = dpData(); if (!L.length) return "";
-  return `<h2 class="h2">Renfo <span class="muted">double progression</span></h2>
-    ${L.map(x => `<button class="vrow" style="display:block" data-act="openEx" data-k="${esc(x.key)}">
+  const row = x => `<button class="vrow" style="display:block" data-act="openEx" data-k="${esc(x.key)}">
       <div class="row"><b style="font-weight:700">${esc(exName(x.key))}</b><span class="tag ${x.full ? "ok" : ""}">${x.full ? "Monte la charge" : "Encore " + x.left + " rep" + (x.left > 1 ? "s" : "")}</span></div>
       <p class="muted small" style="margin-top:4px">${fmt(x.c)} kg · ${x.reps.filter(Boolean).join(" · ")} · fourchette ${x.lo} à ${x.hi}</p>
-      <div class="dp ${x.full ? "full" : ""}" style="--n:${x.reps.length}">${x.reps.map(r => `<i><b style="width:${Math.min(100, r / x.hi * 100)}%"></b></i>`).join("")}</div></button>`).join("")}
+      <div class="dp ${x.full ? "full" : ""}" style="--n:${x.reps.length}">${x.reps.map(r => `<i><b style="width:${Math.min(100, r / x.hi * 100)}%"></b></i>`).join("")}</div></button>`;
+  return `<h3 class="h3">Double progression</h3>
+    ${L.slice(0, 5).map(row).join("")}${moreHtml(L.slice(5).map(row).join(""), L.length - 5, "exercices")}
     <p class="muted tiny" style="margin-top:8px">Chaque barre est une série, pleine au haut de la fourchette. Toutes pleines : tu montes la charge.</p>`;
 }
 function volumeWeeks(){
@@ -3798,7 +3828,7 @@ function nutGoalHtml(T){
 /* ---------- Actions ---------- */
 async function nutEnsureTabs(){ if (D._nutTabs) return; await Store.ensureTabs(); D._nutTabs = true; }
 Object.assign(ACT, {
-  mvGroup:d => { mvG = d.k; rProg(); },
+  mvAll:d => { mvOpen[d.g] = !mvOpen[d.g]; rProg(); },
   progSeg:d => { progSeg = d.k; rProg(); window.scrollTo(0, 0); },
   nutView:d => { nutView = d.k; rNutri(); },
   corpsTab:d => { corpsTab = d.k; corpsManual = D.today; rCorps(); },
