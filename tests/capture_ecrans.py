@@ -13,7 +13,7 @@ ECRANS = {
   "progres": "progSeg='records';setTab('prog')", "classement": "agendaSeg='amis';setTab('agenda')", "competition": "agendaSeg='compet';setTab('agenda')",
   "mouvements": "progSeg='mouvements';mvQ='';setTab('prog')", "mouvements-recherche": "progSeg='mouvements';mvQ='dip';setTab('prog')",
   "courbes": "progSeg='courbes';setTab('prog')",
-  "fiche-squat": "page={type:'lift',l:'SQUAT'};liftMetric='1rm';renderLayer()", "fiche-exercice": "page={type:'ex',k:exercisePoints().find(o=>o.lift).key};exMetric='e1rm';renderLayer()",
+  "fiche-mouvement": "page={type:'move',l:'SQUAT'};renderLayer()", "fiche-squat": "page={type:'lift',l:'SQUAT'};liftMetric='1rm';renderLayer()", "fiche-exercice": "page={type:'ex',k:exercisePoints().find(o=>o.lift).key};exMetric='e1rm';renderLayer()",
   "reglages": "ACT.settings&&ACT.settings({})",
   "serie-validee": "setTab('home');startLive((todaySeance()||nextSeance()).key, 1);ACT.closeSheet&&ACT.closeSheet();onSetDone(0)",
   "fin-seance": "setTab('home');startLive((todaySeance()||nextSeance()).key, 1);ACT.closeSheet&&ACT.closeSheet();onSetDone(0);finishLive()",

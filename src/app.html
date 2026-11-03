@@ -514,7 +514,7 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 .mplate.thumb{--mh:48px;width:48px;padding:3px 0;border-radius:12px;flex:none}
 .mplate.hero-fig{--mh:min(62vw,300px);width:100%;gap:12px}
 .mfiche{margin-top:12px}.mlist{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
-.mtag{font:600 13px var(--f-text);padding:6px 11px;border-radius:999px;background:var(--deck2);color:var(--dust)}.mtag.p{background:rgba(255,74,43,.16);color:var(--chalk)}
+
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.mgrid>*{min-width:0}
 .mcard{display:flex;flex-direction:column;gap:8px;text-align:left;background:var(--deck);border:1px solid var(--seam);border-radius:var(--r-lg);padding:10px;min-height:44px;box-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 6px 16px rgba(0,0,0,.28);transition:transform .15s cubic-bezier(.2,.8,.2,1)}
 .mcard:active{transform:scale(.97)}
@@ -718,6 +718,16 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 .launch p{max-width:260px;font-size:12.5px;line-height:1.4;color:var(--faint);margin-top:10px}
 body:has(.launch) .topbar,body:has(.launch) nav.tabs,body:has(.launch) #subseance{visibility:hidden}
 @keyframes lbar{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
+/* FICHE DE MOUVEMENT (v3, planche V3Direct_1) */
+.mfiche .mpaper{background:#F1EDE4;border-radius:24px;padding:14px 14px 12px;box-shadow:var(--sh1)}
+.mph2{display:flex;justify-content:space-between;align-items:baseline;font:600 13px var(--f-text);color:#6E675E}.mph2 span{font:500 11px var(--f-mono);letter-spacing:.08em}
+.mfiche .mplate.hero-fig{background:none;padding:6px 0 0;--mh:min(58vw,290px)}
+.mleg{display:flex;justify-content:center;gap:22px;margin-top:6px;font:500 13px var(--f-text);color:#6E675E}.mleg span{display:inline-flex;align-items:center;gap:8px}
+.mleg i,.mtag i{width:11px;height:11px;border-radius:4px;background:#EFA893;flex:none}.mleg i.p,.mtag.p i{background:#DC3A1C}
+.mtag{display:inline-flex;align-items:center;gap:7px;min-height:36px;padding:0 12px;font:600 14px var(--f-text);color:var(--chalk);border-radius:14px;background:var(--deck)}.mtag.p{background:var(--deck)}
+.mtag i{width:10px;height:10px;border-radius:3px}
+.mstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px;padding:14px 16px;border-radius:20px;background:var(--deck)}
+.mstats p{font:500 13px var(--f-text);color:var(--dust)}.mstats b{display:block;margin-top:4px;font:800 22px/1.05 var(--f-show);color:var(--chalk)}
 /* FICHE RECORD (v3, planche V3Direct_3) */
 .ptitle{display:flex;flex-direction:column;align-items:center;line-height:1.15}.ptitle b{font:700 17px var(--f-text)}.ptitle small{font:500 13px var(--f-text);color:var(--dust)}
 .rhero{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;margin-top:14px;padding:18px;border-radius:24px;background:var(--deck);box-shadow:var(--sh1)}
@@ -2792,9 +2802,27 @@ function drawTotal(){
 function muscleCard(lift){
   if (!muscleMap(lift)) return "";
   const ml = muscleList(lift);
-  return `<section class="mfiche" aria-label="Muscles sollicités">${muscleFig(lift, {view:"both", cls:"hero-fig"})}
-    <div class="mlist">${ml.p.map(n => `<span class="mtag p">${esc(n)}</span>`).join("")}${ml.s.map(n => `<span class="mtag">${esc(n)}</span>`).join("")}</div>
-    <p class="muted tiny" style="margin-top:8px">Rouge : muscles principaux · rose : muscles secondaires. Association indicative.</p></section>`;
+  return `<section class="mfiche" aria-label="Muscles sollicités"><div class="mpaper"><div class="mph2"><b>Muscles sollicités</b><span>FACE · DOS</span></div>
+    ${muscleFig(lift, {view:"both", cls:"hero-fig"})}
+    <p class="mleg"><span><i class="p"></i>Principal</span><span><i class="s"></i>Secondaire</span></p></div>
+    <div class="mlist">${ml.p.map(n => `<span class="mtag p"><i></i>${esc(n)}</span>`).join("")}${ml.s.map(n => `<span class="mtag"><i></i>${esc(n)}</span>`).join("")}</div>
+    <p class="muted tiny" style="margin-top:10px">Rouge : muscles principaux · rose : muscles secondaires. Association indicative.</p></section>`;
+}
+/* Fiche de mouvement (planche V3Direct_1) : carte musculaire, puis tes chiffres réels. Pas de texte d'exécution : aucune source vérifiée pour l'instant. */
+function rMovePage(l){
+  const bs = bestSeries(l), b = best(l), sets = allLoaded ? compSets(l) : [], e = allLoaded && sets.length ? e1rmBest(l, sets) : null;
+  const dts = (allLoaded ? sets.map(x => x.date) : D.prs.filter(p => p.lift === l).map(p => p.date)).filter(Boolean).sort(), last = dts.at(-1), d = last ? days(last, D.today) : null;
+  const top = allLoaded ? repMaxes(sets).filter(x => x.b).sort((x, y) => y.b.c - x.b.c)[0] : null;
+  const lbl = LIFTS.includes(l) ? "Mouvement de compétition" : "Renforcement";
+  return `<div class="page" role="dialog" aria-label="${esc(LNAME[l])}"><div class="wrap">
+    <div class="pagebar"><button class="iconbtn" data-act="closePage" aria-label="Retour"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <span class="ptitle"><b>${LNAME[l]}</b><small>${lbl}</small></span><span style="width:44px" aria-hidden="true"></span></div>
+    ${muscleCard(l)}
+    <div class="mstats"><div><p>Ton record</p><b>${top ? fmt(top.b.c) + " × " + top.n : b !== null ? fmt(b) + " kg" : "—"}</b></div>
+      <div><p>1RM estimé</p><b>${e ? fmt(Math.floor(e.v * 4) / 4) + " kg" : !allLoaded && b !== null ? "…" : "—"}</b></div>
+      <div><p>Dernière fois</p><b>${d === null ? "—" : d === 0 ? "aujourd'hui" : d === 1 ? "hier" : "il y a " + d + " j"}</b></div></div>
+    <button class="btn" data-act="openLift" data-l="${l}" style="margin-top:12px">${b !== null ? "Voir mon record" : "Ajouter un record"}</button>
+  </div></div>`;
 }
 let mvQ = "", mvG = "";
 const MV_GROUPS = [["", "Tous"], ["jambes", "Jambes"], ["pousser", "Pousser"], ["tirer", "Tirer"]];
@@ -2806,7 +2834,7 @@ function mvGrid(){
   const exs = allLoaded ? exercisePoints().map(o => ({n:exName(o.key), k:o.key, lift:o.lift, v:fmtSets(o.last.sets)})) : [];
   const all = [...lifts, ...exs].filter(x => (!q || mvNorm(x.n).includes(q)) && (!mvG || mvGroupOf(x.l || x.lift) === mvG));
   if (!all.length) return `<div class="empty mempty"><p>Aucun mouvement pour « ${esc(mvQ)} ».</p></div>`;
-  return `<div class="mgrid">${all.map(x => `<button class="mcard" ${x.l ? `data-act="openLift" data-l="${x.l}"` : `data-act="openEx" data-k="${esc(x.k)}"`}>${x.l || x.lift ? muscleFig(x.l || x.lift, {view:"both", cls:"mc"}) : `<span class="mph" aria-hidden="true">${esc(x.n.charAt(0).toUpperCase())}</span>`}<b>${esc(x.n)}</b>${(x.l || x.lift) && muscleList(x.l || x.lift) ? `<span class="muted small msub">${esc(muscleList(x.l || x.lift).p.slice(0, 2).join(", "))}</span>` : ""}${x.v ? `<span class="mv">${esc(x.v)}</span>` : ""}</button>`).join("")}</div>${allLoaded ? "" : `<p class="muted small" style="margin-top:12px">Lecture de tout l'historique de ta prog…</p>`}`;
+  return `<div class="mgrid">${all.map(x => `<button class="mcard" ${x.l ? `data-act="openMove" data-l="${x.l}"` : `data-act="openEx" data-k="${esc(x.k)}"`}>${x.l || x.lift ? muscleFig(x.l || x.lift, {view:"both", cls:"mc"}) : `<span class="mph" aria-hidden="true">${esc(x.n.charAt(0).toUpperCase())}</span>`}<b>${esc(x.n)}</b>${(x.l || x.lift) && muscleList(x.l || x.lift) ? `<span class="muted small msub">${esc(muscleList(x.l || x.lift).p.slice(0, 2).join(", "))}</span>` : ""}${x.v ? `<span class="mv">${esc(x.v)}</span>` : ""}</button>`).join("")}</div>${allLoaded ? "" : `<p class="muted small" style="margin-top:12px">Lecture de tout l'historique de ta prog…</p>`}`;
 }
 function mouvHtml(){
   return `<div class="sfield"><input id="mvin" type="search" placeholder="Rechercher un mouvement" value="${esc(mvQ)}" autocomplete="off" data-inp="mvQ" aria-label="Rechercher un mouvement"></div><div class="chips" id="mvchips" role="group" aria-label="Groupe musculaire" style="margin-top:10px">${MV_GROUPS.map(([k, t]) => `<button class="chip" aria-pressed="${mvG === k}" data-act="mvGroup" data-k="${k}">${t}</button>`).join("")}</div><div id="mvlist">${mvGrid()}</div>`;
@@ -2994,9 +3022,8 @@ function rExPage(key){
   if (!o) return `<div class="page"><div class="wrap"><div class="pagebar"><button class="iconbtn" data-act="closePage" aria-label="Retour">←</button></div><p class="muted">Aucune donnée.</p></div></div>`;
   const P = o.pts, f = P[0], la = P.at(-1), g = f[exMetric] ? (la[exMetric] - f[exMetric]) / f[exMetric] * 100 : null, bp = P.reduce((a, c) => c.e1rmBest > a.e1rmBest ? c : a, P[0]), col = o.lift ? LCOL[o.lift] : "var(--chalk)";
   return `<div class="page" role="dialog" aria-label="${esc(exName(key))}"><div class="wrap">
-    <div class="pagebar"><button class="iconbtn" data-act="closePage" aria-label="Retour"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button></div>
-    <p class="muted">${o.lift ? LNAME[o.lift] : "Renforcement"}</p>
-    <p class="show t-l" style="margin-top:4px">${esc(exName(key))}</p>
+    <div class="pagebar"><button class="iconbtn" data-act="closePage" aria-label="Retour"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <span class="ptitle"><b>${esc(exName(key))}</b><small>${o.lift ? LNAME[o.lift] : "Renforcement"}</small></span><span style="width:44px" aria-hidden="true"></span></div>
     ${o.lift ? muscleCard(o.lift) : ""}
     <div class="grid3" style="margin-top:18px">
       <div><p class="muted small">Dernière fois</p><p class="show t-s" style="margin-top:4px">${fmt(la.charge)} kg</p><p class="muted tiny">${la.sets.every(x => x.c === la.sets[0].c) ? la.sets.map(x => x.r).join(" · ") : la.sets.map(x => fmt(x.c) + " × " + x.r).join(" · ")}</p></div>
@@ -3165,7 +3192,7 @@ function renderLayer(){
   if (sheet !== "scan" && scanStream) stopScan();
   let h = "";
   if (live) h += rLive();
-  if (page) h += page.type === "imp" ? rImpPage() : page.type === "lift" ? rLiftPage(page.l) : rExPage(page.k);
+  if (page) h += page.type === "imp" ? rImpPage() : page.type === "lift" ? rLiftPage(page.l) : page.type === "move" ? rMovePage(page.l) : rExPage(page.k);
   if (sheet === "scan") h += scanHtml();
   else if (sheet) h += `<div class="scrim" data-act="closeSheet"></div><div class="sheet${sheet === "summary" || sheet === "settings" ? " full" : ""}" role="dialog"><div class="wrap"><div class="grab"></div>${rSheet()}</div></div>`;
   setTimeout(() => { const rp = document.querySelector(".lrpe .rpe"); if (rp) { const b = rp.querySelector('[aria-pressed="true"]') || rp.querySelector('[data-v="7"]'); if (b) rp.scrollLeft = Math.max(0, b.offsetLeft - 16); } }, 0);
@@ -3477,6 +3504,7 @@ const ACT = {
   doImport:() => doImport(),
   openLift:d => { page = {type:"lift", l:d.l}; liftMetric = "1rm"; renderLayer(); if (!allLoaded) ensureAllBlocs().then(() => { if (page && page.type === "lift") renderLayer(); }).catch(() => {}); },
   openEx:d => { page = {type:"ex", k:d.k}; exMetric = "e1rm"; renderLayer(); },
+  openMove:d => { page = {type:"move", l:d.l}; renderLayer(); if (!allLoaded) ensureAllBlocs().then(() => { if (page && page.type === "move") renderLayer(); }).catch(() => {}); },
   closePage:() => { page = null; renderLayer(); },
   liftMetric:d => { liftMetric = d.k; renderLayer(); },
   exMetric:d => { exMetric = d.k; renderLayer(); },
