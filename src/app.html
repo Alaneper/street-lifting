@@ -680,6 +680,27 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 .prefrow .chv{color:var(--faint);flex:none}
 .sw{width:54px;height:32px}.sw::after{width:26px;height:26px;background:var(--chalk)}
 .prefrow[aria-checked="true"] .sw{background:var(--acc)}.prefrow[aria-checked="true"] .sw::after{transform:translateX(22px);background:var(--chalk)}
+/* COMPÉTITION et CLASSEMENT (planche V3Compet) */
+.cc{margin-top:8px;padding:20px 18px;border-radius:24px;box-shadow:var(--sh1)}
+.cc .lg-lab{font:500 15px var(--f-text);text-transform:none;letter-spacing:0;color:var(--dust)}.cc-n{font:700 24px var(--f-text);margin-top:10px}.cc-s{font:500 16px var(--f-text);margin-top:8px}
+.cc-d{font:800 64px/.9 var(--f-show);letter-spacing:-.01em}
+.cctl{margin-top:10px}.cctl .mt3 b small{font:800 .62em var(--f-show);color:var(--chalk);margin-left:3px}.cctl .mt3 .dl{font-size:13px}
+.steps{display:flex;flex-direction:column}
+.step{display:flex;align-items:center;gap:14px;min-height:76px;padding:8px 0;border-bottom:1px solid var(--seam);width:100%;text-align:left}.step:last-child{border-bottom:0}
+.step .grow{flex:1;min-width:0}.step .grow b{display:block;font:600 18px var(--f-text)}.step .grow span{display:block;font:500 15px/1.35 var(--f-text);color:var(--dust);margin-top:2px}
+.step .chv{color:var(--faint);flex:none}
+.stk{width:48px;height:48px;border-radius:14px;background:var(--deck2);display:grid;place-items:center;flex:none;color:var(--dust);box-shadow:var(--sh1);font:800 20px var(--f-show)}
+.stk:empty::after{content:"";width:28px;height:28px;border-radius:50%;box-shadow:inset 0 0 0 2.5px var(--deck3)}
+.stk.ok{background:var(--acc);color:var(--floor)}.stk.warn{color:var(--warn);background:#2B2410}
+.pod .pblock{background:var(--deck);color:var(--chalk);box-shadow:var(--sh1)}
+.pod.p1 .pav{box-shadow:none}.pod.p1 .pblock{height:116px;background:var(--deck2);color:var(--chalk)}.pod.p2 .pblock{height:88px}.pod.p3 .pblock{height:62px}
+.pod.me .pav{box-shadow:0 0 0 3px var(--acc)}.pod.me .pblock{background:#32140D;color:var(--acc)}
+.pod .pav{width:60px;height:60px;font-size:20px}.pod.p1 .pav{width:60px;height:60px;font-size:22px}
+.pod .ptot{font:500 13px var(--f-text);color:var(--dust)}.pod .ptot small{font-size:1em}
+.pod .pname{font:600 17px/1.2 var(--f-text)}
+.clrow .rk{width:30px;font:800 26px var(--f-show);color:var(--faint)}
+.clav{width:48px;height:48px;border-radius:50%;background:var(--deck2);display:grid;place-items:center;font:700 15px var(--f-text);flex:none}
+.clrow .val{font:500 19px var(--f-text);color:var(--chalk)}
 /* COUCHES (v3) : 0 fond · 1 carte · 2 surélevé · 3 contrôle dans une carte · 4 feuille (flou). Une ombre par niveau, jamais de halo. */
 :root{--sh1:inset 0 1px 0 rgba(245,242,236,.045),0 10px 24px -12px rgba(0,0,0,.7);--sh2:inset 0 1px 0 rgba(245,242,236,.07),0 18px 40px -14px rgba(0,0,0,.8);--sh3:inset 0 1px 0 rgba(245,242,236,.08),0 -24px 64px rgba(0,0,0,.7)}
 .card,.panel,.tdc,.pbar,.hero{box-shadow:var(--sh1)}
@@ -1768,7 +1789,7 @@ let corpsManual = "";   /* jour où tu as choisi Alimentation/Poids toi-même */
 function setTab(t){
   if (t === "corps" && tab !== "corps" && !(D && corpsManual === D.today)) corpsTab = D && new Date().getHours() < 12 && !D.poids.some(p => p.date === D.today) ? "poids" : "nutri";
   tab = t;
-  const tn = $("#tabname"); if (tn) tn.textContent = {home:"Séance", seance:"Séance", histo:"Séance", prog:"Progrès", corps:"Corps", agenda:"Classement"}[t] || "";
+  const tn = $("#tabname"); if (tn) tn.textContent = {home:"Séance", seance:"Séance", histo:"Séance", prog:"Progrès", corps:"Corps", agenda:(typeof agendaSeg !== "undefined" && agendaSeg === "compet") ? "Compétition" : "Classement"}[t] || "";
   const top = t === "seance" || t === "histo" ? "home" : t;   /* Séance regroupe Aujourd'hui et Programme */
   document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.tab === top ? "page" : "false"));
   const ss = $("#subseance"); if (ss) { ss.hidden = top !== "home"; ss.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.sub === t))); }
@@ -3002,13 +3023,13 @@ function parseImport(raw){
 /* v67 étape H : carte « Prochaine compétition » v3 (données existantes seulement : date, lieu, catégorie, pesée, total). */
 function compCard(c){
   const t = D.today, d = days(t, c.date), lim = catLimit(), w = bw(), wt = weightTrend(), proj = wt && d >= 0 ? wt.at(c.date) : null, tp = totalSeries(curDisc()).at(-1);
-  const tile = (k, v, sub, col) => `<div class="cct"><span class="lg-lab">${k}</span><b>${v}</b><span style="${col ? "color:" + col : ""}">${sub}</span></div>`;
+  const tile = (k, v, sub, col) => `<div class="mt3"><span>${k}</span><b>${v}</b><i class="dl" style="${col ? "color:" + col : "color:var(--faint)"}">${sub}</i></div>`;
   const marge = lim && w ? lim - w : null, tiles = [
     lim ? tile("Catégorie", "−" + lim + "<small>kg</small>", marge === null ? "pesée à ajouter" : marge >= 0 ? "marge " + fmt(marge, 1) + " kg" : fmt(-marge, 1) + " kg au-dessus", marge !== null && marge < 0 ? "var(--warn)" : "var(--data)") : "",
     w ? tile("Poids", fmt(w, 1) + "<small>kg</small>", proj !== null ? "~" + fmt(proj, 1) + " kg le jour J" : "aujourd'hui") : "",
     tp ? tile("Total", fmt(tp.v) + "<small>kg</small>", "dernier record") : ""].filter(Boolean);
   return `<section class="panel cc"><div class="pw-top"><span class="pw-l"><span class="lg-lab">Prochaine compétition</span><b class="cc-n">${esc(c.nom)}</b><span class="cc-s">${c.tbc ? "Date à confirmer · " : ""}${cap(dlong(c.date))}${c.lieu ? " · " + esc(c.lieu) : ""}</span></span>
-    <b class="cc-d">${d === 0 ? "Jour J" : d < 0 ? "Passée" : "J−" + d}</b></div>${tiles.length ? `<div class="cctiles">${tiles.join("")}</div>` : ""}</section>`;
+    <b class="cc-d">${d === 0 ? "Jour J" : d < 0 ? "Passée" : "J−" + d}</b></div></section>${tiles.length ? `<div class="mt3s cctl">${tiles.join("")}</div>` : ""}`;
 }
 function rAgenda(){
   if (agendaSeg === "amis") return rAmis();
@@ -3042,20 +3063,16 @@ function rAgenda(){
       <div class="grid2" style="margin-top:14px">${ec ? `<button class="btn ghost" data-act="cancelEdit">Annuler</button>` : ""}<button class="btn" style="${ec ? "" : "grid-column:1/-1"}" data-act="saveComp">${ec ? "Enregistrer" : "Ajouter"}</button></div>
     </div>`;
 }
+const STEP_CHK = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>`;
 function prepHtml(c){
-  const lim = catLimit(), wt = weightTrend(), proj = wt ? wt.at(c.date) : null, ch = D.checks.filter(x => x.date === c.date)
+  const lim = catLimit(), wt = weightTrend(), proj = wt ? wt.at(c.date) : null, ch = D.checks.filter(x => x.date === c.date), over = lim && proj ? proj > lim : false;
+  const wsub = bw() ? `Aujourd'hui ${fmt(bw(), 1)} kg${lim ? ` · limite ${lim} kg` : ""}${proj ? ` · environ ${fmt(proj, 1)} kg le jour J (estimation)` : ""}` : "Aucune pesée";
   return `<h2 class="h2">Jour J, étape par étape</h2>
-    <div class="panel">
-      <p style="font-weight:700">Pesée</p>
-      <p class="small muted" style="margin-top:4px">${bw() ? `Aujourd'hui ${fmt(bw(), 1)} kg${lim ? `, limite ${lim} kg` : ""}.` : "Aucune pesée."} ${proj ? `Au rythme des 3 dernières semaines : environ <b style="color:var(--chalk)">${fmt(proj, 1)} kg</b> le jour J (estimation).` : (() => { const n = Math.max(1, 4 - D.poids.filter(p => p.date >= addDays(D.today, -21)).length); return n + (n > 1 ? " pesées" : " pesée") + " de plus et l'app estime ton poids le jour J."; })()}</p>
-      ${lim && proj ? `<div class="bar" style="margin-top:10px;--c:${proj <= lim ? "var(--chalk)" : "var(--bad)"}"><i style="width:${pct(proj, lim)}%"></i></div>` : ""}
+    <div class="steps">
+      <button class="step" data-act="corpsGo"><span class="stk ${over ? "warn" : ""}" aria-hidden="true">${over ? "!" : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 13l3-3"/></svg>`}</span><span class="grow"><b>Pesée</b><span>${esc(wsub)}</span></span>${CHEV}</button>
+      ${ch.map(x => `<button class="step" role="checkbox" aria-checked="${x.done}" data-act="check" data-r="${x.id}"><span class="stk ${x.done ? "ok" : ""}" aria-hidden="true">${x.done ? STEP_CHK : ""}</span><span class="grow"><b>${esc(x.item)}</b></span></button>`).join("")}
     </div>
-    <div class="panel">
-      <div class="row"><p style="font-weight:600">Checklist</p><span class="muted small">${ch.filter(x => x.done).length}/${ch.length}</span></div>
-      ${ch.length ? `<div style="margin-top:6px">${ch.map(x => `<button class="check-row" role="checkbox" aria-checked="${x.done}" data-act="check" data-r="${x.id}"><span class="box"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M5 12l5 5 9-10"/></svg></span><span>${esc(x.item)}</span></button>`).join("")}</div>`
-        : `<button class="btn ghost" style="margin-top:12px" data-act="initChecks" data-d="${c.date}">Créer la checklist</button>`}
-      ${ch.length ? `<div class="grid2" style="margin-top:10px;grid-template-columns:1fr auto"><input id="newcheck" placeholder="Ajouter un élément"><button class="btn sm" data-act="addCheck" data-d="${c.date}">Ajouter</button></div>` : ""}
-    </div>`;
+    ${ch.length ? `<div class="grid2" style="margin-top:10px;grid-template-columns:1fr auto"><input id="newcheck" placeholder="Ajouter une étape" aria-label="Nouvelle étape"><button class="btn sm" data-act="addCheck" data-d="${c.date}">Ajouter</button></div><p class="muted small" style="margin-top:8px">${ch.filter(x => x.done).length} sur ${ch.length} faites</p>` : `<button class="btn ghost" style="margin-top:10px" data-act="initChecks" data-d="${c.date}">Créer la checklist</button>`}`;
 }
 
 /* =====================================================================
@@ -3786,7 +3803,7 @@ function clRows(d){
     .sort((a, b) => clSort === "total" ? b.total - a.total || (b.score || 0) - (a.score || 0) || a.nom.localeCompare(b.nom, "fr")
       : (b.score || 0) - (a.score || 0) || b.total - a.total || a.nom.localeCompare(b.nom, "fr"));
 }
-const agendaSegHtml = () => `<div class="segc" style="margin:6px 0 4px">${[["compet", "Compétitions"], ["amis", "Amis"]].map(([k, t]) => `<button aria-pressed="${agendaSeg === k}" data-act="agSeg" data-k="${k}">${t}</button>`).join("")}</div>`;
+const agendaSegHtml = () => `<div class="segc big" style="margin:6px 0 4px">${[["compet", "Compétitions"], ["amis", "Amis"]].map(([k, t]) => `<button aria-pressed="${agendaSeg === k}" data-act="agSeg" data-k="${k}">${t}</button>`).join("")}</div>`;
 function rAmis(){
   const el = $("#v-agenda"), seg = agendaSegHtml();
   if (muscuOnly()) { el.innerHTML = seg + `<div class="emptycard" style="margin-top:14px"><b>Classement réservé aux sports de force</b><p>Le classement compare des totaux de street lifting ou de powerlifting. Active l'une de ces disciplines dans les réglages pour y apparaître.</p><button class="btn ghost" style="margin-top:14px" data-act="settings">Ouvrir les réglages</button></div>`; return; }
@@ -3800,9 +3817,9 @@ function rAmis(){
   const agesHere = Object.keys(AGE_NAME).filter(a => clRows(cd).length && ((CL && CL.rows) || []).some(r => String(r.age || "").split(",").includes(a)));
   const pod = k => { const x = R[k], cls = "pod p" + (k + 1);
     if (!x) return `<div class="${cls} empty"><span class="pav">·</span><b class="pname muted">—</b><span class="ptot muted">&nbsp;</span><div class="pblock"><span>${k + 1}</span></div></div>`;
-    return `<button class="${cls}${x.me ? " me" : ""}" data-act="clInfo" data-k="${x.k}" aria-label="${ordinal(k + 1)} : ${esc(x.nom)}, ${lab(x)}"><span class="pav">${esc(x.nom[0].toUpperCase())}<i class="pflag">${flagOf(x.pays)}</i></span>
+    return `<button class="${cls}${x.me ? " me" : ""}" data-act="clInfo" data-k="${x.k}" aria-label="${ordinal(k + 1)} : ${esc(x.nom)}, ${lab(x)}"><span class="pav">${esc(x.nom.slice(0, 2).toUpperCase())}<i class="pflag">${flagOf(x.pays)}</i></span>
       <b class="pname">${esc(x.nom)}</b><span class="ptot">${big(x)}</span><div class="pblock"><span>${k + 1}</span></div></button>`; };
-  const rest = R.slice(3).map((x, i) => `<button class="vrow clrow${x.me ? " me" : ""}" data-act="clInfo" data-k="${x.k}"><span class="rk">${i + 4}</span><span class="cflag">${flagOf(x.pays)}</span><span class="grow"><b>${esc(x.nom)}</b></span><span class="val">${clSort === "total" ? fmt(x.total) + " kg" : x.score ? fmt(x.score, sd) : "—"}</span></button>`).join("");
+  const rest = R.slice(3).map((x, i) => `<button class="vrow clrow${x.me ? " me" : ""}" data-act="clInfo" data-k="${x.k}"><span class="rk">${i + 4}</span><span class="clav" aria-hidden="true">${esc(x.nom.slice(0, 2).toUpperCase())}</span><span class="grow"><b>${esc(x.nom)}</b></span><span class="val">${clSort === "total" ? fmt(x.total) + " kg" : x.score ? fmt(x.score, sd) : "—"}</span></button>`).join("");
   const chips = `<div class="chips" style="margin-top:10px">${[["score", "Au " + sn], ["total", "Au total"]].map(([k, t]) => `<button class="chip" aria-pressed="${clSort === k}" data-act="clSort" data-k="${k}">${t}</button>`).join("")}
     ${agesHere.length ? `<span aria-hidden="true" style="width:1px;background:var(--seam);margin:6px 2px"></span>` + [["", "Tous les âges"]].concat(agesHere.map(a => [a, AGE_NAME[a]])).map(([k, t]) => `<button class="chip" aria-pressed="${clAge === k}" data-act="clAge" data-k="${k}">${t}</button>`).join("") : ""}</div>`;
   el.innerHTML = seg + discSegHtml(10) + chips + (R.length ? `
@@ -3823,7 +3840,7 @@ function clInfoHtml(k){
     <button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`;
 }
 Object.assign(ACT, {
-  agSeg:d => { agendaSeg = d.k; window.scrollTo(0, 0); rAgenda(); },
+  agSeg:d => { agendaSeg = d.k; const tn = $("#tabname"); if (tn) tn.textContent = agendaSeg === "compet" ? "Compétition" : "Classement"; window.scrollTo(0, 0); rAgenda(); },
   clInfo:d => openSheet("cl|" + d.k),
   clSort:d => { clSort = d.k; rAmis(); },
   clAge:d => { clAge = d.k; rAmis(); },
@@ -4148,6 +4165,7 @@ Object.assign(ACT, {
     } catch(e){ toast(errMsg(e), true); if (b) b.disabled = false; }
   },
   mealsManage:() => openSheet("meals"),
+  corpsGo:() => { corpsTab = "poids"; corpsManual = D.today; setTab("corps"); },
   crvSel:d => { crvSel = d.k; rProg(); },
   nutScan:d => { nutSlot = +d.s; ACT.scanOpen({c:"nutri"}); },
   nutSlot:d => { nutSlot = +d.s; rNutri(); const el = $("#nutadd"); if (el) el.scrollIntoView({behavior:"smooth", block:"start"}); },

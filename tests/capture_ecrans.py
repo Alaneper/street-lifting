@@ -10,13 +10,15 @@ only = set(sys.argv[2:])
 ECRANS = {
   "aujourdhui": "setTab('home')", "programme": "setTab('seance')", "historique": "setTab('histo')",
   "poids": "corpsTab='poids';corpsManual=D.today;setTab('corps')", "alimentation": "corpsTab='nutri';corpsManual=D.today;setTab('corps')",
-  "progres": "progSeg='records';setTab('prog')", "classement": "setTab('agenda')",
+  "progres": "progSeg='records';setTab('prog')", "classement": "agendaSeg='amis';setTab('agenda')", "competition": "agendaSeg='compet';setTab('agenda')",
   "mouvements": "progSeg='mouvements';mvQ='';setTab('prog')", "mouvements-recherche": "progSeg='mouvements';mvQ='dip';setTab('prog')",
   "courbes": "progSeg='courbes';setTab('prog')",
   "fiche-squat": "page={type:'lift',l:'SQUAT'};liftMetric='1rm';renderLayer()", "fiche-exercice": "page={type:'ex',k:exercisePoints().find(o=>o.lift).key};exMetric='e1rm';renderLayer()",
   "reglages": "ACT.settings&&ACT.settings({})",
   "serie-validee": "setTab('home');startLive((todaySeance()||nextSeance()).key, 1);ACT.closeSheet&&ACT.closeSheet();onSetDone(0)",
   "fin-seance": "setTab('home');startLive((todaySeance()||nextSeance()).key, 1);ACT.closeSheet&&ACT.closeSheet();onSetDone(0);finishLive()",
+  "alim-semaine": "corpsTab='nutri';nutView='semaine';corpsManual=D.today;setTab('corps');rCorps()",
+  "classement-fixture": "agendaSeg='amis';CL={rows:[{nom:'Alane',ris:79.4,total:187.5,disc:'street',me:true,pays:'BE'},{nom:'Tom',ris:82.1,total:201,disc:'street',pays:'BE'},{nom:'Inès',ris:76.9,total:170,disc:'street',pays:'FR'},{nom:'Sam',ris:74.2,total:165,disc:'street',pays:'BE'},{nom:'Yanis',ris:71.8,total:160,disc:'street',pays:'FR'},{nom:'Léa',ris:70.3,total:140,disc:'street',pays:'BE'}]};clErr='';setTab('agenda');rAgenda()",   # membres fictifs : jeu de test pour la capture uniquement
   "direct": "setTab('home');startLive((todaySeance()||nextSeance()).key, 1);ACT.closeSheet&&ACT.closeSheet()",
 }
 with sync_playwright() as p:

@@ -19,7 +19,7 @@ with sync_playwright() as p:
     T = lambda: ev("document.querySelector('#v-agenda').innerText").lower()
     check("carte Prochaine compétition", "prochaine compétition" in T() and ev("!!document.querySelector('#v-agenda .cc .cc-d')"))
     check("J−X dans la carte, sans débordement", ev("(() => { const r = document.querySelector('.cc-d').getBoundingClientRect(); return r.right <= innerWidth - 8 && /J.\\d+|Jour J/.test(document.querySelector('.cc-d').textContent); })()"))
-    check("tuiles catégorie/poids/total", ev("document.querySelectorAll('#v-agenda .cct').length") >= 2)
+    check("tuiles catégorie/poids/total", ev("document.querySelectorAll('#v-agenda .cctl .mt3').length") >= 2)
     check("étapes du jour J + checklist", "jour j, étape par étape" in T() and "checklist" in T())
     check("calendrier et formulaire conservés", ev("!!document.querySelector('#v-agenda .cal') && !!document.querySelector('#cpn')"))
     check("pas de undefined/NaN", not re.search(r"undefined|nan", T()))
