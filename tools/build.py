@@ -42,7 +42,7 @@ s = head.replace("__BUILD__", _t.strftime("%Y%m%d%H%M%S", _t.gmtime())) + s
 rep("</style>\n\n<main", """/* Web app */
 body{padding-top:0}
 body.ob{padding-top:calc(env(safe-area-inset-top,0px) + 8px)}
-body.ob .tabs,body.ob .avatar,body.ob .topbar{display:none}
+body.ob .tabs,body.ob .avatar,body.ob .topbar,body.ob #subseance{display:none}
 .upd{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 76px);transform:translateX(-50%);z-index:19;display:flex;align-items:center;gap:10px;background:var(--deck2);color:var(--chalk);
   border:1px solid var(--deck3);border-radius:22px;padding:6px 6px 6px 16px;font:600 14px var(--f-text);box-shadow:0 10px 30px rgba(0,0,0,.45);animation:fade .2s;white-space:nowrap}
 .upd button{min-height:36px;padding:0 14px;border-radius:18px;background:var(--chalk);color:var(--floor);font:700 14px var(--f-text);position:relative}
