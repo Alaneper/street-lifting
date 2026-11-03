@@ -122,10 +122,15 @@ with sync_playwright() as p:
     pg.on("pageerror", lambda e: errs.append(str(e))); pg.on("console", lambda m: errs.append(m.text) if m.type == "error" else None)
     pg.goto("http://app.local/sl/"); pg.wait_for_timeout(1000); pg.click("[data-act=obLogin]"); pg.wait_for_timeout(1500)
     pg.evaluate("onboard('create')"); pg.wait_for_timeout(500)
+    pg.evaluate("obI = 1; onboard('create')"); pg.wait_for_timeout(300)   # écran 2 : disciplines
     check("inscription : 3 cartes de discipline", pg.locator(".dcard").count() == 3)
     pg.click("[data-act=obDisc][data-k=muscu]"); pg.click("[data-act=obDisc][data-k=street]"); pg.wait_for_timeout(300)
+    pg.click("[data-act=obNext]"); pg.wait_for_timeout(300)   # écran 3 : toi
     check("inscription muscu seule : catégories masquées", pg.evaluate("document.querySelector('#obcatsec').hidden === true"))
     pg.screenshot(path=str(OUT / "v40-inscription.png"), full_page=True)
+    pg.click("[data-act=obNext]"); pg.wait_for_timeout(300)
+    check("inscription muscu seule : pas d'écran des barres (4 étapes, on passe au coach)", pg.evaluate("!!document.querySelector('#obk') && document.querySelector('.obstep').textContent") == "Étape 4 sur 4")
+    pg.click("[data-act=obBack]"); pg.click("[data-act=obBack]"); pg.wait_for_timeout(300)   # retour sur les disciplines
     pg.click("[data-act=obDisc][data-k=power]"); pg.wait_for_timeout(200)
     pg.click("[data-act=obDisc][data-k=power]"); pg.wait_for_timeout(200)
     pg.click("[data-act=obDisc][data-k=muscu]"); pg.wait_for_timeout(200)
