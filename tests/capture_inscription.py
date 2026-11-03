@@ -1,5 +1,5 @@
 """Capture des écrans de première ouverture : accueil, carnet, puis l'inscription une question par écran (390x844 @2x).
-Valeurs saisies = données de test fictives, rien n'est envoyé : on ne clique pas sur « Créer mon carnet »."""
+Valeurs saisies = données de test fictives, rien n'est envoyé : on ne clique pas sur « Créer mon Google Sheet »."""
 import sys, pathlib
 H = pathlib.Path(__file__).resolve().parent
 src = (H / "e2e.py").read_text(); exec(src[:src.index("with sync_playwright()")])

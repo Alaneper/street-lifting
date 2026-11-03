@@ -157,17 +157,17 @@ function onboard(step, why){
   if (step === "config") h = `<div class="empty"><p>L'identifiant Google de l'app n'est pas encore configuré.</p></div>`;
   else if (step === "login") h = `<div class="obbg" aria-hidden="true"><i></i><i></i></div><div class="obw obhome">
     <svg class="oblogo" viewBox="0 0 120 100" aria-label="B2Strong"><g fill="none" stroke="var(--chalk)" stroke-linecap="butt" stroke-linejoin="miter"><line x1="11" y1="0" x2="11" y2="100" stroke-width="22"/><path d="M11 9.5H38A19.25 19.25 0 0 1 38 48H11" stroke-width="19"/><path d="M11 48H43A21.25 21.25 0 0 1 43 90.5H11" stroke-width="19"/></g><path d="M6 30C6 12 20 2 34 2C50 2 61 12 61 27C61 39 53 48 41 58L24 73H61V96H4V77L34 50C40 44 45 38 45 30C45 22 41 17 34 17C26 17 22 23 22 32Z" fill="var(--acc)" transform="translate(76 0) scale(0.44)"/></svg>
-    <h1 class="obbig">Be too<br>strong.</h1><p class="obsub" style="margin-top:14px">Le carnet des athlètes de force.<br>Mieux qu'hier, chaque séance.</p>
+    <h1 class="obbig">Be too<br>strong.</h1><p class="obsub" style="margin-top:14px">Le suivi des athlètes de force.<br>Mieux qu'hier, chaque séance.</p>
     <div class="obfoot"><button class="btn" data-act="obLogin">Créer mon compte</button><button class="btn ghost" style="margin-top:12px" data-act="obLogin">J'ai déjà un compte</button>${err}
     <p class="obfine">Connexion avec Google : tes données restent dans ton propre Google Sheet. Google peut afficher « application non validée » : c'est normal pour une app en test, touche « Continuer ».</p></div></div>`;
-  else if (step === "carnet") h = `<div class="obw"><div class="obtop"><span></span></div><h1 class="obh" style="margin-top:34px">Ton carnet</h1>
+  else if (step === "carnet") h = `<div class="obw"><div class="obtop"><span></span></div><h1 class="obh" style="margin-top:34px">Ton Google Sheet</h1>
     <p class="obsub">L'app range tes records, pesées, séances et repas dans un Google Sheet à toi.</p>
-    <div class="panel" style="margin-top:18px"><p style="font-weight:700;font-size:17px">Nouveau ici, avec une prog de coach</p><p class="muted small" style="margin-top:4px">Colle le lien de ta prog : l'app y lit ton prénom, ton poids et tes max, et crée ton carnet.</p>
+    <div class="panel" style="margin-top:18px"><p style="font-weight:700;font-size:17px">Nouveau ici, avec une prog de coach</p><p class="muted small" style="margin-top:4px">Colle le lien de ta prog : l'app y lit ton prénom, ton poids et tes max, et crée ton Google Sheet.</p>
       <label for="obcoach">Lien de la prog de ton coach</label><input id="obcoach" type="url" placeholder="https://docs.google.com/spreadsheets/d/…">
       <button class="btn" style="margin-top:12px" data-act="obFromCoach" id="obfc">Tout remplir depuis ma prog</button>
       <button class="link small" style="margin-top:12px" data-act="obStep" data-s="create">Je n'ai pas de prog, je remplis moi-même</button></div>
-    <div class="panel"><p style="font-weight:700;font-size:17px">J'ai déjà un carnet</p><label for="oblink">Lien du Google Sheet</label><input id="oblink" type="url" placeholder="https://docs.google.com/spreadsheets/d/…">
-      <button class="btn ghost" style="margin-top:12px" data-act="obLink">Utiliser ce carnet</button></div>${err}</div>`;
+    <div class="panel"><p style="font-weight:700;font-size:17px">J'ai déjà un Google Sheet</p><label for="oblink">Lien du Google Sheet</label><input id="oblink" type="url" placeholder="https://docs.google.com/spreadsheets/d/…">
+      <button class="btn ghost" style="margin-top:12px" data-act="obLink">Utiliser ce Google Sheet</button></div>${err}</div>`;
   else if (step === "create") { if (!obA) obInit(); const A = obA, P = obPre || {}, STEPS = obSteps(), key = STEPS[obI], n = obI + 1, tot = STEPS.length, v = x => esc(x === undefined || x === null ? "" : String(x));
     const CK = `<span class="ck" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A0B0D" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>`;
     const dots = L => L.map(l => `<i style="--c:${LCOL[l]}"></i>`).join("");
@@ -196,7 +196,7 @@ function onboard(step, why){
       ${P.blocs && P.blocs.length ? `<label for="obbl">Ton bloc en cours</label><select id="obbl">${P.blocs.map(m => `<option value="${m}" ${m === A.bloc ? "selected" : ""}>${esc(/^\s*BLOC\s*\d+\s*$/i.test(P.blocTitles[m]) ? "Bloc " + m : P.blocTitles[m].trim())}</option>`).join("")}</select>` : ""}
       ${P.bloc ? `<label for="obb">Lundi de la semaine 1 de ce bloc</label><input id="obb" type="date" value="${v(A.blocDate)}"><p class="muted tiny" style="margin-top:6px">Pour dater tes séances. Tu pourras le changer plus tard.</p>` : ""}
       <p class="muted tiny" style="margin-top:6px">La prog doit être partagée avec le compte Google avec lequel tu es connecté.</p>
-      <label for="obd">Début de la pratique <span class="muted">facultatif</span></label><div class="grid2"><div><input id="obd" type="date" value="${v(A.debut)}"></div><div></div></div>${err}${foot(next("Créer mon carnet", "obCreate"))}</div>`; }
+      <label for="obd">Début de la pratique <span class="muted">facultatif</span></label><div class="grid2"><div><input id="obd" type="date" value="${v(A.debut)}"></div><div></div></div>${err}${foot(next("Créer mon Google Sheet", "obCreate"))}</div>`; }
   $("#v-home").innerHTML = `<div class="ob">${h}</div>`;
   if (step === "create") obRefresh();
 }
@@ -240,7 +240,7 @@ Object.assign(ACT, {
   obSex:(d, el) => { obA.sexe = d.k; document.querySelectorAll("[data-act=obSex]").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.k === d.k))); obRefresh(); },
   obLink:async () => { const id = idOf($("#oblink").value); if (!id) return onboard("carnet", "Ce lien ne ressemble pas à un lien de Google Sheet.");
     try { const t = await getTitles(id);
-      if (!t.includes("PROFIL") && (t.some(x => /^\s*BLOC\s*\d+/i.test(x)) || (await progTabs(id)).order.length)) return onboard("carnet", "Ce lien est celui d'une prog de coach, pas d'un carnet. Colle-le plus haut, dans « Nouveau ici, avec une prog de coach ».");
+      if (!t.includes("PROFIL") && (t.some(x => /^\s*BLOC\s*\d+/i.test(x)) || (await progTabs(id)).order.length)) return onboard("carnet", "Ce lien est celui d'une prog de coach, pas d'un Google Sheet B². Colle-le plus haut, dans « Nouveau ici, avec une prog de coach ».");
       await ensureTabs(id); } catch(e){ return onboard("carnet", errMsg(e)); }
     setCfg({appId:id}); APP_ID = id; startApp(); },
   obFromCoach:async () => {
@@ -265,9 +265,9 @@ Object.assign(ACT, {
     if (A.coach.trim() && !p.coach) return toast("Le lien de la prog n'est pas reconnu", true);
     const b = $("#obgo"); b.disabled = true; b.textContent = "Création…";
     try {
-      if (p.coach) { try { await getTitles(p.coach); } catch(e){ b.disabled = false; b.textContent = "Créer mon carnet"; return toast("Prog du coach inaccessible : " + errMsg(e), true); } }
-      const id = await createBook(p); setCfg({appId:id}); APP_ID = id; toast("Carnet créé"); startApp();
-    } catch(e){ b.disabled = false; b.textContent = "Créer mon carnet"; toast(errMsg(e), true); }
+      if (p.coach) { try { await getTitles(p.coach); } catch(e){ b.disabled = false; b.textContent = "Créer mon Google Sheet"; return toast("Prog du coach inaccessible : " + errMsg(e), true); } }
+      const id = await createBook(p); setCfg({appId:id}); APP_ID = id; toast("Google Sheet créé"); startApp();
+    } catch(e){ b.disabled = false; b.textContent = "Créer mon Google Sheet"; toast(errMsg(e), true); }
   },
   switchBook:() => { setCfg({appId:""}); APP_ID = ""; D = null; S = []; sheet = null; renderLayer(); onboard("carnet"); },
   logout:() => { auth.logout(); store.set("sl-cfg", {}); APP_ID = ""; D = null; S = []; sheet = null; renderLayer(); onboard("login"); }
@@ -278,6 +278,7 @@ CHG.coachLink = async (d, el) => {
   await CHG.prof({k:"coach_sheet_id"}, {value:id});
   S = []; loadedBlocs.clear(); allLoaded = false; weekMeta = {}; blocNames = {}; progOrder = []; liveIds = new Set(); archMeta = {}; liveCycle = {}; syncAll(false);
 };
+ACT.coachUnlink = () => CHG.coachLink({}, {value:""});
 async function fetchEmail(){
   if (cfg().email) return;
   try { const r = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {headers:{Authorization:"Bearer " + auth.tok}}); const j = await r.json(); if (j.email) setCfg({email:j.email}); } catch(e){}

@@ -31,11 +31,11 @@ head = """<!doctype html>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="B2Strong">
 <meta name="sl-build" content="__BUILD__">
-<meta name="description" content="B2Strong : le carnet des athlètes de force. Records, total, points IPF GL et RIS, prog du coach, poids de corps et compétitions.">
+<meta name="description" content="B2Strong : le suivi des athlètes de force. Records, total, points IPF GL et RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=b2"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=b2">
 <link rel="preconnect" href="https://sheets.googleapis.com">
-"""
+""" + __import__("pathlib").Path(__file__).resolve().parent.parent.joinpath("splash/tags.html").read_text(encoding="utf-8")
 rep('<meta name="claude:viewport-fit-sides" content="cover">\n', "")
 import time as _t
 s = head.replace("__BUILD__", _t.strftime("%Y%m%d%H%M%S", _t.gmtime())) + s
@@ -82,12 +82,13 @@ rep("function errMsg(e){\n  const c = e && e.code;\n", """function errMsg(e){
 """)
 
 # 4. Réglages : compte et carnet
-rep('<h2 class="h2" style="font-size:20px">Méthodes et sources</h2>', """<h2 class="h2" style="font-size:20px">Compte et carnet</h2>
+rep('<details class="srcs"><summary>Méthodes et sources</summary>', """<h2 class="h2" style="font-size:20px">Compte et Google Sheet</h2>
     <p class="muted small">${cfg().email ? "Connecté avec " + esc(cfg().email) : "Connecté à Google"}.</p>
-    <label for="scoach">Lien de la prog du coach</label><input id="scoach" type="url" value="${coachId() ? sheetUrl(coachId()) : ""}" placeholder="https://docs.google.com/spreadsheets/d/…" data-chg="coachLink">
-    <div class="grid2" style="margin-top:12px"><a class="btn ghost sm" href="${sheetUrl(APP_ID)}" target="_blank" rel="noopener">Ouvrir mon carnet</a><button class="btn ghost sm" data-act="relogin">Se reconnecter</button></div>
-    <div class="grid2" style="margin-top:8px"><button class="btn ghost sm" data-act="switchBook">Changer de carnet</button><button class="btn ghost sm" data-act="logout">Se déconnecter</button></div>
-    <h2 class="h2" style="font-size:20px">Méthodes et sources</h2>""")
+    ${coachId() ? `<div class="vrow"><span class="grow"><b>Prog du coach</b><span>Liée à ton compte</span></span><span class="fchip done">Liée</span></div>
+    <details style="margin-top:8px"><summary class="small">Changer ou retirer la prog du coach</summary><label for="scoach">Nouveau lien de la prog du coach</label><input id="scoach" type="url" value="" placeholder="https://docs.google.com/spreadsheets/d/…" data-chg="coachLink"><button class="btn ghost sm" style="margin-top:8px" data-act="coachUnlink">Retirer la prog du coach</button></details>` : `<label for="scoach">Lien de la prog du coach</label><input id="scoach" type="url" value="" placeholder="https://docs.google.com/spreadsheets/d/…" data-chg="coachLink">`}
+    <div class="grid2" style="margin-top:12px"><a class="btn ghost sm" href="${sheetUrl(APP_ID)}" target="_blank" rel="noopener">Ouvrir mon Google Sheet</a><button class="btn ghost sm" data-act="relogin">Se reconnecter</button></div>
+    <div class="grid2" style="margin-top:8px"><button class="btn ghost sm" data-act="switchBook">Changer de Google Sheet</button><button class="btn danger sm" data-act="logout">Se déconnecter</button></div>
+    <details class="srcs"><summary>Méthodes et sources</summary>""")
 
 # 5. Démarrage
 cut("/* =====================================================================\n   SYNCHRO ET DÉMARRAGE", "async function syncAll", layer + """
@@ -97,30 +98,33 @@ cut("/* =====================================================================\n 
 """)
 rep("if (syncing || !mcp) return;", "if (syncing || !APP_ID) return;")
 rep('function fatal(msg){ $("#v-home").innerHTML = `<div class="empty"><p>${esc(msg)}</p><button class="btn ghost sm" data-act="boot">Réessayer</button></div>`; }',
-    'function fatal(msg){ $("#v-home").innerHTML = `<div class="empty"><p>${esc(msg)}</p><button class="btn ghost sm" data-act="boot">Réessayer</button><button class="btn ghost sm" data-act="switchBook">Changer de carnet</button></div>`; }')
+    'function fatal(msg){ $("#v-home").innerHTML = `<div class="empty"><p>${esc(msg)}</p><button class="btn ghost sm" data-act="boot">Réessayer</button><button class="btn ghost sm" data-act="switchBook">Changer de Google Sheet</button></div>`; }')
 cut("async function boot(){", "</script>", """ACT.relogin = () => { if (live) persistLive(); auth.login(); };
 async function startApp(){
   document.body.classList.remove("ob");
   document.querySelectorAll(".view").forEach(v => v.hidden = v.id !== "v-" + tab);
   $("#v-home").innerHTML = `<div class="skel" style="height:190px;margin-top:18px"></div><div class="skel" style="height:150px;margin-top:14px"></div>`;
-  const cached = loadCache(); if (cached) { render(); autoResume(); }
+  launchFiles();
+  const cached = loadCache(); LAUNCH.cached = cached; if (cached) { render(); autoResume(); }   /* rendu immédiat depuis le téléphone, sans attendre le réseau */
+  $("#v-home").setAttribute("aria-busy", cached ? "false" : "true"); launchStep(2);
   if (!auth.tok) {
     setDot("off");
     /* Accès Google expiré : on laisse d'abord s'afficher les dernières données (2 images), puis on renouvelle l'accès. */
     if (navigator.onLine && !auth.err) { if (cached) return requestAnimationFrame(() => requestAnimationFrame(() => auth.login())); return auth.login(); }
     if (auth.err) toast("Connexion Google refusée. Réglages, Se reconnecter.", true);
     if (!cached) fatal(auth.err ? "Connexion Google refusée ou annulée." : "Pas de connexion internet. Reviens quand tu as du réseau.");
-    return;
+    launchStep(3); return;
   }
   fetchEmail();
-  await syncAll(true);
+  try { await syncAll(true); } finally { launchStep(3); }   /* sans cache : la barre finit quand la première lecture est terminée (1,5 s au plus) */
   if (store.get("sl-resume")) { store.del("sl-resume"); const lv = store.get(ck("sl4-live")); if (!live && lv && seanceByKey(lv.key)) startLive(lv.key); }
 }
 async function boot(){
-  auth.fromHash();
-  if (!/\\.apps\\.googleusercontent\\.com$/.test(CLIENT_ID)) return onboard("config");
+  launchFiles(); auth.fromHash();
+  if (!/\\.apps\\.googleusercontent\\.com$/.test(CLIENT_ID)) { launchSkip(); return onboard("config"); }
   APP_ID = cfg().appId || "";
   if (APP_ID) return startApp();
+  launchSkip();
   if (!auth.tok) return onboard("login", auth.err ? "Connexion annulée (" + auth.err + "). Réessaie." : "");
   fetchEmail(); onboard("carnet");
 }

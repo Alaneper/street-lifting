@@ -46,7 +46,7 @@ with sync_playwright() as p:
     # v28 : plus de réglage « muscle-up acquis » (le muscle-up s'affiche toujours)
     check("réglages : plus de « muscle-up acquis »", pg.locator("#smu").count() == 0 and "acquis" not in pg.evaluate("document.querySelector('.sheet').textContent"))
     r = pg.evaluate("[...document.querySelectorAll('.sheet a.btn')].map(a => getComputedStyle(a).textDecorationLine)")
-    check("réglages : « Ouvrir mon carnet » sans soulignement", r and all(x == "none" for x in r), r)
+    check("réglages : « Ouvrir mon Google Sheet » sans soulignement", r and all(x == "none" for x in r), r)
     pg.evaluate("ACT.closeSheet()")
 
     # 5. Bouton du calendrier sur une ligne
@@ -145,13 +145,13 @@ with sync_playwright() as p:
       const t = D.today; D.today = '2099-01-01'; sel = after.key; setTab('seance'); const v = document.querySelector('#v-seance .hero .hu').textContent; D.today = t; return v; })()""")
     check("séance après la prochaine, en retard sur les dates estimées → « À venir »", r in ("À venir", "skip"), r)
     r = pg.evaluate("[dShort('2025-10-14'), dShort(D.today.slice(0, 4) + '-10-14')]")
-    check("dates courtes : « oct. 25 » pour une autre année, jj/mm cette année", r == ["oct. 25", "14/10"], r)
+    check("dates courtes : « 14 oct. 2025 » pour une autre année, « 14 oct. » cette année", r == ["14 oct. 2025", "14 oct."], r)
     pg.evaluate("setTab('home')")
 
     # 14. Barre d'onglets : libellés inactifs lisibles
     pg.wait_for_timeout(500)   # la couleur des onglets a une transition de 0,2 s
     r = pg.evaluate("getComputedStyle(document.querySelector('.tabs button:not([aria-current=page])')).color")
-    check("onglets inactifs en gris lisible (#B4AFA7)", r == "rgb(180, 175, 167)", r)
+    check("onglets inactifs en gris lisible (--dust #C0BBB3)", r == "rgb(192, 187, 179)", r)
     check("aucune erreur console", not errs, errs[:5])
     br.close()
 print("requêtes inattendues :", odd)

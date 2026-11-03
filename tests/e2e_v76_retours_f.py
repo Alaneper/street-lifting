@@ -1,4 +1,4 @@
-"""Retours vidéo, lot F : écran de lancement à chaque ouverture (sans barre simulée, 0,5 s minimum) et icônes valides. Test ciblé."""
+"""Retours vidéo, lot F : écran de lancement à chaque ouverture (barre déterminée (v77), 0,4 s minimum) et icônes valides. Test ciblé."""
 import pathlib, time, json
 from PIL import Image
 H = pathlib.Path(__file__).resolve().parent
@@ -28,21 +28,21 @@ with sync_playwright() as p:
     t0 = time.time(); pg.goto("http://app.local/sl/", wait_until="commit")
     pg.wait_for_selector("#splash", state="attached", timeout=5000)
     check("écran de lancement présent à l'ouverture", pg.evaluate("!!document.getElementById('splash') && /BE TOO STRONG/.test(document.getElementById('splash').innerText)"))
-    check("pas de barre de progression simulée", pg.evaluate("!document.querySelector('.lbar, [role=progressbar], progress')"))
+    check("barre de progression déterminée (v77, suit de vraies étapes)", pg.evaluate("!!document.querySelector('#splash [role=progressbar][aria-valuenow]')"))
     check("logo B² dans l'écran de lancement", pg.evaluate("!!document.querySelector('#splash svg')"))
     pg.wait_for_selector("#splash", state="detached", timeout=15000); dt = time.time() - t0
-    check("écran de lancement visible au moins 0,5 s", dt >= .5, round(dt, 2))
+    check("écran de lancement visible au moins 0,4 s", dt >= .39, round(dt, 2))
     check("écran de lancement retiré ensuite (plus rien ne bloque)", pg.evaluate("!document.getElementById('splash')"))
     pg.wait_for_timeout(300)
     check("aucune erreur console", not errs, errs[:3])
-    # deuxième ouverture : données gardées sur le téléphone → l'écran s'affiche de nouveau, 0,5 s minimum
+    # deuxième ouverture : données gardées sur le téléphone → l'écran s'affiche de nouveau, 0,4 s minimum
     pg.click("[data-act=obLogin]"); pg.wait_for_timeout(1200)
     pg.fill("#oblink", f"https://docs.google.com/spreadsheets/d/{APP}/edit"); pg.click("[data-act=obLink]")
     pg.wait_for_function("typeof D !== 'undefined' && D && S.length > 0 && lastSync > 0", timeout=20000); pg.wait_for_timeout(1500)
     t1 = time.time(); pg.reload(wait_until="commit"); pg.wait_for_selector("#splash", state="attached", timeout=5000)
     check("réouverture : l'écran de lancement revient", True)
     pg.wait_for_selector("#splash", state="detached", timeout=15000); dt2 = time.time() - t1
-    check("réouverture : visible au moins 0,5 s", dt2 >= .5, round(dt2, 2))
+    check("réouverture : visible au moins 0,4 s", dt2 >= .39, round(dt2, 2))
     check("réouverture : l'app s'affiche avec ses données", pg.evaluate("typeof D !== 'undefined' && !!D && !!document.querySelector('#v-home') && document.querySelector('#v-home').innerText.length > 20"))
     br.close()
 print("ÉCHECS :", fails)

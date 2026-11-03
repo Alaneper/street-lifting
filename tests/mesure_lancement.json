@@ -1,0 +1,161 @@
+{
+ "wifi/suivant": {
+  "T": {
+   "splash_gone": 9,
+   "contenu": 174,
+   "sauvegarde": 351,
+   "splash_out": 527
+  },
+  "etapes_ms": {
+   "1": 94,
+   "2": 43,
+   "3": 94,
+   "out": 401
+  },
+  "ouverture_forcee": false,
+  "ligne_etat": "Sauvegardé · à l'instant",
+  "erreurs": [],
+  "captures": [
+   "lancement-wifi-suivant-120.png",
+   "lancement-wifi-suivant-380.png"
+  ]
+ },
+ "wifi/premier": {
+  "T": {
+   "splash_gone": 13,
+   "contenu": 231,
+   "sauvegarde": 313,
+   "splash_out": 576
+  },
+  "etapes_ms": {
+   "1": 47,
+   "2": 4,
+   "3": 138,
+   "out": 401
+  },
+  "ouverture_forcee": false,
+  "ligne_etat": "Sauvegardé · à l'instant",
+  "erreurs": [],
+  "captures": [
+   "lancement-wifi-premier-120.png",
+   "lancement-wifi-premier-380.png"
+  ]
+ },
+ "lent/suivant": {
+  "T": {
+   "splash_gone": 5,
+   "contenu": 140,
+   "splash_out": 498,
+   "sauvegarde": 2772
+  },
+  "etapes_ms": {
+   "1": 157,
+   "2": 40,
+   "3": 157,
+   "out": 401
+  },
+  "ouverture_forcee": false,
+  "ligne_etat": "Sauvegardé · à l'instant",
+  "erreurs": [],
+  "captures": []
+ },
+ "lent/premier": {
+  "T": {
+   "splash_gone": 11,
+   "contenu": 1317,
+   "splash_out": 1589,
+   "sauvegarde": 3807
+  },
+  "etapes_ms": {
+   "1": 60,
+   "2": 1,
+   "3": 3719,
+   "out": 1500
+  },
+  "ouverture_forcee": true,
+  "ligne_etat": "Sauvegardé · à l'instant",
+  "erreurs": [],
+  "captures": []
+ },
+ "tres_lent/suivant": {
+  "T": {
+   "splash_gone": 1,
+   "contenu": 134,
+   "splash_out": 494
+  },
+  "etapes_ms": {
+   "1": 132,
+   "2": 38,
+   "3": 132,
+   "out": 401
+  },
+  "ouverture_forcee": false,
+  "ligne_etat": "Synchronisation…",
+  "erreurs": [],
+  "captures": [
+   "lancement-tres_lent-suivant-120.png",
+   "lancement-tres_lent-suivant-380.png"
+  ]
+ },
+ "tres_lent/premier": {
+  "T": {
+   "splash_gone": 7,
+   "splash_out": 1608,
+   "squelette_visible": 1869,
+   "contenu": 6137
+  },
+  "etapes_ms": {
+   "1": 63,
+   "2": 1,
+   "out": 1501
+  },
+  "ouverture_forcee": true,
+  "ligne_etat": "Synchronisation…",
+  "erreurs": [],
+  "captures": [
+   "lancement-tres_lent-premier-120.png",
+   "lancement-tres_lent-premier-380.png",
+   "lancement-tres_lent-premier-700.png",
+   "lancement-tres_lent-premier-1100.png"
+  ]
+ },
+ "avion/suivant": {
+  "T": {
+   "splash_gone": 2,
+   "contenu": 155,
+   "splash_out": 504
+  },
+  "etapes_ms": {
+   "1": 188,
+   "2": 33,
+   "3": 53,
+   "out": 401
+  },
+  "ouverture_forcee": false,
+  "ligne_etat": "Hors connexion",
+  "erreurs": [],
+  "captures": [
+   "lancement-avion-suivant-120.png",
+   "lancement-avion-suivant-380.png"
+  ]
+ },
+ "avion/premier": {
+  "T": {
+   "splash_gone": 6,
+   "splash_out": 513
+  },
+  "etapes_ms": {
+   "1": 46,
+   "2": 0,
+   "3": 17,
+   "out": 400
+  },
+  "ouverture_forcee": false,
+  "ligne_etat": "Hors connexion",
+  "erreurs": [],
+  "captures": [
+   "lancement-avion-premier-120.png",
+   "lancement-avion-premier-380.png"
+  ]
+ }
+}
