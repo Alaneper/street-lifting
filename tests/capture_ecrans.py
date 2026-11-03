@@ -32,6 +32,9 @@ with sync_playwright() as p:
     for nom, js in ECRANS.items():
         if only and nom not in only: continue
         pg.evaluate("page=null;renderLayer()"); pg.evaluate(js); pg.wait_for_timeout(1500); pg.evaluate("window.scrollTo(0,0)")
+        H = int(__import__("os").environ.get("CAP_H", "0") or 0)   # CAP_H=2600 : fenêtre plus haute pour voir toute une fiche en page pleine
+        if H: pg.set_viewport_size({"width":390, "height":H}); pg.wait_for_timeout(400)
         pg.screenshot(path=str(OUTDIR / f"{nom}.png"))
+        if H: pg.set_viewport_size({"width":390, "height":844})
         print("ok", nom)
     print("ERREURS:", errs[:10])

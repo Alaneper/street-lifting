@@ -746,6 +746,20 @@ body:has(.launch) .topbar,body:has(.launch) nav.tabs,body:has(.launch) #subseanc
 .mtag i{width:10px;height:10px;border-radius:3px}
 .mstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px;padding:14px 16px;border-radius:20px;background:var(--deck)}
 .mstats p{font:500 13px var(--f-text);color:var(--dust)}.mstats b{display:block;margin-top:4px;font:800 22px/1.05 var(--f-show);color:var(--chalk)}
+/* FICHE RECORD allégée (retours vidéo, lot A) */
+.e1l{display:inline-flex;align-items:center;gap:8px;min-height:44px;margin-top:6px;padding:0 4px 0 0;font:500 14px var(--f-text);color:var(--dust);text-align:left}
+.e1l b{color:var(--chalk);font-weight:700}.e1l i{width:20px;height:20px;border-radius:50%;background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn);font:800 12px/20px var(--f-text);font-style:normal;text-align:center;flex:none}
+.rtab{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.rt{display:grid;grid-template-columns:62px 1fr auto;align-items:center;gap:10px;width:100%;min-height:56px;padding:8px 14px;border-radius:16px;background:var(--deck);text-align:left}
+.rt .rtn{font:600 14px var(--f-text);color:var(--dust)}.rt .rtc{display:flex;align-items:baseline;gap:5px;min-width:0;flex-wrap:wrap}.rt .rtc b{font:800 26px/1 var(--f-show);color:var(--chalk)}.rt .rtc small{font:500 13px var(--f-text);color:var(--dust)}
+.rt .rtc .vid-at{color:var(--data)}.rt .rtd{color:var(--dust);text-align:right;font-size:12px}
+.rt.is-rec{background:color-mix(in srgb,var(--acc) 10%,var(--deck));box-shadow:inset 3px 0 0 var(--acc)}
+.rtrec{margin-left:4px;padding:3px 8px;border-radius:8px;background:color-mix(in srgb,var(--acc) 18%,transparent);color:var(--acc);font:700 11px var(--f-text);font-style:normal;align-self:center}
+.rtnames{margin-top:10px}
+.more-btn{display:block;width:100%;min-height:44px;margin-top:6px;border-radius:14px;background:var(--deck2);color:var(--chalk);font:600 14px var(--f-text)}
+.objrow{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:14px;padding:12px 14px;border-radius:18px;background:var(--deck)}
+.objrow label{margin:0;font:600 15px var(--f-text);color:var(--chalk);display:flex;flex-direction:column;gap:2px}.objrow label small{font:400 13px var(--f-text);color:var(--dust)}
+.objrow input{width:104px;flex:none;text-align:center;font:700 18px var(--f-text)}
 /* FICHE RECORD (v3, planche V3Direct_3) */
 .ptitle{display:flex;flex-direction:column;align-items:center;line-height:1.15}.ptitle b{font:700 17px var(--f-text)}.ptitle small{font:500 13px var(--f-text);color:var(--dust)}
 .rhero{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;margin-top:14px;padding:18px;border-radius:24px;background:var(--deck);box-shadow:var(--sh1)}
@@ -1850,19 +1864,25 @@ function e1rmBest(l, sets){
 const dShort = iso => !iso ? "" : iso.slice(0, 4) === D.today.slice(0, 4) ? dfr(iso).slice(0, 5) : MOIS[+iso.slice(5, 7) - 1] + " " + iso.slice(2, 4);
 const srcTxt = x => x.src === "PR" ? (x.coach ? "max de la prog" : (x.date ? dShort(x.date) : "") + " · PR") : x.src === "carnet" && !x.bloc ? (x.date ? dShort(x.date) : "") + " · noté"
   : (x.bloc !== undefined && x.bloc !== null ? blocShort(x.bloc) + " S" + x.sem : "") + (x.date ? " · " + dShort(x.date) : "");
+let repAll = false;
 function repTableHtml(l){
-  if (!allLoaded) return `<h2 class="h2">Tes meilleures séries</h2><div class="empty"><div class="spin"></div><p class="small">Lecture de tous tes blocs…</p></div>`;
-  const sets = compSets(l), rm = repMaxes(sets), e = e1rmBest(l, sets), b = best(l), u = BW_LIFTS.includes(l) ? " de lest" : "";
-  const rows = rm.filter(({b:x}) => x).map(({n, b:x}) => { const ee = e1rmOf(l, {...x, r:n});
-    return `<button class="rm bs" data-act="rmInfo" data-l="${l}" data-n="${n}"><span class="bsl"><b>${fmt(x.c)} kg × ${n}${x.rpe ? `<small class="rpe-at">@${fmt(x.rpe)}</small>` : ""}${VIDX[l + "|" + n] ? `<small class="vid-at" aria-label="${VIDX[l + "|" + n]} vidéo${VIDX[l + "|" + n] > 1 ? "s" : ""}">▶</small>` : ""}</b><span class="tiny">${esc(srcTxt(x))}${ee ? " · 1RM estimé " + fmt(Math.floor(ee.v * 4) / 4) + " kg" : ""}</span></span><span class="bsr">${n} rep${n > 1 ? "s" : ""}</span></button>`; }).join("");
-  const eh = e ? `<div class="panel" style="margin-top:14px"><p class="muted small">1RM estimé</p>
-      <p class="show t-m" style="margin-top:4px;color:${LCOL[l]}">${fmt(Math.floor(e.v * 4) / 4)}<small> kg${u}</small></p>
-      <p class="muted small" style="margin-top:4px">D'après ${fmt(e.c)} kg × ${e.r}${e.rpe ? " à RPE " + fmt(e.rpe) : ""} (${esc(srcTxt(e))}).
-      ${b !== null ? (e.v > b + .2 ? ` C'est ${fmt(e.v - b, 1)} kg au-dessus de ton PR (${fmt(b)}) : un potentiel, pas un acquis.` : ` Ton PR (${fmt(b)}) est déjà à ce niveau.`) : ""}</p></div>` : "";
-  return `<h2 class="h2">Tes meilleures séries</h2>
-    ${rows ? `<div class="bslist">${rows}</div>` : `<p class="muted small">Aucune série avec un nombre de reps connu pour l'instant. Ajoute un record plus bas.</p>`}
-    ${eh}<p class="rwarn"><i aria-hidden="true">!</i>Le 1RM estimé vient d'une formule, pas d'un essai réel. À confirmer en salle.</p>
-    <p class="muted tiny" style="margin-top:8px">${BW_LIFTS.includes(l) ? "Lest en kg. " : ""}Charge la plus lourde faite pour exactement ce nombre de reps, sur tous tes blocs (mouvement de compétition, sans pause ni tempo ni élastique) : lignes de ta prog avec un RPE, séances notées dans l'app et PR. Touche une ligne pour voir d'où vient la valeur.</p>`;
+  if (!allLoaded) return `<h2 class="h2">Records par répétitions</h2><div class="empty"><div class="spin"></div><p class="small">Lecture de tous tes blocs…</p></div>`;
+  const sets = compSets(l), rm = repMaxes(sets), have = rm.filter(({b:x}) => x), top = have.reduce((m, {b:x}) => x.c > m ? x.c : m, -1), recN = (have.find(({n}) => n === 1) || have.find(({b:x}) => x.c === top) || {}).n;   /* le record = ton 1RM ; à défaut, la charge la plus lourde */
+  const shown = repAll ? have : have.slice(0, 7), more = have.length - shown.length;
+  const names = [...new Map(sets.filter(x => x.ex).map(x => [exName(x.ex).toLowerCase(), exName(x.ex)])).values()], vid = n => VIDX[l + "|" + n];
+  const rows = shown.map(({n, b:x}) => `<button class="rm rt${n === recN ? " is-rec" : ""}" data-act="rmInfo" data-l="${l}" data-n="${n}">
+      <span class="rtn">${n} rep${n > 1 ? "s" : ""}</span>
+      <span class="rtc"><b>${fmt(x.c)}</b><small>kg</small>${x.rpe ? `<small class="rpe-at">@${fmt(x.rpe)}</small>` : ""}${vid(n) ? `<small class="vid-at" aria-label="${vid(n)} vidéo${vid(n) > 1 ? "s" : ""}">▶</small>` : ""}${n === recN ? `<i class="rtrec">Record</i>` : ""}</span>
+      <span class="tiny rtd">${esc(srcTxt(x))}</span></button>`).join("");
+  return `<h2 class="h2">Records par répétitions <span class="muted">${LNAME[l].toLowerCase()} en compétition</span></h2>
+    ${rows ? `<div class="rtab">${rows}</div>${more > 0 || repAll && have.length > 7 ? `<button class="more-btn" data-act="repAll">${repAll ? "Réduire" : "Voir tout (" + have.length + " nombres de reps)"}</button>` : ""}` : `<p class="muted small">Aucune série avec un nombre de reps connu pour l'instant. Ajoute un record plus bas.</p>`}
+    ${names.length > 1 || (names.length === 1 && names[0].toLowerCase() !== LNAME[l].toLowerCase()) ? `<p class="muted small rtnames">Noté dans ta prog sous : ${names.map(esc).join(" · ")}</p>` : ""}
+    <p class="muted tiny" style="margin-top:8px">${BW_LIFTS.includes(l) ? "Lest en kg. " : ""}Charge la plus lourde faite pour exactement ce nombre de reps, sur tous tes blocs (mouvement de compétition, sans pause ni tempo ni élastique). Touche une ligne pour voir d'où vient la valeur.</p>`;
+}
+/* Estimation du 1RM : une ligne dans le héros, au lieu d'un panneau + un avertissement empilés. */
+function e1rmLine(l){
+  if (!allLoaded) return ""; const sets = compSets(l), e = sets.length ? e1rmBest(l, sets) : null; if (!e) return "";
+  return `<button class="e1l" data-act="e1Info" data-l="${l}" aria-label="Comment le 1RM estimé est calculé"><span>1RM estimé <b>${fmt(Math.floor(e.v * 4) / 4)} kg</b></span><i aria-hidden="true">!</i></button>`;
 }
 const fmtSets = sets => { const c0 = sets[0].c; return sets.every(x => x.c === c0) ? fmt(c0) + " kg × " + sets.map(x => x.r).join(" · ") : sets.map(x => x.r + "@" + fmt(x.c)).join(" · "); };
 
@@ -2988,7 +3008,7 @@ function rLiftPage(l){
     ${(() => { const bs = bestSeries(l), pk = bs.at(-1), pv = bs.length > 1 ? bs.at(-2).v : null, wb = BW_LIFTS.includes(l) && bw() && b !== null ? fmt(b + bw(), 1) + " kg avec ton poids de corps" : "";
       return `<section class="rhero"><div class="rtx"><p class="rsm">${BW_LIFTS.includes(l) ? "Lest · " : ""}1 répétition maximale</p>
         <p class="rbig">${b === null ? "—" : fmt(b)}${b === null ? "" : "<small>kg</small>"}</p>
-        ${b === null ? `<p class="muted small">${LIFTS.includes(l) && streetOn() ? "Pas encore de record : 0 kg dans ton total" : "Pas encore de record"}</p>` : `<div class="rchips">${pv !== null && b > pv ? `<span class="rchip up">▲ ${fmt(b - pv, 2)} kg</span>` : ""}${pk ? `<span class="rchip">${esc(dShort(pk.date))}</span>` : ""}</div>${wb ? `<p class="muted small" style="margin-top:8px">${wb}</p>` : ""}`}</div>
+        ${b === null ? `<p class="muted small">${LIFTS.includes(l) && streetOn() ? "Pas encore de record : 0 kg dans ton total" : "Pas encore de record"}</p>` : `<div class="rchips">${pv !== null && b > pv ? `<span class="rchip up">▲ ${fmt(b - pv, 2)} kg</span>` : ""}${pk ? `<span class="rchip">${esc(dShort(pk.date))}</span>` : ""}</div>${wb ? `<p class="muted small" style="margin-top:8px">${wb}</p>` : ""}${e1rmLine(l)}`}</div>
         ${muscleFig(l, {cls:"rhm"})}</section>`; })()}
     <section class="rprog"><div class="rph"><b>${liftMetric === "1rm" ? "Progression sur 1 an" : "e1RM de la prog"}</b><span id="rgain"></span></div>
       <div class="chips">${[["1rm","Tes PR"],["e1rm","e1RM de la prog"]].map(([k, tt]) => `<button class="chip" aria-pressed="${liftMetric === k}" data-act="liftMetric" data-k="${k}" data-l="${l}">${tt}</button>`).join("")}</div>
@@ -2996,12 +3016,8 @@ function rLiftPage(l){
     ${lock ? "" : repTableHtml(l)}
     ${lock ? `<div class="panel" style="margin-top:16px"><p>Ton muscle-up n'est pas encore acquis. Active-le dans les réglages dès que tu l'as, il entrera dans ton total.</p><button class="btn ghost" style="margin-top:12px" data-act="settings">Ouvrir les réglages</button></div>` : `
 
-    <h2 class="h2">Objectif</h2>
-    <div class="panel">
-      <label for="obj" style="margin-top:0">Charge visée (kg${BW_LIFTS.includes(l) ? " de lest" : ""})</label>
-      <input id="obj" inputmode="decimal" value="${o ?? ""}" placeholder="À fixer" data-chg="setObj" data-l="${l}">
-      ${o && b !== null ? `<p class="muted small" style="margin-top:10px">${o <= b ? "Objectif déjà atteint, remonte la barre." : "Il te manque " + fmt(o - b, 2) + " kg."}</p>` : ""}
-    </div>
+    <div class="objrow"><label for="obj">Charge visée (kg${BW_LIFTS.includes(l) ? " de lest" : ""})<small>${o && b !== null ? (o <= b ? "Objectif atteint, remonte la barre." : "Il te manque " + fmt(o - b, 2) + " kg.") : "Un objectif pour la prochaine fois."}</small></label>
+      <input id="obj" inputmode="decimal" value="${o ?? ""}" placeholder="À fixer" data-chg="setObj" data-l="${l}"></div>
 
 
     ${oslRec ? `    <h2 class="h2">Face aux records <span class="muted">${cat()} kg</span></h2>
@@ -3250,6 +3266,12 @@ function rSheet(){
   if (sheet === "meal") return mealSaveHtml();
   if (sheet === "mealnew") return mnHtml();
   if (sheet === "meals") return mealsHtml();
+  if (sheet.startsWith("e1|")) { const l = sheet.slice(3), sets = compSets(l), e = sets.length ? e1rmBest(l, sets) : null, b = best(l), u = BW_LIFTS.includes(l) ? " de lest" : "";
+    if (!e) return `<p class="show t-m">1RM estimé</p><p class="muted small" style="margin-top:8px">Pas encore assez de séries pour l'estimer.</p><button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`;
+    return `<p class="muted small">${LNAME[l]}</p><p class="show t-l" style="margin-top:4px;color:${LCOL[l]}">${fmt(Math.floor(e.v * 4) / 4)}<small> kg${u}</small></p>
+      <p class="muted small" style="margin-top:10px">D'après ${fmt(e.c)} kg × ${e.r}${e.rpe ? " à RPE " + fmt(e.rpe) : ""} (${esc(srcTxt(e))}).${b !== null ? (e.v > b + .2 ? ` C'est ${fmt(e.v - b, 1)} kg au-dessus de ton PR (${fmt(b)}) : un potentiel, pas un acquis.` : ` Ton PR (${fmt(b)}) est déjà à ce niveau.`) : ""}</p>
+      <p class="rwarn" style="margin-top:14px"><i aria-hidden="true">!</i>Le 1RM estimé vient d'une formule (table RPE de RTS), pas d'un essai réel. À confirmer en salle.</p>
+      <button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`; }
   if (sheet.startsWith("rm|")) { const [, l, n] = sheet.split("|"), N = +n;
     /* toutes les perfs à exactement N reps, regroupées par séance et par charge (les séries identiques d'une même ligne = une perf),
        avec leur RPE et leur date ; la plus lourde d'abord, à charge égale la plus facile (RPE le plus bas) */
@@ -3482,6 +3504,8 @@ const ACT = {
   pickBloc:async d => { const b = +d.b; try { if (!loadedBlocs.has(b)) { toast("Chargement : " + blocLabel(b) + "…"); await loadBloc(b); } const x = S.find(y => y.bloc === b && !y.faite) || S.find(y => y.bloc === b); if (!x) return toast(blocLabel(b) + " ne contient pas encore de séance.", true); sel = x.key; rSeance(); } catch(e){ toast(errMsg(e), true); } },
   startLive:d => startLive(d.k, d.i),
   rmInfo:d => openSheet("rm|" + d.l + "|" + d.n),
+  repAll:() => { repAll = !repAll; renderLayer(); },
+  e1Info:d => openSheet("e1|" + d.l),
   rmAdd:d => { closeSheet(); setTimeout(() => { const r = $("#prr"), c = $("#prc"); if (!r || !c) return; r.value = d.n; c.scrollIntoView({behavior:"smooth", block:"center"}); c.focus(); }, 80); },
   pickWeek:d => { const b = +d.b; progSel = {b, w:d.w !== undefined ? d.w : (weeksOfBloc(b).filter(w => S.some(s => s.bloc === b && s.semaine === w && s.faite)).at(-1) || weeksOfBloc(b)[0])}; rProg(); },
   shareSession:async () => { const m = live && live.summary, s = m && seanceByKey(live.key); if (!m || !s) return;
