@@ -10,7 +10,9 @@ only = set(sys.argv[2:])
 ECRANS = {
   "aujourdhui": "setTab('home')", "programme": "setTab('seance')", "historique": "setTab('histo')",
   "poids": "corpsTab='poids';corpsManual=D.today;setTab('corps')", "alimentation": "corpsTab='nutri';corpsManual=D.today;setTab('corps')",
-  "progres": "setTab('prog')", "classement": "setTab('agenda')",
+  "progres": "progSeg='records';setTab('prog')", "classement": "setTab('agenda')",
+  "mouvements": "progSeg='mouvements';mvQ='';setTab('prog')", "mouvements-recherche": "progSeg='mouvements';mvQ='dip';setTab('prog')",
+  "fiche-squat": "page={type:'lift',l:'SQUAT'};liftMetric='1rm';renderLayer()", "fiche-exercice": "page={type:'ex',k:exercisePoints().find(o=>o.lift).key};exMetric='e1rm';renderLayer()",
 }
 with sync_playwright() as p:
     br = p.chromium.launch(); c = br.new_context(viewport={"width":390,"height":844}, device_scale_factor=2, service_workers="block"); c.route("**/*", route)
@@ -22,7 +24,7 @@ with sync_playwright() as p:
     pg.evaluate("""(()=>{ let n=0; S.filter(z=>z.faite && dateOf(z)).forEach((z,i)=>{ [['SQUAT COMP',100+i*2.5,5],['DIPS COMP',30+i,4],['PULL UP COMP',20+i,3]].forEach(([ex,c,k])=>D.series.push({id:900+n++,date:dateOf(z),bloc:z.bloc,semaine:z.semaine,seance:z.seance,ex:ex,charge:c,sets:Array(k).fill(0).map(()=>({r:5,c:c})),note:'',src:'',com:''})); }); })()""")
     for nom, js in ECRANS.items():
         if only and nom not in only: continue
-        pg.evaluate(js); pg.wait_for_timeout(900); pg.evaluate("window.scrollTo(0,0)")
+        pg.evaluate("page=null;renderLayer()"); pg.evaluate(js); pg.wait_for_timeout(1500); pg.evaluate("window.scrollTo(0,0)")
         pg.screenshot(path=str(OUTDIR / f"{nom}.png"))
         print("ok", nom)
     print("ERREURS:", errs[:10])
