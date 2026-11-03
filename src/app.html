@@ -391,18 +391,18 @@ html,body{overflow-x:clip}body{margin-top:0}
 .wk-d i.ok{background:var(--acc)}.wk-d i.todo{background:var(--dust)}
 .wk-d.now{background:var(--chalk);color:var(--floor)}.wk-d.now i.todo{background:var(--floor)}
 .wkline{margin:10px 2px 0;font:13px var(--f-text);color:var(--dust)}.wkline b{color:var(--chalk)}
-.wk-d:disabled{opacity:.45}.wk-d.now:disabled{opacity:1}
+.wk-d:disabled{opacity:1}
 .pbar{margin-top:12px;border-radius:14px;background:var(--deck);padding:10px 10px 10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .pb-t{display:flex;flex-direction:column;gap:2px;min-width:0}.pb-s{font:12px var(--f-text);color:var(--faint);display:flex;align-items:center;gap:6px}.pb-s i{width:7px;height:7px;border-radius:4px;background:var(--acc)}
 .pb-t b{font:600 15px var(--f-text);color:var(--chalk)}.pb-b{flex:none;height:44px;padding:0 16px;border-radius:10px;background:var(--chalk);color:var(--floor);font:700 14px var(--f-text)}
 .tdc-chips .comp{background:color-mix(in srgb,var(--comp) 28%,var(--deck3));color:var(--chalk)}
 /* Carte du jour (v3) */
-.tdc{margin-top:14px;border-radius:var(--r-lg);background:var(--deck);box-shadow:inset 0 0 0 1px var(--seam);padding:14px;display:flex;flex-direction:column;gap:12px}
+.tdc{margin-top:14px;border-radius:var(--r-lg);background:var(--deck);box-shadow:var(--sh1);padding:14px;overflow:hidden;display:flex;flex-direction:column;gap:12px}
 .tdc-top{display:flex;align-items:center;gap:10px}.tdc-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
-.tdc-eye{font:600 11px var(--f-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--faint)}
+.tdc-eye{font:500 13px var(--f-text);color:var(--dust)}
 .tdc-ttl{font:800 30px/1 var(--f-show);color:var(--chalk);overflow-wrap:anywhere}
-.tdc-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:3px}.tdc-chips span{font:600 12px var(--f-text);color:var(--dust);background:var(--deck3);border-radius:99px;padding:4px 10px}
-.mplate.tdc-plate{--mh:112px;width:92px;padding:6px 4px;border-radius:14px;flex:none}
+.tdc-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:3px}.tdc-chips span{font:700 12px var(--f-text);color:var(--dust);background:var(--deck3);border-radius:8px;padding:5px 9px;white-space:nowrap}.tdc-chips .obj{background:rgba(255,74,43,.16);color:var(--acc)}
+.mplate.tdc-plate{--mh:112px;width:84px;height:112px;padding:0;border-radius:14px 0 0 14px;flex:none;overflow:hidden;align-self:flex-start;margin-right:-14px;justify-content:flex-start}.tdc-top{align-items:flex-start}
 .tdc-coach{display:flex;align-items:center;gap:10px;margin:0}.tdc-coach b{flex:none;width:26px;height:26px;border-radius:13px;background:var(--deck3);color:var(--dust);font:700 10px var(--f-text);display:flex;align-items:center;justify-content:center}
 .tdc-coach span{font:italic 13px var(--f-text);color:var(--dust)}
 .tdr{display:flex;align-items:center;gap:12px;width:100%;padding:10px 0;text-align:left;border-bottom:1px solid var(--seam);min-height:64px}
@@ -445,31 +445,31 @@ html,body{overflow-x:clip}body{margin-top:0}
 /* v67 rattrapage : Programme v3 */
 .blk{margin-top:14px;padding:16px}
 .blk-n{display:block;font:800 28px/1 var(--f-show);margin-top:5px}
-.blk-s{display:block;font:500 13px var(--f-text);color:var(--dust);margin-top:5px}
+.blk-s{display:block;font:500 13px var(--f-text);color:var(--dust);margin-top:5px}.blk .lg-lab,.hst .lg-lab{font:500 12px var(--f-text);text-transform:none;letter-spacing:0;color:var(--faint)}
 .blk-w{display:flex;flex-direction:column;align-items:flex-end}.blk-w b{font:800 34px/1 var(--f-show)}.blk-w span{font:500 12px var(--f-text);color:var(--faint)}
 .wkbar{display:flex;gap:3px;margin-top:14px}
 .wkbar button{flex:1;height:7px;border-radius:4px;background:var(--deck3);position:relative;padding:0}
 .wkbar button::after{content:"";position:absolute;inset:-18px 0}
 .wkbar button.ok{background:var(--acc)}.wkbar button.cur{background:var(--warn)}
 .wkl{display:flex;flex-direction:column}
-.wkr{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--seam);text-align:left;width:100%;border-radius:12px}
-.wkr.sel{background:var(--deck)}
+.wkr{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--seam);text-align:left;width:100%;border-radius:0}
+.hleg i.l0{background:var(--deck3)}.fchip.now{background:rgba(255,74,43,.16);color:var(--acc);border-radius:8px;padding:5px 9px;font-size:12px}
 .wkr .grow b{display:block;font:600 15px var(--f-text)}.wkr .grow span{display:block;font:400 13px var(--f-text);color:var(--dust);margin-top:2px}
-.wkb{width:28px;height:28px;border-radius:50%;border:2px solid var(--deck3);display:grid;place-items:center;flex:none;box-sizing:border-box;color:var(--dust)}
-.wkb.ok{background:var(--deck3);border:0}.wkb.now{background:var(--acc);border:0;color:#fff}
+.wkb{width:40px;height:40px;border-radius:12px;background:var(--deck2);display:grid;place-items:center;flex:none;color:var(--dust);position:relative}.wkb::before{content:"";position:absolute;width:28px;height:28px;border-radius:50%;border:2px solid var(--deck3);box-sizing:border-box}.wkb>svg{position:relative}
+.wkb.ok::before{background:var(--deck3);border:0}.wkb.now::before{background:var(--acc);border:0}.wkb.now{color:#fff}
 .wkt{font:500 13px var(--f-text);color:var(--faint);display:flex}
 .wkimp{display:flex;align-items:center;gap:12px;width:100%;margin-top:14px;padding:12px 14px;border-radius:16px;background:var(--deck);text-align:left;font:400 14px var(--f-text);color:var(--dust)}
 .wki{width:34px;height:34px;border-radius:10px;background:rgba(111,160,218,.16);color:var(--data);display:grid;place-items:center}
 /* v67 rattrapage : Historique v3 */
 .hcal{margin-top:14px;padding:12px}
-.hnav{margin-bottom:8px}.hnav b{white-space:nowrap;font:600 15px var(--f-text)}.hnav .iconbtn{width:36px;height:36px;min-height:36px}
+.hnav{margin-bottom:8px}.hnav b{white-space:nowrap;font:600 15px var(--f-text)}.hnav .iconbtn{width:36px;height:36px;min-height:36px;background:none;color:var(--dust)}.chip-r{flex:none;height:24px;padding:0 9px;border-radius:8px;background:rgba(255,74,43,.16);color:var(--acc);font:700 12px var(--f-text);display:inline-flex;align-items:center}
 .hleg{display:flex;align-items:center;gap:5px;font:500 11px var(--f-text);color:var(--faint)}
 .hleg i{width:9px;height:9px;border-radius:3px;display:inline-block}
 .hgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .hd{font:600 11px var(--f-text);color:var(--faint);text-align:center;padding-bottom:2px}
 .hc{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font:600 12px var(--f-text);color:var(--faint);padding:0}
-.l0{background:var(--deck2)}.l1{background:rgba(255,74,43,.28);color:var(--chalk)}.l2{background:rgba(255,74,43,.6);color:var(--chalk)}.l3{background:var(--acc);color:var(--floor)}
-.hst{display:flex;margin-top:8px;padding:12px 14px}.hst>span{flex:1;display:flex;flex-direction:column;gap:3px}.hst b{font:800 24px/1 var(--f-show)}
+.l0{background:transparent}.l1{background:rgba(255,74,43,.28);color:var(--chalk)}.l2{background:rgba(255,74,43,.6);color:var(--chalk)}.l3{background:var(--acc);color:var(--floor)}
+.hst{display:flex;margin-top:8px;padding:12px 14px}.hst>span{flex:1;display:flex;flex-direction:column;gap:3px}.hst b{font:800 28px/1 var(--f-show)}
 .hrow{display:flex;align-items:center;gap:12px;width:100%;padding:11px 0;border-bottom:1px solid var(--seam);text-align:left}
 .hrow .grow b{display:block;font:600 15px var(--f-text)}.hrow .grow span{display:block;font:400 13px var(--f-text);color:var(--dust);margin-top:2px}
 .chart{position:relative;height:190px}
@@ -565,6 +565,14 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 .view:not([hidden]){animation:viewIn .28s var(--ease)}
 .view .bar>i,.view .seg3>i{transform-origin:left center;animation:barIn .6s var(--ease)}
 #prbox .today{animation:recIn .45s var(--ease)}
+/* COUCHES (v3) : 0 fond · 1 carte · 2 surélevé · 3 contrôle dans une carte · 4 feuille (flou). Une ombre par niveau, jamais de halo. */
+:root{--sh1:inset 0 1px 0 rgba(245,242,236,.045),0 10px 24px -12px rgba(0,0,0,.7);--sh2:inset 0 1px 0 rgba(245,242,236,.07),0 18px 40px -14px rgba(0,0,0,.8);--sh3:inset 0 1px 0 rgba(245,242,236,.08),0 -24px 64px rgba(0,0,0,.7)}
+.card,.panel,.tdc,.pbar,.hero{box-shadow:var(--sh1)}
+.wkimp,.vbar,.sheet .panel{box-shadow:none}
+.sheet{background:color-mix(in srgb,var(--deck) 90%,transparent);-webkit-backdrop-filter:blur(26px) saturate(1.3);backdrop-filter:blur(26px) saturate(1.3);box-shadow:var(--sh3)}
+.scrim{background:rgba(8,7,6,.5);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
+.sheet.full{background:var(--floor);-webkit-backdrop-filter:none;backdrop-filter:none}
+.pops{box-shadow:var(--sh2)}
 @media (prefers-reduced-motion:reduce){*,*::before{animation:none!important;transition:none!important}}
 /* v28 : réglages regroupés, interrupteurs, catégories, cartes de discipline (maquette A) */
 .group{background:var(--deck2);border-radius:20px;padding:2px 16px;margin-top:8px}
@@ -1792,14 +1800,15 @@ function todayCard(s, lv, bar, nc){
   const exs = s.exercices.filter(e => e.mouvement), lifts = [...new Set(exs.map(e => liftOf(e.mouvement)).filter(Boolean))];
   const d = dateOf(s), sets = exs.reduce((n, e) => n + (isNumTxt(e.series) ? num(e.series) : 0), 0);
   const coach = (exs.find(e => e.coach && String(e.coach).trim()) || {}).coach;
-  const eye = (d === D.today ? "Aujourd'hui" : d ? JOURS[dObj(d).getDay()] : "Prochaine séance") + (s.semaine ? " · semaine " + s.semaine : "");
+  const nW = new Set(S.filter(x => x.bloc === s.bloc).map(x => x.semaine)).size, eye = s.semaine ? "Semaine " + s.semaine + (nW > 1 ? " sur " + nW : "") + " · séance " + (s.idx + 1) : (d === D.today ? "Aujourd'hui" : d ? JOURS[dObj(d).getDay()] : "Prochaine séance");
+  const mainEx = exs.find(e => liftOf(e.mouvement) && isNumTxt(e.charge) && isNumTxt(e.reps));
   const resume = lv && lv.key === s.key;
   const row = e => { const l = liftOf(e.mouvement), kgTxt = isNumTxt(e.charge) ? kg(num(e.charge)) : (e.charge ? esc(e.charge) : "");
-    return `<button class="tdr" data-act="openSeance" data-k="${esc(s.key)}">${l ? muscleFig(l, {cls:"thumb"}) : `<span class="tdr-ph" aria-hidden="true">${esc(String(e.mouvement).trim().charAt(0).toUpperCase())}</span>`}
-      <span class="tdr-t"><b>${esc(e.mouvement)}</b><span>${[e.series && e.reps ? esc(e.series) + " × " + esc(e.reps) : "", e.rpe1 ? "RPE " + esc(e.rpe1) : ""].filter(Boolean).join(" · ")}</span></span>${kgTxt ? `<span class="tdr-k${isNumTxt(e.charge) ? "" : " txt"}">${kgTxt}</span>` : ""}</button>`; };
+    return `<button class="tdr" data-act="openSeance" data-k="${esc(s.key)}">${l ? muscleFig(l, {cls:"thumb"}) : `<span class="tdr-ph" aria-hidden="true">${esc(String(norm(e.mouvement) === "RENFO" ? e.variation : e.mouvement).trim().charAt(0).toUpperCase())}</span>`}
+      <span class="tdr-t"><b>${esc(norm(e.mouvement) === "RENFO" ? title(e.variation) : title(e.mouvement) + (e.variation && !isCompVar(e.variation, e.tempo) ? " " + title(e.variation).toLowerCase() : ""))}</b><span>${[e.series && e.reps ? esc(e.series) + " × " + esc(e.reps) : "", rpeCible(e) ? esc(rpeCible(e).lab.replace("RPE visé ", "RPE ")) : "", e.repos ? esc(e.repos) : ""].filter(Boolean).join(" · ")}</span></span>${kgTxt ? `<span class="tdr-k${isNumTxt(e.charge) ? "" : " txt"}">${kgTxt}</span>` : ""}</button>`; };
   const shown = exs.slice(0, 4), more = exs.length - shown.length;
   return `<div class="tdc"><div class="tdc-top"><div class="tdc-main"><span class="tdc-eye">${esc(eye)}</span><span class="tdc-ttl">${esc(sessLabel(s))}</span>
-      <span class="tdc-chips"><span>${exs.length} exercice${exs.length > 1 ? "s" : ""}</span>${sets ? `<span>${sets} séries</span>` : ""}${nc ? `<span class="comp">${days(D.today, nc.date) === 0 ? "Jour J" : "J−" + days(D.today, nc.date)} · ${esc(nc.nom)}</span>` : ""}</span></div>
+      <span class="tdc-chips">${mainEx ? `<span class="obj">Objectif ${fmt(num(mainEx.charge))} × ${esc(mainEx.reps)}</span>` : ""}${sets ? `<span>${sets} séries</span>` : ""}${nc ? `<span class="comp">${days(D.today, nc.date) === 0 ? "Jour J" : "J−" + days(D.today, nc.date)} · ${esc(nc.nom)}</span>` : ""}</span></div>
       ${lifts.length ? muscleFig(lifts, {view:"both", cls:"tdc-plate"}) : ""}</div>
     ${coach ? `<p class="tdc-coach"><b>CO</b><span>« ${esc(coach)} »</span></p>` : ""}
     ${bar ? "" : `<button class="btn" data-act="startLive" data-k="${esc(s.key)}">${resume ? "Reprendre la séance" : "Commencer la séance"}</button>`}</div>
@@ -1834,12 +1843,12 @@ function rHisto(){
     return byD[iso] ? `<button class="hc l${l}" data-act="openSeance" data-k="${esc(byD[iso][0].key)}" aria-label="${dn} ${MOIS_L[m - 1]} : ${byD[iso].length} séance${byD[iso].length > 1 ? "s" : ""}">${dn}</button>` : `<span class="hc l0">${dn}</span>`; }).join("");
   const sumTon = sum(st.map(x => x.ton)), sumSets = sum(st.map(x => x.ns));
   const row = z => { const d = dateOf(z), dd = dObj(d), x = sessStats(z), ls = liftsOf(z);
-    return `<button class="hrow" data-act="openSeance" data-k="${esc(z.key)}">${ls.length ? muscleFig(ls, {cls:"thumb"}) : ""}<span class="grow"><b>${esc(z.seance)}</b><span>${cap(["dim.","lun.","mar.","mer.","jeu.","ven.","sam."][dd.getDay()])} ${dd.getDate()} ${["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."][dd.getMonth()]}${x.ton ? " · " + fmt(x.ton / 1000, 1) + " t" : ""}${x.ns ? " · " + x.ns + " séries" : ""}</span></span>${CHEV}</button>`; };
+    return `<button class="hrow" data-act="openSeance" data-k="${esc(z.key)}">${ls.length ? muscleFig(ls, {cls:"thumb"}) : ""}<span class="grow"><b>${esc(z.seance)}</b><span>${cap(["dim.","lun.","mar.","mer.","jeu.","ven.","sam."][dd.getDay()])} ${dd.getDate()} ${["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."][dd.getMonth()]}${x.ton ? " · " + fmt(x.ton / 1000, 1) + " t" : ""}${x.ns ? " · " + x.ns + " séries" : ""}</span></span>${D.prs.some(p => p.date === d) ? `<span class="chip-r">Record</span>` : ""}${CHEV}</button>`; };
   $("#v-histo").innerHTML = `
     <section class="panel hcal"><div class="row hnav"><span class="row" style="gap:6px"><button class="iconbtn" data-act="histMo" data-d="-1" aria-label="Mois précédent">‹</button><b>${cap(MOIS_L[m - 1])} ${y}</b><button class="iconbtn" data-act="histMo" data-d="1" aria-label="Mois suivant" ${histMonth >= D.today.slice(0, 7) ? "disabled" : ""}>›</button></span>
       <span class="hleg"><span>Moins</span><i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><span>Plus</span></span></div>
-      <div class="hgrid">${["L","M","M","J","V","S","D"].map(x => `<span class="hd">${x}</span>`).join("")}${cells}</div></section>
-    <section class="panel hst"><span><span class="lg-lab">Séances</span><b>${mo.length}</b></span><span><span class="lg-lab">Tonnage</span><b>${sumTon ? fmt(sumTon / 1000, 1) + " t" : "—"}</b></span><span><span class="lg-lab">Séries</span><b>${sumSets || "—"}</b></span></section>
+      <div class="hgrid">${cells}</div></section>
+    <section class="panel hst"><span><span class="lg-lab">Séances</span><b>${mo.length}</b></span><span><span class="lg-lab">Tonnage</span><b>${sumTon ? fmt(sumTon / 1000, 1) + " t" : "—"}</b></span><span><span class="lg-lab">Records</span><b>${D.prs.filter(p => p.date && p.date.slice(0, 7) === histMonth).length}</b></span></section>
     <h2 class="h2">Dernières séances</h2><div>${done.slice(0, 20).map(row).join("")}</div>`;
 }
 function rHome(){
@@ -1884,7 +1893,7 @@ function rSeance(){
     <div class="wkl">${inB.filter(x => x.semaine === s.semaine).sort((x, y) => x.idx - y.idx).map(x => { const dx = dateOf(x), e0 = x.exercices[0], isN = x === ns, today = dx === D.today;
       const sub = e0 ? `${title(e0.mouvement)}${e0.variation && norm(e0.mouvement) !== "RENFO" ? " " + title(e0.variation).toLowerCase() : e0.variation ? " " + title(e0.variation) : ""} · ${x.exercices.length} exercice${x.exercices.length > 1 ? "s" : ""}` : "";
       return `<button class="wkr${x === s ? " sel" : ""}" data-act="sel" data-k="${esc(x.key)}" aria-current="${x === s}"><span class="wkb ${x.faite ? "ok" : isN ? "now" : ""}">${x.faite ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>` : isN ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>` : ""}</span>
-        <span class="grow"><b>${esc((x.jour ? x.jour.slice(0, 3) + ". · " : "") + x.seance)}</b><span>${esc(sub)}</span></span>${x.faite ? `<span class="wkt">Fait</span>` : today || isN ? `<span class="fchip">${today ? "Aujourd'hui" : "Prochaine"}</span>` : `<span class="wkt">${CHEV}</span>`}</button>`; }).join("")}</div>
+        <span class="grow"><b>${esc((x.jour ? x.jour.slice(0, 3) + ". · " : "") + x.seance)}</b><span>${esc(sub)}</span></span>${x.faite ? `<span class="wkt">Fait</span>` : today || isN ? `<span class="fchip now">${today ? "Aujourd'hui" : "Prochaine"}</span>` : `<span class="wkt">${CHEV}</span>`}</button>`; }).join("")}</div>
     <h2 class="h2">Détail de la séance</h2>
     ${heroCard({plain:true, compact:true, small:`${d ? cap(dlong(d)) : esc(s.jour || "")} · ${esc(blocLow(s.bloc))}${s.semaine ? ", semaine " + esc(s.semaine) : ""}`, big:esc(s.seance), sub:s.faite ? "Faite" : s === ns ? "Prochaine séance" : d && d < D.today && (!ns || S.indexOf(s) < S.indexOf(ns)) ? "Pas notée" : "À venir"})}
     <div class="list" style="margin-top:8px">${s.exercices.map((e, k) => {
