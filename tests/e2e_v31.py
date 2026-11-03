@@ -39,7 +39,7 @@ with sync_playwright() as p:
     check("compétition : ligne A:E modifiée", calls[6] == "update_values COMPETITIONS!A3:E3" and w["comp"] == ["2026-12-07", "Rookie", "Liège"], w)
 
     # 3. Interface : supprimer une compétition (bouton à confirmer) utilise bien l'id
-    pg.evaluate("loadApp().then(() => setTab('agenda'))"); pg.wait_for_timeout(1500)
+    pg.evaluate("foldOpen.comps = true; loadApp().then(() => setTab('agenda'))"); pg.wait_for_timeout(1500)
     n0 = pg.evaluate("D.comps.length")
     b = pg.locator("[data-act=delComp]").first; b.click(); pg.wait_for_timeout(300); pg.locator("[data-act=delComp]").first.click(); pg.wait_for_timeout(2000)
     check("suppression d'une compétition depuis l'écran", pg.evaluate("D.comps.length") == n0 - 1, pg.evaluate("D.comps.map(c => c.nom)"))

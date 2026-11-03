@@ -50,7 +50,7 @@ with sync_playwright() as p:
     pg.evaluate("ACT.closeSheet()")
 
     # 5. Bouton du calendrier sur une ligne
-    pg.evaluate("setTab('agenda')"); pg.wait_for_timeout(300)
+    pg.evaluate("foldOpen.cal = true; foldOpen.comps = true; setTab('agenda')"); pg.wait_for_timeout(300)
     r = pg.evaluate("(() => { const b = document.querySelector('[data-act=ics]'); return [b.textContent, b.getBoundingClientRect().height]; })()")
     check("compét : bouton du calendrier sur une ligne (390 px)", r[0] == "Ajouter au Calendrier" and r[1] <= 56, r)
     pg.set_viewport_size({"width":320, "height":700}); pg.wait_for_timeout(300)
@@ -61,7 +61,7 @@ with sync_playwright() as p:
     check("compét : Modifier / Supprimer ≥ 44 px", r and min(r) >= 44, r)
 
     # 6. Infobulle du volume : mouvements à 0 masqués, total ajouté
-    pg.evaluate("progSeg='courbes'; setTab('prog')"); pg.wait_for_function("charts['c-vol']", timeout=10000)
+    pg.evaluate("foldOpen.vol = true; progSeg='courbes'; setTab('prog')"); pg.wait_for_function("charts['c-vol']", timeout=10000)
     r = pg.evaluate("""(() => { const t = charts['c-vol'].options.plugins.tooltip; return [t.filter({parsed:{y:0}}), t.filter({parsed:{y:630}}), t.callbacks.footer([{parsed:{y:1710}}, {parsed:{y:630}}]), t.callbacks.label({dataset:{label:'Dips'}, parsed:{y:1710}})]; })()""")
     check("volume : lignes à 0 masquées", r[0] is False and r[1] is True, r)
     check("volume : total et séparateur de milliers", r[2].replace(" ", " ") == "Total : 2 340 kg" and r[3].replace(" ", " ") == "Dips : 1 710 kg", r)

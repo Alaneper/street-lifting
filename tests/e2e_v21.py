@@ -35,7 +35,7 @@ with sync_playwright() as p:
     pg.evaluate("setTab('prog')"); check("en-tête : nom de l'onglet suit l'onglet", pg.evaluate("document.querySelector('#tabname').textContent") == "Progrès")
     # v67 : 4 onglets (Séance, Corps, Progrès, Classement) ; Séance = Aujourd'hui + Programme
     check("nav : 4 onglets", pg.evaluate("document.querySelectorAll('.tabs button').length") == 4)
-    check("nav : libellés Séance/Corps/Progrès/Classement", pg.evaluate("[...document.querySelectorAll('.tabs button')].map(b=>b.textContent.trim()).join('|')") == "Séance|Corps|Progrès|Classement")
+    check("nav : libellés Séance/Corps/Progrès/Compétition", pg.evaluate("[...document.querySelectorAll('.tabs button')].map(b=>b.textContent.trim()).join('|')") == "Séance|Corps|Progrès|Compétition")
     pg.click("[data-tab=home]"); pg.wait_for_timeout(300)
     check("nav : sous-onglets visibles sur Séance", pg.evaluate("!document.querySelector('#subseance').hidden"))
     pg.click("[data-sub=seance]"); pg.wait_for_timeout(500)
@@ -62,6 +62,7 @@ with sync_playwright() as p:
     pg.evaluate("progSeg = 'courbes'; render()"); pg.wait_for_timeout(800)
     r = pg.evaluate("[...document.querySelectorAll('#v-prog span.small[style*=color]')].map(e => getComputedStyle(e).color).filter(c => c === 'rgb(43, 182, 115)' || c === 'rgb(255, 111, 97)')")
     check("progrès : écarts sans vert ni rouge", r == [], r)
+    pg.evaluate("foldOpen.vol = true; render()"); pg.wait_for_timeout(600)
     pg.wait_for_function("charts['c-vol']", timeout=10000)
     check("infobulle sombre", pg.evaluate("charts['c-vol'].options.plugins.tooltip.backgroundColor") == "#2A2825")
 
