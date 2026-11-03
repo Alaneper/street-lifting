@@ -661,6 +661,15 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 .nlink .ico{width:56px;height:56px;border-radius:16px;background:#1B2430;color:var(--data);display:grid;place-items:center;flex:none}
 .nlink .grow b{font-size:19px}.nlink .val{font:500 24px var(--f-text);color:var(--dust)}
 .lfin{display:block;margin:4px auto 0;min-height:44px;padding:0 16px;color:var(--dust)}
+.pchips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:6px -16px 12px;padding:0 16px}.pchips::-webkit-scrollbar{display:none}
+.pchips .chip{min-height:46px;padding:0 16px;border-radius:16px;font:600 16px var(--f-text);background:var(--deck);color:var(--faint);flex:none;border:0}
+.pchips .chip[aria-pressed="true"]{background:var(--deck2);color:var(--chalk);box-shadow:var(--sh2)}
+.crv .lg-lab{font:500 14px var(--f-text);text-transform:none;letter-spacing:0;color:var(--dust)}.fchip{white-space:nowrap}
+.crv{padding:20px 18px 14px;border-radius:24px;box-shadow:var(--sh1)}
+.fchip.acc{background:#32140D;color:var(--acc);font-size:15px;padding:7px 14px}
+.mt3s.lt{margin-top:10px}.mt3s.lt.four{grid-template-columns:repeat(2,minmax(0,1fr))}
+.mt3s button.mt3{text-align:left;width:100%}.mt3 .dl{display:block;font:600 14px var(--f-text);color:var(--data);font-style:normal;margin-top:6px}.mt3 .dl.none{visibility:hidden}
+.tonn{margin-top:10px;padding:18px;border-radius:24px;box-shadow:var(--sh1)}.tonn .row{align-items:baseline}.tonn b{font:700 20px var(--f-text)}
 /* COUCHES (v3) : 0 fond · 1 carte · 2 surélevé · 3 contrôle dans une carte · 4 feuille (flou). Une ombre par niveau, jamais de halo. */
 :root{--sh1:inset 0 1px 0 rgba(245,242,236,.045),0 10px 24px -12px rgba(0,0,0,.7);--sh2:inset 0 1px 0 rgba(245,242,236,.07),0 18px 40px -14px rgba(0,0,0,.8);--sh3:inset 0 1px 0 rgba(245,242,236,.08),0 -24px 64px rgba(0,0,0,.7)}
 .card,.panel,.tdc,.pbar,.hero{box-shadow:var(--sh1)}
@@ -2693,6 +2702,37 @@ function mouvHtml(){
   return `<div class="sfield"><input id="mvin" type="search" placeholder="Rechercher un mouvement" value="${esc(mvQ)}" autocomplete="off" data-inp="mvQ" aria-label="Rechercher un mouvement"></div><div class="chips" id="mvchips" role="group" aria-label="Groupe musculaire" style="margin-top:10px">${MV_GROUPS.map(([k, t]) => `<button class="chip" aria-pressed="${mvG === k}" data-act="mvGroup" data-k="${k}">${t}</button>`).join("")}</div><div id="mvlist">${mvGrid()}</div>`;
 }
 document.addEventListener("input", ev => { const t = ev.target; if (t && t.dataset && t.dataset.inp === "mvQ") { mvQ = t.value; const l = $("#mvlist"); if (l) l.innerHTML = mvGrid(); } });
+let crvSel = "total";
+/* Courbe en aire (planche Progrès › Courbes) : trois repères horizontaux, aire bleue, dernier point cerclé. */
+function areaSvg(pts){
+  const W = 340, H = 214, x0 = 6, x1 = 334, y0 = 14, y1 = 176, lo0 = Math.min(...pts.map(p => p.v)), hi0 = Math.max(...pts.map(p => p.v)), pad = Math.max(1, (hi0 - lo0) * .15), lo = lo0 - pad, hi = hi0 + pad;
+  const span = Math.max(1, days(pts[0].date, pts.at(-1).date)), X = d => x0 + days(pts[0].date, d) / span * (x1 - x0), Y = v => y1 - (v - lo) / (hi - lo) * (y1 - y0);
+  const q = pts.map(p => [X(p.date), Y(p.v)]), line = q.map((c, i) => (i ? "L" : "M") + c[0].toFixed(1) + " " + c[1].toFixed(1)).join(" "), last = q.at(-1);
+  return `<svg class="pw-svg" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Courbe : de ${fmt(pts[0].v)} à ${fmt(pts.at(-1).v)} kg">
+    ${[0, 1, 2, 3].map(i => `<line x1="${x0}" x2="${x1}" y1="${(y0 + (y1 - y0) * i / 3).toFixed(1)}" y2="${(y0 + (y1 - y0) * i / 3).toFixed(1)}" stroke="var(--seam)" stroke-width="1"/>`).join("")}
+    <path d="${line} L${last[0].toFixed(1)} ${y1} L${q[0][0].toFixed(1)} ${y1} Z" fill="var(--data)" opacity=".13"/><path d="${line}" fill="none" stroke="var(--data)" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="6" fill="var(--data)" stroke="var(--floor)" stroke-width="2.5"/>
+    <text x="${x0}" y="${H - 8}" fill="var(--faint)" style="font:500 12px var(--f-text)">${dMois(pts[0].date)}</text><text x="${x1}" y="${H - 8}" text-anchor="end" fill="var(--faint)" style="font:500 12px var(--f-text)">${dMois(pts.at(-1).date)}</text></svg>`;
+}
+/* Tonnage des 8 dernières semaines faites ; la plus récente en rouge (planche). */
+function tonnageCard(){
+  const W = volumeWeeks().slice(-8).map(w => ({l:w.label, v:Math.round(sum(Object.values(w.t)))})); if (!W.length || !W.some(w => w.v)) return "";
+  const top = Math.max(...W.map(w => w.v)), bw = 300 / W.length - 6;
+  return `<section class="panel tonn"><div class="row"><b>Tonnage par semaine</b><span class="muted small">${W.length} dernières</span></div>
+    <svg viewBox="0 0 320 84" width="100%" role="img" aria-label="Tonnage des ${W.length} dernières semaines, de ${thou(W[0].v)} à ${thou(W.at(-1).v)} kg" style="margin-top:14px;display:block">${W.map((w, i) => { const h = Math.max(6, w.v / top * 80);
+      return `<rect x="${(i * (bw + 6) + 3).toFixed(1)}" y="${(82 - h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="8" fill="${i === W.length - 1 ? "var(--acc)" : "var(--data)"}"><title>${esc(w.l)} : ${thou(w.v)} kg</title></rect>`; }).join("")}</svg></section>`;
+}
+function crvTop(cd, bf){
+  const lifts = (cd === "power" ? POWER_LIFTS : ["PULL", "DIP", "SQUAT", "MU"]).filter(l => best(l, bf)), sel = lifts.includes(crvSel) ? crvSel : "total";
+  const pts = sel === "total" ? totalSeries(cd) : bestSeries(sel), last = pts.at(-1), ref = refPoint(pts, 56), d = last && ref && ref !== last ? Math.round((last.v - ref.v) * 100) / 100 : 0;
+  const chips = [["total", "Total"], ...lifts.map(l => [l, LNAME[l]])].map(([k, t]) => `<button class="chip" aria-pressed="${k === sel}" data-act="crvSel" data-k="${k}">${t}</button>`).join("");
+  return `<div class="pchips" role="group" aria-label="Courbe affichée">${chips}</div>
+    <section class="panel crv"><div class="pw-top"><span class="pw-l"><span class="lg-lab">${sel === "total" ? "Total · " + (cd === "power" ? "powerlifting" : "street lifting") : LNAME[sel] + " · record"}</span><b class="pw-big">${last ? fmt(last.v) : "—"}<small>kg</small></b></span>${d > 0 ? `<span class="pw-r"><span class="fchip acc">▲ ${fmt(d, 2)} kg</span><span class="lg-lab">depuis le ${esc(dfr(ref.date).slice(0, 5))}</span></span>` : ""}</div>
+      <div style="margin-top:8px">${pts.length > 1 ? areaSvg(pts) : `<div class="emptycard flat"><b>La courbe apparaît dès ton 2e record daté</b><p>Note un record avec sa date pour la voir évoluer.</p></div>`}</div></section>
+    ${lifts.length ? `<div class="mt3s lt${lifts.length > 3 ? " four" : ""}">${lifts.map(l => { const bp = bestSeries(l), la = bp.at(-1), rf = refPoint(bp, 56), dl = la && rf && rf !== la ? Math.round((la.v - rf.v) * 100) / 100 : 0;
+      return `<button class="mt3" data-act="openLift" data-l="${l}"><span>${LNAME[l]}</span><b>${fmt(best(l, bf))}</b>${dl > 0 ? `<i class="dl">+${fmt(dl, 2)} kg</i>` : `<i class="dl none">&nbsp;</i>`}</button>`; }).join("")}</div>` : ""}
+    ${allLoaded ? tonnageCard() : ""}`;
+}
 function rProg(){
   const cd = curDisc(), t = totalOf(cd), r = scoreOf(cd, t, bw()), bf = cd === "power" && equipped() ? null : classicOnly;
   const oT = goalOf(cd), sd = cd === "power" ? 2 : 1;
@@ -2707,7 +2747,7 @@ function rProg(){
       ${old.length ? `<details style="margin-top:14px"><summary class="small muted">Anciens exercices (${old.length})</summary><div class="list" style="margin-top:6px">${old.map(rowEx).join("")}</div></details>` : ""}`;
   } else ensureAllBlocs().then(() => { if (tab === "prog") rProg(); }).catch(() => {});
   const seg = `<div class="seg3">${(cd === "power" ? ["DEADLIFT","SQUAT","BENCH"] : ["SQUAT","DIP","PULL","MU"]).filter(l => best(l, bf)).map((l, i) => `<i style="width:${(best(l, bf) / (oT || 1) * 100).toFixed(1)}%;background:rgba(255,255,255,${[1, .75, .55, .4][i]})"></i>`).join("")}</div>`;
-  const psg = `<div class="segc" role="group" aria-label="Progrès" style="margin:6px 0 4px">${[["records", "Records"], ["courbes", "Courbes"], ["mouvements", "Mouvements"]].map(([k, t]) => `<button aria-pressed="${progSeg === k}" data-act="progSeg" data-k="${k}">${t}</button>`).join("")}</div>`;
+  const psg = `<div class="segc big" role="group" aria-label="Progrès" style="margin:6px 0 4px">${[["records", "Records"], ["courbes", "Courbes"], ["mouvements", "Mouvements"]].map(([k, t]) => `<button aria-pressed="${progSeg === k}" data-act="progSeg" data-k="${k}">${t}</button>`).join("")}</div>`;
   const recordsHtml = `
     ${muscuOnly() ? muscuTop() : `${discSegHtml(10)}
     ${heroCard({small:cd === "power" ? `Mon total power · ${equipped() ? "equipped" : "classic"}` : "Mon total", big:`${fmt(t)}<small>kg</small>`, sub:`${scoreName(cd)} ${fmt(r, sd)} · objectif ${fmt(oT, 1)} kg`, extra:seg + totalDelta(cd), deco:false})}
@@ -2718,9 +2758,8 @@ function rProg(){
         <span class="bar" style="display:block;--c:var(--data)"><i style="width:${o && b ? pct(b, o) : 0}%"></i></span>
         <span class="meta"><span>${o ? "objectif " + kg(o) : "pas encore d'objectif"}</span><span>${o && b !== null ? (o <= b ? "atteint" : "encore " + fmt(o - b, 2) + " kg") : ""}</span></span></button>`; }).join("")}</div>`}`;
   const curvesHtml = `
-    ${muscuOnly() ? "" : `<div class="panel" style="margin-top:12px;padding:14px 14px 8px"><p class="muted small">Total · ${cd === "power" ? "powerlifting" : "street lifting"}</p><p class="show" style="margin-top:2px">${fmt(t)}<span class="unit">kg</span></p><div class="chart" style="margin-top:8px"><canvas id="c-total" aria-label="Courbe du total"></canvas></div></div>
-    ${liftTiles(cd, bf)}`}
-    <h2 class="h2">Volume par semaine</h2>
+    ${muscuOnly() ? "" : crvTop(cd, bf)}
+    <h2 class="h2">Par mouvement</h2>
     ${allLoaded ? volumeHtml() : `<p class="muted small">Calcul en cours…</p>`}
     <h2 class="h2">Semaine par semaine</h2>
     ${weekHtml()}
@@ -2730,7 +2769,7 @@ function rProg(){
     <p class="muted small" style="margin:0 0 8px">Le pourcentage compare ton 1RM estimé à celui d'il y a environ 4 semaines.</p>
     ${exHtml}`;
   $("#v-prog").innerHTML = psg + (progSeg === "courbes" ? curvesHtml : progSeg === "mouvements" ? mouvHtml() : recordsHtml);
-  if (progSeg === "courbes") { if (allLoaded) drawVolume(); if (!muscuOnly()) drawTotal(); }
+  if (progSeg === "courbes") { if (allLoaded) drawVolume(); }
 }
 /* Évolution du 1RM estimé : dernière séance comparée à celle d'il y a 4 semaines environ (sinon la plus ancienne).
    Une valeur à moins de la moitié ou plus du double de la médiane est ignorée (saisie aberrante). */
@@ -4096,6 +4135,7 @@ Object.assign(ACT, {
     } catch(e){ toast(errMsg(e), true); if (b) b.disabled = false; }
   },
   mealsManage:() => openSheet("meals"),
+  crvSel:d => { crvSel = d.k; rProg(); },
   nutScan:d => { nutSlot = +d.s; ACT.scanOpen({c:"nutri"}); },
   nutSlot:d => { nutSlot = +d.s; rNutri(); const el = $("#nutadd"); if (el) el.scrollIntoView({behavior:"smooth", block:"start"}); },
   nutTab:d => { nutTab = d.t === "foods" ? "foods" : "meals"; rNutri(); },
