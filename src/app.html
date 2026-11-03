@@ -12,10 +12,10 @@
    Échelle : espacements 4/8/12/16/24, rayons 12/16/22, texte 11/12/13/15/17 + titres Big Shoulders. */
 :root{
   color-scheme:dark;
-  --floor:#0C0B0A; --deck:#161513; --deck2:#1E1C1A; --deck3:#2A2825; --seam:#24221F;
+  --floor:#0C0B0A; --deck:#1B1A18; --deck2:#272522; --deck3:#363330; --seam:#24221F;   /* lot E : écarts de luminosité ΔL* ≥ 5,5 entre couches (planche : 3,6 à 3,7, trop proches sur iPhone) */
   --chalk:#F5F2EC; --dust:#B4AFA7; --faint:#8A857D; --steel:#8A857D; --steel-hi:#B4AFA7; --brand:#2F63B5;
   --acc:#FF4A2B; --data:#6FA0DA;
-  --mu:#F1EDE4; --pull:#B8D0EE; --dip:#3A6BAA; --squat:#6FA0DA; --bench:#B8D0EE; --deadlift:#3A6BAA; --cardio:#8D877D;   /* v67 : plus de couleur par mouvement, une échelle bleu acier / craie à luminances distinctes (lisible en daltonisme) */
+  --mu:#F1EDE4; --pull:#B8D0EE; --dip:#4778BA; --squat:#6FA0DA; --bench:#B8D0EE; --deadlift:#4778BA; --cardio:#8D877D;   /* v67 : plus de couleur par mouvement, une échelle bleu acier / craie à luminances distinctes (lisible en daltonisme) */
   --go:#FF4A2B; --comp:#2F63B5; --ok:#2BB673; --warn:#FFC930; --bad:#FF6F61;
   --f-show:"B2 Display","Arial Narrow",sans-serif;
   --f-text:"B2 Text",-apple-system,"Segoe UI",sans-serif;
@@ -775,7 +775,7 @@ body:has(.launch) .topbar,body:has(.launch) nav.tabs,body:has(.launch) #subseanc
 .rt .rtn{font:600 14px var(--f-text);color:var(--dust)}.rt .rtc{display:flex;align-items:baseline;gap:5px;min-width:0;flex-wrap:wrap}.rt .rtc b{font:800 26px/1 var(--f-show);color:var(--chalk)}.rt .rtc small{font:500 13px var(--f-text);color:var(--dust)}
 .rt .rtc .vid-at{color:var(--data)}.rt .rtd{color:var(--dust);text-align:right;font-size:12px}
 .rt.is-rec{background:color-mix(in srgb,var(--acc) 10%,var(--deck));box-shadow:inset 3px 0 0 var(--acc)}
-.rtrec{margin-left:4px;padding:3px 8px;border-radius:8px;background:color-mix(in srgb,var(--acc) 18%,transparent);color:var(--acc);font:700 11px var(--f-text);font-style:normal;align-self:center}
+.rtrec{margin-left:4px;padding:3px 8px;border-radius:8px;background:color-mix(in srgb,var(--acc) 18%,transparent);color:#FF8A73;font:700 11px var(--f-text);font-style:normal;align-self:center}
 .rtnames{margin-top:10px}
 .more-btn{display:block;width:100%;min-height:44px;margin-top:6px;border-radius:14px;background:var(--deck2);color:var(--chalk);font:600 14px var(--f-text)}
 .objrow{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:14px;padding:12px 14px;border-radius:18px;background:var(--deck)}
@@ -800,7 +800,7 @@ body:has(.launch) .topbar,body:has(.launch) nav.tabs,body:has(.launch) #subseanc
 .rwarn{display:flex;gap:10px;align-items:center;margin-top:14px;padding:14px 16px;border-radius:18px;background:color-mix(in srgb,var(--warn) 9%,var(--deck));font:400 14px/1.4 var(--f-text);color:var(--chalk)}
 .rwarn i{font:800 15px var(--f-text);font-style:normal;color:var(--warn);flex:none}
 /* COUCHES (v3) : 0 fond · 1 carte · 2 surélevé · 3 contrôle dans une carte · 4 feuille (flou). Une ombre par niveau, jamais de halo. */
-:root{--sh1:inset 0 1px 0 rgba(245,242,236,.045),0 10px 24px -12px rgba(0,0,0,.7);--sh2:inset 0 1px 0 rgba(245,242,236,.07),0 18px 40px -14px rgba(0,0,0,.8);--sh3:inset 0 1px 0 rgba(245,242,236,.08),0 -24px 64px rgba(0,0,0,.7)}
+:root{--edge:rgba(245,242,236,.09);--hi:rgba(245,242,236,.10);--sh1:inset 0 1px 0 var(--hi),inset 0 0 0 1px var(--edge),0 12px 24px -14px rgba(0,0,0,.75),0 2px 5px rgba(0,0,0,.28);--sh2:inset 0 1px 0 rgba(245,242,236,.14),inset 0 0 0 1px rgba(245,242,236,.11),0 18px 36px -16px rgba(0,0,0,.85),0 3px 8px rgba(0,0,0,.35);--sh3:inset 0 1px 0 rgba(245,242,236,.14),0 -24px 64px rgba(0,0,0,.7)}
 .card,.panel,.tdc,.pbar,.hero{box-shadow:var(--sh1)}
 .wkimp,.vbar,.sheet .panel{box-shadow:none}
 .sheet{background:color-mix(in srgb,var(--deck) 90%,transparent);-webkit-backdrop-filter:blur(26px) saturate(1.3);backdrop-filter:blur(26px) saturate(1.3);box-shadow:var(--sh3)}
@@ -884,6 +884,32 @@ body:has(.launch) .topbar,body:has(.launch) nav.tabs,body:has(.launch) #subseanc
 .impbar{position:sticky;bottom:0;display:flex;gap:8px;padding:14px 0 calc(env(safe-area-inset-bottom,0px) + 14px);background:linear-gradient(180deg,transparent,var(--floor) 35%);margin-top:12px}
 .impwhy{margin-top:4px;font:600 12px var(--f-text);color:var(--dust)}.impwhy.up{color:var(--ok)}.impwhy.down{color:var(--bad)}
 .impok{width:72px;height:72px;border-radius:50%;background:var(--ok);color:var(--floor);display:flex;align-items:center;justify-content:center;font:800 40px var(--f-text);margin:26px auto 14px}
+/* PROFONDEUR (retours vidéo, lot E) : 0 écran · 1 carte · 2 carte surélevée/importante · 3 feuille. Chaque carte : fond plus clair que l'écran, bord 1 px teinte craie, reflet 1 px en haut, ombre douce diffuse. Séparations : espace et fond de carte. */
+:is(.view,.page) :is(.card,.panel,.tdc,.pbar,.duo>*,.tile,.liftcard,.tiles2>*,.mt3,.slotc,.wkimp,.fold,.pmonth,.mlist2,.mstats,.objrow,.rprog,.emptycard,.catcard,.nh,.nlink,.netbar,.lgb,.lsets,.group,.mcard,.wpill,.coachnote,.reveal,.rt,.lcard,.rwarn){box-shadow:var(--sh1)}
+:is(.view,.page) .list:not(.foldb .list):not(.vt .list):not(.pmonth .list){background:var(--deck);border-radius:var(--r-lg);padding:2px 14px;box-shadow:var(--sh1)}
+:is(.view,.page) .list>.item:first-child,:is(.view,.page) .list>.vrow:first-child{border-top:0}
+.item{border-top-color:rgba(245,242,236,.06)}
+.lcard{margin-top:8px;border-radius:var(--r-lg);background:var(--deck);padding:0 14px}.lcard .liftrow{border-bottom-color:rgba(245,242,236,.06)}.lcard .liftrow:last-child{border-bottom:0}
+:is(.view,.page) .foldb :is(.panel,.tdc,.group){background:var(--deck2);box-shadow:inset 0 1px 0 rgba(245,242,236,.07)}
+:is(.view,.page) .pmonth .list,.foldb .list,.vt .list{background:none;box-shadow:none;padding:0}
+/* cartes importantes : dégradé léger + halo de la couleur de la donnée (bleu = donnée, orange = action) */
+:is(.view,.page) .hero{background:linear-gradient(180deg,rgba(245,242,236,.045),transparent 46%),radial-gradient(130% 110% at 100% 0%,color-mix(in srgb,var(--hc,var(--data)) 22%,transparent),transparent 64%),var(--deck2);box-shadow:inset 0 1px 0 rgba(245,242,236,.14),inset 0 0 0 1px color-mix(in srgb,var(--hc,var(--data)) 28%,transparent),0 18px 36px -16px rgba(0,0,0,.85),0 0 46px -14px color-mix(in srgb,var(--hc,var(--data)) 42%,transparent)}
+:is(.view,.page) .cc{background:linear-gradient(160deg,color-mix(in srgb,var(--data) 12%,var(--deck2)),var(--deck) 70%);box-shadow:inset 0 1px 0 rgba(245,242,236,.14),inset 0 0 0 1px color-mix(in srgb,var(--data) 22%,transparent),0 18px 36px -16px rgba(0,0,0,.85),0 0 46px -16px color-mix(in srgb,var(--data) 38%,transparent)}
+:is(.view,.page) .today{background:linear-gradient(160deg,color-mix(in srgb,var(--acc) 15%,var(--deck2)),var(--deck) 68%);box-shadow:inset 0 1px 0 rgba(245,242,236,.14),inset 0 0 0 1px color-mix(in srgb,var(--acc) 22%,transparent),0 18px 36px -16px rgba(0,0,0,.85),0 0 46px -16px color-mix(in srgb,var(--acc) 40%,transparent)}
+:is(.view,.page) .tdc{background:linear-gradient(160deg,color-mix(in srgb,var(--acc) 15%,var(--deck2)),var(--deck) 68%);box-shadow:inset 0 1px 0 rgba(245,242,236,.14),inset 0 0 0 1px color-mix(in srgb,var(--acc) 22%,transparent),0 18px 36px -16px rgba(0,0,0,.85),0 0 46px -16px color-mix(in srgb,var(--acc) 40%,transparent)}
+:is(.view,.page) .rhero{background:linear-gradient(160deg,color-mix(in srgb,var(--data) 12%,var(--deck2)),var(--deck) 70%);box-shadow:var(--sh2)}
+/* listes de lignes sans conteneur : une carte, au lieu d'un trait entre chaque ligne */
+:is(.view,.page) div:has(>:is(.vrow,.tdr)):not(:is(.panel,.group,.fold,.foldb,.lcard,.list,.pmonth,.vt,.mlist2,.card,.tdc)){background:var(--deck);border-radius:var(--r-lg);padding:2px 14px;box-shadow:var(--sh1);margin-top:8px}
+:is(.view,.page) :is(.foldb,.pmonth,.panel,.group,.tdc) div:has(>:is(.vrow,.tdr)){background:none;box-shadow:none;padding:0;margin-top:0;border-radius:0}
+.vrow,.tdr{border-bottom-color:rgba(245,242,236,.06)}.vrow:last-child,.tdr:last-child{border-bottom:0}
+/* barre d'onglets : surface floutée et opaque */
+.tabs{background:color-mix(in srgb,var(--deck) 96%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.4);backdrop-filter:blur(22px) saturate(1.4);border-top:1px solid rgba(245,242,236,.08);box-shadow:inset 0 1px 0 rgba(245,242,236,.06),0 -12px 30px rgba(0,0,0,.5)}
+/* feuilles : surface la plus claire, flou derrière, bord arrondi marqué */
+.sheet:not(.full){background:var(--deck3);-webkit-backdrop-filter:none;backdrop-filter:none;border-radius:28px 28px 0 0;box-shadow:inset 0 1px 0 rgba(245,242,236,.16),inset 0 0 0 1px rgba(245,242,236,.06),0 -24px 64px rgba(0,0,0,.7)}
+.sheet .grab{background:rgba(245,242,236,.28)}
+.sheet:not(.full) :is(.panel,.card,.group,.tdc,.rm){background:var(--deck2);box-shadow:inset 0 1px 0 rgba(245,242,236,.06)}
+.scrim{background:rgba(8,7,6,.55);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.scansheet{background:var(--deck3);box-shadow:inset 0 1px 0 rgba(245,242,236,.16),0 -10px 40px rgba(0,0,0,.45)}
 </style>
 
 <main id="app">
@@ -2961,7 +2987,7 @@ function rProg(){
     ${muscuOnly() ? muscuTop() : `${heroCard({small:cd === "power" ? `Mon total power · ${equipped() ? "equipped" : "classic"}` : "Mon total", big:`${fmt(t)}<small>kg</small>`, sub:`${scoreName(cd)} ${fmt(r, sd)} · objectif ${fmt(oT, 1)} kg`, extra:seg + totalDelta(cd), deco:false})}
     <div class="tiles2" style="margin-top:12px"><div><p class="muted small">Total visé</p><p class="show">${fmt(oT, 2)}</p></div><div><p class="muted small">${scoreName(cd)} visé</p><p class="show">${fmt(scoreOf(cd, oT, bw()), sd)}</p></div></div>
     <h2 class="h2">Mouvements de compétition</h2>
-    <div>${(cd === "power" ? POWER_LIFTS : ["PULL","DIP","SQUAT","MU"]).map(l => { const b = best(l, bf), o = D.objectifs[l];
+    <div class="lcard">${(cd === "power" ? POWER_LIFTS : ["PULL","DIP","SQUAT","MU"]).map(l => { const b = best(l, bf), o = D.objectifs[l];
       return `<button class="liftrow" data-act="openLift" data-l="${l}"><span class="top">${muscleFig(l, {cls:"thumb"})}<b>${LNAME[l]}</b>${b === null ? `<span class="val none">Pas encore de record</span>` : `<span class="val">${kg(b)}</span>`}</span>
         <span class="bar" style="display:block;--c:var(--data)"><i style="width:${o && b ? pct(b, o) : 0}%"></i></span>
         <span class="meta"><span>${o ? "objectif " + kg(o) : "pas encore d'objectif"}</span><span>${o && b !== null ? (o <= b ? "atteint" : "encore " + fmt(o - b, 2) + " kg") : ""}</span></span></button>`; }).join("")}</div>`}`;

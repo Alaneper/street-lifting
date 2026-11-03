@@ -13,6 +13,8 @@ ECRANS = {
   "progres": "progSeg='records';setTab('prog')", "classement": "agendaSeg='amis';setTab('agenda')", "competition": "agendaSeg='compet';setTab('agenda')",
   "mouvements": "progSeg='mouvements';mvQ='';setTab('prog')", "mouvements-recherche": "progSeg='mouvements';mvQ='dip';setTab('prog')",
   "courbes": "progSeg='courbes';setTab('prog')",
+  "feuille-pesee": "D.poids=D.poids.filter(p=>p.date!==D.today);hwDraft=null;setTab('home');openSheet('weigh')",
+  "feuille-pesees": "corpsTab='poids';setTab('corps');openSheet('pesees')",
   "progres-2disc": "D.profil.disciplines='street,powerlifting';progSeg='records';setTab('prog');D.profil.disciplines='street'",
   "courbes-ouvert": "foldOpen.vol=true;foldOpen.renfo=true;progSeg='courbes';setTab('prog')",
   "mouvements-tout": "mvOpen.jambes=true;mvOpen.pousser=true;mvOpen.tirer=true;mvOpen['']=true;progSeg='mouvements';mvQ='';setTab('prog')",
@@ -34,7 +36,7 @@ with sync_playwright() as p:
     pg.evaluate("""(()=>{ let n=0; S.filter(z=>z.faite && dateOf(z)).forEach((z,i)=>{ [['SQUAT COMP',100+i*2.5,5],['DIPS COMP',30+i,4],['PULL UP COMP',20+i,3]].forEach(([ex,c,k])=>D.series.push({id:900+n++,date:dateOf(z),bloc:z.bloc,semaine:z.semaine,seance:z.seance,ex:ex,charge:c,sets:Array(k).fill(0).map(()=>({r:5,c:c})),note:'',src:'',com:''})); }); })()""")
     for nom, js in ECRANS.items():
         if only and nom not in only: continue
-        pg.evaluate("page=null;renderLayer()"); pg.evaluate(js); pg.wait_for_timeout(1500); pg.evaluate("window.scrollTo(0,%d)" % int(__import__("os").environ.get("SCROLL_Y", "0") or 0)); pg.wait_for_timeout(500)
+        pg.evaluate("page=null;sheet=null;renderLayer()"); pg.evaluate(js); pg.wait_for_timeout(1500); pg.evaluate("window.scrollTo(0,%d)" % int(__import__("os").environ.get("SCROLL_Y", "0") or 0)); pg.wait_for_timeout(500)
         H = int(__import__("os").environ.get("CAP_H", "0") or 0)   # CAP_H=2600 : fenêtre plus haute pour voir toute une fiche en page pleine
         if H: pg.set_viewport_size({"width":390, "height":H}); pg.wait_for_timeout(400)
         pg.screenshot(path=str(OUTDIR / f"{nom}.png"))

@@ -50,11 +50,11 @@ with sync_playwright() as p:
     pg.evaluate("""(() => { setTab('seance'); const el = document.querySelector('#v-seance');
       el.insertAdjacentHTML('afterbegin', ['MU','PULL','DIP','SQUAT'].map(l => heroCard({color:LCOL[l], small:'Mercredi 21 octobre · bloc 7, semaine 2', big:'Séance 2', sub:'À venir'})).join('')); })()""")
     r = pg.evaluate("""[...document.querySelectorAll('#v-seance .hero.mv')].slice(0, 4).map(h => [getComputedStyle(h).backgroundColor, getComputedStyle(h.querySelector('.hb')).color, getComputedStyle(h.querySelector('.hs')).color, getComputedStyle(h.querySelector('.hu')).color])""")
-    deck = "rgb(22, 21, 19)"
+    deck = "rgb(39, 37, 34)"
     worst = min(min(cr(x[1], deck), cr(x[2], deck) / 1.5 * 1.5, cr(x[3], deck)) for x in r) if r else 0
     check("héros : 4 mouvements en carte sombre", len(r) == 4 and all(x[0] == deck for x in r), r)
     check("héros : chiffre ≥ 3:1, petits textes ≥ 4,5:1", all(cr(x[1], deck) >= 3 and cr(x[2], deck) >= 4.5 and cr(x[3], deck) >= 4.5 for x in r), [[round(cr(x[i], deck), 2) for i in (1, 2, 3)] for x in r])
-    check("héros du total (Progrès) : carte sombre, chiffre en bleu acier", pg.evaluate("(() => { setTab('prog'); const h = document.querySelector('#v-prog .hero'); return !h.classList.contains('mv') && getComputedStyle(h).backgroundColor === 'rgb(22, 21, 19)' && getComputedStyle(h.querySelector('.hb')).color === 'rgb(111, 160, 218)'; })()"))
+    check("héros du total (Progrès) : carte sombre, chiffre en bleu acier", pg.evaluate("(() => { setTab('prog'); const h = document.querySelector('#v-prog .hero'); return !h.classList.contains('mv') && getComputedStyle(h).backgroundColor === 'rgb(39, 37, 34)' && getComputedStyle(h.querySelector('.hb')).color === 'rgb(111, 160, 218)'; })()"))
     # Couleurs d'état neutres
     pg.evaluate("setTab('prog')"); pg.wait_for_timeout(600)
     r = pg.evaluate("[...document.querySelectorAll('.tag.ok')].map(t => getComputedStyle(t).backgroundColor)")
@@ -64,7 +64,7 @@ with sync_playwright() as p:
     check("progrès : écarts sans vert ni rouge", r == [], r)
     pg.evaluate("foldOpen.vol = true; render()"); pg.wait_for_timeout(600)
     pg.wait_for_function("charts['c-vol']", timeout=10000)
-    check("infobulle sombre", pg.evaluate("charts['c-vol'].options.plugins.tooltip.backgroundColor") == "#2A2825")
+    check("infobulle sombre", pg.evaluate("charts['c-vol'].options.plugins.tooltip.backgroundColor") == "#363330")
 
     # 3A. Pesée du jour (retours vidéo) : pastille « à faire » sur Séance, feuille de pesée, marge mise à jour en direct, pastille disparue une fois pesé
     pg.evaluate("D.poids = D.poids.filter(p => p.date !== D.today); hwDraft = null; setTab('home')"); pg.wait_for_timeout(300)
