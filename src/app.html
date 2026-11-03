@@ -607,6 +607,60 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 .rc-v{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.rc-v b{font:800 44px/1 var(--f-show)}.rc-v small{font:700 22px var(--f-show)}.rc-v span{margin-left:auto;font:700 12px var(--f-text)}
 .rc-b{position:relative;margin-top:10px;width:100%;min-height:48px;border-radius:12px;background:var(--floor);color:var(--chalk);font:700 15px var(--f-text)}
 @keyframes stamp{from{transform:scale(1.12);opacity:0}}
+/* CORPS (planche Corps) : poids en tendance, alimentation jour / semaine */
+.segc.big{background:var(--deck);border-radius:16px;padding:5px;margin-top:2px;box-shadow:var(--sh1)}
+.segc.big button{min-height:44px;font:600 16px var(--f-text);border-radius:12px}
+.segc.big button[aria-pressed="true"]{background:var(--deck2);color:var(--chalk);box-shadow:var(--sh2)}
+.pw-card{margin-top:6px;padding:20px 18px 16px;border-radius:24px;box-shadow:var(--sh1)}
+.pw-card .pw-big{font-size:68px;letter-spacing:-.005em}
+.pw-card .lg-lab{font:500 14px var(--f-text);text-transform:none;letter-spacing:0;color:var(--dust)}
+.fchip.data{background:#1B2430;color:var(--data);font-size:15px;padding:7px 14px}
+.pw-svg{display:block;overflow:visible}
+.emptycard.flat{background:transparent;padding:18px 4px}
+.rng{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;margin:12px 0 0}
+.rng button{min-height:44px;border-radius:14px;font:700 16px var(--f-text);color:var(--faint);transition:background-color .2s cubic-bezier(.2,.8,.2,1),color .2s}
+.rng button[aria-pressed="true"]{background:var(--deck2);color:var(--chalk);box-shadow:var(--sh1)}
+.catcard{display:flex;gap:16px;align-items:center;background:var(--deck);border-radius:20px;padding:18px;margin-top:12px;box-shadow:var(--sh1)}
+.catcard svg{flex:none}.catcard p{font:700 18px/1.25 var(--f-text);color:var(--chalk)}.catcard span{display:block;font:500 15px/1.4 var(--f-text);color:var(--dust);margin-top:3px}
+#v-corps .vrow .val{font:800 30px var(--f-show);letter-spacing:.005em}
+.addrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:16px 4px;margin-top:2px;border-top:1px solid var(--seam)}
+.addrow .grow{flex:1;min-width:0}.addrow b{display:block;font:600 18px var(--f-text)}.addrow .grow span{display:block;font-size:15px;color:var(--dust);margin-top:2px}
+.plus2{width:56px;height:56px;border-radius:50%;background:var(--chalk);color:var(--floor);display:grid;place-items:center;font:500 32px/1 var(--f-text);flex:none;box-shadow:var(--sh2)}
+.segs{display:inline-grid;grid-auto-flow:column;background:var(--deck);border-radius:14px;padding:4px;flex:none;box-shadow:var(--sh1)}
+.segs button{min-height:40px;padding:0 16px;border-radius:11px;font:600 16px var(--f-text);color:var(--faint)}
+.segs button[aria-pressed="true"]{background:var(--deck2);color:var(--chalk);box-shadow:var(--sh2)}
+.nhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 14px}
+.nnav{display:flex;align-items:center;gap:2px;min-width:0}.nnav .nl{display:block;min-width:0;padding:0 4px}.nnav b{display:block;font:700 17px var(--f-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nnav em{white-space:nowrap;display:block;font:500 13px var(--f-text);color:var(--dust);font-style:normal;margin-top:1px}
+.nn{width:34px;min-height:44px;color:var(--dust);font:500 24px/1 var(--f-text);flex:none}.nn:disabled{opacity:.25}
+.nh{background:var(--deck);border-radius:24px;padding:20px 18px 18px;box-shadow:var(--sh1)}
+.nh-t{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.nh-s{display:block;font:500 15px var(--f-text);color:var(--dust)}
+.nh-b{display:block;font:800 76px/1 var(--f-show);color:var(--chalk);margin-top:6px;letter-spacing:-.005em}.nh-b small{font:700 .42em var(--f-show);margin-left:6px}
+.nh-r{text-align:right;padding-top:30px}.nh-r b{display:block;font:600 19px var(--f-text);color:var(--chalk);white-space:nowrap}.nh-r span{display:block;font:500 14px var(--f-text);color:var(--dust);margin-top:3px}
+.nh-bar{display:block;height:12px;border-radius:6px;background:var(--deck3);margin-top:18px;overflow:hidden}
+.nh-bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#F2E8E0,#FF8B6A 45%,var(--acc) 75%,#9C2A14);transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.nh-bar.over i{background:var(--warn)}
+.mt3s{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.mt3{background:var(--deck);border-radius:18px;padding:14px 12px 14px;box-shadow:var(--sh1);min-width:0}
+.mt3 span{display:block;font:500 14px var(--f-text);color:var(--dust)}.mt3 b{display:block;font:800 32px/1 var(--f-show);margin-top:8px;white-space:nowrap}.mt3 b small{font:500 13px var(--f-text);color:var(--faint);margin-left:3px}
+.mt3 .mbr{display:block;height:6px;border-radius:3px;background:var(--deck3);margin-top:12px;overflow:hidden}.mt3 .mbr u{display:block;height:100%;border-radius:3px;text-decoration:none}
+.mt3 em{display:block;font:500 12px var(--f-text);color:var(--faint);margin-top:12px;font-style:normal;white-space:nowrap}
+.meals{display:flex;flex-direction:column}
+.meal{border-bottom:1px solid var(--seam)}.meal:last-child{border-bottom:0}
+.mrow{display:flex;align-items:center;gap:12px;min-height:76px;padding:8px 0;list-style:none;cursor:pointer}.mrow::-webkit-details-marker{display:none}
+.mrow .mt{flex:1;min-width:0}.mrow .mt b{display:block;font:600 20px var(--f-text)}.mrow .mt span{display:block;font:500 16px var(--f-text);color:var(--dust);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mrow .mk{font:800 30px var(--f-show);letter-spacing:.005em;flex:none}
+.mrow .plus{background:var(--deck2);color:var(--chalk);font:500 28px/1 var(--f-text);width:56px;height:56px;box-shadow:var(--sh1)}
+.scanp{display:inline-flex;align-items:center;gap:8px;min-height:56px;padding:0 20px 0 16px;border-radius:28px;background:var(--chalk);color:var(--floor);font:700 17px var(--f-text);flex:none;box-shadow:var(--sh2)}
+.mitems{padding:0 0 10px}
+.meal.cur .mrow .mt b{color:var(--chalk)}
+.nwk{padding:20px 18px 14px;border-radius:24px;box-shadow:var(--sh1)}
+.nprot{margin-top:10px;padding:18px;border-radius:24px;box-shadow:var(--sh1)}.nprot .row{align-items:center}.nprot b{font:700 20px var(--f-text)}.nbig{font:800 34px var(--f-show)}
+.pdots span{height:42px;border-radius:14px}
+.nlink{margin-top:10px;background:var(--deck);border-radius:24px;padding:16px 18px;border-bottom:0;box-shadow:var(--sh1)}
+.nlink .ico{width:56px;height:56px;border-radius:16px;background:#1B2430;color:var(--data);display:grid;place-items:center;flex:none}
+.nlink .grow b{font-size:19px}.nlink .val{font:500 24px var(--f-text);color:var(--dust)}
+.lfin{display:block;margin:4px auto 0;min-height:44px;padding:0 16px;color:var(--dust)}
 /* COUCHES (v3) : 0 fond · 1 carte · 2 surélevé · 3 contrôle dans une carte · 4 feuille (flou). Une ombre par niveau, jamais de halo. */
 :root{--sh1:inset 0 1px 0 rgba(245,242,236,.045),0 10px 24px -12px rgba(0,0,0,.7);--sh2:inset 0 1px 0 rgba(245,242,236,.07),0 18px 40px -14px rgba(0,0,0,.8);--sh3:inset 0 1px 0 rgba(245,242,236,.08),0 -24px 64px rgba(0,0,0,.7)}
 .card,.panel,.tdc,.pbar,.hero{box-shadow:var(--sh1)}
@@ -2183,6 +2237,7 @@ function rLive(){
       ${k < s.exercices.length - 1 ? `<button class="btn" data-act="liveNav" data-d="1">Exercice suivant</button>` : `<button class="btn" data-act="finishLive">Terminer</button>`}
     </div>
     <p class="muted tiny" style="text-align:center;margin-top:12px">${doneN}/${st.sets.length} ${cardio ? "blocs faits" : "séries faites"}. Tout est enregistré quand tu changes d'exercice.</p>
+    ${k < s.exercices.length - 1 ? `<button class="link small lfin" data-act="finishLive">Terminer la séance</button>` : ""}
   </div>${(() => { const allDone = curJ < 0; return `<div class="vbar">${allDone ? (k < s.exercices.length - 1 ? `<button class="btn" data-act="liveNav" data-d="1">Exercice suivant</button>` : `<button class="btn" data-act="finishLive">Terminer la séance</button>`) : `<button class="btn" data-act="doneSet" data-j="${curJ}">${cardio ? "Valider le bloc " : "Valider la série "}${curJ + 1}</button>`}</div>`; })()}</div>`;
 }
 /* Dernière fois : même séance, même ligne de l'exercice, semaine précédente du même bloc d'abord, puis blocs précédents. */
@@ -2818,30 +2873,48 @@ function avg7(P){ return P.map(p => { const w = P.filter(x => x.date <= p.date &
 function weightTrend(){ const P = D.poids.filter(p => p.date >= addDays(D.today, -21)); if (P.length < 4) return null;
   const x = P.map(p => days(P[0].date, p.date)), y = P.map(p => p.poids), n = x.length, mx = sum(x) / n, my = sum(y) / n;
   let a = 0, c = 0; x.forEach((xi, i) => { a += (xi - mx) * (y[i] - my); c += (xi - mx) ** 2; }); return c ? {perDay:a / c, at:d => my + a / c * (days(P[0].date, d) - mx)} : null; }
+const PW_RANGES = [["7j","7 J"],["1m","1 M"],["3m","3 M"],["1a","1 A"],["all","Tout"]], MOIS_C = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+const dMois = iso => iso ? (+iso.slice(8)) + " " + MOIS_C[+iso.slice(5, 7) - 1] : "";
+/* Courbe de poids (planche Corps) : tendance en bleu avec sa zone, pesées en points, limite de catégorie en jaune, dernier point cerclé. */
+function pwSvg(V, mmV, lim){
+  const W = 340, H = 196, x0 = 8, x1 = 332, y0 = 26, y1 = 160, all = V.map(p => p.poids).concat(mmV);
+  const showLim = lim && Math.max(...all) > lim - 2.5, lo0 = Math.min(...all), hi0 = Math.max(...all, showLim ? lim : -1e9), pad = Math.max(.4, (hi0 - lo0) * .12), lo = lo0 - pad, hi = hi0 + pad * (showLim ? .6 : 1);
+  const span = Math.max(1, days(V[0].date, V.at(-1).date)), X = d => x0 + days(V[0].date, d) / span * (x1 - x0), Y = v => y1 - (v - lo) / (hi - lo) * (y1 - y0);
+  const tr = V.map((p, i) => [X(p.date), Y(mmV[i])]), line = tr.map((q, i) => (i ? "L" : "M") + q[0].toFixed(1) + " " + q[1].toFixed(1)).join(" ");
+  const area = line + ` L${tr.at(-1)[0].toFixed(1)} ${y1} L${tr[0][0].toFixed(1)} ${y1} Z`, last = tr.at(-1);
+  const dots = V.length <= 60 ? V.map(p => `<circle cx="${X(p.date).toFixed(1)}" cy="${Y(p.poids).toFixed(1)}" r="3" fill="var(--dust)" opacity=".75"/>`).join("") : "";
+  return `<svg class="pw-svg" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Courbe de poids : tendance sur 7 jours et pesées">
+    ${showLim ? `<line x1="${x0}" x2="${x1}" y1="${Y(lim).toFixed(1)}" y2="${Y(lim).toFixed(1)}" stroke="var(--warn)" stroke-width="1.6" stroke-dasharray="5 4"/><text x="${x1}" y="${(Y(lim) - 7).toFixed(1)}" text-anchor="end" fill="var(--warn)" style="font:700 11px var(--f-text)">Limite −${lim} kg</text>` : ""}
+    <path d="${area}" fill="var(--data)" opacity=".13"/>${dots}<path d="${line}" fill="none" stroke="var(--data)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="6" fill="var(--data)" stroke="var(--floor)" stroke-width="2.5"/>
+    <text x="${x0}" y="${H - 6}" fill="var(--faint)" style="font:500 11px var(--f-text)">${dMois(V[0].date)}</text><text x="${x1}" y="${H - 6}" text-anchor="end" fill="var(--faint)" style="font:500 11px var(--f-text)">${dMois(V.at(-1).date)}</text></svg>`;
+}
+function weighHtml(){
+  const P = D.poids, last = P.at(-1), tw = P.find(p => p.date === D.today);
+  return `<p class="show t-m">${tw ? "Corriger la pesée du jour" : "Ajouter une pesée"}</p><p class="muted small" style="margin:4px 0 14px">Le matin, à jeun, après les toilettes.</p>
+    <div class="stepper"><button data-act="stepW" data-d="-0.1" aria-label="Moins 100 g">−</button><input id="cw" inputmode="decimal" value="${last ? fmt(tw ? tw.poids : last.poids, 1) : ""}" aria-label="Poids en kg"><button data-act="stepW" data-d="0.1" aria-label="Plus 100 g">+</button></div>
+    <div class="grid2" style="margin-top:8px;grid-template-columns:1.15fr 1fr"><input id="cwd" type="date" value="${D.today}" aria-label="Date" style="background:var(--deck3);border:0;color:var(--chalk)"><button class="btn" style="min-height:48px" data-act="saveW" data-src="cw">${tw ? "Corriger" : "Enregistrer"}</button></div>`;
+}
 function rPoids(){
   const P = D.poids, last = P.at(-1), lim = catLimit(), V = inRange(P, pwRange), mm = avg7(P), mmV = mm.slice(P.length - V.length), tw = P.find(p => p.date === D.today);
   const wt = weightTrend(), cur = mm.length ? mm.at(-1) : null, perWeek = wt ? wt.perDay * 7 : null, nc = nextComp(), dd = nc ? days(D.today, nc.date) : null;
   const av = V.length ? sum(V.map(p => p.poids)) / V.length : null, proj = wt && nc && dd !== null && dd >= 0 ? wt.at(nc.date) : null;
   const marge = lim && last ? lim - last.poids : null;
   $("#v-corps").innerHTML = `
-    <div class="panel" style="margin-top:6px;padding:16px 14px 12px"><div class="pw-top"><span class="pw-l"><span class="lg-lab">Ton poids · tendance</span><b class="pw-big">${cur !== null ? fmt(cur, 1) : "—"}<small>kg</small></b></span>
-      <span class="pw-r">${perWeek !== null && Math.abs(perWeek) >= .05 ? `<span class="fchip">${perWeek > 0 ? "▲" : "▼"} ${fmt(Math.abs(perWeek), 1)} kg / sem.</span>` : ""}<span class="lg-lab">${tw ? "Pesée du jour " + fmt(tw.poids, 1) : last ? "Dernière pesée " + fmt(last.poids, 1) : "Aucune pesée"}</span></span></div>
-      <div style="margin-top:10px">${V.length > 1 ? `<div class="chart"><canvas id="c-pw" aria-label="Courbe de poids"></canvas></div>` : `<div class="emptycard"><b>${V.length ? "Une seule pesée sur cette période" : "Aucune pesée sur cette période"}</b><p>Pèse-toi chaque matin, à jeun. La courbe apparaît dès la 2e pesée.</p></div>`}</div>
-      <p class="pw-leg"><span><i style="background:var(--chalk);width:14px;height:3px"></i>Moyenne 7 j</span><span><i style="background:var(--dust);width:6px;height:6px;border-radius:3px"></i>Pesées</span>${av ? `<span class="pw-av">Moy. ${fmt(av, 1)} · min ${fmt(Math.min(...V.map(p => p.poids)), 1)} · max ${fmt(Math.max(...V.map(p => p.poids)), 1)}</span>` : ""}</p></div>
-    <div class="segc" style="margin-top:10px">${RANGES.map(([k, t]) => `<button aria-pressed="${k === pwRange}" data-act="pwRange" data-k="${k}">${t}</button>`).join("")}</div>
-    ${lim && last ? `<div class="panel" style="margin-top:10px"><p style="font-weight:600">Catégorie −${lim} kg · ${marge >= 0 ? "marge " + fmt(marge, 1) + " kg" : fmt(-marge, 1) + " kg au-dessus"}</p>
-      ${nc && dd >= 0 ? `<p class="muted small" style="margin-top:4px">${esc(nc.nom)} dans ${dd} jour${dd > 1 ? "s" : ""}${proj !== null ? ` · au rythme actuel : ${fmt(proj, 1)} kg le jour J (${proj <= lim ? "sous la limite" : fmt(proj - lim, 1) + " kg au-dessus"})` : ""}</p>` : ""}</div>` : ""}
-    <div class="panel" style="margin-top:10px"><p style="font-weight:600">${tw ? "Corriger la pesée du jour" : "Ajouter une pesée"}</p><p class="muted small" style="margin:2px 0 10px">Le matin, à jeun, après les toilettes.</p><div class="stepper"><button data-act="stepW" data-d="-0.1" aria-label="Moins 100 g">−</button><input id="cw" inputmode="decimal" value="${last ? fmt(tw ? tw.poids : last.poids, 1) : ""}" aria-label="Poids en kg"><button data-act="stepW" data-d="0.1" aria-label="Plus 100 g">+</button></div>
-        <div class="grid2" style="margin-top:8px;position:relative;grid-template-columns:1.15fr 1fr"><input id="cwd" type="date" value="${D.today}" aria-label="Date" style="background:var(--deck3);border:0;color:var(--chalk)"><button class="btn" style="min-height:48px" data-act="saveW" data-src="cw">${tw ? "Corriger" : "Enregistrer"}</button></div></div>
-    <h2 class="h2">Dernières pesées</h2><div>${P.slice().reverse().slice(0, 15).map(p => vrow(cap(dlong(p.date)), "", kg(p.poids, 1))).join("")}</div>
+    <div class="panel pw-card"><div class="pw-top"><span class="pw-l"><span class="lg-lab">Ton poids · tendance</span><b class="pw-big">${cur !== null ? fmt(cur, 1) : "—"}<small>kg</small></b></span>
+      <span class="pw-r">${perWeek !== null && Math.abs(perWeek) >= .05 ? `<span class="fchip data">${perWeek > 0 ? "▲" : "▼"} ${fmt(Math.abs(perWeek), 1)} kg / sem.</span>` : ""}<span class="lg-lab">${tw ? "Pesée du jour " + fmt(tw.poids, 1) : last ? "Dernière pesée " + fmt(last.poids, 1) : "Aucune pesée"}</span></span></div>
+      <div style="margin-top:6px">${V.length > 1 ? pwSvg(V, mmV, lim) : `<div class="emptycard flat"><b>${V.length ? "Une seule pesée sur cette période" : "Aucune pesée sur cette période"}</b><p>Pèse-toi chaque matin, à jeun. La courbe apparaît dès la 2e pesée.</p></div>`}</div>
+      <p class="pw-leg"><span><i style="background:var(--data);width:16px;height:3px;border-radius:2px"></i>Tendance (moy. 7 j)</span><span><i style="background:var(--dust);width:7px;height:7px;border-radius:50%"></i>Pesées</span>${av && V.length > 1 ? `<span class="pw-av">Moy. ${fmt(av, 1)} · min ${fmt(Math.min(...V.map(p => p.poids)), 1)} · max ${fmt(Math.max(...V.map(p => p.poids)), 1)}</span>` : ""}</p></div>
+    <div class="rng" role="group" aria-label="Période">${PW_RANGES.map(([k, t]) => `<button aria-pressed="${k === pwRange}" data-act="pwRange" data-k="${k}">${t}</button>`).join("")}</div>
+    ${lim && last ? `<div class="catcard"><svg width="52" height="52" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="21" fill="none" stroke="var(--warn)" stroke-width="5"/><circle cx="26" cy="26" r="4" fill="var(--warn)"/></svg><div><p>Catégorie −${lim} kg · ${marge >= 0 ? "marge " + fmt(marge, 1) + " kg" : fmt(-marge, 1) + " kg au-dessus"}</p>
+      ${nc && dd >= 0 ? `<span>${esc(nc.nom)} dans ${dd} jour${dd > 1 ? "s" : ""}${proj !== null ? ` · au rythme actuel : ${fmt(proj, 1)} kg le jour J (${proj <= lim ? "sous la limite" : fmt(proj - lim, 1) + " kg au-dessus"})` : ""}</span>` : ""}</div></div>` : ""}
+    <h2 class="h2">Dernières pesées</h2><div>${P.slice().reverse().slice(0, 15).map(p => `<div class="vrow"><span class="grow"><b>${esc(cap(dlong(p.date)))}</b></span><span class="val">${fmt(p.poids, 1)}</span></div>`).join("") || `<p class="muted small">Aucune pesée pour l'instant.</p>`}</div>
+    <button class="addrow" data-act="wOpen"><span class="grow"><b>${tw ? "Corriger la pesée du jour" : "Ajouter une pesée"}</b><span>Le matin, à jeun, après les toilettes</span></span><span class="plus2" aria-hidden="true">+</span></button>
     <details class="more" style="margin-top:22px"><summary class="h2" style="margin:0">Importer un historique</summary>
     <div><p class="small muted">Le fichier ZIP de MyFitnessPal (compte gratuit compris) ou tout tableau CSV avec une colonne date et une colonne poids.</p>
       <details style="margin-top:8px"><summary class="small">Récupérer ses pesées MyFitnessPal</summary><p class="small muted" style="margin-top:6px">Sur myfitnesspal.com (navigateur, pas l'app) : ton profil, Paramètres, Compte, « Télécharger tes données », puis demande l'export. Tu reçois un e-mail avec un fichier ZIP : choisis-le ici tel quel, l'app lit les pesées du fichier « measurements ».</p></details>
       <label class="btn ghost" style="margin-top:12px;display:flex;align-items:center;justify-content:center;cursor:pointer">Choisir le fichier (ZIP ou CSV)<input id="imp" type="file" accept=".csv,.zip,text/csv,text/plain,application/zip" data-chg="import" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></label><div id="impres"></div></div>
     </details>`;
-  if (V.length > 1) { const ds = [{label:"Pesée", data:V.map(p => p.poids), color:getCss("var(--dust)"), width:1, pts:V.length <= 45, faint:true}, {label:"Moyenne 7 j", data:mmV.map(v => +v.toFixed(2)), color:getCss("var(--chalk)"), width:2.5, pts:false}];
-    if (lim && Math.max(...V.map(p => p.poids)) > lim - 2.5) ds.push({label:"Limite", data:V.map(() => lim), color:getCss("var(--warn)"), dash:true, pts:false, width:1.5});
-    lineChart("c-pw", V.map(p => dfr(p.date)), ds, {unit:" kg"}); }
 }
 /* ZIP MyFitnessPal : on cherche le CSV des mesures (poids) dans l'archive. */
 async function readImport(file){
@@ -2977,6 +3050,7 @@ function rpeInfoHtml(){
 }
 function rSheet(){
   if (sheet === "rpeinfo") return rpeInfoHtml();
+  if (sheet === "weigh") return weighHtml();
   if (sheet.startsWith("cl|")) return clInfoHtml(sheet.slice(3));
   if (sheet.startsWith("cat|")) return catPickHtml(sheet.slice(4));
   if (sheet === "meal") return mealSaveHtml();
@@ -3246,7 +3320,8 @@ const ACT = {
   pdcSave:async () => { const v = num($("#pw").value); if (!v) return toast("Indique ton poids", true); await saveWeight(v, D.today, true); live.pdc = true; persistLive(); closeSheet(); },
   pdcSkip:() => { live.pdc = true; persistLive(); closeSheet(); },
   stepW:(d, el) => { const i = el.parentNode.querySelector("input"); const v = num(i.value) || bw() || 70; i.value = fmt(v + +d.d, 1); if (i.id === "hw") hwRefresh(); },
-  saveW:async d => { const v = num($("#" + d.src).value), dt = (d.src === "cw" && $("#cwd").value) || D.today; if (!v || v < 30 || v > 250) return toast("Indique un poids valide", true); await saveWeight(v, dt, false); },
+  saveW:async d => { const v = num($("#" + d.src).value), dt = (d.src === "cw" && $("#cwd").value) || D.today; if (!v || v < 30 || v > 250) return toast("Indique un poids valide", true); await saveWeight(v, dt, false); if (sheet === "weigh" && D.poids.some(p => p.date === dt && p.poids === v)) closeSheet(); },
+  wOpen:() => openSheet("weigh"),
   pwRange:d => { pwRange = d.k; rCorps(); },
   doImport:() => doImport(),
   openLift:d => { page = {type:"lift", l:d.l}; liftMetric = "1rm"; renderLayer(); if (!allLoaded) ensureAllBlocs().then(() => { if (page && page.type === "lift") renderLayer(); }).catch(() => {}); },
@@ -3378,7 +3453,7 @@ function nutTargets(day){
 }
 
 /* ---------- Écran ---------- */
-function corpsSeg(){ return `<div class="segc" style="margin-bottom:14px">${[["poids", "Poids"], ["nutri", "Alimentation"]].map(([k, t]) => `<button aria-pressed="${corpsTab === k}" data-act="corpsTab" data-k="${k}">${t}</button>`).join("")}</div>`; }
+function corpsSeg(){ return `<div class="segc big" style="margin-bottom:14px">${[["poids", "Poids"], ["nutri", "Alimentation"]].map(([k, t]) => `<button aria-pressed="${corpsTab === k}" data-act="corpsTab" data-k="${k}">${t}</button>`).join("")}</div>`; }
 function rCorps(){ if (corpsTab === "poids") { rPoids(); $("#v-corps").insertAdjacentHTML("afterbegin", corpsSeg()); return; } rNutri(); }
 function dayRows(d){ return (D.repas || []).filter(x => x.date === d); }
 const SLOTS = ["Petit-déjeuner", "Déjeuner", "Collation", "Dîner"], SLOT_HM = ["08:00", "12:30", "16:00", "19:30"];
@@ -3393,24 +3468,25 @@ function macroRing(lab, v, tg, col, sub){   /* v67 : jauge horizontale (plus d'a
   return `<div class="mbar" role="img" aria-label="${lab} : ${fmt(v, 0)} g${tg ? " sur " + fmt(tg, 0) + " g" : ""}"><div class="mbh"><span class="mrl">${lab}</span><span class="mbv"><b>${fmt(v, 0)}</b>${tg ? " / " + fmt(tg, 0) + " g" : " g" + (sub ? " · " + sub : "")}</span></div><span class="bar" style="display:block"><i style="width:${f.toFixed(1)}%;background:${col}"></i></span></div>`;
 }
 /* v67 étape G : Corps v3. Semaine d'alimentation (moyenne, barres, protéines atteintes), poids en tendance. */
-const nutToggle = () => `<div class="segc" role="group" aria-label="Période" style="margin:0 0 10px">${[["jour", "Jour"], ["semaine", "Semaine"]].map(([k, t]) => `<button aria-pressed="${nutView === k}" data-act="nutView" data-k="${k}">${t}</button>`).join("")}</div>`;
+const nutToggle = () => `<div class="segs" role="group" aria-label="Période">${[["jour", "Jour"], ["semaine", "Semaine"]].map(([k, t]) => `<button aria-pressed="${nutView === k}" data-act="nutView" data-k="${k}">${t}</button>`).join("")}</div>`;
+const nutHead = (lab, sub, step, prev, next, noNext) => `<div class="nhead"><div class="nnav"><button class="nn" data-act="nutDay" data-d="${-step}" aria-label="${prev}">‹</button><span class="nl"><b>${lab}</b>${sub ? `<em>${sub}</em>` : ""}</span><button class="nn" data-act="nutDay" data-d="${step}" aria-label="${next}" ${noNext ? "disabled" : ""}>›</button></div>${nutToggle()}</div>`;
+const thou = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0");
 function rNutriWeek(){
   const mon = addDays(nutDate, -((dObj(nutDate).getDay() + 6) % 7)), L = ["L", "M", "M", "J", "V", "S", "D"];
   const day = i => { const d = addDays(mon, i), R = dayRows(d), k = sum(R.map(x => x.k)), p = sum(R.map(x => x.p)), T = nutTargets(d); return {d, k, p, n:R.length, T, goal:T.kcal && T.obj !== "suivi" ? T.kcal : null, future:d > D.today}; };
   const W = Array.from({length:7}, (_, i) => day(i)), logged = W.filter(x => x.n > 0), avg = logged.length ? sum(logged.map(x => x.k)) / logged.length : null;
   const goal = W.find(x => x.goal) ? W.find(x => x.goal).goal : null, pct = avg !== null && goal ? Math.round(avg / goal * 100) : null;
-  const top = Math.max(goal || 0, ...W.map(x => x.k), 1) * 1.12, H = 150, Y = v => 10 + (1 - v / top) * (H - 36);
+  const top = Math.max(goal || 0, ...W.map(x => x.k), 1) * 1.12, H = 176, Y = v => 10 + (1 - v / top) * (H - 36);
   const bars = W.map((x, i) => { const px = 10 + i * 46, y = Y(x.k), now = x.d === D.today;
-    return `<rect x="${px}" y="${x.k > 0 ? y.toFixed(1) : H - 26}" width="30" height="${x.k > 0 ? (H - 26 - y).toFixed(1) : 0}" rx="7" fill="${x.k > 0 ? "var(--data)" : "none"}"${now && !x.k ? ` stroke="var(--data)" stroke-width="2" stroke-dasharray="4 3" height="${H - 26 - Y(goal || top * .5)}" y="${Y(goal || top * .5).toFixed(1)}"` : ""}/><text x="${px + 15}" y="${H - 8}" text-anchor="middle" fill="${now ? "var(--chalk)" : "var(--faint)"}" style="font:600 12px var(--f-text)">${L[i]}</text>`; }).join("");
-  const gl = goal ? `<line x1="0" y1="${Y(goal).toFixed(1)}" x2="326" y2="${Y(goal).toFixed(1)}" stroke="var(--chalk)" stroke-opacity=".55" stroke-width="1.5" stroke-dasharray="5 4"/><text x="326" y="${(Y(goal) - 6).toFixed(1)}" text-anchor="end" fill="var(--dust)" style="font:11px var(--f-text)">Objectif ${fmt(goal, 0)}</text>` : "";
+    return `<rect x="${px}" y="${x.k > 0 ? y.toFixed(1) : H - 26}" width="30" height="${x.k > 0 ? (H - 26 - y).toFixed(1) : 0}" rx="9" fill="${x.k > 0 ? "var(--data)" : "none"}"${now && !x.k ? ` stroke="var(--data)" stroke-width="2" stroke-dasharray="4 3" height="${H - 26 - Y(goal || top * .5)}" y="${Y(goal || top * .5).toFixed(1)}"` : ""}/><text x="${px + 15}" y="${H - 8}" text-anchor="middle" fill="${now ? "var(--chalk)" : "var(--faint)"}" style="font:600 12px var(--f-text)">${L[i]}</text>`; }).join("");
+  const gl = goal ? `<line x1="0" y1="${Y(goal).toFixed(1)}" x2="326" y2="${Y(goal).toFixed(1)}" stroke="var(--chalk)" stroke-opacity=".55" stroke-width="1.5" stroke-dasharray="5 4"/><text x="326" y="${(Y(goal) - 6).toFixed(1)}" text-anchor="end" fill="var(--dust)" style="font:500 12px var(--f-text)">Objectif ${thou(goal)}</text>` : "";
   const pj = W.filter(x => x.T.p && x.T.obj !== "suivi" && !x.future), pok = pj.filter(x => x.n > 0 && x.p >= x.T.p).length;
   const PW = D.poids.filter(p => p.date >= mon && p.date <= addDays(mon, 6)), dw = PW.length > 1 ? PW.at(-1).poids - PW[0].poids : null;
-  $("#v-corps").innerHTML = corpsSeg() + nutToggle() + `
-    <div class="row" style="margin-bottom:10px"><button class="iconbtn" data-act="nutDay" data-d="-7" aria-label="Semaine précédente">‹</button><b>Semaine du ${esc(dlong(mon).replace(/^[a-zé]+ /i, ""))}</b><button class="iconbtn" data-act="nutDay" data-d="7" aria-label="Semaine suivante" ${addDays(mon, 7) > D.today ? "disabled" : ""}>›</button></div>
-    <div class="panel" style="padding:16px 14px 10px"><div class="pw-top"><span class="pw-l"><span class="lg-lab">Moyenne par jour</span><b class="pw-big">${avg !== null ? fmt(avg, 0) : "—"}<small>kcal</small></b></span>${pct !== null ? `<span class="pw-r"><span class="fchip">${pct} % de l'objectif</span></span>` : ""}</div>
-      ${logged.length ? `<svg viewBox="0 0 326 ${H}" width="100%" role="img" aria-label="Calories par jour" style="margin-top:10px">${bars}${gl}</svg>` : `<div class="emptycard" style="margin-top:12px"><b>Rien de noté cette semaine</b><p>Les barres apparaissent dès le premier repas noté dans « Jour ».</p></div>`}</div>
-    ${pj.length ? `<div class="panel" style="margin-top:8px"><div class="row"><b>Protéines atteintes</b><span class="show t-s">${pok} / ${pj.length}</span></div><div class="pdots">${W.map((x, i) => `<span class="${x.n > 0 && x.T.p && x.p >= x.T.p ? "ok" : ""}">${L[i]}</span>`).join("")}</div></div>` : ""}
-    ${dw !== null ? `<button class="vrow" style="margin-top:8px" data-act="corpsTab" data-k="poids"><span class="grow"><b>Poids : ${dw > 0 ? "+" : "−"}${fmt(Math.abs(dw), 1)} kg cette semaine</b><span>Voir la tendance dans Poids</span></span><span class="val">›</span></button>` : ""}
+  $("#v-corps").innerHTML = corpsSeg() + nutHead("Semaine du " + esc(dlong(mon).replace(/^[a-zé]+ /i, "")), "", 7, "Semaine précédente", "Semaine suivante", addDays(mon, 7) > D.today) + `
+    <div class="panel nwk"><div class="pw-top"><span class="pw-l"><span class="lg-lab">Moyenne par jour</span><b class="pw-big">${avg !== null ? thou(avg) : "—"}<small>kcal</small></b></span>${pct !== null ? `<span class="pw-r"><span class="fchip data">${pct} % de l'objectif</span></span>` : ""}</div>
+      ${logged.length ? `<svg viewBox="0 0 326 ${H}" width="100%" role="img" aria-label="Calories par jour" style="margin-top:14px;display:block">${bars}${gl}</svg>` : `<div class="emptycard flat" style="margin-top:8px"><b>Rien de noté cette semaine</b><p>Les barres apparaissent dès le premier repas noté dans « Jour ».</p></div>`}</div>
+    ${pj.length ? `<div class="panel nprot"><div class="row"><b>Protéines atteintes</b><span class="nbig">${pok} / ${pj.length}</span></div><div class="pdots">${W.map((x, i) => `<span class="${x.n > 0 && x.T.p && x.p >= x.T.p ? "ok" : ""}">${L[i]}</span>`).join("")}</div></div>` : ""}
+    ${dw !== null ? `<button class="vrow nlink" data-act="corpsTab" data-k="poids"><span class="ico" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg></span><span class="grow"><b>Poids : ${dw > 0 ? "+" : "−"}${fmt(Math.abs(dw), 1)} kg cette semaine</b><span>Voir la tendance dans Poids</span></span><span class="val">›</span></button>` : ""}
 `;
 }
 function rNutri(){
@@ -3422,16 +3498,19 @@ function rNutri(){
   const bar = (lab, v, tg, col) => `<div style="margin-top:12px"><div class="row small"><span>${lab}</span><span><b>${fmt(v, 0)}</b>${tg ? ` / ${fmt(tg, 0)} g` : " g"}</span></div><div class="bar" style="--c:${col}"><i style="width:${tg ? Math.min(100, v / tg * 100) : 0}%"></i></div></div>`;
   const itemHtml = x => `<div class="item" style="display:flex;gap:10px;align-items:center"><span class="muted small" style="width:42px">${esc(x.h || "")}</span><span class="grow"><span class="ttl" style="display:block">${esc(x.nom)}</span><span class="muted tiny">${fmt(x.q, 0)} g · P ${fmt(x.p, 1)} · G ${fmt(x.g, 1)} · L ${fmt(x.l, 1)}</span></span><b class="small">${fmt(x.k, 0)}</b><button class="iconbtn" data-act="nutDel" data-r="${x.id}" aria-label="Supprimer">×</button></div>`;
   const cur = nutSlotSel(), tab = nutTab || (Object.keys(D.mesRepas || {}).length ? "meals" : "foods");
-  const rows = [0, 1, 2, 3].map(s => { const L = R.filter(x => slotOf(x.h) === s).sort((a, b) => (a.h || "") < (b.h || "") ? -1 : 1);
-    return `<div class="slotc${s === cur ? " cur" : ""}"><div class="slotrow"><span class="sloti"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SLOT_ICO[s]}</svg></span><span class="grow" style="flex:1;min-width:0"><b style="display:block">${SLOTS[s]}</b><span class="muted small">${L.length ? fmt(sum(L.map(x => x.k)), 0) + " kcal" : "Rien d'enregistré"}</span></span><button class="iconbtn plus" data-act="nutSlot" data-s="${s}" aria-label="Ajouter au ${SLOTS[s].toLowerCase()}">+</button></div>${L.length ? `<div class="list">${L.map(itemHtml).join("")}</div>` : ""}</div>`; }).join("");
-  $("#v-corps").innerHTML = corpsSeg() + nutToggle() + `
-    <div class="row" style="margin-bottom:10px"><button class="iconbtn" data-act="nutDay" data-d="-1" aria-label="Jour précédent">‹</button><b>${nutDate === D.today ? "Aujourd'hui" : cap(dlong(nutDate))}</b><button class="iconbtn" data-act="nutDay" data-d="1" aria-label="Jour suivant" ${nutDate >= D.today ? "disabled" : ""}>›</button></div>
-    ${heroCard({small:hasT ? (left >= 0 ? "Il te reste" : "Au-dessus de l'objectif") : "Calories du jour (suivi)", big:`${fmt(hasT ? Math.abs(left) : tot.k, 0)}<small> kcal</small>`, sub:hasT ? `${fmt(tot.k, 0)} / ${fmt(T.kcal, 0)} kcal mangées / objectif` : R.length ? R.length + " aliment" + (R.length > 1 ? "s" : "") + " noté" + (R.length > 1 ? "s" : "") : "Aucun aliment noté", extra:hasT ? `<span class="kbar${left < 0 ? " over" : ""}"><i style="width:${Math.min(100, Math.max(0, tot.k / T.kcal * 100)).toFixed(1)}%"></i></span>` : "", deco:false})}
-    <div class="panel macrorings" style="margin-top:12px" role="group" aria-label="Protéines, glucides et lipides du jour">${[["Protéines", tot.p, T.p, "var(--brand)", 4], ["Glucides", tot.g, T.g, "var(--chalk)", 4], ["Lipides", tot.l, T.l, "var(--dust)", 9]].map(([lab, v, tg, col, kc]) => macroRing(lab, v, hasT ? tg : 0, col, hasT ? "" : (tot.k > 0 ? fmt(v * kc / tot.k * 100, 0) + " % des kcal" : ""))).join("")}</div>
+  const tile = (lab, v, tg, col, kc) => `<div class="mt3" role="img" aria-label="${lab} : ${fmt(v, 0)} g${hasT && tg ? " sur " + fmt(tg, 0) + " g" : ""}"><span>${lab}</span><b>${fmt(v, 0)}<small>${hasT && tg ? " / " + fmt(tg, 0) + " g" : " g"}</small></b>${hasT && tg ? `<i class="mbr"><u style="width:${Math.min(100, v / tg * 100).toFixed(1)}%;background:${col}"></u></i>` : `<em>${tot.k > 0 ? fmt(v * kc / tot.k * 100, 0) + " % des kcal" : "—"}</em>`}</div>`;
+  const slotCard = s => { const L = R.filter(x => slotOf(x.h) === s).sort((a, b) => (a.h || "") < (b.h || "") ? -1 : 1), names = L.map(x => x.nom).join(", ");
+    const row = `<span class="mt"><b>${SLOTS[s]}</b><span>${L.length ? esc(names) : "Rien pour l'instant"}</span></span>${L.length ? `<b class="mk">${thou(sum(L.map(x => x.k)))}</b>` : `<button class="scanp" data-act="nutScan" data-s="${s}" aria-label="Scanner un code-barres pour le ${SLOTS[s].toLowerCase()}">${SCAN_ICO("currentColor")}Scanner</button>`}<button class="iconbtn plus" data-act="nutSlot" data-s="${s}" aria-label="Ajouter au ${SLOTS[s].toLowerCase()}">+</button>`;
+    return L.length ? `<details class="meal${s === cur ? " cur" : ""}" ${nutSlot === s ? "open" : ""}><summary class="mrow">${row}</summary><div class="mitems">${L.map(itemHtml).join("")}</div></details>` : `<div class="meal${s === cur ? " cur" : ""}"><div class="mrow">${row}</div></div>`; };
+  $("#v-corps").innerHTML = corpsSeg() + nutHead(nutDate === D.today ? "Aujourd'hui" : esc(cap(dlong(nutDate))), nutDate === D.today ? esc(dlong(nutDate).split(" ")[0].slice(0, 3).toLowerCase() + ". " + dMois(nutDate)) : "", 1, "Jour précédent", "Jour suivant", nutDate >= D.today) + `
+    <section class="nh"><div class="nh-t"><div><span class="nh-s">${hasT ? (left >= 0 ? "Il te reste" : "Au-dessus de l'objectif") : "Calories du jour (suivi)"}</span><b class="nh-b">${thou(hasT ? Math.abs(left) : tot.k)}<small>kcal</small></b></div>
+      <div class="nh-r">${hasT ? `<b>${thou(tot.k)} / ${thou(T.kcal)}</b><span>mangées / objectif</span>` : `<span>${R.length ? R.length + " aliment" + (R.length > 1 ? "s" : "") + " noté" + (R.length > 1 ? "s" : "") : "Aucun aliment noté"}</span>`}</div></div>
+      ${hasT ? `<span class="nh-bar${left < 0 ? " over" : ""}" role="img" aria-label="${Math.round(tot.k / T.kcal * 100)} % de l'objectif"><i style="width:${Math.min(100, Math.max(0, tot.k / T.kcal * 100)).toFixed(1)}%"></i></span>` : ""}</section>
+    <div class="mt3s" role="group" aria-label="Protéines, glucides et lipides du jour">${tile("Protéines", tot.p, T.p, "var(--acc)", 4)}${tile("Glucides", tot.g, T.g, "var(--data)", 4)}${tile("Lipides", tot.l, T.l, "var(--data)", 9)}</div>
     ${Object.keys(D.mesRepas || {}).length ? `<div class="row" style="margin-top:18px;align-items:baseline"><h2 class="h2" style="margin:0">Rejouer un repas</h2><button class="link small muted" data-act="mealsManage" style="min-height:44px">Voir tout</button></div>
     <div class="replay">${Object.entries(D.mesRepas).slice().reverse().map(([n, L]) => `<button class="rcard" data-act="mealAdd" data-n="${esc(n)}" aria-label="Ajouter le repas ${esc(n)}"><span class="rname">${esc(n)}</span><span class="rk">${fmt(sum(L.map(x => x.k)), 0)}<small> kcal</small></span></button>`).join("")}</div>` : ""}
-    <h2 class="h2">Ta journée</h2>
-    <div class="slots">${rows}</div>
+    <h2 class="h2">Repas</h2>
+    <div class="meals">${[0, 1, 2, 3].map(slotCard).join("")}</div>
     ${R.length ? `<button class="btn ghost" style="margin-top:10px" data-act="mealSave">Enregistrer ces aliments comme repas</button>` : ""}
     <h2 class="h2" id="nutadd">Ajouter au ${SLOTS[cur].toLowerCase()}</h2>
     <div class="chips"><button class="chip${tab === "meals" ? " on" : ""}" data-act="nutTab" data-t="meals" aria-pressed="${tab === "meals"}">Mes repas</button><button class="chip${tab === "foods" ? " on" : ""}" data-act="nutTab" data-t="foods" aria-pressed="${tab === "foods"}">Aliments</button></div>
@@ -4017,6 +4096,7 @@ Object.assign(ACT, {
     } catch(e){ toast(errMsg(e), true); if (b) b.disabled = false; }
   },
   mealsManage:() => openSheet("meals"),
+  nutScan:d => { nutSlot = +d.s; ACT.scanOpen({c:"nutri"}); },
   nutSlot:d => { nutSlot = +d.s; rNutri(); const el = $("#nutadd"); if (el) el.scrollIntoView({behavior:"smooth", block:"start"}); },
   nutTab:d => { nutTab = d.t === "foods" ? "foods" : "meals"; rNutri(); },
   mealDel:async d => { const L = (D.mesRepas || {})[d.n]; if (!L) return;

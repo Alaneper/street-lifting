@@ -17,7 +17,7 @@ with sync_playwright() as p:
         if q.startswith("1 "): pg.locator("#nutdyn .chip").first.click(); pg.wait_for_timeout(200)
         print("   quantité :", pg.input_value("#nq"))
         pg.click("[data-act=nutAdd]"); pg.wait_for_timeout(800)
-    print("héros :", pg.locator("#v-corps .hero").first.inner_text().replace("\n", " | "))
+    print("héros :", pg.locator("#v-corps .nh").first.inner_text().replace("\n", " | "))
     print("REPAS :", pg.evaluate(f"(window.__sheets['{APP}'].REPAS||[]).slice(0,4)"))
     print("dépense du jour retirée :", pg.locator("#ndep").count() == 0)
     (pg.click("#nutgoal summary") if not pg.evaluate("document.querySelector('#nutgoal').open") else None); pg.wait_for_timeout(300); pg.select_option("#nob", "perte"); pg.wait_for_timeout(1200)

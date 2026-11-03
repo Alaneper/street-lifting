@@ -95,8 +95,8 @@ with sync_playwright() as p:
     # 11. Séance en direct : le toast ne recouvre plus « Terminer » ; boutons ≥ 44 px
     key = pg.evaluate("(nextSeance()||S.at(-1)).key"); pg.evaluate(f"startLive({json.dumps(key)}, 0)"); pg.wait_for_timeout(700)
     pg.evaluate("ACT.closeSheet && ACT.closeSheet()"); pg.wait_for_timeout(300); pg.evaluate("toast('Record à 3 reps : 108,5 kg (+1)')"); pg.wait_for_timeout(500)
-    r = pg.evaluate("(() => { const t = document.querySelector('#toast').getBoundingClientRect(), h = document.querySelector('[data-act=finishLive]').getBoundingClientRect(); return [t.top, h.bottom, h.height]; })()")
-    check("séance : toast sous « Terminer »", r[0] >= r[1], r)
+    r = pg.evaluate("(() => { const t = document.querySelector('#toast').getBoundingClientRect(), h = document.querySelector('[data-act=finishLive]').getBoundingClientRect(); return [t.top, h.bottom, h.height, t.bottom, h.top]; })()")
+    check("séance : le toast ne recouvre pas « Terminer »", r[0] >= r[1] or r[3] <= r[4], r)
     check("séance : « Terminer » ≥ 44 px", r[2] >= 44, r)
     pg.wait_for_timeout(3500)
     r = pg.evaluate("document.querySelector('#toast').getBoundingClientRect().bottom")
@@ -107,7 +107,7 @@ with sync_playwright() as p:
 
     # 12. Alimentation : pas de chiffre en double, méthode repliée, état vide clair
     pg.evaluate("setTab('corps'); corpsTab = 'nutri'; D.profil.nut_objectif = 'suivi'; rCorps()"); pg.wait_for_timeout(500)
-    r = pg.evaluate("""(() => { const v = document.querySelector('#v-corps'); return [v.textContent.includes('Repère'), !!v.querySelector('details.more summary'), v.querySelector('.hero .hu').textContent]; })()""")
+    r = pg.evaluate("""(() => { const v = document.querySelector('#v-corps'); return [v.textContent.includes('Repère'), !!v.querySelector('details.more summary'), v.querySelector('.nh .nh-r').textContent]; })()""")
     check("alimentation : « Repère » en double retiré", r[0] is False, r)
     check("alimentation : méthode repliée", r[1] is True, r)
     check("alimentation : état vide explicite", r[2] in ("Rien de noté pour l'instant",) or "aliment" in r[2], r)
