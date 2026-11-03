@@ -149,7 +149,7 @@ function onboard(step, why){
   const err = obErr ? `<p class="small" style="color:var(--bad);margin-top:12px">${esc(obErr)}</p>` : "";
   const BACK = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>`;
   const head = (n, tot, title, sub) => `<div class="obtop"><button class="obback" data-act="obBack" aria-label="Retour">${BACK}</button></div>
-    <div class="obseg" role="progressbar" aria-valuemin="1" aria-valuemax="${tot}" aria-valuenow="${n}">${Array.from({length:tot}, (_, i) => `<i${i < n ? ' class="on"' : ""}></i>`).join("")}</div>
+    <div class="obseg" role="progressbar" aria-label="Progression de l'inscription" aria-valuemin="1" aria-valuemax="${tot}" aria-valuenow="${n}">${Array.from({length:tot}, (_, i) => `<i${i < n ? ' class="on"' : ""}></i>`).join("")}</div>
     <p class="obstep">Étape ${n} sur ${tot}</p><h1 class="obh">${title}</h1><p class="obsub">${sub}</p>`;
   const foot = (main, extra) => `<div class="obfoot">${main}${extra || ""}</div>`;
   const next = (t, id) => `<button class="btn" data-act="${id || "obNext"}"${id === "obCreate" ? ' id="obgo"' : ""}>${t || "Continuer"}</button>`;
