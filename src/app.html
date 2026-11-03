@@ -746,6 +746,12 @@ body:has(.launch) .topbar,body:has(.launch) nav.tabs,body:has(.launch) #subseanc
 .mtag i{width:10px;height:10px;border-radius:3px}
 .mstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px;padding:14px 16px;border-radius:20px;background:var(--deck)}
 .mstats p{font:500 13px var(--f-text);color:var(--dust)}.mstats b{display:block;margin-top:4px;font:800 22px/1.05 var(--f-show);color:var(--chalk)}
+.wpill{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;margin-top:12px;padding:0 16px;border-radius:16px;background:var(--deck);box-shadow:inset 0 0 0 1px var(--seam);font:500 15px var(--f-text);color:var(--chalk);text-align:left}
+.wpill i{width:9px;height:9px;border-radius:50%;background:var(--warn);flex:none}.wpill b{margin-left:auto;font:700 13px var(--f-text);color:var(--warn)}
+.row>.scanp{min-height:44px;font-size:15px;padding:0 16px 0 12px;box-shadow:none}
+/* POIDS allégé (retours vidéo, lot B) */
+.pmonth{margin-top:8px;border-radius:18px;background:var(--deck);padding:0 14px}.pmonth summary{display:flex;justify-content:space-between;align-items:baseline;gap:10px;min-height:52px;padding:12px 0;cursor:pointer;list-style:none}.pmonth summary::-webkit-details-marker{display:none}.pmonth[open] summary{border-bottom:1px solid var(--seam)}
+.prefsum{display:flex;align-items:center;min-height:48px;font:600 16px var(--f-text);cursor:pointer}
 /* FICHE RECORD allégée (retours vidéo, lot A) */
 .e1l{display:inline-flex;align-items:center;gap:8px;min-height:44px;margin-top:6px;padding:0 4px 0 0;font:500 14px var(--f-text);color:var(--dust);text-align:left}
 .e1l b{color:var(--chalk);font-weight:700}.e1l i{width:20px;height:20px;border-radius:50%;background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn);font:800 12px/20px var(--f-text);font-style:normal;text-align:center;flex:none}
@@ -2040,18 +2046,14 @@ function remainingInBloc(){ const b = activeBloc(); return b === null ? 0 : S.fi
    Deux touchers : ajuster, « Noter ». La marge sur ta catégorie s'affiche en direct. */
 const limTxt = (v, lim) => v <= lim ? `Limite des −${lim} : ${fmt(lim - v, 1)} kg de marge` : `${fmt(v - lim, 1)} kg au-dessus de la limite des −${lim}`;
 let hwDraft = null;   /* saisie en cours : {d:jour, v:texte} */
-function weighCard(pw){
-  const dv = hwDraft && hwDraft.d === D.today ? num(hwDraft.v) : null, v = dv || (pw ? pw.poids : null), lim = catLimit(), yday = pw && pw.date === addDays(D.today, -1);
-  const ref = pw ? (yday ? "Hier : " : (pw.date.slice(0, 4) === D.today.slice(0, 4) ? dfr(pw.date).slice(0, 5) : dfr(pw.date)) + " : ") + kg(pw.poids, 1) : "";
-  return `<section class="card weigh" style="margin-top:12px" aria-label="Pesée"><div class="row"><b style="font-size:16px">${new Date().getHours() < 12 ? "Pesée du matin" : "Pesée du jour"}</b><span class="muted small">${ref}</span></div>
-    <div class="stepper big"><button data-act="stepW" data-d="-0.1" aria-label="Moins 100 g">−</button><input id="hw" inputmode="decimal" value="${hwDraft && hwDraft.d === D.today ? esc(hwDraft.v) : v ? fmt(v, 1) : ""}" placeholder="kg" aria-label="Poids en kg" data-inp="hw"><button data-act="stepW" data-d="0.1" aria-label="Plus 100 g">+</button></div>
-    <button class="btn" style="margin-top:10px" data-act="saveW" data-src="hw" id="hwbtn">Noter${okW(v) ? " " + fmt(v, 1) + " kg" : ""}</button>
-    ${lim ? `<p class="muted small" id="hwlim" style="margin-top:10px;text-align:center">${okW(v) ? limTxt(v, lim) : ""}</p>` : ""}</section>`;
+/* Retours vidéo (lot B) : plus de grosse carte de pesée sous la séance, une pastille qui ouvre la feuille de pesée. */
+function weighPill(){
+  return `<button class="wpill" data-act="wOpen" aria-label="Ajouter la pesée du jour"><i aria-hidden="true"></i><span>Pesée du jour</span><b>à faire</b></button>`;
 }
 const okW = v => !!v && v >= 30 && v <= 250;
-function hwRefresh(){ const i = $("#hw"), v = num((i || {}).value), b = $("#hwbtn"), l = $("#hwlim"), lim = catLimit();
+function hwRefresh(){ const i = $("#cw") || $("#hw"), v = num((i || {}).value), l = $("#cwlim"), lim = catLimit();
   if (i) hwDraft = {d:D.today, v:i.value};
-  if (b) b.textContent = "Noter" + (okW(v) ? " " + fmt(v, 1) + " kg" : ""); if (l && lim) l.textContent = okW(v) ? limTxt(v, lim) : ""; }
+  if (l && lim) l.textContent = okW(v) ? limTxt(v, lim) : ""; }
 /* Semaine d'un utilisateur « musculation seule » : séances faites sur prévues, minutes et km de cardio (lundi à dimanche). */
 function muscuWeek(ref){
   const t = dObj(ref), mon = addDays(ref, -((t.getDay() + 6) % 7)), sun = addDays(mon, 6);
@@ -2127,7 +2129,7 @@ function rHome(){
   const heroH = mw && !nc ? heroMu : nc ? heroCard({small:`${esc(nc.nom)}, ${dlong(nc.date)}`, big:days(D.today, nc.date) === 0 ? "Jour J" : "J−" + days(D.today, nc.date), sub:[nc.tbc ? "date à confirmer" : "", rem ? `encore ${rem} séance${rem > 1 ? "s" : ""} dans le ${blocLow(activeBloc())}` : ""].filter(Boolean).join(" · "), act:`data-act="tab" data-t="agenda" role="button" tabindex="0"`})
     : heroCard({small:tsmall, big:`${fmt(t)}<small>kg</small>`, sub:tsub, act:`data-act="tab" data-t="prog" role="button" tabindex="0"`});
   const pauseBar = sess && !sess.free && lv && lv.key === sess.key ? pauseBarHtml(sess, lv) : "";
-  const left = `${S.length ? weekStrip(weekRef) : ""}${mw ? `<p class="wkline"><b>Cette semaine</b> · ${mw.done}${mw.planned > mw.done ? "/" + mw.planned : ""} séance${mw.done > 1 ? "s" : ""}${mw.min ? " · " + fmt(mw.min, 0) + " min de cardio" : ""}${mw.km ? " · " + fmt(mw.km, 1) + " km" : ""}</p>` : ""}${pauseBar}${sess && !sess.free ? todayCard(sess, lv, !!pauseBar, nc) : ""}${weighed ? "" : weighCard(pw)}
+  const left = `${S.length ? weekStrip(weekRef) : ""}${mw ? `<p class="wkline"><b>Cette semaine</b> · ${mw.done}${mw.planned > mw.done ? "/" + mw.planned : ""} séance${mw.done > 1 ? "s" : ""}${mw.min ? " · " + fmt(mw.min, 0) + " min de cardio" : ""}${mw.km ? " · " + fmt(mw.km, 1) + " km" : ""}</p>` : ""}${weighed ? "" : weighPill()}${pauseBar}${sess && !sess.free ? todayCard(sess, lv, !!pauseBar, nc) : ""}
     ${sess && sess.free ? freeWeekHtml(sess) : `${S.length ? (sess ? "" : `<p class="muted small">Aucune séance datée cette semaine.</p>`) : !coachId() ? impEmptyHtml() : `<div class="row" style="padding:14px 0"><span class="muted">${esc(seanceErr) || "Chargement de ta prog…"}</span>${seanceErr ? "" : `<div class="spin"></div>`}</div>`}`}
     ${impCan() && coachId() && S.length && !sess && !remainingInBloc() ? `<div class="panel" style="margin-top:14px"><p style="font-weight:700">Bloc terminé</p><p class="muted small" style="margin-top:4px">Prépare le suivant : l'app reprend ta dernière semaine et ajuste les charges d'après tes RPE. Tu vérifies avant d'enregistrer.</p><button class="btn" style="margin-top:12px" data-act="impNext">Préparer le bloc suivant</button></div>` : ""}
     ${sess && sess.free ? `<button class="btn" style="margin-top:16px" data-act="startLive" data-k="${esc(sess.key)}">${lv && lv.key === sess.key ? "Reprendre la séance" : "Commencer la séance " + jourBtn}</button>${sess.free ? `<button class="btn ghost" style="margin-top:8px" data-act="tab" data-t="seance">Faire une autre séance</button>` : ""}` : ""}`;
@@ -3103,10 +3105,18 @@ function pwSvg(V, mmV, lim){
     <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="6" fill="var(--data)" stroke="var(--floor)" stroke-width="2.5"/>
     <text x="${x0}" y="${H - 6}" fill="var(--faint)" style="font:500 11px var(--f-text)">${dMois(V[0].date)}</text><text x="${x1}" y="${H - 6}" text-anchor="end" fill="var(--faint)" style="font:500 11px var(--f-text)">${dMois(V.at(-1).date)}</text></svg>`;
 }
+function peseesHtml(){
+  const M = new Map(); D.poids.slice().reverse().forEach(p => { const k = p.date.slice(0, 7); (M.get(k) || M.set(k, []).get(k)).push(p); });
+  return `<div class="shead"><p class="show t-m">Toutes les pesées</p><span style="width:44px" aria-hidden="true"></span></div><p class="muted small" style="margin:-4px 0 10px">${D.poids.length} pesées, regroupées par mois.</p>
+    ${[...M].map(([k, L], i) => `<details class="pmonth"${i === 0 ? " open" : ""}><summary><b>${cap(MOIS_L[+k.slice(5) - 1])} ${k.slice(0, 4)}</b><span class="muted small">${L.length} pesée${L.length > 1 ? "s" : ""} · moy. ${fmt(sum(L.map(p => p.poids)) / L.length, 1)} kg</span></summary>
+      ${L.map(p => `<div class="vrow"><span class="grow"><b>${esc(cap(dlong(p.date)))}</b></span><span class="val">${fmt(p.poids, 1)}</span></div>`).join("")}</details>`).join("")}
+    <button class="btn ghost" style="margin-top:16px" data-act="closeSheet">Fermer</button>`;
+}
 function weighHtml(){
-  const P = D.poids, last = P.at(-1), tw = P.find(p => p.date === D.today);
-  return `<p class="show t-m">${tw ? "Corriger la pesée du jour" : "Ajouter une pesée"}</p><p class="muted small" style="margin:4px 0 14px">Le matin, à jeun, après les toilettes.</p>
-    <div class="stepper"><button data-act="stepW" data-d="-0.1" aria-label="Moins 100 g">−</button><input id="cw" inputmode="decimal" value="${last ? fmt(tw ? tw.poids : last.poids, 1) : ""}" aria-label="Poids en kg"><button data-act="stepW" data-d="0.1" aria-label="Plus 100 g">+</button></div>
+  const P = D.poids, last = P.at(-1), tw = P.find(p => p.date === D.today), lim = catLimit(), dv = hwDraft && hwDraft.d === D.today ? hwDraft.v : null, v0 = dv !== null ? dv : last ? fmt(tw ? tw.poids : last.poids, 1) : "";
+  return `<p class="show t-m">${tw ? "Corriger la pesée du jour" : "Pesée du jour"}</p><p class="muted small" style="margin:4px 0 14px">Le matin, à jeun, après les toilettes.${last ? " " + (last.date === addDays(D.today, -1) ? "Hier : " : dfr(last.date).slice(0, 5) + " : ") + kg(last.poids, 1) + "." : ""}</p>
+    <div class="stepper"><button data-act="stepW" data-d="-0.1" aria-label="Moins 100 g">−</button><input id="cw" inputmode="decimal" value="${esc(v0)}" aria-label="Poids en kg" data-inp="cw"><button data-act="stepW" data-d="0.1" aria-label="Plus 100 g">+</button></div>
+    ${lim ? `<p class="muted small" id="cwlim" style="margin-top:10px;text-align:center">${okW(num(v0)) ? limTxt(num(v0), lim) : ""}</p>` : ""}
     <div class="grid2" style="margin-top:8px;grid-template-columns:1.15fr 1fr"><input id="cwd" type="date" value="${D.today}" aria-label="Date" style="background:var(--deck3);border:0;color:var(--chalk)"><button class="btn" style="min-height:48px" data-act="saveW" data-src="cw">${tw ? "Corriger" : "Enregistrer"}</button></div>`;
 }
 function rPoids(){
@@ -3122,13 +3132,9 @@ function rPoids(){
     <div class="rng" role="group" aria-label="Période">${PW_RANGES.map(([k, t]) => `<button aria-pressed="${k === pwRange}" data-act="pwRange" data-k="${k}">${t}</button>`).join("")}</div>
     ${lim && last ? `<div class="catcard"><svg width="52" height="52" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="21" fill="none" stroke="var(--warn)" stroke-width="5"/><circle cx="26" cy="26" r="4" fill="var(--warn)"/></svg><div><p>Catégorie −${lim} kg · ${marge >= 0 ? "marge " + fmt(marge, 1) + " kg" : fmt(-marge, 1) + " kg au-dessus"}</p>
       ${nc && dd >= 0 ? `<span>${esc(nc.nom)} dans ${dd} jour${dd > 1 ? "s" : ""}${proj !== null ? ` · au rythme actuel : ${fmt(proj, 1)} kg le jour J (${proj <= lim ? "sous la limite" : fmt(proj - lim, 1) + " kg au-dessus"})` : ""}</span>` : ""}</div></div>` : ""}
-    <h2 class="h2">Dernières pesées</h2><div>${P.slice().reverse().slice(0, 15).map(p => `<div class="vrow"><span class="grow"><b>${esc(cap(dlong(p.date)))}</b></span><span class="val">${fmt(p.poids, 1)}</span></div>`).join("") || `<p class="muted small">Aucune pesée pour l'instant.</p>`}</div>
-    <button class="addrow" data-act="wOpen"><span class="grow"><b>${tw ? "Corriger la pesée du jour" : "Ajouter une pesée"}</b><span>Le matin, à jeun, après les toilettes</span></span><span class="plus2" aria-hidden="true">+</span></button>
-    <details class="more" style="margin-top:22px"><summary class="h2" style="margin:0">Importer un historique</summary>
-    <div><p class="small muted">Le fichier ZIP de MyFitnessPal (compte gratuit compris) ou tout tableau CSV avec une colonne date et une colonne poids.</p>
-      <details style="margin-top:8px"><summary class="small">Récupérer ses pesées MyFitnessPal</summary><p class="small muted" style="margin-top:6px">Sur myfitnesspal.com (navigateur, pas l'app) : ton profil, Paramètres, Compte, « Télécharger tes données », puis demande l'export. Tu reçois un e-mail avec un fichier ZIP : choisis-le ici tel quel, l'app lit les pesées du fichier « measurements ».</p></details>
-      <label class="btn ghost" style="margin-top:12px;display:flex;align-items:center;justify-content:center;cursor:pointer">Choisir le fichier (ZIP ou CSV)<input id="imp" type="file" accept=".csv,.zip,text/csv,text/plain,application/zip" data-chg="import" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></label><div id="impres"></div></div>
-    </details>`;
+    <h2 class="h2">Dernières pesées${P.length > 7 ? ` <span class="muted">${P.length} au total</span>` : ""}</h2><div>${P.slice().reverse().slice(0, 7).map(p => `<div class="vrow"><span class="grow"><b>${esc(cap(dlong(p.date)))}</b></span><span class="val">${fmt(p.poids, 1)}</span></div>`).join("") || `<p class="muted small">Aucune pesée pour l'instant.</p>`}</div>
+    ${P.length > 7 ? `<button class="more-btn" data-act="wAll">Voir toutes les pesées</button>` : ""}
+    <button class="addrow" data-act="wOpen"><span class="grow"><b>${tw ? "Corriger la pesée du jour" : "Ajouter une pesée"}</b><span>Le matin, à jeun, après les toilettes</span></span><span class="plus2" aria-hidden="true">+</span></button>`;
 }
 /* ZIP MyFitnessPal : on cherche le CSV des mesures (poids) dans l'archive. */
 async function readImport(file){
@@ -3261,6 +3267,7 @@ function rpeInfoHtml(){
 function rSheet(){
   if (sheet === "rpeinfo") return rpeInfoHtml();
   if (sheet === "weigh") return weighHtml();
+  if (sheet === "pesees") return peseesHtml();
   if (sheet.startsWith("cl|")) return clInfoHtml(sheet.slice(3));
   if (sheet.startsWith("cat|")) return catPickHtml(sheet.slice(4));
   if (sheet === "meal") return mealSaveHtml();
@@ -3380,6 +3387,12 @@ function settingsHtml(){
     ${Object.keys(blocNames).length ? `<label for="sbl" style="margin-top:0">Bloc en cours</label><select id="sbl" data-chg="blocActif"><option value="">Le dernier onglet de la prog</option>${progOrder.map(n => `<option value="${n}" ${n === chosenBloc() ? "selected" : ""}>${esc(blocLabel(n))}</option>`).join("")}</select>` : ""}
     <div class="grid2"><div><label for="sdc">Début de la prog</label><input id="sdc" type="date" value="${D.profil.debut_coaching || ""}" data-chg="prof" data-k="debut_coaching"></div>
       <div><label for="sds">${st ? "Début du street lifting" : "Début de la muscu"}</label><input id="sds" type="date" value="${D.profil.debut_street || ""}" data-chg="prof" data-k="debut_street"></div></div>
+    <h2 class="h2 slab">Importer des pesées</h2>
+    <details class="more" style="margin-top:6px"><summary class="prefsum">Importer un historique de pesées</summary>
+    <div><p class="small muted">Le fichier ZIP de MyFitnessPal (compte gratuit compris) ou tout tableau CSV avec une colonne date et une colonne poids.</p>
+      <details style="margin-top:8px"><summary class="small">Récupérer ses pesées MyFitnessPal</summary><p class="small muted" style="margin-top:6px">Sur myfitnesspal.com (navigateur, pas l'app) : ton profil, Paramètres, Compte, « Télécharger tes données », puis demande l'export. Tu reçois un e-mail avec un fichier ZIP : choisis-le ici tel quel, l'app lit les pesées du fichier « measurements ».</p></details>
+      <label class="btn ghost" style="margin-top:12px;display:flex;align-items:center;justify-content:center;cursor:pointer">Choisir le fichier (ZIP ou CSV)<input id="imp" type="file" accept=".csv,.zip,text/csv,text/plain,application/zip" data-chg="import" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></label><div id="impres"></div></div>
+    </details>
     <h2 class="h2" style="font-size:20px">Aide</h2>
     <button class="btn ghost" data-act="rpeInfo">C'est quoi le RPE ?</button>
     <h2 class="h2" style="font-size:20px">Méthodes et sources</h2>
@@ -3540,9 +3553,10 @@ const ACT = {
   restAdd:d => { if (rest) { rest.end += +d.s * 1000; rest.total = Math.max(rest.total, Math.round((rest.end - Date.now()) / 1000)); rest.beeped = false; } },
   pdcSave:async () => { const v = num($("#pw").value); if (!v) return toast("Indique ton poids", true); await saveWeight(v, D.today, true); live.pdc = true; persistLive(); closeSheet(); },
   pdcSkip:() => { live.pdc = true; persistLive(); closeSheet(); },
-  stepW:(d, el) => { const i = el.parentNode.querySelector("input"); const v = num(i.value) || bw() || 70; i.value = fmt(v + +d.d, 1); if (i.id === "hw") hwRefresh(); },
+  stepW:(d, el) => { const i = el.parentNode.querySelector("input"); const v = num(i.value) || bw() || 70; i.value = fmt(v + +d.d, 1); if (i.id === "hw" || i.id === "cw") hwRefresh(); },
   saveW:async d => { const v = num($("#" + d.src).value), dt = (d.src === "cw" && $("#cwd").value) || D.today; if (!v || v < 30 || v > 250) return toast("Indique un poids valide", true); await saveWeight(v, dt, false); if (sheet === "weigh" && D.poids.some(p => p.date === dt && p.poids === v)) closeSheet(); },
   wOpen:() => openSheet("weigh"),
+  wAll:() => openSheet("pesees"),
   pwRange:d => { pwRange = d.k; rCorps(); },
   doImport:() => doImport(),
   openLift:d => { page = {type:"lift", l:d.l}; liftMetric = "1rm"; renderLayer(); if (!allLoaded) ensureAllBlocs().then(() => { if (page && page.type === "lift") renderLayer(); }).catch(() => {}); },
@@ -3722,7 +3736,7 @@ function rNutri(){
   const cur = nutSlotSel(), tab = nutTab || (Object.keys(D.mesRepas || {}).length ? "meals" : "foods");
   const tile = (lab, v, tg, col, kc) => `<div class="mt3" role="img" aria-label="${lab} : ${fmt(v, 0)} g${hasT && tg ? " sur " + fmt(tg, 0) + " g" : ""}"><span>${lab}</span><b>${fmt(v, 0)}<small>${hasT && tg ? " / " + fmt(tg, 0) + " g" : " g"}</small></b>${hasT && tg ? `<i class="mbr"><u style="width:${Math.min(100, v / tg * 100).toFixed(1)}%;background:${col}"></u></i>` : `<em>${tot.k > 0 ? fmt(v * kc / tot.k * 100, 0) + " % des kcal" : "—"}</em>`}</div>`;
   const slotCard = s => { const L = R.filter(x => slotOf(x.h) === s).sort((a, b) => (a.h || "") < (b.h || "") ? -1 : 1), names = L.map(x => x.nom).join(", ");
-    const row = `<span class="mt"><b>${SLOTS[s]}</b><span>${L.length ? esc(names) : "Rien pour l'instant"}</span></span>${L.length ? `<b class="mk">${thou(sum(L.map(x => x.k)))}</b>` : `<button class="scanp" data-act="nutScan" data-s="${s}" aria-label="Scanner un code-barres pour le ${SLOTS[s].toLowerCase()}">${SCAN_ICO("currentColor")}Scanner</button>`}<button class="iconbtn plus" data-act="nutSlot" data-s="${s}" aria-label="Ajouter au ${SLOTS[s].toLowerCase()}">+</button>`;
+    const row = `<span class="mt"><b>${SLOTS[s]}</b><span>${L.length ? esc(names) : "Rien pour l'instant"}</span></span>${L.length ? `<b class="mk">${thou(sum(L.map(x => x.k)))}</b>` : ""}<button class="iconbtn plus" data-act="nutSlot" data-s="${s}" aria-label="Ajouter au ${SLOTS[s].toLowerCase()}">+</button>`;
     return L.length ? `<details class="meal${s === cur ? " cur" : ""}" ${nutSlot === s ? "open" : ""}><summary class="mrow">${row}</summary><div class="mitems">${L.map(itemHtml).join("")}</div></details>` : `<div class="meal${s === cur ? " cur" : ""}"><div class="mrow">${row}</div></div>`; };
   $("#v-corps").innerHTML = corpsSeg() + nutHead(nutDate === D.today ? "Aujourd'hui" : esc(cap(dlong(nutDate))), nutDate === D.today ? esc(dlong(nutDate).split(" ")[0].slice(0, 3).toLowerCase() + ". " + dMois(nutDate)) : "", 1, "Jour précédent", "Jour suivant", nutDate >= D.today) + `
     <section class="nh"><div class="nh-t"><div><span class="nh-s">${hasT ? (left >= 0 ? "Il te reste" : "Au-dessus de l'objectif") : "Calories du jour (suivi)"}</span><b class="nh-b">${thou(hasT ? Math.abs(left) : tot.k)}<small>kcal</small></b></div>
@@ -3731,12 +3745,12 @@ function rNutri(){
     <div class="mt3s" role="group" aria-label="Protéines, glucides et lipides du jour">${tile("Protéines", tot.p, T.p, "var(--acc)", 4)}${tile("Glucides", tot.g, T.g, "var(--data)", 4)}${tile("Lipides", tot.l, T.l, "var(--data)", 9)}</div>
     ${Object.keys(D.mesRepas || {}).length ? `<div class="row" style="margin-top:18px;align-items:baseline"><h2 class="h2" style="margin:0">Rejouer un repas</h2><button class="link small muted" data-act="mealsManage" style="min-height:44px">Voir tout</button></div>
     <div class="replay">${Object.entries(D.mesRepas).slice().reverse().map(([n, L]) => `<button class="rcard" data-act="mealAdd" data-n="${esc(n)}" aria-label="Ajouter le repas ${esc(n)}"><span class="rname">${esc(n)}</span><span class="rk">${fmt(sum(L.map(x => x.k)), 0)}<small> kcal</small></span></button>`).join("")}</div>` : ""}
-    <h2 class="h2">Repas</h2>
-    <div class="meals">${[0, 1, 2, 3].map(slotCard).join("")}</div>
+    <div class="row" style="margin-top:26px;align-items:center"><h2 class="h2" style="margin:0">Repas</h2><button class="scanp" data-act="scanOpen" data-c="nutri" aria-label="Scanner un code-barres">${SCAN_ICO("currentColor")}Scanner</button></div>
+    <div class="meals" style="margin-top:8px">${[0, 1, 2, 3].map(slotCard).join("")}</div>
     ${R.length ? `<button class="btn ghost" style="margin-top:10px" data-act="mealSave">Enregistrer ces aliments comme repas</button>` : ""}
     <h2 class="h2" id="nutadd">Ajouter au ${SLOTS[cur].toLowerCase()}</h2>
     <div class="chips"><button class="chip${tab === "meals" ? " on" : ""}" data-act="nutTab" data-t="meals" aria-pressed="${tab === "meals"}">Mes repas</button><button class="chip${tab === "foods" ? " on" : ""}" data-act="nutTab" data-t="foods" aria-pressed="${tab === "foods"}">Aliments</button></div>
-    ${tab === "foods" ? `<div class="sfield"><input id="nutin" placeholder="Rechercher ou scanner (ex. riz, 250 g de pâtes)" value="${esc(nutQ)}" autocomplete="off" data-inp="nutQ" aria-label="Rechercher un aliment"><button class="scanbtn" data-act="scanOpen" data-c="nutri" aria-label="Scanner un code-barres">${SCAN_ICO("#fff")}</button></div>
+    ${tab === "foods" ? `<div class="sfield"><input id="nutin" placeholder="Rechercher (ex. riz, 250 g de pâtes)" value="${esc(nutQ)}" autocomplete="off" data-inp="nutQ" aria-label="Rechercher un aliment"></div>
     ${!FOODS ? `<p class="muted small" style="margin-top:8px" id="nutload">Chargement de la table des aliments…</p>` : ""}
     <div id="nutdyn">${nutDyn()}</div>` : `<button class="btn line" style="margin-top:8px" data-act="mealNew">+ Créer un repas</button>${Object.keys(D.mesRepas || {}).length ? `<div class="list" style="margin-top:8px">${Object.entries(D.mesRepas).slice().reverse().map(([n, L]) => `<div class="item" style="display:flex;gap:10px;align-items:center"><span class="grow"><span class="ttl" style="display:block">${esc(n)}</span><span class="muted tiny">${fmt(sum(L.map(x => x.k)), 0)} kcal · P ${fmt(sum(L.map(x => x.p)), 0)} · G ${fmt(sum(L.map(x => x.g)), 0)} · L ${fmt(sum(L.map(x => x.l)), 0)}</span></span><button class="iconbtn plus" data-act="mealAdd" data-n="${esc(n)}" aria-label="Ajouter ${esc(n)} au ${SLOTS[cur].toLowerCase()}">+</button></div>`).join("")}</div>` : `<p class="muted small" style="margin-top:10px">Aucun repas enregistré. Touche « Créer un repas » : tu le retrouveras ici pour l'ajouter en un tap au petit-déjeuner, déjeuner, collation ou dîner.</p>`}`}
     ${nutGoalHtml(T)}`;
@@ -3838,7 +3852,7 @@ async function saveFood(f){
   (D.aliments = D.aliments || []).push({...f});
 }
 /* saisie : suggestions au fil de la frappe */
-document.addEventListener("input", ev => { const t = ev.target; if (t && t.dataset.inp === "setCom" && live && live.rows[live.i]) { const st = live.rows[live.i]; st.com = t.value; st.comOpen = true; st.dirty = true; persistLive(); return; } if (t && t.dataset.inp === "mnName" && mnDraft) { mnDraft.name = t.value; return; } if (t && t.dataset.inp === "mnQ" && mnDraft) { mnDraft.q = t.value; const l = $("#mnlist"); if (l) l.innerHTML = mnList(); return; } if (t && t.dataset.inp === "mnQty" && mnDraft && mnDraft.pick) { mnDraft.pick.q = num(t.value); return; } if (t && t.dataset.inp === "swapQ") { swapQ = t.value; const l = $("#swaplist"); if (l) l.innerHTML = swapList(); return; } if (t && t.dataset.inp === "hw") return hwRefresh(); if (!t || t.dataset.inp !== "nutQ") return; nutQ = t.value; nutPick = null; offRes = null; nutCreate = false;
+document.addEventListener("input", ev => { const t = ev.target; if (t && t.dataset.inp === "setCom" && live && live.rows[live.i]) { const st = live.rows[live.i]; st.com = t.value; st.comOpen = true; st.dirty = true; persistLive(); return; } if (t && t.dataset.inp === "mnName" && mnDraft) { mnDraft.name = t.value; return; } if (t && t.dataset.inp === "mnQ" && mnDraft) { mnDraft.q = t.value; const l = $("#mnlist"); if (l) l.innerHTML = mnList(); return; } if (t && t.dataset.inp === "mnQty" && mnDraft && mnDraft.pick) { mnDraft.pick.q = num(t.value); return; } if (t && t.dataset.inp === "swapQ") { swapQ = t.value; const l = $("#swaplist"); if (l) l.innerHTML = swapList(); return; } if (t && (t.dataset.inp === "hw" || t.dataset.inp === "cw")) return hwRefresh(); if (!t || t.dataset.inp !== "nutQ") return; nutQ = t.value; nutPick = null; offRes = null; nutCreate = false;
   clearTimeout(t._h); t._h = setTimeout(nutRefresh, 80);
   /* moins de 3 résultats dans la table : les produits de marque (Open Food Facts) sont cherchés tout seuls */
   clearTimeout(t._o); t._o = setTimeout(() => { const q = parseFoodLine(nutQ).txt; if (FOODS && q && q.length >= 3 && !nutPick && !offRes && searchFoods(q).length < 3 && navigator.onLine !== false) ACT.nutOff({auto:1}); }, 900); });

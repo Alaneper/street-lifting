@@ -8,7 +8,7 @@ OUTDIR = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else OUT
 OUTDIR.mkdir(parents=True, exist_ok=True)
 only = set(sys.argv[2:])
 ECRANS = {
-  "aujourdhui": "setTab('home')", "programme": "setTab('seance')", "historique": "setTab('histo')",
+  "aujourdhui": "setTab('home')", "aujourdhui-sans-pesee": "D.poids=D.poids.filter(p=>p.date!==D.today);hwDraft=null;setTab('home')", "programme": "setTab('seance')", "historique": "setTab('histo')",
   "poids": "corpsTab='poids';corpsManual=D.today;setTab('corps')", "alimentation": "corpsTab='nutri';corpsManual=D.today;setTab('corps')",
   "progres": "progSeg='records';setTab('prog')", "classement": "agendaSeg='amis';setTab('agenda')", "competition": "agendaSeg='compet';setTab('agenda')",
   "mouvements": "progSeg='mouvements';mvQ='';setTab('prog')", "mouvements-recherche": "progSeg='mouvements';mvQ='dip';setTab('prog')",

@@ -68,7 +68,7 @@ with sync_playwright() as p:
     pg.evaluate("setTab('corps')"); pg.wait_for_timeout(600)
     check("icône de scan dans le champ de recherche", pg.evaluate("!!document.querySelector('#v-corps .sfield .scanbtn')") or True, "")
     pg.evaluate("ACT.nutTab({t:'foods'})"); pg.wait_for_timeout(300)
-    check("icône de scan présente dans le champ « Aliments »", pg.evaluate("!!document.querySelector('#v-corps .sfield .scanbtn[data-c=nutri]')"), "")
+    check("un seul bouton Scanner sur la page Alimentation", pg.evaluate("document.querySelectorAll('#v-corps .scanp[data-c=nutri]').length === 1 && !document.querySelector('#v-corps .sfield .scanbtn')"), "")
     # --- scan depuis la journée, caméra refusée => saisie manuelle
     pg.evaluate("ACT.scanOpen({c:'nutri'})"); pg.wait_for_timeout(900)
     r = pg.evaluate("({full:!!document.querySelector('.scanfull'), panel:document.getElementById('scanpanel').innerText, man:!!document.getElementById('scman') || /Saisir le numéro/.test(document.getElementById('scanpanel').innerText)})")

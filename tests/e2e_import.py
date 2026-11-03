@@ -11,9 +11,10 @@ with sync_playwright() as p:
     pg.goto("http://app.local/sl/"); pg.wait_for_timeout(1000); pg.click("[data-act=obLogin]"); pg.wait_for_timeout(1500)
     pg.fill("#oblink", f"https://docs.google.com/spreadsheets/d/{APP}/edit"); pg.click("[data-act=obLink]"); pg.wait_for_timeout(4000)
     pg.click("[data-tab=corps]"); pg.wait_for_timeout(800); pg.click("[data-act=corpsTab][data-k=poids]"); pg.wait_for_timeout(500)
-    pg.set_input_files("#imp", str(MFP)); pg.wait_for_timeout(4000)
-    print("import :", pg.locator("#impres").text_content(), "| details ouvert:", pg.evaluate("document.querySelector('details.more').open"), "| rows:", pg.evaluate("typeof importRows !== 'undefined' && importRows ? importRows.length : -1"))
+    pg.evaluate("ACT.settings({})"); pg.wait_for_timeout(500); pg.evaluate("document.querySelector('#imp').closest('details').open = true"); pg.set_input_files("#imp", str(MFP)); pg.wait_for_timeout(4000)
+    imp_txt = pg.locator("#impres").text_content() or ""
+    print("import :", imp_txt, "| details ouvert:", pg.evaluate("document.querySelector('details.more').open"), "| rows:", pg.evaluate("typeof importRows !== 'undefined' && importRows ? importRows.length : -1"))
     pg.evaluate("ACT.openLift({l:'DIP'})"); pg.wait_for_timeout(1200)
     print("records :", pg.locator(".rec").all_inner_texts()[:3])
     print("ERRORS:", errs)
-    import sys; sys.exit(1 if errs or "8 pesées trouvées" not in (pg.locator("#impres").text_content() or "") else 0)
+    import sys; sys.exit(1 if errs or "8 pesées trouvées" not in imp_txt else 0)
