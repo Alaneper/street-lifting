@@ -33,15 +33,15 @@ with sync_playwright() as p:
     check("exercice d'accessoire repéré dans la prog", ok)
     if ok:
         pg.evaluate("startLive(__ts[0], __ts[1])"); pg.wait_for_timeout(900)
-        check("en-tête « Reps » au départ", "Reps" in pg.evaluate("document.querySelector('.setgrid .hd').innerText"))
+        check("en-tête « Reps » au départ", pg.evaluate("document.querySelector('.setrow input[data-chg=setR]').getAttribute('placeholder')") == "–")
         btns = pg.query_selector_all("[data-act=exMode]")
         check("deux boutons Reps / Temps présents", len(btns) == 2)
         pg.click("[data-act=exMode][data-v=T]"); pg.wait_for_timeout(700)
-        check("après « Temps » : en-tête « Durée »", "Durée" in pg.evaluate("document.querySelector('.setgrid .hd').innerText"))
+        check("après « Temps » : en-tête « Durée »", pg.evaluate("document.querySelector('.setrow input[data-chg=setR]').getAttribute('placeholder')") == "1:30")
         check("case durée en texte libre", pg.evaluate("document.querySelector('.setrow input[data-chg=setR]').getAttribute('placeholder')") == "1:30")
         check("choix gardé dans le profil", "=T" in pg.evaluate("D.profil.ex_modes || ''"))
         pg.click("[data-act=exMode][data-v=R]"); pg.wait_for_timeout(700)
-        check("retour en « Reps »", "Reps" in pg.evaluate("document.querySelector('.setgrid .hd').innerText"))
+        check("retour en « Reps »", pg.evaluate("document.querySelector('.setrow input[data-chg=setR]').getAttribute('placeholder')") == "–")
         # sélection au toucher
         pg.fill(".setrow input[data-chg=setC]", "28,5"); pg.dispatch_event(".setrow input[data-chg=setC]", "change")
         pg.evaluate("document.activeElement && document.activeElement.blur()")

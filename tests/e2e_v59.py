@@ -60,10 +60,10 @@ with sync_playwright() as p:
         pg.evaluate("ACT.closePage && ACT.closePage()"); pg.evaluate("startLive(__ts[0], __ts[1])"); pg.wait_for_timeout(900)
         pg.evaluate("(() => { const st = live.rows[live.i]; while (st.sets.length < 3) st.sets.push({c:null, r:null, done:false}); st.sets.length = 3; st.dirty = true; renderLayer(); })()"); pg.wait_for_timeout(300)
         for j, (cv, rv) in enumerate([("30", "12"), ("32,5", "10"), ("32,5", "9")]):
-            row = pg.locator(".setrow").nth(j)
+            row = pg.locator(".setrow").first
             row.locator("input[data-chg=setC]").fill(cv); row.locator("input[data-chg=setC]").dispatch_event("change")
             row.locator("input[data-chg=setR]").fill(rv); row.locator("input[data-chg=setR]").dispatch_event("change")
-            pg.wait_for_timeout(150); pg.locator(".setrow").nth(j).locator(".ck").click(); pg.wait_for_timeout(400)
+            pg.wait_for_timeout(150); pg.click(".vbar [data-act=doneSet]"); pg.wait_for_timeout(400)
             pg.evaluate("ACT.closeSheet && sheet === 'rest' && ACT.closeSheet()"); pg.wait_for_timeout(150)
         pg.evaluate("(async () => { window.__saved = await saveRow(live.i); })()"); pg.wait_for_timeout(1500)
         row = pg.evaluate("(window.__sheets['%s'].SERIES || []).slice(-1)[0]" % APP)

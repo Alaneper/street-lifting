@@ -32,10 +32,10 @@ def boot(br, tabs=None):
     return c, pg, errs
 def do_sets(pg, n=2, reps="8", charge="20"):
     for j in range(n):
-        row = pg.locator(".setrow").nth(j)
+        row = pg.locator(".setrow").first
         row.locator("input[data-chg=setC]").fill(charge); row.locator("input[data-chg=setC]").dispatch_event("change")
         row.locator("input[data-chg=setR]").fill(reps); row.locator("input[data-chg=setR]").dispatch_event("change")
-        row.locator(".ck").click(); pg.wait_for_timeout(350)
+        pg.click(".vbar [data-act=doneSet]"); pg.wait_for_timeout(350)
         pg.evaluate("sheet === 'rest' && ACT.closeSheet && ACT.closeSheet()"); pg.wait_for_timeout(120)
 def comment(pg, txt):
     if pg.locator("[data-act=comOpen]").count(): pg.click("[data-act=comOpen]"); pg.wait_for_timeout(200)

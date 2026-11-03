@@ -24,7 +24,7 @@ with sync_playwright() as p:
     check("séance avec colonne RPE trouvée", ok)
     if ok:
         pg.evaluate("startLive(__ts[0], __ts[1])"); pg.wait_for_timeout(900)
-        pg.locator(".setrow").first.locator(".ck").click(); pg.wait_for_timeout(500)
+        pg.click(".vbar [data-act=doneSet]"); pg.wait_for_timeout(500)
         pg.evaluate("sheet === 'rest' && ACT.closeSheet && ACT.closeSheet()"); pg.wait_for_timeout(300)
         n = pg.evaluate("document.querySelectorAll('.rpe')[0] ? document.querySelectorAll('.rpe')[0].querySelectorAll('button').length : 0")
         check("12 boutons RPE en séance", n == 12, str(n))
