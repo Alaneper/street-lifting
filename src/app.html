@@ -518,7 +518,7 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.mgrid>*{min-width:0}
 .mcard{display:flex;flex-direction:column;gap:8px;text-align:left;background:var(--deck);border:1px solid var(--seam);border-radius:var(--r-lg);padding:10px;min-height:44px;box-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 6px 16px rgba(0,0,0,.28);transition:transform .15s cubic-bezier(.2,.8,.2,1)}
 .mcard:active{transform:scale(.97)}
-.mcard .mplate{--mh:116px;width:100%;border-radius:12px;gap:6px}.mcard b{font:700 16px/1.2 var(--f-text);color:var(--chalk);overflow-wrap:anywhere}.mcard .mv{font:700 20px var(--f-show);color:var(--chalk)}
+.mcard .mplate{--mh:116px;width:100%;border-radius:12px;gap:6px}.mcard b{font:700 16px/1.2 var(--f-text);color:var(--chalk);overflow-wrap:anywhere}.mcard .mv{font:700 17px var(--f-show);color:var(--data);margin-top:2px}.mcard .msub{display:block;text-transform:capitalize}
 .mcard .mph{height:116px;border-radius:12px;background:var(--deck2);display:flex;align-items:center;justify-content:center;font:800 56px var(--f-show);color:var(--dust)}
 .mempty{margin-top:24px;text-align:center}
 .segc{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--deck);border-radius:12px;padding:3px;margin-top:6px}
@@ -2789,7 +2789,7 @@ function mvGrid(){
   const exs = allLoaded ? exercisePoints().map(o => ({n:exName(o.key), k:o.key, lift:o.lift, v:fmtSets(o.last.sets)})) : [];
   const all = [...lifts, ...exs].filter(x => (!q || mvNorm(x.n).includes(q)) && (!mvG || mvGroupOf(x.l || x.lift) === mvG));
   if (!all.length) return `<div class="empty mempty"><p>Aucun mouvement pour « ${esc(mvQ)} ».</p></div>`;
-  return `<div class="mgrid">${all.map(x => `<button class="mcard" ${x.l ? `data-act="openLift" data-l="${x.l}"` : `data-act="openEx" data-k="${esc(x.k)}"`}>${x.l || x.lift ? muscleFig(x.l || x.lift, {view:"both", cls:"mc"}) : `<span class="mph" aria-hidden="true">${esc(x.n.charAt(0).toUpperCase())}</span>`}<b>${esc(x.n)}</b>${x.v ? `<span class="mv">${esc(x.v)}</span>` : `<span class="muted small">Pas encore de record</span>`}</button>`).join("")}</div>${allLoaded ? "" : `<p class="muted small" style="margin-top:12px">Lecture de tout l'historique de ta prog…</p>`}`;
+  return `<div class="mgrid">${all.map(x => `<button class="mcard" ${x.l ? `data-act="openLift" data-l="${x.l}"` : `data-act="openEx" data-k="${esc(x.k)}"`}>${x.l || x.lift ? muscleFig(x.l || x.lift, {view:"both", cls:"mc"}) : `<span class="mph" aria-hidden="true">${esc(x.n.charAt(0).toUpperCase())}</span>`}<b>${esc(x.n)}</b>${(x.l || x.lift) && muscleList(x.l || x.lift) ? `<span class="muted small msub">${esc(muscleList(x.l || x.lift).p.slice(0, 2).join(", "))}</span>` : ""}${x.v ? `<span class="mv">${esc(x.v)}</span>` : ""}</button>`).join("")}</div>${allLoaded ? "" : `<p class="muted small" style="margin-top:12px">Lecture de tout l'historique de ta prog…</p>`}`;
 }
 function mouvHtml(){
   return `<div class="sfield"><input id="mvin" type="search" placeholder="Rechercher un mouvement" value="${esc(mvQ)}" autocomplete="off" data-inp="mvQ" aria-label="Rechercher un mouvement"></div><div class="chips" id="mvchips" role="group" aria-label="Groupe musculaire" style="margin-top:10px">${MV_GROUPS.map(([k, t]) => `<button class="chip" aria-pressed="${mvG === k}" data-act="mvGroup" data-k="${k}">${t}</button>`).join("")}</div><div id="mvlist">${mvGrid()}</div>`;
