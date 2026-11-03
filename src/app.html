@@ -3128,7 +3128,7 @@ function rAgenda(){
 const STEP_CHK = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>`;
 function prepHtml(c){
   const lim = catLimit(), wt = weightTrend(), proj = wt ? wt.at(c.date) : null, ch = D.checks.filter(x => x.date === c.date), over = lim && proj ? proj > lim : false;
-  const wsub = bw() ? `Aujourd'hui ${fmt(bw(), 1)} kg${lim ? ` · limite ${lim} kg` : ""}${proj ? ` · environ ${fmt(proj, 1)} kg le jour J (estimation)` : ""}` : "Aucune pesée";
+  const wsub = bw() ? `Aujourd'hui ${fmt(bw(), 1)} kg${lim ? ` · limite ${lim} kg` : ""}${proj ? ` · environ ${fmt(proj, 1)} kg le jour J (estimation)` : (() => { const n = Math.max(1, 4 - D.poids.filter(p => p.date >= addDays(D.today, -21)).length); return ` · ${n} ${n > 1 ? "pesées" : "pesée"} de plus pour estimer ton poids le jour J`; })()}` : "Aucune pesée";
   return `<h2 class="h2">Jour J, étape par étape</h2>
     <div class="steps">
       <button class="step" data-act="corpsGo"><span class="stk ${over ? "warn" : ""}" aria-hidden="true">${over ? "!" : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 13l3-3"/></svg>`}</span><span class="grow"><b>Pesée</b><span>${esc(wsub)}</span></span>${CHEV}</button>
