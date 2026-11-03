@@ -701,6 +701,13 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 .clrow .rk{width:30px;font:800 26px var(--f-show);color:var(--faint)}
 .clav{width:48px;height:48px;border-radius:50%;background:var(--deck2);display:grid;place-items:center;font:700 15px var(--f-text);flex:none}
 .clrow .val{font:500 19px var(--f-text);color:var(--chalk)}
+/* ÉTATS RÉSEAU (hors connexion, erreur de synchro, envois en attente) */
+.netbar{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;margin:6px 0 0;padding:12px 14px;border-radius:16px;background:var(--deck);box-shadow:var(--sh1);font:500 14px/1.35 var(--f-text);color:var(--dust)}
+.netbar[hidden]{display:none}.netbar b{font:700 15px var(--f-text);color:var(--chalk);flex:none}.netbar span{flex:1;min-width:0}
+.netbar::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--faint);flex:none}
+.netbar.off::before{background:var(--warn)}.netbar.err::before{background:var(--acc)}.netbar.wait::before{background:var(--data)}
+.netbar.off{background:#2B2410}.netbar.err{background:#32140D}
+.netbar .link{min-height:44px;padding:0 4px;color:var(--chalk);font-weight:700}
 /* COUCHES (v3) : 0 fond · 1 carte · 2 surélevé · 3 contrôle dans une carte · 4 feuille (flou). Une ombre par niveau, jamais de halo. */
 :root{--sh1:inset 0 1px 0 rgba(245,242,236,.045),0 10px 24px -12px rgba(0,0,0,.7);--sh2:inset 0 1px 0 rgba(245,242,236,.07),0 18px 40px -14px rgba(0,0,0,.8);--sh3:inset 0 1px 0 rgba(245,242,236,.08),0 -24px 64px rgba(0,0,0,.7)}
 .card,.panel,.tdc,.pbar,.hero{box-shadow:var(--sh1)}
@@ -761,6 +768,7 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 
 <main id="app">
   <div class="topbar"><div class="brandmark" id="topdate"><h1 class="tabname" id="tabname">Séance</h1></div><button class="avatar" data-act="settings" aria-label="Réglages et synchronisation"><span id="initial">·</span><span class="dot busy" id="syncdot"></span></button></div>
+  <div id="netbar" class="netbar" role="status" aria-live="polite" hidden></div>
   <div class="segc" id="subseance" role="group" aria-label="Séance" style="margin:12px 0 0"><button data-sub="home" aria-pressed="true">Aujourd'hui</button><button data-sub="seance" aria-pressed="false">Programme</button><button data-sub="histo" aria-pressed="false">Historique</button></div>
   <section id="v-home" class="view"><div class="skel" style="height:190px;margin-top:18px"></div><div class="skel" style="height:150px;margin-top:14px"></div><p class="muted small" style="margin-top:14px">La première fois, Claude te demande d'autoriser l'accès à Google Sheets. Touche « Autoriser ».</p></section>
   <section id="v-seance" class="view" hidden></section>
@@ -1794,21 +1802,34 @@ function setTab(t){
   document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.tab === top ? "page" : "false"));
   const ss = $("#subseance"); if (ss) { ss.hidden = top !== "home"; ss.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.sub === t))); }
   document.querySelectorAll(".view").forEach(v => v.hidden = v.id !== "v-" + t);
+  if (!D) { const v = $("#v-" + t); if (v && !v.innerHTML.trim()) v.innerHTML = SKEL; }   /* chargement : squelette, jamais un écran vide */
   window.scrollTo(0, 0); render();
 }
 addEventListener("scroll", () => document.body.classList.toggle("scrolled", scrollY > 8), {passive:true});
 function render(){
   if (!D) return;
-  renderTop();
+  renderTop(); renderNetBar();
   ({home:rHome, seance:rSeance, histo:rHisto, prog:rProg, corps:rCorps, agenda:rAgenda})[tab]();
   renderLayer();
 }
+/* États réseau visibles sur tous les écrans : hors connexion, synchro impossible, envois en attente. Lecture seule : rien n'est écrit dans le Store. */
+function renderNetBar(){
+  const el = $("#netbar"); if (!el) return;
+  const off = navigator.onLine === false, pend = (typeof Store !== "undefined" && Store.pending) ? Store.pending() : 0;
+  let h = "", cls = "";
+  if (off) { cls = "off"; h = `<b>Hors connexion</b><span>${pend ? pend + " enregistrement" + (pend > 1 ? "s" : "") + " en attente : envoi à la reconnexion" : "Tes données restent disponibles, la synchro reprend toute seule"}</span>`; }
+  else if (typeof seanceErr === "string" && seanceErr) { cls = "err"; h = `<b>Synchro impossible</b><span>${esc(seanceErr)}</span><button class="link small" data-act="sync">Réessayer</button>`; }
+  else if (pend) { cls = "wait"; h = `<b>${pend} en attente</b><span>Envoi en cours</span>`; }
+  el.hidden = !h; el.className = "netbar " + cls; el.innerHTML = h;
+}
+window.addEventListener("online", () => renderNetBar()); window.addEventListener("offline", () => renderNetBar());
+const SKEL = `<div class="skel" style="height:140px;margin-top:14px"></div><div class="skel" style="height:220px;margin-top:12px"></div><div class="skel" style="height:90px;margin-top:12px"></div>`;
 function renderTop(){
   /* l'en-tête reste fixe : logo et profil */
   $("#initial").textContent = (D.profil.prenom || "·")[0].toUpperCase();
 }
 function setDot(state){ const pend = Store.pending(); if (state === "ok" && pend) state = "off"; const d = $("#syncdot"); d.className = "dot" + (state === "busy" ? " busy" : state === "off" ? " off" : "");
-  d.parentElement.setAttribute("aria-label", "Réglages · " + (state === "busy" ? "synchronisation en cours" : state === "off" ? (Store.pending() ? Store.pending() + " enregistrement(s) en attente d'envoi" : "pas synchronisé") : "données à jour")); }
+  renderNetBar(); d.parentElement.setAttribute("aria-label", "Réglages · " + (state === "busy" ? "synchronisation en cours" : state === "off" ? (Store.pending() ? Store.pending() + " enregistrement(s) en attente d'envoi" : "pas synchronisé") : "données à jour")); }
 
 /* =====================================================================
    SIGNATURE : LA BARRE CHARGÉE
