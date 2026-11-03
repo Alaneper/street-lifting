@@ -12,4 +12,8 @@ with sync_playwright() as p:
     pg.wait_for_function("typeof D !== 'undefined' && D && S.length > 0 && lastSync > 0", timeout=20000); pg.wait_for_timeout(1500)
     pg.evaluate("ACT.scanOpen({c:'nutri'})"); pg.wait_for_timeout(1500)
     pg.evaluate("document.getElementById('scanv').style.visibility='hidden'")   # la vidéo simulée est une mire verte : on la masque pour juger l'interface
-    pg.screenshot(path=str(OUTDIR / "scanner.png")); print("ERREURS:", errs[:3]); br.close()
+    pg.screenshot(path=str(OUTDIR / "scanner.png"))
+    # état « produit trouvé » : produit FICTIF (valeurs de démonstration), seulement pour juger la mise en page
+    pg.evaluate("scanFound({nom:'Skyr nature 0 %', marque:'', k:63.3, p:10.7, g:4, l:0.2, por:150, src:'perso', code:'', check:null})"); pg.wait_for_timeout(500)
+    pg.screenshot(path=str(OUTDIR / "scanner-trouve.png"))
+    print("ERREURS:", errs[:3]); br.close()
