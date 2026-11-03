@@ -60,7 +60,7 @@ MARKS = """
   try { new PerformanceObserver(l => l.getEntries().forEach(e => { if (e.name === 'first-contentful-paint') mark('fcp'); })).observe({type:'paint', buffered:true}); } catch(e){}
   const iv = setInterval(() => {
     try {
-      const h = document.querySelector('#v-home .hero, #v-home .day');
+      const h = document.querySelector('#v-home .wk, #v-home .hero, #v-home .day');
       if (h && !window.__cs) { window.__cs = 1; requestAnimationFrame(() => requestAnimationFrame(() => mark('content'))); }
       if (typeof lastSync !== 'undefined' && lastSync > 0) { mark('fresh'); clearInterval(iv); }
     } catch(e){}
