@@ -34,11 +34,11 @@ with sync_playwright() as p:
     check("compét : nombre de pesées manquantes", "2 pesées de plus" in r, r[r.find("Pesée"):r.find("Pesée") + 160])
     pg.evaluate("syncAll(true)"); pg.wait_for_timeout(2500)
 
-    # 3. Accord : « séance faite » au singulier
-    r = pg.evaluate("""() => { const w = defaultWeek(); const ss = S.filter(s => s.bloc === w.b && s.semaine === w.w); ss.forEach((s, i) => s.faite = i === 0);
-      progSel = w; setTab('prog'); const h = [...document.querySelectorAll('#v-prog .hero')].find(e => /\\//.test(e.querySelector('.hb').textContent));
-      return [h.querySelector('.hb').textContent, h.querySelector('.hu').textContent]; }""")
-    check("progrès : « 1/4 séance faite » (accord)", r[0].startswith("1/") and r[1].startswith("séance faite"), r)
+    # 3. Accord : « 1 semaine faite » au singulier (carte du bloc, Séance › Programme depuis la v67)
+    r = pg.evaluate("""() => { const w = defaultWeek(); const inB = S.filter(s => s.bloc === w.b), wk = [...new Set(inB.map(s => s.semaine))];
+      inB.forEach(s => s.faite = s.semaine === wk[0]); sel = inB[0].key; setTab('seance');
+      return [...document.querySelectorAll('#v-seance .blk .lg-lab')].map(e => e.textContent).join(' | '); }""")
+    check("programme : « 1 semaine faite » (accord)", "1 semaine faite" in r, r)
     pg.evaluate("syncAll(true)"); pg.wait_for_timeout(2500)
 
     # 4. Réglages : Non / Oui à l'écran, valeurs NON / OUI conservées dans le carnet
@@ -61,7 +61,7 @@ with sync_playwright() as p:
     check("compét : Modifier / Supprimer ≥ 44 px", r and min(r) >= 44, r)
 
     # 6. Infobulle du volume : mouvements à 0 masqués, total ajouté
-    pg.evaluate("setTab('prog')"); pg.wait_for_function("charts['c-vol']", timeout=10000)
+    pg.evaluate("progSeg='courbes'; setTab('prog')"); pg.wait_for_function("charts['c-vol']", timeout=10000)
     r = pg.evaluate("""(() => { const t = charts['c-vol'].options.plugins.tooltip; return [t.filter({parsed:{y:0}}), t.filter({parsed:{y:630}}), t.callbacks.footer([{parsed:{y:1710}}, {parsed:{y:630}}]), t.callbacks.label({dataset:{label:'Dips'}, parsed:{y:1710}})]; })()""")
     check("volume : lignes à 0 masquées", r[0] is False and r[1] is True, r)
     check("volume : total et séparateur de milliers", r[2].replace(" ", " ") == "Total : 2 340 kg" and r[3].replace(" ", " ") == "Dips : 1 710 kg", r)

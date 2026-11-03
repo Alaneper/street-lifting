@@ -21,7 +21,7 @@ with sync_playwright() as p:
     # 1. Serveur coupé : l'app s'ouvre quand même, avec les dernières données
     s1.shutdown(); s1.server_close()
     pg.reload(); pg.wait_for_timeout(1500)
-    check("hors ligne : l'app s'ouvre avec les données du téléphone", pg.evaluate("!!document.querySelector('#v-home .hero')"))
+    check("hors ligne : l'app s'ouvre avec les données du téléphone", pg.evaluate("!!document.querySelector('#v-home .wk')"))
     # 2. Nouvelle version en ligne : appliquée tout de suite si rien n'a été touché
     import re
     bump = lambda h, n: re.sub(r'<meta name="sl-build" content="\d+">', f'<meta name="sl-build" content="{n}">', h)
@@ -38,8 +38,8 @@ with sync_playwright() as p:
     pg.wait_for_timeout(500)
     (site / "index.html").write_text(bump(html.replace("TEST-NOUVELLE", "TEST-BANDEAU", 1), 99990000000002))
     s1.shutdown(); s1.server_close(); s1 = perf.serve(site, 8123, slow=True)
-    pg2 = c.new_page(); pg2.goto("http://127.0.0.1:8123/", wait_until="commit"); pg2.wait_for_selector("#v-home .hero"); pg2.mouse.click(200, 400)
-    pg2.wait_for_timeout(4000)
+    pg2 = c.new_page(); pg2.goto("http://127.0.0.1:8123/", wait_until="commit"); pg2.wait_for_selector("#v-home .wk"); pg2.mouse.click(200, 400)
+    pg2.wait_for_timeout(9000)
     check("version arrivée en cours d'usage : bandeau, pas de rechargement forcé", pg2.evaluate("!!document.querySelector('.upd') && APP_VER.startsWith('TEST-NOUVELLE')"), pg2.evaluate("APP_VER"))
     pg2.click(".upd button"); pg2.wait_for_timeout(1500)
     check("« Mettre à jour » charge la nouvelle version", pg2.evaluate("APP_VER").startswith("TEST-BANDEAU"), pg2.evaluate("APP_VER"))
