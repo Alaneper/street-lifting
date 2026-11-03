@@ -57,6 +57,7 @@ with sync_playwright() as p:
     pg.evaluate("ACT.closeSheet && ACT.closeSheet()")
     pg.evaluate("localStorage.setItem('sl-tok', JSON.stringify({t:'OLD', exp:Date.now()-1000}))")
     pg.click("[data-act=liveNav][data-d='1']"); pg.wait_for_timeout(3500)
+    if not pg.locator("[data-act=doneSet][data-j='0']").count() and pg.locator(".lsr[data-j='0']").count(): pg.click(".lsr[data-j='0']"); pg.wait_for_timeout(300)   # la série validée est repliée : on la rouvre
     pg.click("[data-act=doneSet][data-j='0']"); pg.wait_for_timeout(900); pg.screenshot(path=str(OUT/"5b-rest.png"))
     print("après reconnexion : live ouvert ?", pg.locator(".live").count(), "| url:", pg.url)
     pg.screenshot(path=str(OUT/"5-resume.png"))

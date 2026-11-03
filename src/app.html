@@ -670,6 +670,16 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 .mt3s.lt{margin-top:10px}.mt3s.lt.four{grid-template-columns:repeat(2,minmax(0,1fr))}
 .mt3s button.mt3{text-align:left;width:100%}.mt3 .dl{display:block;font:600 14px var(--f-text);color:var(--data);font-style:normal;margin-top:6px}.mt3 .dl.none{visibility:hidden}
 .tonn{margin-top:10px;padding:18px;border-radius:24px;box-shadow:var(--sh1)}.tonn .row{align-items:baseline}.tonn b{font:700 20px var(--f-text)}
+/* RÉGLAGES (planche V3Compet) : page pleine, étiquettes de section, rangées à pastille d'icône, interrupteurs rouges */
+.shead{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;margin:2px 0 4px}.shead .show{text-align:center;font:700 22px var(--f-text)}
+.h2.slab{font:500 15px var(--f-text);color:var(--dust);margin:26px 0 6px;display:block}
+.sheet.full .group{background:transparent;padding:0;margin-top:0}
+.sheet.full .prefrow,.sheet.full .catrow{border-bottom:1px solid var(--seam);min-height:76px;gap:14px}
+.sheet.full .prefrow .grow b,.sheet.full .catrow .grow b{font:600 17px var(--f-text)}.sheet.full .prefrow .grow span,.sheet.full .catrow .grow span{font-size:14px;color:var(--dust);display:block;margin-top:2px}
+.prefrow .ic{width:48px;height:48px;border-radius:14px;background:var(--deck2);display:grid;place-items:center;flex:none;color:var(--chalk);box-shadow:var(--sh1)}
+.prefrow .chv{color:var(--faint);flex:none}
+.sw{width:54px;height:32px}.sw::after{width:26px;height:26px;background:var(--chalk)}
+.prefrow[aria-checked="true"] .sw{background:var(--acc)}.prefrow[aria-checked="true"] .sw::after{transform:translateX(22px);background:var(--chalk)}
 /* COUCHES (v3) : 0 fond · 1 carte · 2 surélevé · 3 contrôle dans une carte · 4 feuille (flou). Une ombre par niveau, jamais de halo. */
 :root{--sh1:inset 0 1px 0 rgba(245,242,236,.045),0 10px 24px -12px rgba(0,0,0,.7);--sh2:inset 0 1px 0 rgba(245,242,236,.07),0 18px 40px -14px rgba(0,0,0,.8);--sh3:inset 0 1px 0 rgba(245,242,236,.08),0 -24px 64px rgba(0,0,0,.7)}
 .card,.panel,.tdc,.pbar,.hero{box-shadow:var(--sh1)}
@@ -3058,7 +3068,7 @@ function renderLayer(){
   if (live) h += rLive();
   if (page) h += page.type === "imp" ? rImpPage() : page.type === "lift" ? rLiftPage(page.l) : rExPage(page.k);
   if (sheet === "scan") h += scanHtml();
-  else if (sheet) h += `<div class="scrim" data-act="closeSheet"></div><div class="sheet${sheet === "summary" ? " full" : ""}" role="dialog"><div class="wrap"><div class="grab"></div>${rSheet()}</div></div>`;
+  else if (sheet) h += `<div class="scrim" data-act="closeSheet"></div><div class="sheet${sheet === "summary" || sheet === "settings" ? " full" : ""}" role="dialog"><div class="wrap"><div class="grab"></div>${rSheet()}</div></div>`;
   setTimeout(() => { const rp = document.querySelector(".lrpe .rpe"); if (rp) { const b = rp.querySelector('[aria-pressed="true"]') || rp.querySelector('[data-v="7"]'); if (b) rp.scrollLeft = Math.max(0, b.offsetLeft - 16); } }, 0);
   const keepScroll = document.querySelector(".page, .live, .sheet"), ksel = keepScroll ? "." + keepScroll.classList[0] : "", st = keepScroll ? keepScroll.scrollTop : 0;
   $("#layer").innerHTML = h;
@@ -3158,45 +3168,48 @@ function rSheet(){
 function openSheet(s){ sheet = s; renderLayer(); if (s.startsWith("share|")) drawShare(s.slice(6)); }
 function closeSheet(){ if (sheet === "pdc" && live) { live.pdc = true; persistLive(); } sheet = null; renderLayer(); }
 const CHEV = `<svg class="chv" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>`;
-const swRow = (title, sub, on, act) => `<button class="prefrow" role="switch" aria-checked="${on}" ${act}><span class="grow"><b>${title}</b>${sub ? `<span>${sub}</span>` : ""}</span><span class="sw" aria-hidden="true"></span></button>`;
+const SICO = {'sync': '<path d="M20 11a8 8 0 00-14-4l-2 2M4 13a8 8 0 0014 4l2-2M4 4v5h5M20 20v-5h-5"/>', 'bar': '<path d="M3 12h18M6 8v8M18 8v8M3 10v4M21 10v4"/>', 'pl': '<path d="M2 12h20M5 7v10M19 7v10M8 9v6M16 9v6"/>', 'mu': '<path d="M6 10a4 4 0 014-4h4a4 4 0 010 8h-1l-2 4H9l-1-4a4 4 0 01-2-4z"/>', 'ppl': '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 5a3 3 0 010 6M21 20c0-2.5-1.3-4.6-3.2-5.5"/>'};
+const sic = k => SICO[k] ? `<span class="ic" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${SICO[k]}</svg></span>` : "";
+const swRow = (title, sub, on, act, ico) => `<button class="prefrow" role="switch" aria-checked="${on}" ${act}>${sic(ico)}<span class="grow"><b>${title}</b>${sub ? `<span>${sub}</span>` : ""}</span><span class="sw" aria-hidden="true"></span></button>`;
 const ageTxt = () => { const a = myAges(); return a.length ? a.map(x => AGE_NAME[x]).join(" et ") : ""; };
 /* Réglages (maquette A, choix d'Alane du 22/10) : disciplines, catégories, classements, puis le reste. */
 function settingsHtml(){
   const t = lastSync ? new Date(lastSync) : null, st = streetOn(), pw = powerOn(), mu = muscuOn(), mo = muscuOnly(), b = birth();
   const clv = k => norm(D.profil["classement_" + k]) !== "NON";
   const extra = ALL_LIFTS.filter(l => !((st && LIFTS.includes(l)) || (pw && POWER_LIFTS.includes(l))));
-  return `<div class="row"><p class="show t-m">Réglages</p><button class="btn sm ghost" data-act="sync">Synchroniser</button></div>
-    <p class="muted small" style="margin-top:4px">${t ? "Synchronisé à " + String(t.getHours()).padStart(2, "0") + ":" + String(t.getMinutes()).padStart(2, "0") : "Pas encore synchronisé"}. L'app relit tes Sheets à chaque ouverture.</p>
+  return `<div class="shead"><button class="iconbtn" data-act="closeSheet" aria-label="Retour"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button><p class="show t-m">Réglages</p><span style="width:44px" aria-hidden="true"></span></div>
+    <h2 class="h2 slab">Synchronisation</h2>
+    <button class="prefrow" data-act="sync">${sic("sync")}<span class="grow"><b>Synchroniser maintenant</b><span>${t ? "Synchronisé à " + String(t.getHours()).padStart(2, "0") + ":" + String(t.getMinutes()).padStart(2, "0") : "Pas encore synchronisé"}</span></span>${CHEV}</button>
 
-    <h2 class="h2">Tes disciplines</h2>
-    <div class="group">${swRow("Street lifting", "Muscle-up, tractions, dips, squat · score RIS", st, `data-act="discToggle" data-k="street"`)}${swRow("Powerlifting", "Squat, Bench, Deadlift · score IPF GL", pw, `data-act="discToggle" data-k="power"`)}${swRow("Musculation", "Machines, haltères, poids du corps, cardio", mu, `data-act="discToggle" data-k="muscu"`)}
+    <h2 class="h2 slab">Tes disciplines</h2>
+    <div class="group">${swRow("Street lifting", "Muscle-up, tractions, dips, squat · score RIS", st, `data-act="discToggle" data-k="street"`, "bar")}${swRow("Powerlifting", "Squat, Bench, Deadlift · score IPF GL", pw, `data-act="discToggle" data-k="power"`, "pl")}${swRow("Musculation", "Machines, haltères, poids du corps, cardio", mu, `data-act="discToggle" data-k="muscu"`, "mu")}
       ${pw ? `<div class="prefrow" style="display:block;padding:14px 0"><b style="font:600 16px var(--f-text)">En powerlifting, tu tires</b>
         <div class="segc" role="group" aria-label="Classic ou equipped" style="background:var(--floor);margin-top:10px">${[["CLASSIC", "Classic"], ["EQUIPPED", "Equipped"]].map(([k, x]) => `<button aria-pressed="${(equipped() ? "EQUIPPED" : "CLASSIC") === k}" data-act="powerMode" data-k="${k}">${x}</button>`).join("")}</div>
         <p class="muted small" style="margin-top:8px">Equipped : combinaison et bandes. Le score IPF GL n'est pas le même.</p></div>` : ""}</div>
 
-    <h2 class="h2">Toi</h2>
+    <h2 class="h2 slab">Toi</h2>
     <label style="margin-top:0">Sexe</label>
     <div class="segc" role="group" aria-label="Sexe" style="margin-top:0;background:var(--deck2)">${[["H", "Homme"], ["F", "Femme"]].map(([k, x]) => `<button aria-pressed="${sexe() === k}" data-act="sexSet" data-k="${k}">${x}</button>`).join("")}</div>
     <div class="grid2"><div><label for="snai">Date de naissance</label><input id="snai" type="date" value="${b}" data-chg="birth"></div>
       <div><label for="spays">Pays</label><select id="spays" data-chg="prof" data-k="pays">${paysOptions(monPays())}</select></div></div>
 
-    ${mo ? "" : `<h2 class="h2">Catégories</h2>
+    ${mo ? "" : `<h2 class="h2 slab">Catégories</h2>
     <div class="group">
       ${st ? `<button class="catrow" data-act="catPick" data-k="street" data-from="settings"><span class="grow"><b>Street lifting</b><span>${catAutoOn("categorie") ? "Auto d'après ta pesée" : "Choisie à la main"}</span></span><span class="val">${catTxt(cat()).replace(" kg", "<small>kg</small>")}</span>${CHEV}</button>` : ""}
       ${pw ? `<button class="catrow" data-act="catPick" data-k="power" data-from="settings"><span class="grow"><b>Powerlifting</b><span>${catAutoOn("categorie_ipf") ? "Auto d'après ta pesée" : "Choisie à la main"}</span></span><span class="val">${catTxt(catIpf()).replace(" kg", "<small>kg</small>")}</span>${CHEV}</button>` : ""}
       <div class="catrow"><span class="grow"><b>Âge</b><span>${b ? (ageTxt() ? "Catégories IPF, d'après ta date de naissance" : "Moins de 14 ans : pas de catégorie IPF") : "Ajoute ta date de naissance plus haut"}</span></span><span class="val" style="font-size:22px">${esc(myAges().length ? AGE_NAME[myAges()[0]] : "—")}</span></div>
     </div>
 
-    <h2 class="h2">Classements entre amis</h2>
+    <h2 class="h2 slab">Classements entre amis</h2>
     <div class="group">${st ? swRow("Apparaître en street", "Ton total et ton RIS", clv("street"), `data-act="clVis" data-k="street"`) : ""}${pw ? swRow("Apparaître en powerlifting", "Ton total et tes points IPF GL", clv("power"), `data-act="clVis" data-k="power"`) : ""}</div>
     <p class="muted small" style="margin-top:10px">Ta date de naissance reste dans ton carnet : le classement n'affiche que ta catégorie d'âge.</p>`}
 
-    ${extra.length ? `<h2 class="h2">Mouvements suivis en plus <span class="muted">sans total</span></h2>
+    ${extra.length ? `<h2 class="h2 slab">Mouvements suivis en plus <span class="muted">sans total</span></h2>
     <div class="chips" style="flex-wrap:wrap">${extra.map(l => `<button class="chip" aria-pressed="${suivis().includes(l)}" data-act="suiviToggle" data-l="${l}">${suivis().includes(l) ? "" : "+ "}${LNAME[l]}</button>`).join("")}</div>
     <p class="muted small" style="margin-top:8px">Leurs records et leur 1RM estimé sont gardés, sans compter dans un total.</p>` : ""}
 
-    ${impCan() ? `<h2 class="h2">Ma prog</h2><button class="btn ghost" data-act="impOpen">${coachId() ? "Ajouter un autre programme" : "Ajouter mon programme"}</button>${coachId() && S.some(z => !z.archived) ? `<button class="btn ghost" style="margin-top:8px" data-act="impNext">Préparer le bloc suivant</button>` : ""}<p class="muted small" style="margin-top:8px">Colle tes notes ou un tableau : l'app lit les séances et tu vérifies avant d'enregistrer.</p>${progTabsHtml()}` : ""}
-    <h2 class="h2">Le reste</h2>
+    ${impCan() ? `<h2 class="h2 slab">Ma prog</h2><button class="btn ghost" data-act="impOpen">${coachId() ? "Ajouter un autre programme" : "Ajouter mon programme"}</button>${coachId() && S.some(z => !z.archived) ? `<button class="btn ghost" style="margin-top:8px" data-act="impNext">Préparer le bloc suivant</button>` : ""}<p class="muted small" style="margin-top:8px">Colle tes notes ou un tableau : l'app lit les séances et tu vérifies avant d'enregistrer.</p>${progTabsHtml()}` : ""}
+    <h2 class="h2 slab">Le reste</h2>
     ${Object.keys(blocNames).length ? `<label for="sbl" style="margin-top:0">Bloc en cours</label><select id="sbl" data-chg="blocActif"><option value="">Le dernier onglet de la prog</option>${progOrder.map(n => `<option value="${n}" ${n === chosenBloc() ? "selected" : ""}>${esc(blocLabel(n))}</option>`).join("")}</select>` : ""}
     <div class="grid2"><div><label for="sdc">Début de la prog</label><input id="sdc" type="date" value="${D.profil.debut_coaching || ""}" data-chg="prof" data-k="debut_coaching"></div>
       <div><label for="sds">${st ? "Début du street lifting" : "Début de la muscu"}</label><input id="sds" type="date" value="${D.profil.debut_street || ""}" data-chg="prof" data-k="debut_street"></div></div>
