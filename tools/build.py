@@ -56,7 +56,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
 </head><body>
 
 <main""")
-rep('<p class="muted small" style="margin-top:14px">La première fois, Claude te demande d\'autoriser l\'accès à Google Sheets. Touche « Autoriser ».</p>', "")
+# (v3) l'écran de lancement remplace l'ancien paragraphe d'attente : plus rien à retirer ici
 
 # 2. Couche de données : l'ancienne (connecteur Claude) est retirée, la nouvelle est injectée avant la synchro
 cut("/* =====================================================================\n   ACCÈS AUX DONNÉES", "/* =====================================================================\n   DONNÉES PERSO", "")
