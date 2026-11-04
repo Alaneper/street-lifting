@@ -26,7 +26,10 @@ with sync_playwright() as p:
     check("moins que la barre → pas de calcul", ev("plateCalc(22) === null && plateCalc(null) === null"))
     check("charge impossible : reste signalé", g(108.5)["left"] > 0 and abs(g(108.5)["reached"] - 107.5) < 1e-9 or g(108.5)["left"] > 0)
     # écran réel : aller jusqu'à un exercice avec barre
-    pg.click("#v-home [data-act=startLive]"); pg.wait_for_timeout(1200)
+    # la séance du jour change avec le jour de la semaine : on ouvre explicitement une séance qui contient du squat (barre chargée)
+    key = ev("(() => { const s = S.find(x => !x.archived && x.exercices.some(e => liftOf(e.mouvement) === 'SQUAT')); return s && s.key; })()")
+    check("une séance avec du squat existe dans la prog de test", bool(key), key)
+    ev(f"startLive({key!r})"); pg.wait_for_timeout(1200)
     found = False
     for _ in range(7):
         if ev("!!document.querySelector('#lgear .lg-svg')"): found = True; break

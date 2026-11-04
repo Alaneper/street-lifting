@@ -46,7 +46,7 @@
   }
   coach["TUTORIEL"] = [["x"]]; coach["INFOS GENERALES"] = [["x"]];
   sheets[COACH] = coach;
-  const today = new Date(), iso = d => d.toISOString().slice(0, 10), back = n => { const d = new Date(today); d.setDate(d.getDate() - n); return iso(d); };
+  const today = new Date(), iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"),   /* date LOCALE comme l'app : toISOString donnait la date UTC, donc celle de la veille entre 00h et 01h (heure de Bruxelles) */ back = n => { const d = new Date(today); d.setDate(d.getDate() - n); return iso(d); };
   const poids = [["Date","Poids (kg)","Note"]]; for (let i = 80; i >= 0; i -= 1) if (i % 3 !== 1) poids.push([back(i), fr((74.4 - (80 - i) * 0.015 + Math.sin(i / 3) * 0.35).toFixed(1)), ""]);
   sheets[APP] = {
     PROFIL:[["Clé","Valeur","Note"],["prenom","Alane"],["sexe","H"],["naissance","2006-12-27"],["taille_cm","182"],["categorie","-80"],["coach_sheet_id",COACH],["mu_acquis","NON"],["date_objectif","2027-10-19"],["debut_street","2025-11-04"],["debut_coaching","2026-04-27"]],
