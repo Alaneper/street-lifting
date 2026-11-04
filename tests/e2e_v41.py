@@ -68,7 +68,7 @@ with sync_playwright() as p:
     pg.evaluate("window.__calls.length = 0")
     r = pg.evaluate("""(async () => { const s = S.find(z => z.jour === 'Mardi'); live = null; startLive(s.key); const k = s.exercices.findIndex(e => /COMP Bench/i.test(e.mouvement)); live.i = k; const st = live.rows[k];
       st.sets.forEach(x => { x.done = true; x.r = 6; x.c = 105; }); st.rpeLast = 8; st.dirty = true; render();
-      const showRpe = /Effort ressenti \(RPE\)/.test(document.body.innerText);
+      const showRpe = /RPE de la dernière série/.test(document.body.innerText);
       const ok = await saveRow(k); return {ok, showRpe, faite:s.faite, rpe:rpeSaved(s, s.exercices[k]), row:s.exercices[k].row}; })()""")
     check("RPE proposé sur un mouvement de compétition (modèle WEEK)", r["showRpe"], r)
     check("séance marquée faite (✓)", r["ok"] and r["faite"], r)

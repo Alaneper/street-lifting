@@ -37,7 +37,7 @@ def route2(r):
     return route(r)
 
 with sync_playwright() as p:
-    br = p.chromium.launch(args=['--unsafely-treat-insecure-origin-as-secure=http://app.local','--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream','--use-file-for-fake-video-capture=/tmp/claude-0/-home-claude/4d20e5b2-cdf2-5820-afc5-8b9ae438f4e2/scratchpad/ean.y4m'])
+    br = p.chromium.launch(args=['--unsafely-treat-insecure-origin-as-secure=http://app.local','--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream','--use-file-for-fake-video-capture=' + os.environ.get('EAN_Y4M', '/tmp/ean/ean.y4m') + ''])
     c = br.new_context(permissions=["camera"], viewport={"width":390,"height":844}, device_scale_factor=2, service_workers="block", timezone_id="Europe/Brussels"); c.route("**/*", route2)
     pg = c.new_page(); pg.add_init_script("window.__down = localStorage.getItem('__down') === '1'"); errs = []
     pg.on("pageerror", lambda e: errs.append(str(e))); pg.on("console", lambda m: errs.append(m.text) if m.type == "error" else None)
