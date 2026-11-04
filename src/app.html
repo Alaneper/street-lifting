@@ -1127,6 +1127,12 @@ const MOIS_L = ["janvier","février","mars","avril","mai","juin","juillet","aoû
 const JOURS = ["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
 const cap = s => s ? s[0].toUpperCase() + s.slice(1) : s;
 const isoOf = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+/* Date du jour : lue à l'horloge à chaque usage (date LOCALE, jamais UTC), pas figée au chargement.
+   Une app ouverte avant minuit date donc pesées et séances du bon jour après minuit, même sans réseau ni resynchronisation. */
+const todayIso = () => isoOf(new Date());
+const bindToday = d => { Object.defineProperty(d, "today", {get:todayIso, set(){}, enumerable:true, configurable:true}); return d; };
+/* jour des écritures d'une séance : celui où elle a commencé (une séance qui passe minuit garde une seule date) */
+const wDay = () => live && live.start ? isoOf(new Date(live.start)) : D.today;
 const dObj = iso => new Date(iso + "T12:00:00");
 const dfr = iso => iso ? iso.slice(8) + "/" + iso.slice(5, 7) + "/" + iso.slice(2, 4) : "";
 const dshort = iso => { if (!iso) return ""; const t = dObj(iso); return t.getDate() + " " + MOIS[t.getMonth()]; };
@@ -1469,9 +1475,9 @@ async function loadApp(){
   /* onglet absent (carnet ancien) : on garde ce qu'on avait déjà */
   const nutTabs = x.repas !== null, mrTab = x.mesRepas !== null;
   if (x.archive) { ARCH = x.archive; archTab = true; } else { ARCH = []; archTab = false; }
-  D = {serComHdr:!!x.serComHdr, profil:x.profil, prs:x.prs, poids:x.poids, objectifs:x.objectifs, comps:x.comps, series:x.series, cardio:x.cardio || [], blocs:x.blocs, checks:x.checks, bilans:x.bilans,
+  D = bindToday({serComHdr:!!x.serComHdr, profil:x.profil, prs:x.prs, poids:x.poids, objectifs:x.objectifs, comps:x.comps, series:x.series, cardio:x.cardio || [], blocs:x.blocs, checks:x.checks, bilans:x.bilans,
     repas:nutTabs ? x.repas : (D && D.repas) || [], aliments:nutTabs ? x.aliments : (D && D.aliments) || [], mesRepas:mrTab ? x.mesRepas : (D && D.mesRepas) || {},
-    _mrTab:mrTab, _nutTabs:nutTabs, today:isoOf(new Date())};
+    _mrTab:mrTab, _nutTabs:nutTabs});
   if (!Store.pending() && !live) Store.clearIds();   /* les numéros de ligne sont à nouveau les vrais */
   try { syncDone(); applyAllMods(); } catch(e){}
 }
@@ -2001,7 +2007,7 @@ const fmtSets = sets => { const c0 = sets[0].c; return sets.every(x => x.c === c
 function saveCache(){ if (D) store.set("sl4-cache", {D, S, blocNames, progOrder, liveIds:[...liveIds], archMeta, ARCH:ARCH.slice(-6000), weekMeta, at:Date.now(), all:allLoaded}); }
 function loadCache(){
   const c = store.get("sl4-cache"); if (!c || !c.D) return false;
-  D = c.D; D.today = isoOf(new Date()); S = c.S || []; blocNames = c.blocNames || {}; progOrder = c.progOrder || Object.keys(blocNames).map(Number).sort((x, y) => x - y); liveIds = new Set(c.liveIds || progOrder); archMeta = c.archMeta || {}; ARCH = c.ARCH || []; weekMeta = c.weekMeta || {};
+  D = bindToday(c.D); S = c.S || []; blocNames = c.blocNames || {}; progOrder = c.progOrder || Object.keys(blocNames).map(Number).sort((x, y) => x - y); liveIds = new Set(c.liveIds || progOrder); archMeta = c.archMeta || {}; ARCH = c.ARCH || []; weekMeta = c.weekMeta || {};
   [D.series, D.cardio].forEach(l => (l || []).forEach(x => { x.ex = String(x.ex).replace(/ ·\s*$/, ""); }));   /* ancien format de clé (v49 et avant) */
   S.forEach(s => loadedBlocs.add(s.bloc)); allLoaded = !!c.all; migrateIds(); return true;
 }
@@ -2817,7 +2823,7 @@ async function saveRow(k){
   if (isCardioEx(e)) {   /* cardio : une ligne SERIES « 10 min 3,2 km + 5 min », jamais dans les records */
     try {
       if (done.length) {
-        const row = [D.today, s.bloc, s.semaine, s.seance, key, cardioTot(done).min, fmtCardio(done), "app", "L" + e.row];
+        const row = [wDay(), s.bloc, s.semaine, s.seance, key, cardioTot(done).min, fmtCardio(done), "app", "L" + e.row];
         D.cardio = D.cardio || [];
         const same = x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row);
         let ex = D.cardio.find(same);
@@ -2825,9 +2831,9 @@ async function saveRow(k){
         const prevCom = (ex && ex.com) || "", com = st.com !== undefined ? String(st.com).trim().slice(0, 300) : prevCom;
         if (com || prevCom) row[9] = com;
         if (com && !D.serComHdr) { await Store.series.comHeader(); D.serComHdr = true; }
-        if (ex && ex.id) { await Store.series.update(ex.id, row); ex.sets = done; ex.note = "L" + e.row; ex.date = D.today; ex.com = com; }
+        if (ex && ex.id) { await Store.series.update(ex.id, row); ex.sets = done; ex.note = "L" + e.row; ex.date = wDay(); ex.com = com; }
         else { const id = await Store.series.add(row);
-          D.cardio.push({id:id, date:D.today, bloc:s.bloc, semaine:s.semaine, seance:s.seance, ex:key, charge:row[5], sets:done, note:"L" + e.row, com}); }
+          D.cardio.push({id:id, date:wDay(), bloc:s.bloc, semaine:s.semaine, seance:s.seance, ex:key, charge:row[5], sets:done, note:"L" + e.row, com}); }
         if (com !== prevCom && s.cols.commentaire) await coachCom(s, e, "", false, com, prevCom);
         s.faite = true;
       }
@@ -2842,16 +2848,16 @@ async function saveRow(k){
       if (!back || back.length !== done.length || back.some((y, i) => y.r !== done[i].r || Math.abs(y.c - done[i].c) > 1e-9)) {
         toast("Ces séries n'ont pas pu être enregistrées telles quelles (valeur inattendue). Vérifie les chiffres puis revalide.", true); return false; }
       const rpW = s.week && st.rpeLast !== null && st.rpeLast !== undefined ? st.rpeLast : null;
-      const row = [D.today, s.bloc, s.semaine, s.seance, key, Math.max(...done.map(x => x.c)), setsTxt, "app" + (rpW !== null ? " · RPE " + String(rpW).replace(".", ",") : ""), "L" + e.row];
+      const row = [wDay(), s.bloc, s.semaine, s.seance, key, Math.max(...done.map(x => x.c)), setsTxt, "app" + (rpW !== null ? " · RPE " + String(rpW).replace(".", ",") : ""), "L" + e.row];
       const ex = D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
       if (ex && !ex.id) await loadApp();
       const ex2 = ex && D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
       const prevCom = (ex2 && ex2.com) || "", com = st.com !== undefined ? String(st.com).trim().slice(0, 300) : prevCom;
       if (com || prevCom) row[9] = com;   /* sans commentaire, la ligne reste exactement comme avant (9 colonnes) */
       if (com && !D.serComHdr) { await Store.series.comHeader(); D.serComHdr = true; }
-      if (ex2 && ex2.id) { await Store.series.update(ex2.id, row); ex2.sets = done; ex2.note = "L" + e.row; ex2.date = D.today; ex2.src = row[7]; ex2.com = com; }
+      if (ex2 && ex2.id) { await Store.series.update(ex2.id, row); ex2.sets = done; ex2.note = "L" + e.row; ex2.date = wDay(); ex2.src = row[7]; ex2.com = com; }
       else { const id = await Store.series.add(row);
-        D.series.push({id:id, date:D.today, bloc:s.bloc, semaine:s.semaine, seance:s.seance, ex:key, charge:row[5], sets:done, note:"L" + e.row, src:row[7], com}); }
+        D.series.push({id:id, date:wDay(), bloc:s.bloc, semaine:s.semaine, seance:s.seance, ex:key, charge:row[5], sets:done, note:"L" + e.row, src:row[7], com}); }
       s.faite = true; _dm = null;
       if (s.week && !e._mod) {   /* Sheet du coach : reps et charges faites, dans ses colonnes « faites » (bloc EFFECTUE = zone du sportif) */
         const fr = v => String(v).replace(".", ","), repsT = done.map(x => x.r).join(", "), chT = sameC ? fr(done[0].c) : done.map(x => fr(x.c)).join(", ");
@@ -3318,7 +3324,7 @@ function weighHtml(){
   return `<p class="show t-m">${tw ? "Corriger la pesée du jour" : TXT.peseeJour}</p><p class="muted small" style="margin:4px 0 14px">Le matin, à jeun, après les toilettes.${last ? " " + (last.date === addDays(D.today, -1) ? "Hier : " : dJM(last.date) + " : ") + kg(last.poids, 1) + "." : ""}</p>
     <div class="stepper"><button data-act="stepW" data-d="-0.1" aria-label="Moins 100 g">−</button><input id="cw" inputmode="decimal" value="${esc(v0)}" aria-label="Poids en kg" data-inp="cw"><button data-act="stepW" data-d="0.1" aria-label="Plus 100 g">+</button></div>
     ${lim ? `<p class="muted small" id="cwlim" style="margin-top:10px;text-align:center">${okW(num(v0)) ? limTxt(num(v0), lim) : ""}</p>` : ""}
-    <div class="grid2" style="margin-top:8px;grid-template-columns:1.15fr 1fr"><input id="cwd" type="date" value="${D.today}" aria-label="Date" style="background:var(--deck3);border:0;color:var(--chalk)"><button class="btn" style="min-height:48px" data-act="saveW" data-src="cw">${tw ? "Corriger" : "Enregistrer"}</button></div>`;
+    <div class="grid2" style="margin-top:8px;grid-template-columns:1.15fr 1fr"><input id="cwd" type="date" value="${D.today}" data-d0="${D.today}" aria-label="Date" style="background:var(--deck3);border:0;color:var(--chalk)"><button class="btn" style="min-height:48px" data-act="saveW" data-src="cw">${tw ? "Corriger" : "Enregistrer"}</button></div>`;
 }
 function rPoids(){
   const P = D.poids, last = P.at(-1), lim = catLimit(), V = inRange(P, pwRange), mm = avg7(P), mmV = mm.slice(P.length - V.length), tw = P.find(p => p.date === D.today);
@@ -3797,13 +3803,14 @@ const ACT = {
   rpe:d => { const st = live.rows[live.i]; st[d.f] = st[d.f] === +d.v ? null : +d.v; st.dirty = true; persistLive(); renderLayer(); },
   finishLive:() => finishLive(),
   closeSummary:() => { const gs = ghostMake(); sheet = null; live = null; renderLayer(); ghostShow(gs); syncAll(true); },
-  livePR:async d => { await addPR(d.l, +d.c, 1, D.today, "Séance " + (seanceByKey(live.key) || {}).seance); $("#prbox").innerHTML = ""; },
+  livePR:async d => { await addPR(d.l, +d.c, 1, wDay(), "Séance " + (seanceByKey(live.key) || {}).seance); $("#prbox").innerHTML = ""; },
   restPause:() => { if (!rest) return; if (rest.pauseAt) { rest.end += Date.now() - rest.pauseAt; rest.pauseAt = 0; } else rest.pauseAt = Date.now(); },
   restAdd:d => { if (rest) { rest.end += +d.s * 1000; rest.total = Math.max(rest.total, Math.round((rest.end - Date.now()) / 1000)); rest.beeped = false; } },
   pdcSave:async () => { const v = num($("#pw").value); if (!v) return toast("Indique ton poids", true); await saveWeight(v, D.today, true); live.pdc = true; persistLive(); closeSheet(); },
   pdcSkip:() => { live.pdc = true; persistLive(); closeSheet(); },
   stepW:(d, el) => { const i = el.parentNode.querySelector("input"); const v = num(i.value) || bw() || 70; i.value = fmt(v + +d.d, 1); if (i.id === "hw" || i.id === "cw") hwRefresh(); },
-  saveW:async d => { const v = num($("#" + d.src).value), dt = (d.src === "cw" && $("#cwd").value) || D.today; if (!v || v < 30 || v > 250) return toast("Indique un poids valide", true); await saveWeight(v, dt, false); if ((sheet === "weigh" || sheet === "pday") && D.poids.some(p => p.date === dt && p.poids === v)) closeSheet(); },
+  saveW:async d => { const el = d.src === "cw" ? $("#cwd") : null, dv = el ? el.value : "", v = num($("#" + d.src).value), dt = dv && !(el.dataset.d0 && dv === el.dataset.d0) ? dv : D.today;   /* date laissée par défaut = jour actuel, même si la feuille est restée ouverte pendant minuit */
+    if (!v || v < 30 || v > 250) return toast("Indique un poids valide", true); await saveWeight(v, dt, false); if ((sheet === "weigh" || sheet === "pday") && D.poids.some(p => p.date === dt && p.poids === v)) closeSheet(); },
   wOpen:() => openSheet("weigh"),
   wAll:() => openSheet("pesees"),
   pwRange:d => { pwRange = d.k; pwAnim = true; rCorps(); },
@@ -4944,7 +4951,12 @@ async function syncAll(silent){
   finally { syncing = false; }
 }
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && D) { flushOutbox().finally(() => { if (Date.now() - lastSync > 60000 && !live) syncAll(true); }); } });
-setInterval(() => { if (document.visibilityState === "visible" && D) { flushOutbox().finally(() => { if (Date.now() - lastSync > 10 * 60000 && !live) syncAll(true); }); } }, 60000);
+/* passage de minuit : la date du jour change toute seule (D.today est lu à l'horloge) ; on remet à jour ce qui était calé sur l'ancienne date et on redessine */
+let lastDay = todayIso();
+function dayTick(){ const t = todayIso(); if (t === lastDay) return; const old = lastDay; lastDay = t; if (nutDate === old) nutDate = t; if (!D) return; if (!live && !sheet) { try { render(); } catch(e){} } }
+function armMidnight(){ const n = new Date(), m = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1, 0, 0, 1); setTimeout(() => { dayTick(); armMidnight(); }, Math.max(1000, m - n)); }
+armMidnight(); document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") dayTick(); });
+setInterval(() => { if (document.visibilityState === "visible" && D) { dayTick(); flushOutbox().finally(() => { if (Date.now() - lastSync > 10 * 60000 && !live) syncAll(true); }); } }, 60000);
 function fatal(msg){ $("#v-home").innerHTML = `<div class="empty"><p>${esc(msg)}</p><button class="btn ghost sm" data-act="boot">Réessayer</button></div>`; }
 ACT.boot = () => boot();
 /* LANCEMENT : trois vraies étapes. 1 Fichiers (la page et ses polices sont chargées), 2 Données locales (cache lu et écran affiché), 3 Synchro.
