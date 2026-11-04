@@ -17,7 +17,7 @@ def route(r):
     if m:
         f = m.group(1) or "index.html"
         if f in ("index.html", "test-build.html"):
-            html = (P / "test-build.html").read_text().replace("<head>", "<head><script src='/mock.js'></script><script src='/shim.js'></script>", 1)
+            html = (P / "test-build.html").read_text().replace("<head>", "<head><script src='/mock.js'></script><script src='/shim.js'></script>" + ("" if os.environ.get("SL_NEWS") else "<script>window.__noNews=true</script>"), 1)   # « Nouveautés » (v69) déjà vue, sauf SL_NEWS=1 (tests e2e_v95 / v96)
             import os as _os
             if _os.environ.get("SAFE_TOP"): html = html.replace("env(safe-area-inset-top,0px)", _os.environ["SAFE_TOP"])  # simule l'encoche : SAFE_TOP=47px
             if _os.environ.get("SAFE_BOTTOM"): html = html.replace("env(safe-area-inset-bottom,0px)", _os.environ["SAFE_BOTTOM"])  # simule la barre d'accueil : SAFE_BOTTOM=34px

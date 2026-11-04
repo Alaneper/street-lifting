@@ -3784,7 +3784,7 @@ const optsHtml = () => `<h2 class="h2 slab">Affichage de la séance</h2><div cla
 function csQuestion(){ const id = coachId(); return !!(id && !chargeSyncOn(id) && S.length && !S.some(z => z.week) && S.some(z => z.sheet && z.cols && z.cols.charge)); }
 function newsState(){ let n = null; try { n = store.get(NEWS_K); } catch(e){} return n && typeof n === "object" ? n : {}; }
 function maybeNews(){
-  if (live || sheet || page || !D || !D.today || !S) return;
+  if (window.__noNews || live || sheet || page || !D || !D.today || !S) return;   /* __noNews : crochet de test, comme __down / __animForce */
   const n = newsState(), id = coachId(), existing = (D.series && D.series.length) || S.length || (D.poids && D.poids.length), askQ = csQuestion() && !(n.q || {})[id];
   if (n.v === NEWS_V && !askQ) return;
   if (n.v !== NEWS_V && !existing) { if (lastSync > 0) store.set(NEWS_K, Object.assign({}, n, {v:NEWS_V})); return; }   /* nouveau compte (données déjà lues, aucune trouvée) : rien à annoncer ; sinon on attend la fin de la lecture */

@@ -1,7 +1,8 @@
 """Lot final · règle des options : tout est ACTIVÉ par défaut ; chaque option se coupe dans Réglages › Affichage de la séance ; message « Nouveautés » unique ;
 silhouettes seulement pour les correspondances sûres ; question « C'est ta prog perso ? » jamais activée en silence.
 Rejoue : python3 tests/e2e_v95_options.py"""
-import pathlib
+import pathlib, os
+os.environ['SL_NEWS'] = '1'
 H = pathlib.Path(__file__).resolve().parent
 src = (H / "e2e.py").read_text(); exec(src[:src.index("with sync_playwright()")])
 fails = []

@@ -1,7 +1,8 @@
 """Lot final · « Nouveautés » et question « C'est ta prog perso ? » : compte neuf = rien ; compte existant = une fois ; choix déjà faits conservés ;
 la charge dans le Sheet n'est JAMAIS activée sans réponse « Oui » ; jamais proposée sur un modèle coach WEEK.
 Rejoue : python3 tests/e2e_v96_nouveautes.py"""
-import pathlib
+import pathlib, os
+os.environ['SL_NEWS'] = '1'
 H = pathlib.Path(__file__).resolve().parent
 src = (H / "e2e.py").read_text(); exec(src[:src.index("with sync_playwright()")])
 fails = []
