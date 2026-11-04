@@ -1,6 +1,10 @@
 // Banc d'essai : simule le connecteur Google Sheets avec une prog de 7 blocs au format ATS.
 (function(){
   const APP = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA", COACH = "1PLTt-6Qb7kdPXTornMlyJfiH-Pxo3V-2FPD-BkRW2LU";
+  // Dates du jeu de test glissantes : le jeu est calé sur le 4 nov. 2026 (bloc en cours, compétitions à venir) et suit l'horloge par semaines entières,
+  // pour que les tests rejoués à une autre date (tests/run_at.py) retrouvent la même situation.
+  const SHIFT = Math.round((Date.now() - Date.parse("2026-11-04T12:00:00Z")) / (7 * 864e5)) * 7;
+  const dj = iso => { const d = new Date(iso + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + SHIFT); return d.toISOString().slice(0, 10); };
   const sheets = {}; // id -> {title -> 2D array}
   const fr = n => String(n).replace(".", ",");
   function grid(){ return []; }
@@ -49,12 +53,12 @@
   const today = new Date(), iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"),   /* date LOCALE comme l'app : toISOString donnait la date UTC, donc celle de la veille entre 00h et 01h (heure de Bruxelles) */ back = n => { const d = new Date(today); d.setDate(d.getDate() - n); return iso(d); };
   const poids = [["Date","Poids (kg)","Note"]]; for (let i = 80; i >= 0; i -= 1) if (i % 3 !== 1) poids.push([back(i), fr((74.4 - (80 - i) * 0.015 + Math.sin(i / 3) * 0.35).toFixed(1)), ""]);
   sheets[APP] = {
-    PROFIL:[["Clé","Valeur","Note"],["prenom","Alane"],["sexe","H"],["naissance","2006-12-27"],["taille_cm","182"],["categorie","-80"],["coach_sheet_id",COACH],["mu_acquis","NON"],["date_objectif","2027-10-19"],["debut_street","2025-11-04"],["debut_coaching","2026-04-27"]],
+    PROFIL:[["Clé","Valeur","Note"],["prenom","Alane"],["sexe","H"],["naissance","2006-12-27"],["taille_cm","182"],["categorie","-80"],["coach_sheet_id",COACH],["mu_acquis","NON"],["date_objectif",dj("2027-10-19")],["debut_street","2025-11-04"],["debut_coaching",dj("2026-04-27")]],
     PR:[["Date","Mouvement","Charge (kg)","Reps","Note"],[back(150),"SQUAT","95","1",""],[back(90),"SQUAT","102,5","1",""],[back(0),"SQUAT","110","1","PR déclaré"],[back(120),"PULL","25","1",""],[back(0),"PULL","32,5","1",""],[back(100),"DIP","35","1",""],[back(0),"DIP","45","1",""]],
     POIDS:poids,
     OBJECTIFS:[["Mouvement","Objectif (kg)","Note"],["MU",""],["PULL","40"],["DIP","55"],["SQUAT","130"]],
     RECORDS:[["Type","Catégorie","Mouvement","Record (kg)","Détenteur","Source","Vérifié le"],["WR","-80","TOTAL","538,5","Aubin Chevillard (FRA)","https://rankings.officialstreetlifting.com/records/male/classes/-80kg","2026-10-19"],["WR","-80","PULL","120","Dmitrii Vlasov (RUS)","x","2026-10-19"],["WR","-80","DIP","175","Benjamin Detre (FRA)","x","2026-10-19"],["WR","-80","SQUAT","271,5","Michael Incoronato (ITA)","x","2026-10-19"],["NR BE","-80","PULL","100,25","François Conreur (BEL)","x","2026-10-19"],["NR BE","-80","DIP","150","François Conreur (BEL)","x","2026-10-19"],["NR BE","-80","SQUAT","220","Albert Israelyan (BEL)","x","2026-10-19"]],
-    COMPETITIONS:[["Date","Nom","Lieu","Note","Statut"],["2026-11-14","NOAA BSLC","","Date à confirmer","À confirmer"],["2026-12-06","Rookie","","","Confirmée"]],
+    COMPETITIONS:[["Date","Nom","Lieu","Note","Statut"],[dj("2026-11-14"),"NOAA BSLC","","Date à confirmer","À confirmer"],[dj("2026-12-06"),"Rookie","","","Confirmée"]],
     SERIES:[["Date","Bloc","Semaine","Séance","Exercice","Charge (kg)","Reps par série","Source","Note"]],
     BLOCS:[["Bloc","Lundi de la semaine 1","Note"]], TENTATIVES:[["h"]], CHECKLIST:[["h"]], BILAN:[["h"]]
   };
