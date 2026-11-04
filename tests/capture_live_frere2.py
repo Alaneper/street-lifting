@@ -39,7 +39,8 @@ with sync_playwright() as p:
         # valide la 1re série : minuteur de repos + RPE 1re série
         pg.click("[data-act=doneSet].btn") if pg.locator(".vbar [data-act=doneSet]").count() else None
         pg.wait_for_timeout(900)
-        ev("() => { document.querySelector('.live').scrollTop = 0; }"); pg.wait_for_timeout(300)
+        if not os.environ.get('NATURAL'): ev("() => { document.querySelector('.live').scrollTop = 0; }")   # NATURAL=1 : première vue réelle après validation, sans remise en haut
+        pg.wait_for_timeout(300)
         pg.screenshot(path=str(SHOT / f"{name}-3-apres-serie1-repos.png"))
         res[name]["repos"] = ev("""() => { const x = document.querySelector('#restbox'); if (!x) return null; const b = x.getBoundingClientRect(), v = document.querySelector('.vbar').getBoundingClientRect(); return {haut:Math.round(b.top), bas:Math.round(b.bottom), barre_haut:Math.round(v.top), texte:x.innerText.replace(/\\s+/g,' ')}; }""")
         res[name]["rpe_apres_s1"] = ev("() => { const x = [...document.querySelectorAll('.lrh span')].map(s => s.textContent); return x; }")

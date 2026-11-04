@@ -520,10 +520,10 @@ html,body{overflow-x:clip}body{margin-top:0}
 .lg-lab{font:600 11px var(--f-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--faint)}
 .lg-bar{display:flex;flex-direction:column;gap:6px;align-items:center}.lg-svg{width:100%;height:auto;max-height:96px;display:block}
 .lg-t{font:13px var(--f-text);color:var(--dust);align-self:flex-start}.lg-t b{color:var(--chalk)}.lg-warn{color:var(--warn)}
-.vbar{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 12px);background:linear-gradient(transparent,var(--floor) 38%);max-width:560px;margin:0 auto}
+.vbar{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 12px);background:var(--floor);box-shadow:0 -1px 0 var(--seam);max-width:560px;margin:0 auto}
 .live{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 92px)}
 body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
-.live.resting{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 226px)}
+.live.resting{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 160px)}
 /* Carte musculaire : planche craie (v3), principal rouge, secondaire rouge clair */
 .mplate{--paper:#F1EDE4;--sk:#DCD7CD;--skd:#D1CBC0;--ink:#2A2622;--lne:#6E675E;--fib:#9D968B;--rdf:#DC3A1C;--rdd:#B02A11;--rd2:#EFA893;--fibr:#8E2010;background:var(--paper);border-radius:var(--r-lg);padding:10px;display:flex;align-items:center;justify-content:center;gap:2px;height:var(--mh,240px);overflow:hidden}
 .mplate .fig{height:100%;width:auto;display:block}
@@ -620,17 +620,17 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 .lights{display:inline-flex;gap:6px;justify-content:flex-end}.lights i{width:11px;height:11px;border-radius:50%;box-sizing:border-box;border:1.5px solid var(--faint)}
 .lights.on i{background:var(--chalk);border-color:var(--chalk);animation:lamp var(--t3) var(--ease) both}.lights.on i:nth-child(2){animation-delay:.1s}.lights.on i:nth-child(3){animation-delay:.2s}
 .lights.rec i{background:var(--acc);border-color:var(--acc);animation:lamp var(--t3) var(--ease) both}.lights.rec i:nth-child(2){animation-delay:.1s}.lights.rec i:nth-child(3){animation-delay:.2s}
-.lgb{margin:6px 0 8px;padding:6px 12px 8px;border-radius:var(--r);background:var(--floor);box-shadow:inset 0 0 0 1px var(--seam)}.lg-t{font:500 13px var(--f-text);align-self:center;text-align:center}.lg-svg{max-height:110px}
+.lgb{margin:6px 0 8px;padding:6px 12px 8px;border-radius:var(--r);background:var(--floor);box-shadow:inset 0 0 0 1px var(--seam)}.lg-t{font:500 13px var(--f-text);align-self:center;text-align:center}.lgb:has(.lg-cl){margin:4px 0 6px;padding:4px 12px}.lg-fix{min-height:44px;margin:2px auto 0;padding:0 14px;border-radius:var(--r);background:var(--deck2);color:var(--chalk);font:700 13px var(--f-text);box-shadow:inset 0 0 0 1px var(--acc)}.lg-warn{font:500 12px var(--f-text);text-align:center;display:block}.lg-cl{flex-wrap:wrap}.lg-cl{display:flex;align-items:center;justify-content:center;gap:10px;min-height:32px}.lg-pl{height:auto;align-items:flex-end}.lg-svg{max-height:110px}
 .lsets{margin-top:10px;background:var(--deck);border-radius:var(--r-lg);padding:8px;box-shadow:var(--sh1)}
 @keyframes lamp{from{transform:scale(.3);opacity:0}}
 .lrpe{margin-top:14px}.lrh{display:flex;align-items:center;justify-content:space-between;font:500 14px var(--f-text);color:var(--dust)}.lrh .chip{min-height:44px;min-width:44px;padding:0;border-radius:var(--r-lg);background:none;color:var(--dust)}
 .lrpe .rpe{margin-top:2px;gap:8px}.lrpe .rpe button{min-width:44px;height:44px;background:var(--deck2);font:700 17px var(--f-text);color:var(--chalk);padding:0 6px}
 .lrpe .rpe button[aria-pressed="true"]{background:var(--deck);color:var(--chalk);box-shadow:inset 0 0 0 2px var(--acc)}
-.lrest{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 82px);z-index:44;max-width:536px;margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center;padding:10px 14px 2px;border-radius:var(--r-lg);background:var(--deck2);box-shadow:inset 0 0 0 1px var(--seam),0 10px 28px color-mix(in srgb,var(--black) 55%,transparent)}.lrest-sp{height:150px}
-.lrt{display:flex;align-items:baseline;gap:8px}.lrt>span:first-child{font:500 14px var(--f-text);color:var(--dust)}.lrt b{font:800 32px/1 var(--f-show)}.lrtot{font:500 13px var(--f-text);color:var(--faint)}
-.lrest .rb{width:48px;height:48px;border-radius:var(--r-xl);background:var(--chalk);color:var(--floor);font-size:15px;grid-row:1}
-.lrbar{grid-column:1/-1;height:4px;border-radius:var(--r-xs);background:var(--deck3);overflow:hidden}.lrbar i{display:block;height:100%;background:var(--chalk);transform-origin:left;transform:scaleX(0);transition:transform var(--t2) linear}
-.lrx{grid-column:1/-1;display:flex;justify-content:space-between}.lrx button{min-height:40px;min-width:48px;padding:0 8px;font:600 13px var(--f-text);color:var(--dust)}
+.lrest{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 82px);z-index:44;max-width:536px;margin:0 auto;display:flex;align-items:center;gap:6px;padding:6px 6px 8px 14px;border-radius:var(--r-lg);overflow:hidden;background:var(--deck2);box-shadow:inset 0 0 0 1px var(--seam),0 10px 28px color-mix(in srgb,var(--black) 55%,transparent)}.lrest-sp{height:0}
+.lrt{display:flex;align-items:baseline;gap:6px;flex:1;min-width:0}.lrt>span:first-child{font:500 13px var(--f-text);color:var(--dust)}.lrt b{font:800 26px/1 var(--f-show)}.lrtot{font:500 12px var(--f-text);color:var(--faint)}
+.lrest .rb{width:44px;height:44px;flex:none;border-radius:var(--r-xl);background:var(--chalk);color:var(--floor);font-size:14px;order:2}
+.lrbar{position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--deck3);overflow:hidden}.lrbar i{display:block;height:100%;background:var(--chalk);transform-origin:left;transform:scaleX(0);transition:transform var(--t2) linear}
+.lrx{order:3;display:flex;flex:none}.lrx button{min-height:44px;min-width:44px;padding:0 6px;font:600 13px var(--f-text);color:var(--dust)}
 .lrest.over .lrt b{color:var(--acc)}
 .sheet.full .grab{display:none}.fin-d{font:500 15px var(--f-text)!important;letter-spacing:0!important;text-transform:none!important;color:var(--dust)!important;margin:0}.ft span{font:500 12px var(--f-text)!important;letter-spacing:0!important;text-transform:none!important;color:var(--faint)}.ft b{font:800 30px/1 var(--f-show)}
 .fin-h{display:flex;align-items:center;justify-content:space-between;gap:10px}.fin-h .iconbtn{background:var(--deck);width:44px;height:44px}
@@ -2588,14 +2588,20 @@ function platesMini(l, c){
   const lab = (bar ? "Par côté : " : "Lest : ") + k.out.map(p => fmt(p)).join(" + ") + " kg" + (k.left > 0 ? " (reste " + fmt(k.left, 2) + " kg non chargeable)" : "");
   return `<span class="pl" role="img" aria-label="${esc(lab)}">${bar ? `<em>par côté</em>` : ""}${k.out.map(p => `<i style="background:${PLATE_STYLE[p][0]};height:${Math.round(PLATE_STYLE[p][1] / 4.6)}px;width:${p >= 10 ? 8 : p >= 5 ? 6 : 5}px"></i>`).join("")}</span>`;
 }
+/* Charge inatteignable avec les disques disponibles : on le dit et un tap met la charge réellement chargeable (sur la série en cours) */
+const reachFix = (total, reached) => `<span class="lg-warn">${fmt(total, 2)} kg n'est pas chargeable avec ces disques</span><button class="lg-fix" data-act="useReach" data-v="${reached}">Mettre ${fmt(reached, 2)} kg</button>`;
 function lestHtml(total){
   const c = lestCalc(total); if (!c) return `<span class="lg-t">${num(total) === null ? "Saisis le lest pour voir les disques" : "Sans lest : pas de disque"}</span>`;
+  if (c.out.length <= 2) {   /* petite charge (≤ 2 disques) : une ligne, pas de grand bloc */
+    const lab = c.out.map(p => fmt(p)).join(" + ");
+    return `<div class="lg-cl"><span class="pl lg-pl" role="img" aria-label="Disques du lest : ${esc(lab)} kg">${c.out.map(p => `<i style="background:${PLATE_STYLE[p][0]};height:${Math.round(PLATE_STYLE[p][1] / 3.4)}px;width:${p >= 10 ? 10 : p >= 5 ? 8 : 6}px"></i>`).join("")}</span><span class="lg-t">Lest : ${esc(lab)} kg</span>${c.left > 0 ? reachFix(num(total), c.reached) : ""}</div>`;
+  }
   const gap = 5, ws = c.out.map(p => Math.max(16, PLATE_STYLE[p][2] * 1.5)), tw = ws.reduce((a, b) => a + b + gap, 0) - gap, W = Math.max(tw + 20, 200); let x = (W - tw) / 2, g = "";
   c.out.forEach((p, i) => { const h = PLATE_STYLE[p][1] * .9, y = 6 + (80 - h) / 2, w = ws[i];
     g += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="${PLATE_STYLE[p][0]}" stroke="#0C0B0A" stroke-width="1"/><text x="${x + w / 2}" y="104" text-anchor="middle" font-size="11" fill="#B4AFA7" font-family="sans-serif">${fmt(p)}</text>`; x += w + gap; });
   const side = c.out.map(p => fmt(p)).join(" + ");
   return `<svg viewBox="0 0 ${W} 112" role="img" aria-label="Disques du lest : ${esc(side)} kg" class="lg-svg lg-lest"><line x1="${W / 2}" y1="0" x2="${W / 2}" y2="6" stroke="#8A857D" stroke-width="3"/>${g}</svg>
-    <span class="lg-t">Lest : ${esc(side)} kg${c.left > 0 ? ` · <span class="lg-warn">${fmt(c.reached, 2)} kg avec ces disques (reste ${fmt(c.left, 2)} kg)</span>` : ""}</span>`;
+    <span class="lg-t">Lest : ${esc(side)} kg</span>${c.left > 0 ? reachFix(num(total), c.reached) : ""}`;
 }
 const gearHtml = (l, c) => BARBELL_LIFTS.includes(l) ? barbellHtml(c) : BW_LIFTS.includes(l) ? lestHtml(c) : "";
 /* Barre vue de face en entier : les plus gros disques au centre, collier à l'extérieur, de chaque côté. */
@@ -2610,7 +2616,7 @@ function barbellHtml(total){
   return `<svg viewBox="0 0 ${W} 92" role="img" aria-label="Barre chargée : ${esc(side)} par côté" class="lg-svg"><rect x="0" y="42" width="${W}" height="8" rx="3" fill="#8A857D"/>
     <rect x="${mid - gap - 4}" y="36" width="5" height="20" rx="1.5" fill="#B4AFA7"/><rect x="${mid + gap - 1}" y="36" width="5" height="20" rx="1.5" fill="#B4AFA7"/>${L}${R}
     <rect x="${mid - gap - x - 14}" y="38" width="8" height="16" rx="2" fill="#B4AFA7"/><rect x="${mid + gap + x + 6}" y="38" width="8" height="16" rx="2" fill="#B4AFA7"/></svg>
-    <span class="lg-t">Par côté : ${esc(side)}${c.left > 0 ? ` · <span class="lg-warn">chargé ${fmt(c.reached, 2)} kg avec ces disques</span>` : ""}</span>`;
+    <span class="lg-t">Par côté : ${esc(side)}</span>${c.left > 0 ? reachFix(num(total), c.reached) : ""}`;
 }
 /* Séance en direct : la barre de disques se place juste sous la série en cours ; les muscles sont repliés (la prescription est déjà en titre).
    « Voir l'exécution » est retiré : il ouvrait la fiche du mouvement (record, 1RM), qui ne contient aucune consigne d'exécution. */
@@ -2744,6 +2750,11 @@ function prevRowSets(s, k){
 function bestBefore(key){ const o = exercisePoints().find(z => z.key === key); if (!o) return null; const p = o.pts.filter(x => x.sk !== live.key); return p.length ? Math.max(...p.map(x => x.e1rmBest)) : null; }
 const liveCardio = () => { const s = live && seanceByKey(live.key); return !!(s && s.exercices[live.i] && isCardioEx(s.exercices[live.i])); };
 /* retour tactile : Android seulement (iOS ne le permet pas aux web apps) ; coupé avec prefers-reduced-motion */
+function rpeIntoView(){
+  const L = document.querySelector(".live"), rows = [...document.querySelectorAll(".live .lrpe")], r = rows[rows.length - 1]; if (!L || !r) return;
+  const free = innerHeight - (rest ? 168 : 100) - 8, bot = r.getBoundingClientRect().bottom;
+  if (bot > free) L.scrollTop += Math.min(bot - free, L.scrollHeight);
+}
 function onSetDone(j){
   const s = seanceByKey(live.key), e = s.exercices[live.i], st = live.rows[live.i], x = st.sets[j], l = liftOf(e.mouvement);
   const tr = document.querySelector('.setrow[data-j="' + j + '"]');
@@ -2758,6 +2769,7 @@ function onSetDone(j){
   if (!x.done) return renderLayer();
   if (x.c === null || x.c === undefined || x.c === "") x.c = l && BW_LIFTS.includes(l) ? 0 : x.c;
   renderLayer();
+  if (j === 0 || j === st.sets.length - 1) setTimeout(rpeIntoView, 60);   /* la ligne RPE qui vient d'apparaître reste au-dessus du minuteur et de la barre du bas */
   if (isTimedEx(e)) return;   /* un temps tenu n'est ni un record de charge ni un 1RM */
   /* Record en direct */
   const w = bw(), b0 = bestBefore(exKey(e)), cur = x.r ? e1rm(num(x.c) || 0, x.r, l, w) : null;
@@ -3203,8 +3215,8 @@ function areaSvg(pts){
   const xt = xd.map((d, i) => `<text x="${X(d).toFixed(1)}" y="${H - 8}" text-anchor="${i === 0 ? "start" : i === xd.length - 1 ? "end" : "middle"}" fill="var(--faint)" style="font:500 11px var(--f-text)">${xl[i]}</text>`).join("");
   ICH.area = {W, pts:pts.map((p, i) => ({x:q[i][0], y:q[i][1], tip:`<b>${esc(dFull(p.date))}</b><span>${fmt(p.v)} kg</span><small>${i ? sgn(p.v - pts[i - 1].v, 2) + " kg vs " + esc(dJM(pts[i - 1].date)) : "Premier record daté"}</small>`}))};
   return `<div class="ichart"><svg class="pw-svg" data-ich="area" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Courbe : de ${fmt(pts[0].v)} à ${fmt(pts.at(-1).v)} kg">
-    ${grid}<path d="${line} L${last[0].toFixed(1)} ${y1} L${q[0][0].toFixed(1)} ${y1} Z" fill="var(--data)" opacity=".13"/><path d="${line}" fill="none" stroke="var(--data)" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"/>
-    <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="6" fill="var(--data)" stroke="var(--floor)" stroke-width="2.5"/>${xt}
+    ${grid}${pts.length < 3 ? "" : `<path d="${line} L${last[0].toFixed(1)} ${y1} L${q[0][0].toFixed(1)} ${y1} Z" fill="var(--data)" opacity=".13"/><path d="${line}" fill="none" stroke="var(--data)" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"/>`}
+    ${(pts.length < 3 ? q : [last]).map(c => `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="6" fill="var(--data)" stroke="var(--floor)" stroke-width="2.5"/>`).join("")}${xt}
     <g class="ich-g"><line x1="0" x2="0" y1="${y0 - 6}" y2="${y1}"/><circle cx="0" cy="0" r="5.5"/></g></svg><div class="ich-tip" hidden></div></div>`;
 }
 /* Tonnage des 8 dernières semaines faites ; la plus récente en rouge (planche). */
@@ -3442,7 +3454,7 @@ function pwSvg(V, mmV, lim){
     return {x:X(p.date), y:Y(p.poids), date:p.date, tip:`<b>${esc(dFull(p.date))}</b><span>${fmt1(p.poids)} kg</span><small>${q ? sgn(p.poids - q.poids) + " kg vs " + dMois(q.date) : "Première pesée"}</small><small>Tendance 7 j : ${fmt(mmV[i], 1)} kg</small>`}; }), tap:i => ACT.pwDay({d:V[i].date})};
   const anim = pwAnim; pwAnim = false;
   return `<div class="ichart${anim ? " pw-anim" : ""}"><svg class="pw-svg" data-ich="pw" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Courbe de poids : tendance sur 7 jours et pesées. Touche un point pour ouvrir la pesée du jour.">
-    ${grid}${showLim ? `<line x1="${x0}" x2="${x1}" y1="${Y(lim).toFixed(1)}" y2="${Y(lim).toFixed(1)}" stroke="var(--bad)" stroke-width="1.6" stroke-dasharray="5 4"/><text x="${x1}" y="${(Y(lim) - 7).toFixed(1)}" text-anchor="end" fill="var(--bad)" style="font:700 11px var(--f-text);paint-order:stroke;stroke:var(--deck);stroke-width:4px;stroke-linejoin:round">Limite −${lim} kg</text>` : ""}
+    ${grid}${showLim ? `<line x1="${x0}" x2="${x1}" y1="${Y(lim).toFixed(1)}" y2="${Y(lim).toFixed(1)}" stroke="var(--bad)" stroke-width="1.6" stroke-dasharray="5 4"/>` : ""}
     <path class="pw-area" d="${area}" fill="var(--data)" opacity=".13"/><path class="pw-daily" d="${daily}" fill="none" stroke="var(--dust)" stroke-width="1" stroke-linejoin="round" opacity=".8"/>${dots}<path class="pw-line" pathLength="1" d="${line}" fill="none" stroke="var(--data)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
     <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="6" fill="var(--data)" stroke="var(--floor)" stroke-width="2.5"/>${xt}
     <g class="ich-g"><line x1="0" x2="0" y1="${y0 - 6}" y2="${y1}"/><circle cx="0" cy="0" r="5.5"/></g></svg><div class="ich-tip" hidden></div></div>`;
@@ -3486,8 +3498,8 @@ function rPoids(){
     <div class="panel pw-card"><div class="pw-top"><span class="pw-l"><span class="lg-lab">Ton poids · tendance</span><b class="pw-big">${cur !== null ? fmt1(cur) + "<small>kg</small>" : `<span class="pw-none">Pas de pesée</span>`}</b></span>
       <span class="pw-r">${perWeek !== null && Math.abs(perWeek) >= .05 ? `<span class="fchip data">${perWeek > 0 ? "▲" : "▼"} ${fmt(Math.abs(perWeek), 1)} kg / sem.</span>` : ""}<span class="lg-lab">${tw ? TXT.peseeJour + " " + fmt1(tw.poids) : last ? "Dernière pesée " + fmt1(last.poids) : "Aucune pesée"}</span></span></div>
       <div style="margin-top:6px">${V.length > 1 ? pwSvg(V, mmV, lim) : `<div class="emptycard flat"><b>${V.length ? "Une seule pesée sur cette période" : "Aucune pesée sur cette période"}</b><p>Pèse-toi chaque matin, à jeun. La courbe apparaît dès la 2e pesée.</p></div>`}</div>
-      <p class="pw-leg"><span><i style="background:var(--dust);width:16px;height:2px;border-radius:var(--r-xs)"></i>Pesées du jour</span><span><i style="background:var(--data);width:16px;height:3px;border-radius:var(--r-xs)"></i>Tendance (moy. 7 j)</span>${lim ? `<span><i style="border-top:2px dashed var(--bad);width:16px;height:0"></i>Limite</span>` : ""}</p>
-      ${V.length > 1 ? `<p class="pw-av">Tendance <b>${cur !== null ? fmt1(cur) : "–"}</b> kg · Moyenne <b>${fmt1(av)}</b> kg · Min, max <b>${fmt1(Math.min(...V.map(p => p.poids)))}</b>, <b>${fmt1(Math.max(...V.map(p => p.poids)))}</b> kg</p>` : ""}
+      <p class="pw-leg"><span><i style="background:var(--dust);width:16px;height:2px;border-radius:var(--r-xs)"></i>Pesées du jour</span><span><i style="background:var(--data);width:16px;height:3px;border-radius:var(--r-xs)"></i>Tendance (moy. 7 j)</span>${lim ? `<span><i style="border-top:2px dashed var(--bad);width:16px;height:0"></i>Limite −${lim} kg</span>` : ""}</p>
+      ${V.length > 1 ? `<p class="pw-av">Tendance <b>${cur !== null ? fmt1(cur) : "–"}</b> kg · Moyenne <b>${fmt1(av)}</b> kg · Min <b>${fmt1(Math.min(...V.map(p => p.poids)))}</b> · Max <b>${fmt1(Math.max(...V.map(p => p.poids)))}</b> kg</p>` : ""}
       ${V.length > 1 ? `<p class="pw-ex">La ligne grise suit chaque pesée du jour : elle monte et descend avec l'eau, le sel et les repas. La ligne de couleur est la moyenne des 7 derniers jours : c'est elle qui montre ta vraie tendance.</p>` : ""}</div>
     <div class="rng pwr" role="group" aria-label="Période">${PW_RANGES.map(([k, t]) => `<button aria-pressed="${k === pwRange}" data-act="pwRange" data-k="${k}">${t}</button>`).join("")}</div>
     ${lim && last ? `<div class="catcard"><svg width="52" height="52" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="21" fill="none" stroke="var(--warn)" stroke-width="5"/><circle cx="26" cy="26" r="4" fill="var(--warn)"/></svg><div><p><span class="nw">Catégorie −${lim}\u00a0kg</span> · <span class="nw">${marge >= 0 ? "marge " + fmt(marge, 1) + "\u00a0kg" : fmt(-marge, 1) + "\u00a0kg au-dessus"}</span></p>
@@ -3674,7 +3686,7 @@ function rSheet(){
     const wk = s && !s.own && s.sheet ? weekMeta[s.sheet + "|" + s.semaine] : null;
     return `<div class="fin"><div class="fin-h"><p class="fin-d">${esc(dlong(D.today))} · ${dur}</p><button class="iconbtn" data-act="closeSummary" aria-label="Fermer le bilan"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
       <p class="fin-t">${better ? "Mieux qu'hier," : "Bien joué,"}${nm ? "<br>" + nm : ""}</p>
-      <div class="fts">${m.sets ? tile("Séries", m.sets + (m.planned ? "/" + m.planned : "")) + tile("Tonnage", m.ton >= 1000 ? fmt(m.ton / 1000, 1) + " t" : fmt(m.ton, 0) + " kg") + tile("Record" + (nrec > 1 ? "s" : ""), String(nrec), nrec > 0) : m.cardioMin ? tile("Cardio", fmt(m.cardioMin, 1) + " min") + (m.cardioKm ? tile("Distance", fmt(m.cardioKm, 2) + " km") : "") : tile("Durée", dur)}</div>
+      <div class="fts">${m.sets ? tile("Séries", m.sets + (m.planned ? "/" + m.planned : "")) + tile("Reps", String(m.reps || 0)) + tile("Tonnage", m.ton >= 1000 ? fmt(m.ton / 1000, 1) + " t" : fmt(m.ton, 0) + " kg") + tile("Record" + (nrec > 1 ? "s" : ""), String(nrec), nrec > 0) : m.cardioMin ? tile("Cardio", fmt(m.cardioMin, 1) + " min") + (m.cardioKm ? tile("Distance", fmt(m.cardioKm, 2) + " km") : "") : tile("Durée", dur)}</div>
       ${m.sets && d !== null ? `<p class="fin-c">${sgn(d, 0)} % de tonnage sur ${m.nSame} exercice${m.nSame > 1 ? "s" : ""} fait${m.nSame > 1 ? "s" : ""} aussi la semaine passée</p>` : ""}
       ${m.sets && m.cardioMin ? `<p class="fin-c">Cardio : ${fmt(m.cardioMin, 1)} min${m.cardioKm ? " · " + fmt(m.cardioKm, 2) + " km" : ""}</p>` : ""}
       ${ml ? `<div class="lgc" style="margin-top:12px">${muscleFig(m.lifts, {view:"both", cls:"lg-plate"})}<div class="lgc-t"><span class="lgc-c">Ce que tu as travaillé</span><b>${esc(ml.p.join(", "))}</b>${ml.s.length ? `<span>${esc(ml.s.join(", "))}</span>` : ""}</div></div>` : ""}
@@ -3864,9 +3876,9 @@ function lineChart(id, labels, sets, o = {}){
   op.plugins.tooltip.callbacks.afterLabel = c => { const i = c.dataIndex, pv = i ? c.dataset.data[i - 1] : null; return pv === null || pv === undefined ? "" : sgn(c.parsed.y - pv) + u + " vs point précédent"; };
   charts[id] = new Chart(el, {type:"line", plugins:[guidePlugin], data:{labels, datasets:sets.map(s => {
     let bg = s.color; if (s.area) { const g = ctx.createLinearGradient(0, 0, 0, 240); g.addColorStop(0, s.color + "55"); g.addColorStop(1, s.color + "00"); bg = g; } else if (s.fill) bg = s.color + "30";
-    const n = s.data.length;
-    return {label:s.label, data:s.data, borderColor:s.faint ? s.color + "99" : s.color, backgroundColor:bg, fill:s.area ? "origin" : (s.fill || false), borderDash:s.dash ? [5, 5] : [], borderWidth:s.width || 2,
-      pointRadius:s.pts === false || s.dash ? 0 : (ctx2 => ctx2.dataIndex === n - 1 ? 5 : (n > 30 ? 0 : 2.5)), pointHoverRadius:6, pointBackgroundColor:s.color, pointBorderColor:getCss("var(--deck)"), pointBorderWidth:2, tension:.3};
+    const n = s.data.length, few = n < 3 && !s.dash;   /* moins de 3 points : des points seuls, jamais une droite qui laisserait croire à une tendance */
+    return {label:s.label, data:s.data, borderColor:s.faint ? s.color + "99" : s.color, backgroundColor:bg, fill:few ? false : s.area ? "origin" : (s.fill || false), borderDash:s.dash ? [5, 5] : [], borderWidth:s.width || 2, showLine:!few,
+      pointRadius:s.pts === false || s.dash ? 0 : few ? 6 : (ctx2 => ctx2.dataIndex === n - 1 ? 5 : (n > 30 ? 0 : 2.5)), pointHoverRadius:6, pointBackgroundColor:s.color, pointBorderColor:getCss("var(--deck)"), pointBorderWidth:2, tension:.3};
   })}, options:op});
 }
 function barChart(id, labels, sets, unit, o2 = {}){
@@ -3942,6 +3954,8 @@ const ACT = {
     try { if (navigator.share) { await navigator.share({title:"Ma séance", text:txt}); return; } await navigator.clipboard.writeText(txt); toast("Résumé copié."); } catch (e) { if (e && e.name !== "AbortError") toast("Partage impossible sur cet appareil.", true); } },
   closeLive:async () => { rest = null; if (live) { await saveRow(live.i); live.paused = true; store.set("sl4-live", live); } live = null; try { wakeLock && wakeLock.release(); } catch(e){} renderLayer(); render(); toast("Séance enregistrée, tu peux la reprendre plus tard"); },
   liveNav:async d => { rest = null; const ok = await saveRow(live.i); if (!ok) return; const s = seanceByKey(live.key); live.i = Math.max(0, Math.min(s.exercices.length - 1, live.i + +d.d)); persistLive(); renderLayer(); document.querySelector(".live").scrollTop = 0; },
+  useReach:d => { if (!live) return; const st = live.rows[live.i], cj = st.sets.findIndex(x => !x.done); if (cj < 0) return;
+    const inp = document.querySelector('[data-chg="setC"][data-j="' + cj + '"]'); if (!inp) return; inp.value = String(d.v).replace(".", ","); CHG.setC({j:String(cj)}, inp); toast("Charge mise à " + fmt(num(d.v), 2) + " kg"); },
   doneSet:d => onSetDone(+d.j),
   addSet:() => { const st = live.rows[live.i], l = st.sets.at(-1) || {c:null, r:null}; st.sets.push({c:liveCardio() ? null : l.c, r:l.r, done:false}); st.dirty = true; persistLive(); renderLayer(); },
   exMode:async (d) => { const s = seanceByKey(live.key), k = live.i, e = s.exercices[k], v = d.v === "T" ? "T" : "R", st = live.rows[k];
