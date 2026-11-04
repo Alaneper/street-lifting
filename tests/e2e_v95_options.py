@@ -117,20 +117,21 @@ with sync_playwright() as p:
     sure = {"Curl biceps haltères":"X_CURL", "Curl marteau":"X_CURL", "Leg curl":"X_LEGCURL", "Curl jambes":"X_LEGCURL", "Leg extension":"X_LEGEXT", "Presse à cuisses":"X_LEGPRESS", "Fentes marchées":"X_LUNGE",
         "Hip thrust":"X_HIP", "Soulevé de terre roumain":"X_RDL", "Mollets debout":"X_CALF", "Hyperextension":"X_BACKEXT", "Shrugs haltères":"X_SHRUG", "Oiseau haltères":"X_REAR", "Élévations latérales":"X_LATERAL",
         "Extension triceps poulie":"X_TRI", "Skull crushers":"X_TRI", "Développé militaire":"X_OHP", "Développé incliné haltères":"X_CHEST", "Pompes":"X_CHEST", "Écarté poulie":"X_FLY", "Lat pulldown":"X_PULLDN",
-        "Tirage vertical":"X_PULLDN", "Tirage horizontal machine":"X_ROW", "Rowing barre":"X_ROW", "Gainage":"X_ABS", "Relevé de jambes":"X_ABS", "Wrist curl":"X_WRIST"}
+        "Tirage vertical":"X_PULLDN", "Tirage horizontal machine":"X_ROW", "Rowing barre":"X_ROW", "Gainage":"X_ABS", "Relevé de jambes":"X_ABS", "Wrist curl":"X_WRIST",
+        "Face pull":"X_FACEPULL", "Upright row":"X_UPRIGHT", "Reverse curl":"X_CURL", "Pullover":"X_PULLOVER", "Good morning":"X_GOODM", "Kettlebell swing":"X_SWING", "Rowing":"X_ROW", "Adducteurs machine":"X_ADDUCT", "Hip abduction":"X_ABDUCT"}
     bad = {n: ev("(n) => exMuscleKey(n)", n) for n in sure if ev("(n) => exMuscleKey(n)", n) != sure[n]}
     check("dictionnaire : %d correspondances sûres reconnues" % len(sure), not bad, bad)
-    doubt = ["Face pull", "Scapular car's", "Scapular pull up", "Farmer's walk", "Upright row", "Reverse curl", "Pullover", "Good morning", "Développé haltères", "Kettlebell swing", "Rowing", "Turkish get-up", "Landmine press", "Tirage assis", "Dips machine", "Renfo", "Marche", "Étirements"]
+    doubt = ["Scapular car's", "Scapular pull up", "Farmer's walk", "Développé haltères", "Turkish get-up", "Landmine press", "Tirage assis", "Dips machine", "Renfo", "Marche", "Étirements"]
     leak = {n: ev("(n) => exMuscleKey(n)", n) for n in doubt if ev("(n) => exMuscleKey(n)", n) is not None}
     check("dictionnaire : %d correspondances douteuses NON appliquées (affichage d'avant : initiale)" % len(doubt), not leak, leak)
     check("liftOf prime : « Squat comp » reste SQUAT ; cardio « Vélo 20 min » : aucune silhouette", ev("silKey({mouvement:'Squat', variation:'comp', reps:''})") == "SQUAT" and ev("silKey({mouvement:'RENFO', variation:'Vélo 20 min', reps:'20 min'})") is None)
     # silhouette d'un exercice douteux : initiale conservée dans la séance du jour
-    ev("""() => { const z = S.find(s => !s.archived && s.exercices.length); window.__z = z.key; z.exercices[0] = Object.assign({}, z.exercices[0], {mouvement:'RENFO', variation:'Face pull', series:'3', reps:'12'}); z.exercices[1] = Object.assign({}, z.exercices[1] || z.exercices[0], {mouvement:'RENFO', variation:'Curl biceps haltères', series:'3', reps:'12'}); }""")
+    ev("""() => { const z = S.find(s => !s.archived && s.exercices.length); window.__z = z.key; z.exercices[0] = Object.assign({}, z.exercices[0], {mouvement:'RENFO', variation:'Scapular pull up', series:'3', reps:'12'}); z.exercices[1] = Object.assign({}, z.exercices[1] || z.exercices[0], {mouvement:'RENFO', variation:'Curl biceps haltères', series:'3', reps:'12'}); }""")
     ev("() => { sel = window.__z; setTab('seance'); rSeance(); }"); pg.wait_for_timeout(300)
     ev("() => { const c = document.querySelector('#subseance [data-sub=home]'); c && c.click(); }")
     # carte du jour : on construit directement la ligne avec la fonction de rendu
     html = ev("""() => { const z = seanceByKey(window.__z); return z.exercices.slice(0, 2).map(e => ({n:e.variation, sil:silKey(e)})); }""")
-    check("Face pull : pas de silhouette (initiale) ; Curl biceps haltères : silhouette", html[0]["sil"] is None and html[1]["sil"] == "X_CURL", html)
+    check("Scapular pull up : pas de silhouette (initiale) ; Curl biceps haltères : silhouette", html[0]["sil"] is None and html[1]["sil"] == "X_CURL", html)
     check("aucune erreur JavaScript", not ERRS, ERRS[:3])
     br.close()
     # ---------- compte neuf : pas de « Nouveautés » ; réponses explicites pour la question du Sheet

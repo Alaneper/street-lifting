@@ -69,7 +69,11 @@ n = s.count('"sl4-live"'); s = s.replace('"sl4-live"', 'ck("sl4-live")'); assert
 rep('window.claude?.use("downloads").catch(() => null)', "Promise.resolve(dlr)", 2)
 _pi = (HERE / "prog_import.js").read_text()
 rep("/*__PROG_IMPORT__*/", _pi)
-rep("/*__MUSCLES__*/", (HERE / "muscles.js").read_text())
+import base64
+_art = (HERE / "muscles_art.js").read_text()
+for _v in ("front", "back", "front_r", "back_r", "front_p", "back_p"):
+    _art = _art.replace("__IMG_" + _v.upper() + "__", "data:image/webp;base64," + base64.b64encode((HERE / ("muscle_" + _v + ".webp")).read_bytes()).decode())
+rep("/*__MUSCLES__*/", _art + (HERE / "muscles.js").read_text())
 layer = (HERE / "pwa_layer.js").read_text().replace("__CLIENT_ID__", CLIENT_ID)
 
 # 3. Messages d'erreur propres à la web app
@@ -147,7 +151,8 @@ if ("serviceWorker" in navigator) {
 }
 """)
 s = s.rstrip() + "\n</body></html>\n"
-assert "mcp" not in s.replace("mcp_", ""), [m.start() for m in re.finditer("mcp", s)]
+_nodata = re.sub(r"data:image/webp;base64,[A-Za-z0-9+/=]+", "", s)  # les images en base64 peuvent contenir « mcp » par hasard
+assert "mcp" not in _nodata.replace("mcp_", ""), [m.start() for m in re.finditer("mcp", _nodata)]
 assert "window.claude" not in s
 (OUT / DEST).write_text(s)
 print(DEST, len(s), "octets")
