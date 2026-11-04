@@ -1845,7 +1845,7 @@ let _dm = null, _dmN = -1;
 function doneDates(){ const n = D.series.length + (D.cardio || []).length; if (_dm && _dmN === n) return _dm; _dm = {};
   [...D.series, ...(D.cardio || [])].forEach(x => { if (!x.date) return; const k = [x.bloc, x.semaine, x.seance].join("|"); if (!_dm[k] || x.date < _dm[k]) _dm[k] = x.date; }); _dmN = n; return _dm; }
 function dateOf(s){ if (s.free) return doneDates()[[s.bloc, s.semaine, s.seance].join("|")] || null; const st = blocStart(s.bloc); if (!st) return null; return addDays(st.d, ((num(s.semaine) || 1) - 1) * 7 + (JOUR_IDX[norm(s.jour)] ?? 0)); }
-function liftOf(m){ const x = norm(m); if (x.includes("MUSCLE")) return "MU"; if (x.includes("PULL") || x.includes("TRACTION")) return "PULL"; if (x.includes("DIP")) return "DIP"; if (x.includes("SQUAT")) return "SQUAT";
+function liftOf(m){ const x = norm(m); if (x.includes("MUSCLE")) return "MU"; if ((x.includes("PULL") && !/FACE PULL|PULLOVER|PULL ?DOWN|PULL[- ]?THROUGH/.test(x)) || x.includes("TRACTION")) return "PULL";   /* « Face pull », « Pullover », « Lat pulldown » ne sont pas des tractions */ if (x.includes("DIP")) return "DIP"; if (x.includes("SQUAT")) return "SQUAT";
   /* v28 : Bench et Deadlift reconnus seulement si la personne les suit (powerlifting ou « mouvements suivis ») ; rien ne change en street lifting seul */
   const y = x.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   if (D && liftOn("BENCH") && (/\bBENCH\b|DEVELOPPE COUCHE|^(BP|DC)$/.test(y)) && !/INCLIN|DECLIN|HALTERE|\bDB\b|DUMBBELL|MACHINE|SMITH|FLOOR/.test(y)) return "BENCH";
@@ -1853,6 +1853,9 @@ function liftOf(m){ const x = norm(m); if (x.includes("MUSCLE")) return "MU"; if
   return null; }
 /* sans variation : « EXERCICE » seul (avant : « EXERCICE · », dont l'espace final se perdait à la relecture du carnet et empêchait de retrouver la série) */
 const exKey = e => norm(e.mouvement) === "RENFO" ? norm(e.variation) : norm(norm(e.mouvement) + " · " + norm(e.variation)).replace(/ ·$/, "");
+/* Retrouver la « dernière fois » malgré un nom un peu différent : casse, accents, espaces multiples, tirets et apostrophes sont ignorés (comparaison seulement : les clés écrites dans le carnet ne changent pas). */
+const kfold = k => unacc(k).replace(/[-_’'‘]/g, " ").replace(/\s+/g, " ").trim();
+const sameEx = (a, b) => a === b || kfold(a) === kfold(b);
 const exName = k => { const [a, b] = String(k).split(" · "); return b ? title(a) + " " + b.toLowerCase() : title(a); };
 const liftsOf = s => [...new Set(s.exercices.map(e => liftOf(e.mouvement)).filter(Boolean))];
 const seanceByKey = k => S.find(s => s.key === k);
@@ -2675,7 +2678,7 @@ function rLive(){
       return txt ? `<p class="lx-d">${esc(txt)}</p>` : ""; })()}</section>
     ${(() => { if (!prev || !prev.sets || !prev.sets.length) return `<p class="lastt none">Dernière fois : aucune série notée pour cet exercice.</p>`;
       const j = curJ < 0 ? st.sets.length - 1 : curJ, cur = st.sets[j] || {}, c0 = cur.c ?? chargeGuess(e), pp = prev.sets[Math.min(j, prev.sets.length - 1)];
-      const lbl = prev.src === "prévu" ? "Prévu la dernière fois (non noté)" : "Dernière fois", when = [prev.date ? dJM(prev.date) : "", prev.where && prev.where !== "dernière fois" ? prev.where : ""].filter(Boolean).join(" · ");
+      const lbl = prev.src === "prévu" ? "Prévu la dernière fois (non noté)" : "Dernière fois", when = [prev.date ? dJM(prev.date) : "", prev.where && prev.where !== "dernière fois" && prev.where !== dJM(prev.date) ? prev.where : ""].filter(Boolean).join(" · ");
       let chip = ""; if (!cardio && !isTimedEx(e) && num(c0) !== null && pp && pp.c !== null && pp.c !== undefined && !isNaN(+pp.c)) { const d = Math.round((num(c0) - +pp.c) * 100) / 100; chip = `<b class="ld-b ${d > 0 ? "up" : d < 0 ? "dn" : ""}">${d > 0 ? "▲ " + fmt(d, 2) + " kg" : d < 0 ? "▼ " + fmt(-d, 2) + " kg" : "= identique"}</b>`; }
       return `<section class="lastt"><div class="lt-h"><span>${lbl}</span>${when ? `<em>${esc(when)}</em>` : ""}${chip}</div><p class="lt-s">${esc(lastSetsTxt(prev.sets, e, isBW))}</p>${st.flp !== undefined && !cardio ? `<p class="lt-n">Charge reprise de la dernière fois · prescrit dans ton Sheet : ${isBW ? (st.flp > 0 ? "+" : "") + fmt(st.flp) : fmt(st.flp)} kg</p>` : ""}</section>`; })()}
     ${(() => { const rc = rpeCible(e); if (!rc) return ""; const got = [st.rpe1, st.rpeLast].filter(v => v !== null && v !== undefined), over = rc.hi !== null && got.some(v => v > rc.hi);
@@ -2722,20 +2725,20 @@ function rLive(){
 function prevCardio(s, k){
   const e = s.exercices[k], key = exKey(e), me = rank(s.bloc) * 100 + (num(s.semaine) || 0), rk = z => rank(z.bloc) * 100 + (num(z.semaine) || 0);
   const pool = S.filter(z => rk(z) < me && z.idx === s.idx), cands = pool.filter(z => z.bloc === s.bloc).sort((a, b) => rk(b) - rk(a)).concat(pool.filter(z => z.bloc !== s.bloc).sort((a, b) => rk(b) - rk(a)));
-  for (const z of cands) { const same = z.exercices.filter(x => exKey(x) === key); if (!same.length) continue; const lg = cardioLog(z, same[0]);
+  for (const z of cands) { const same = z.exercices.filter(x => sameEx(exKey(x), key)); if (!same.length) continue; const lg = cardioLog(z, same[0]);
     if (lg) return {date:lg.date || dateOf(z), sets:lg.sets, where:(z.bloc === s.bloc ? "" : blocLabel(z.bloc) + ", ") + "S" + z.semaine, src:"noté"}; }
-  const any = (D.cardio || []).filter(x => x.ex === key && x.date && x.date <= D.today && !(x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance)).sort((a, b) => a.date < b.date ? 1 : -1)[0];
+  const any = (D.cardio || []).filter(x => sameEx(x.ex, key) && x.date && x.date <= D.today && !(x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance)).sort((a, b) => a.date < b.date ? 1 : -1)[0];
   return any ? {date:any.date, sets:any.sets, where:dJM(any.date), src:"noté"} : null;
 }
 function prevRowSets(s, k){
   if (isCardioEx(s.exercices[k])) return prevCardio(s, k);
   const e = s.exercices[k], key = exKey(e), me = rank(s.bloc) * 100 + (num(s.semaine) || 0), rk = z => rank(z.bloc) * 100 + (num(z.semaine) || 0);
   const pool = S.filter(z => rk(z) < me && z.idx === s.idx), cands = pool.filter(z => z.bloc === s.bloc).sort((a, b) => rk(b) - rk(a)).concat(pool.filter(z => z.bloc !== s.bloc).sort((a, b) => rk(b) - rk(a)));
-  const pos = s.exercices.filter((x, j) => j < k && exKey(x) === key).length;
+  const pos = s.exercices.filter((x, j) => j < k && sameEx(exKey(x), key)).length;
   for (const z of cands) {
-    const same = z.exercices.filter(x => exKey(x) === key); if (!same.length || pos >= same.length) continue;
+    const same = z.exercices.filter(x => sameEx(exKey(x), key)); if (!same.length || pos >= same.length) continue;
     const ez = same[pos], where = (z.bloc === s.bloc ? "" : blocLabel(z.bloc) + ", ") + "S" + z.semaine;
-    const lg = D.series.find(x => x.bloc === z.bloc && x.semaine === z.semaine && x.seance === z.seance && x.ex === key && (!x.note || x.note === "L" + ez.row));
+    const lg = D.series.find(x => x.bloc === z.bloc && x.semaine === z.semaine && x.seance === z.seance && sameEx(x.ex, key) && (!x.note || x.note === "L" + ez.row));
     if (lg) return {date:lg.date || dateOf(z), sets:lg.sets, where, src:"noté", z, ez, lg};
     if (failTxt(ez.rpe1) && failTxt(ez.rpeLast)) continue;
     const c = chargeGuess(ez), st = setsFromComment(ez, c);
@@ -2743,7 +2746,7 @@ function prevRowSets(s, k){
     if (c !== null && num(ez.series) && isNumTxt(ez.reps) && (num(ez.rpe1) !== null || num(ez.rpeLast) !== null)) return {date:dateOf(z), sets:Array(num(ez.series)).fill(0).map(() => ({r:num(ez.reps), c})), where, src:"prévu"};
   }
   /* v48 : exercice changé ou nouveau dans la séance : sa dernière fois, où qu'elle ait eu lieu */
-  const own = D.series.filter(x => x.ex === key && x.date && !(x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance)).sort((a, b) => a.date < b.date ? 1 : -1)[0];
+  const own = D.series.filter(x => sameEx(x.ex, key) && x.date && !(x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance)).sort((a, b) => a.date < b.date ? 1 : -1)[0];
   if (own && own.sets && own.sets.length) return {date:own.date, sets:own.sets, where:"dernière fois", src:"noté"};
   return null;
 }
@@ -2893,7 +2896,7 @@ function rmInMod(m, e){
   else if (e._mod) { const i = m.sw.findIndex(x => x[0] === e._o); if (i >= 0) m.sw.splice(i, 1); m.rm.push(e._o); }
   else m.rm.push(exKey(e));
 }
-function lastLog(key){ let b = null; for (const x of D.series) if (x.ex === key && x.date && (!b || x.date >= b.date)) b = x; return b; }
+function lastLog(key){ let b = null; for (const x of D.series) if (sameEx(x.ex, key) && x.date && (!b || x.date >= b.date)) b = x; return b; }
 function lastTxt(key){ const lg = lastLog(key); if (!lg || !lg.sets || !lg.sets.length) return null;
   const top = lg.sets.reduce((a, x) => (num(x.c) || 0) > (num(a.c) || 0) ? x : a, lg.sets[0]), d = days(lg.date, D.today);
   return `Dernière fois : ${top.c ? fmt(top.c) + " kg × " : ""}${isTimedEx({mouvement:key.split(" · ")[0], variation:key.split(" · ")[1] || "", reps:""}) ? fmtDur(top.r) : top.r + " rép."}${d >= 0 ? " · " + (d === 0 ? "aujourd'hui" : d === 1 ? "hier" : "il y a " + d + " j") : ""}`; }
