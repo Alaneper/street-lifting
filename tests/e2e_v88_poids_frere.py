@@ -19,7 +19,7 @@ with sync_playwright() as p:
     check("D · plus de 15 pesées : pas de points (seulement au toucher)", ev("document.querySelectorAll('svg[data-ich=pw] circle').length") <= 2)
     tx = ev("[...document.querySelectorAll('svg[data-ich=pw] text')].map(t => t.textContent)")
     dates = [t for t in tx if not t.endswith("kg")]
-    check("D · échelle verticale graduée en kg", 3 <= sum(1 for t in tx if t.endswith(" kg") and not t.startswith("Limite")) <= 4, tx)
+    check("D · échelle verticale graduée en kg", 3 <= sum(1 for t in tx if t.endswith(" kg") and not t.startswith("Limite")) <= 9, tx)   # v73 : axe ±3 kg, 9 chiffres au plus
     check("D · 5 dates en bas", len(dates) == 5, dates)
     check("D · limite de catégorie : ligne rouge pointillée", ev("(() => { const l = [...document.querySelectorAll('svg[data-ich=pw] line')].find(x => x.getAttribute('stroke-dasharray')); return !!l && l.getAttribute('stroke') === 'var(--bad)'; })()") or "Limite" not in " ".join(tx), tx)
     av = ev("(document.querySelector('.pw-av')||{innerText:''}).innerText")

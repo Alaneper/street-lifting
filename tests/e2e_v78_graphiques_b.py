@@ -26,7 +26,7 @@ with sync_playwright() as p:
       pwRange = '3m'; corpsTab = 'poids'; corpsManual = D.today; setTab('corps'); })()""")
     pg.wait_for_timeout(600)
     # --- Poids
-    check("Poids : 3 à 4 graduations avec « kg »", 3 <= pg.evaluate("[...document.querySelectorAll('svg[data-ich=pw] text')].filter(t => /^[\\d,]+ kg$/.test(t.textContent)).length") <= 4, pg.evaluate("[...document.querySelectorAll('svg[data-ich=pw] text')].map(t => t.textContent)"))
+    check("Poids : 3 à 9 graduations avec « kg » (v73 : axe ±3 kg)", 3 <= pg.evaluate("[...document.querySelectorAll('svg[data-ich=pw] text')].filter(t => /^[\\d,]+ kg$/.test(t.textContent)).length") <= 9, pg.evaluate("[...document.querySelectorAll('svg[data-ich=pw] text')].map(t => t.textContent)"))
     check("Poids : au moins 3 dates sur l'axe", pg.evaluate("[...document.querySelectorAll('svg[data-ich=pw] text')].filter(t => /^\\d+ [a-zéû]+\\.?( \\d{4})?$|^[a-zéû]+\\.? \\d\\d$/.test(t.textContent)).length") >= 3, pg.evaluate("[...document.querySelectorAll('svg[data-ich=pw] text')].map(t => t.textContent)"))
     x, y = centre(pg, "svg[data-ich=pw]", .6, .5)
     pg.mouse.move(x, y); pg.mouse.down(); pg.wait_for_timeout(150)
@@ -38,10 +38,12 @@ with sync_playwright() as p:
     check("Poids : le repère suit le doigt (la bulle change quand on glisse)", t1 != t2, (t1, t2))
     pg.mouse.up(); pg.wait_for_timeout(200)
     check("Poids : un glissé n'ouvre aucune feuille", pg.evaluate("sheet === null"))
-    pg.wait_for_timeout(1700)
+    pg.wait_for_timeout(4200)   # v73 : la bulle reste 4 s
     check("Poids : repère et bulle disparaissent après le geste", pg.evaluate("document.querySelector('.ich-tip').hidden && getComputedStyle(document.querySelector('svg[data-ich=pw] .ich-g')).visibility === 'hidden'"))
-    pg.mouse.move(x, y); pg.mouse.down(); pg.mouse.up(); pg.wait_for_timeout(500)
-    check("Poids : toucher un point ouvre le détail du jour", pg.evaluate("sheet === 'pday' && !!document.querySelector('.sheet #cw') && /Corriger/.test(document.querySelector('.sheet').innerText)"), pg.evaluate("sheet"))
+    pg.mouse.move(x, y); pg.mouse.down(); pg.mouse.up(); pg.wait_for_timeout(300)
+    check("Poids (v73) : un premier toucher montre la bulle sans ouvrir le détail", pg.evaluate("sheet === null && !document.querySelector('.ich-tip').hidden"))
+    pg.mouse.down(); pg.mouse.up(); pg.wait_for_timeout(500)
+    check("Poids : toucher deux fois un point ouvre le détail du jour", pg.evaluate("sheet === 'pday' && !!document.querySelector('.sheet #cw') && /Corriger/.test(document.querySelector('.sheet').innerText)"), pg.evaluate("sheet"))
     check("Poids : détail du jour sans « −0 »", pg.evaluate("!/[−-]0(?![,.\\d])/.test(document.querySelector('.sheet').innerText)"))
     shot(pg, "poids-detail-jour")
     # corriger une pesée du passé met à jour cette date seulement

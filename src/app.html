@@ -846,6 +846,7 @@ html:has(#splash:not(.out)),html:has(#splash:not(.out)) body{overflow:hidden!imp
 .sheet:not(.full){bottom:var(--kb,0px);max-height:calc(var(--vvh,100svh) * .92)}.sheet.full{bottom:var(--kb,0px)}
 /* GRAPHIQUES INTERACTIFS (lot B) */
 .ichart{position:relative}.ichart svg[data-ich]{touch-action:pan-y;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;display:block}
+.impdw{display:flex;gap:5px;margin-top:10px}.impdw button{flex:1;min-height:44px;border-radius:var(--r-sm);background:var(--deck2,#1b1b1b);font:700 14px var(--f-text);color:var(--faint);border:0}.impdw button.on{background:var(--chalk);color:var(--floor)}
 .ich-g{visibility:hidden}.ich-g line{stroke:var(--chalk);stroke-opacity:.5;stroke-width:1;stroke-dasharray:3 3}.ich-g circle{fill:var(--chalk);stroke:var(--floor);stroke-width:2.5}
 .ich-tip{position:absolute;z-index:3;pointer-events:none;display:flex;flex-direction:column;gap:2px;padding:9px 12px;border-radius:var(--r-sm);background:var(--deck3);box-shadow:var(--sh2),inset 0 1px 0 color-mix(in srgb,var(--chalk) 12%,transparent);font:500 12px/1.25 var(--f-text);color:var(--dust);white-space:nowrap}
 .ich-tip[hidden]{display:none}.ich-tip b{font:700 12px var(--f-text);color:var(--chalk)}.ich-tip span{font:800 20px/1.05 var(--f-show);color:var(--chalk);letter-spacing:.01em}.ich-tip small{font:500 12px var(--f-text);color:var(--dust)}
@@ -1088,7 +1089,7 @@ body.scrolled .syncline{opacity:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "72 · 4 nov. 2026";
+const APP_VER = "73 · 4 nov. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -1501,7 +1502,7 @@ const Store = (() => {
       const profil = {};
       P.slice(1).forEach(r => { if (r[0]) profil[String(r[0]).trim()] = r[1] ?? ""; });
       ["debut_street","debut_coaching"].forEach(k => profil[k] = toIso(profil[k]));
-      const prs = PR.slice(1).map(r => ({date:toIso(r[0]), lift:norm(r[1]), charge:num(r[2]), reps:num(r[3]) || 1, note:r[4] || "", rpe:num(r[5]) || null, eq:/^EQ/i.test(String(r[6] || "").trim())}))
+      const prs = PR.map((r, i) => ({id:i + 1, date:toIso(r[0]), lift:norm(r[1]), charge:num(r[2]), reps:num(r[3]) || 1, note:r[4] || "", rpe:num(r[5]) || null, eq:/^EQ/i.test(String(r[6] || "").trim())})).slice(1)
         .filter(p => p.date && ALL_LIFTS.includes(p.lift) && p.charge !== null).sort((a, b) => a.date < b.date ? -1 : 1);
       const pm = {}; PO.slice(1).forEach(r => { const d = toIso(r[0]), p = num(r[1]); if (d && p) pm[d] = p; });
       const poids = Object.keys(pm).sort().map(d => ({date:d, poids:pm[d]}));
@@ -1533,7 +1534,7 @@ const Store = (() => {
     objectifs:{ set:(label, v, note) => upsert("OBJECTIFS", "OB", "norm", label, [v ?? "", note], "B", [label, v ?? "", ""]) },
     blocs:{ setDate:(b, iso) => upsert("BLOCS", "BL", "num", b, [iso], "B", [b, iso, ""]) },
     poids:{ add:rows => add("POIDS", rows) },
-    prs:{ add:row => add("PR", [row]) },
+    prs:{ add:row => add("PR", [row]), update:(id, row) => set("PR", id, row), del:id => set("PR", id, ["", "", "", "", "", "", ""]) },
     /* v49 : supprime un onglet de programme créé par l'app (jamais un autre onglet) */
     prog:{ async removeTab(title){
       const id = APP_ID, r = await gapi(API + id + "?fields=" + enc("sheets.properties(sheetId,title)"), {}, true), sh = (r.sheets || []).map(s => s.properties).find(x => x && x.title === title);
@@ -2069,7 +2070,7 @@ function exercisePoints(){
 /* ---------- Records par répétitions et 1RM estimé (mouvement de compétition, variation « COMP ») ---------- */
 function compSets(l){
   const ok = x => x.c !== null && x.c !== undefined && x.c >= 0 && Number.isInteger(x.r) && x.r >= 1 && x.r <= 12;
-  const out = D.prs.filter(p => p.lift === l).map(p => ({c:p.charge, r:p.reps, rpe:p.rpe || null, date:p.date, src:"PR", coach:/prog du coach/i.test(p.note)})).filter(ok);
+  const out = D.prs.filter(p => p.lift === l).map(p => ({c:p.charge, r:p.reps, rpe:p.rpe || null, date:p.date, src:"PR", coach:/prog du coach/i.test(p.note), pr:p})).filter(ok);
   for (const o of exercisePoints()) { if (o.lift !== l) continue;
     for (const p of o.pts) { if (!p.comp) continue; p.rows.forEach((st, k) => st.forEach(x => { if (ok(x)) out.push({c:x.c, r:x.r, rng:x.rng, rpe:x.rpe, date:p.date, bloc:p.bloc, sem:p.sem, src:p.src, wh:p.wh[k], ex:o.key}); })); } }
   return out;
@@ -3567,27 +3568,52 @@ const weekRange = mon => { const e = addDays(mon, 6); return mon.slice(5, 7) ===
 const dMois = iso => iso ? (+iso.slice(8)) + " " + MOIS_C[+iso.slice(5, 7) - 1] : "";
 /* Courbe de poids (planche Corps) : tendance en bleu avec sa zone, pesées en points, limite de catégorie en jaune, dernier point cerclé. */
 let pwAnim = false;
+/* Repères de l'axe du poids : une ligne tous les 0,5 kg (1 ou 2 kg si l'écart est grand), un chiffre au plus tous les ~16 px (9 au maximum) pour qu'ils ne se chevauchent pas. */
+function pwTicks(lo, hi){ const R = hi - lo, gs = R <= 10 ? .5 : R <= 20 ? 1 : 2, ls = [.5, 1, 2, 5, 10, 20].find(k => k >= gs && R / k <= 9) || 20, out = [];
+  for (let t = Math.ceil(lo / gs - 1e-9) * gs; t <= hi + 1e-9; t += gs) { const v = Math.round(t * 100) / 100; out.push([v, Math.abs(v / ls - Math.round(v / ls)) < 1e-6]); } return out; }
 function pwSvg(V, mmV, lim){
   const W = 340, H = 208, x0 = 46, x1 = 334, y0 = 20, y1 = 166, all = V.map(p => p.poids).concat(mmV);
-  const showLim = lim && Math.max(...all) > lim - 2.5, lo0 = Math.min(...all), hi0 = Math.max(...all, showLim ? lim : -1e9), pad = Math.max(.4, (hi0 - lo0) * .12), lo = lo0 - pad, hi = hi0 + pad * (showLim ? .6 : 1);
+  const showLim = lim && Math.max(...all) > lim - 2.5, lo0 = Math.min(...all), wMax = Math.max(...all);
+  /* v73 (choix d'Alane, maquette 3A) : l'axe va de 3 kg sous la pesée la plus basse à 3 kg au-dessus de la plus haute (et au moins jusqu'à la limite si elle est affichée) */
+  const lo = Math.floor((lo0 - 3) * 2) / 2, hi = Math.ceil(Math.max(wMax + 3, showLim ? lim + .5 : -1e9) * 2) / 2;
   const span = Math.max(1, days(V[0].date, V.at(-1).date)), X = d => x0 + days(V[0].date, d) / span * (x1 - x0), Y = v => y1 - (v - lo) / (hi - lo) * (y1 - y0);
   const tr = V.map((p, i) => [X(p.date), Y(mmV[i])]), line = tr.map((q, i) => (i ? "L" : "M") + q[0].toFixed(1) + " " + q[1].toFixed(1)).join(" ");
   const area = line + ` L${tr.at(-1)[0].toFixed(1)} ${y1} L${tr[0][0].toFixed(1)} ${y1} Z`, last = tr.at(-1);
   const dots = V.length <= 15 ? V.map(p => `<circle cx="${X(p.date).toFixed(1)}" cy="${Y(p.poids).toFixed(1)}" r="3.2" fill="var(--dust)"/>`).join("") : "";
   const daily = V.map((p, i) => (i ? "L" : "M") + X(p.date).toFixed(1) + " " + Y(p.poids).toFixed(1)).join(" ");
   /* graduations rondes avec l'unité, et quatre dates sur l'axe */
-  const grid = niceTicks(lo, hi).map(t => `<line x1="${x0}" x2="${x1}" y1="${Y(t).toFixed(1)}" y2="${Y(t).toFixed(1)}" stroke="var(--seam)" stroke-width="1"/><text x="${x0 - 7}" y="${(Y(t) + 4).toFixed(1)}" text-anchor="end" fill="var(--faint)" style="font:500 11px var(--f-text)">${tickTxt(t, " kg")}</text>`).join("");
+  const grid = pwTicks(lo, hi).map(([t, lab]) => `<line x1="${x0}" x2="${x1}" y1="${Y(t).toFixed(1)}" y2="${Y(t).toFixed(1)}" stroke="var(--seam)" stroke-width="1"${lab ? "" : ` opacity=".5"`}/>${lab ? `<text x="${x0 - 7}" y="${(Y(t) + 4).toFixed(1)}" text-anchor="end" fill="var(--faint)" style="font:500 11px var(--f-text)">${tickTxt(t, " kg")}</text>` : ""}`).join("");
   const xd = span < 4 ? [V[0].date, V.at(-1).date] : [0, .25, .5, .75, 1].map(f => addDays(V[0].date, Math.round(span * f))), xl = axisLab(xd);
   const xt = xd.map((d, i) => `<text x="${X(d).toFixed(1)}" y="${H - 8}" text-anchor="${i === 0 ? "start" : i === xd.length - 1 ? "end" : "middle"}" fill="var(--faint)" style="font:500 11px var(--f-text)">${xl[i]}</text>`).join("");
   const prev = new Map(D.poids.map((p, i) => [p.date, D.poids[i - 1]]));
   ICH.pw = {W, pts:V.map((p, i) => { const q = prev.get(p.date);
-    return {x:X(p.date), y:Y(p.poids), date:p.date, tip:`<b>${esc(dFull(p.date))}</b><span>${fmt1(p.poids)} kg</span><small>${q ? sgn(p.poids - q.poids) + " kg vs " + dMois(q.date) : "Première pesée"}</small><small>Tendance 7 j : ${fmt(mmV[i], 1)} kg</small>`}; }), tap:i => ACT.pwDay({d:V[i].date})};
+    return {x:X(p.date), y:Y(p.poids), date:p.date, tip:`<b>${esc(dFull(p.date))}</b><span>${fmt1(p.poids)} kg</span><small>${q ? sgn(p.poids - q.poids) + " kg vs " + dMois(q.date) : "Première pesée"}</small><small>Tendance 7 j : ${fmt(mmV[i], 1)} kg</small><small>Touche encore : détail du jour</small>`}; }), tap:i => ACT.pwDay({d:V[i].date}), tap2:true};
   const anim = pwAnim; pwAnim = false;
-  return `<div class="ichart${anim ? " pw-anim" : ""}"><svg class="pw-svg" data-ich="pw" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Courbe de poids : tendance sur 7 jours et pesées. Touche un point pour ouvrir la pesée du jour.">
+  return `<div class="ichart${anim ? " pw-anim" : ""}"><svg class="pw-svg" data-ich="pw" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Courbe de poids : tendance sur 7 jours et pesées. Touche un point pour voir le jour et le poids ; touche-le encore pour ouvrir la pesée du jour.">
     ${grid}${showLim ? `<line x1="${x0}" x2="${x1}" y1="${Y(lim).toFixed(1)}" y2="${Y(lim).toFixed(1)}" stroke="var(--bad)" stroke-width="1.6" stroke-dasharray="5 4"/>` : ""}
     <path class="pw-area" d="${area}" fill="var(--data)" opacity=".13"/><path class="pw-daily" d="${daily}" fill="none" stroke="var(--dust)" stroke-width="1" stroke-linejoin="round" opacity=".8"/>${dots}<path class="pw-line" pathLength="1" d="${line}" fill="none" stroke="var(--data)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
     <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="6" fill="var(--data)" stroke="var(--floor)" stroke-width="2.5"/>${xt}
     <g class="ich-g"><line x1="0" x2="0" y1="${y0 - 6}" y2="${y1}"/><circle cx="0" cy="0" r="5.5"/></g></svg><div class="ich-tip" hidden></div></div>`;
+}
+/* v73 : modifier ou supprimer une perf touchée dans « Toutes tes perfs ».
+   Record noté à la main (onglet PR, y compris le max écrit dans la prog) : champs modifiables. Perf d'une séance : on renvoie vers la séance. */
+let perfL = [], perfSel = null;
+function perfSeance(x){ const w = x.wh || {}; return S.find(z => z.bloc === x.bloc && String(z.semaine) === String(x.sem) && (!w.seance || z.seance === w.seance)) || null; }
+function perfHtml(){
+  const P = perfSel; if (!P) return ""; const x = P.x, pr = x.pr, u = BW_LIFTS.includes(P.l) ? " de lest" : "", back = `<button class="btn ghost" style="margin-top:8px" data-act="perfBack">Retour</button>`;
+  const head = `<p class="show t-m">Modifier cette perf</p><p class="muted small" style="margin-top:4px">${LNAME[P.l]} · ${fmt(x.c)} kg${u} × ${pl(x.r, "rep")}${x.date ? " · " + esc(dJM(x.date)) : ""}</p>`;
+  if (!pr) { const z = perfSeance(x), w = x.wh || {};
+    return head + `<p class="small" style="margin-top:14px">${z ? "Cette perf vient de ta séance. Ouvre-la pour corriger la charge, les reps ou le RPE : tout se met à jour ici." : `Cette perf vient de ta prog${w.row ? " (ligne " + esc(w.row) + ")" : ""}. Corrige-la dans ta prog, puis synchronise.`}</p>
+      ${z ? `<button class="btn" style="margin-top:16px" data-act="perfSeance" data-k="${esc(z.key)}">Ouvrir la séance</button>` : ""}${back}`; }
+  if (!pr.id) return head + `<p class="small" style="margin-top:14px">Cette perf n'est pas encore synchronisée. Synchronise puis réessaie.</p>${back}`;
+  return head + `<div class="impgrid" style="margin-top:12px"><div><label for="pfc">Charge (kg)</label><input id="pfc" inputmode="decimal" value="${esc(fmt(pr.charge))}"></div><div><label for="pfr">Reps</label><input id="pfr" inputmode="numeric" value="${esc(pr.reps)}"></div><div><label for="pfrpe">RPE</label><input id="pfrpe" inputmode="decimal" placeholder="non noté" value="${pr.rpe ? esc(fmt(pr.rpe)) : ""}"></div></div>
+    <label for="pfd" style="margin-top:10px">Date</label><input id="pfd" type="date" value="${esc(pr.date || "")}">
+    <button class="btn" style="margin-top:16px" data-act="perfSave">Enregistrer</button>
+    <button class="btn ghost" style="margin-top:8px;color:var(--bad)" data-act="perfDel">${P.del ? "Confirmer : supprimer cette perf" : "Supprimer cette perf"}</button>${back}`;
+}
+async function perfWrite(fn, msg){
+  const P = perfSel; try { await fn(); D.prs.sort((a, b) => a.date < b.date ? -1 : 1); saveCache(); if (clOn()) clSync().catch(() => {}); toast(msg); perfSel = null; render(); openSheet("rm|" + P.l + "|" + P.n); }
+  catch(e){ toast(errMsg(e) + ambig(e), true); }
 }
 /* Détail d'un jour de pesée : touché depuis la courbe. */
 let pdDay = null;
@@ -3771,6 +3797,7 @@ function rSheet(){
   if (sheet === "weigh") return weighHtml();
   if (sheet === "pday") return weighDayHtml();
   if (sheet === "pesees") return peseesHtml();
+  if (sheet === "perf") return perfHtml();
   if (sheet.startsWith("cl|")) return clInfoHtml(sheet.slice(3));
   if (sheet.startsWith("cat|")) return catPickHtml(sheet.slice(4));
   if (sheet === "meal") return mealSaveHtml();
@@ -3786,7 +3813,7 @@ function rSheet(){
     /* toutes les perfs à exactement N reps, regroupées par séance et par charge (les séries identiques d'une même ligne = une perf),
        avec leur RPE et leur date ; la plus lourde d'abord, à charge égale la plus facile (RPE le plus bas) */
     const G = new Map();
-    for (const x of compSets(l).filter(x => x.r === N)) { const w = x.wh || {}, k = [x.src, x.date, x.ex || "", w.row || "", x.c].join("|");
+    for (const x of compSets(l).filter(x => x.r === N)) { const w = x.wh || {}, k = [x.src, x.date, x.ex || "", w.row || "", x.c, x.pr ? D.prs.indexOf(x.pr) : ""].join("|");
       const g = G.get(k) || Object.assign({}, x, {n:0, rpes:[]}); g.n++; if (x.rpe) g.rpes.push(x.rpe); G.set(k, g); }
     const L = [...G.values()].map(g => Object.assign(g, {r1:g.rpes.length ? g.rpes[0] : null, rl:g.rpes.length > 1 ? g.rpes.at(-1) : null}))
       .sort((a, b) => b.c - a.c || (a.r1 || 10) - (b.r1 || 10) || ((a.date || "") < (b.date || "") ? -1 : 1)).slice(0, 25);
@@ -3798,7 +3825,7 @@ function rSheet(){
       return `${esc(String(w.sheet || blocLabel(x.bloc)).trim())}${w.archived ? " (historique)" : ""} · semaine ${esc(x.sem)} · ${esc(w.seance || "")} · ligne ${w.row || "?"}<br>Prog : « ${esc(String(w.charge || "").trim() || "–")} »${x.rng ? `, reps « ${esc(x.rng)} » (compté ${x.r})` : ""}${String(w.com || "").trim() ? ", ton commentaire : « " + esc(String(w.com).trim()) + " »" : ""}${String(w.rpe1 || "").trim() || String(w.rpeLast || "").trim() ? ", RPE " + esc([w.rpe1, w.rpeLast].filter(v => String(v || "").trim()).join(" / ")) : ""}`; };
     return `<p class="show t-m">${LNAME[l]} · ${N} rep${N > 1 ? "s" : ""}</p><p class="muted small" style="margin-top:4px">Toutes tes perfs à exactement ${N} rep${N > 1 ? "s" : ""}, avec leur RPE et leur date : la plus lourde d'abord ; à charge égale, la plus facile (RPE le plus bas). La première est ton record.</p>
       ${vidSectionHtml(l, N, L[0])}
-      ${L.length ? `<h2 class="h2">Toutes tes perfs</h2>` : ""}${L.length ? `<div class="list" style="margin-top:12px">${L.map((x, i) => `<div class="item" style="display:block"><div class="row"><b>${fmt(x.c)} kg${BW_LIFTS.includes(l) ? " de lest" : ""}${x.n > 1 ? ` <span class="muted small">× ${pl(x.n, "série")}</span>` : ""}</b><span class="pill${i === 0 ? " go" : ""}">${i === 0 ? "record · " : ""}${rpeTxt(x)}</span></div><p class="small" style="margin-top:4px">${x.date ? cap(dlong(x.date)) + " " + x.date.slice(0, 4) : "Date inconnue"}${x.ex ? " · " + esc(exName(x.ex)) : ""}</p><p class="muted tiny" style="margin-top:2px">${line(x)}</p></div>`).join("")}</div>` : `<p class="muted small" style="margin-top:12px">Aucune série à ${pl(N, "rep")} trouvée.</p>`}
+      ${L.length ? `<h2 class="h2">Toutes tes perfs</h2>` : ""}${L.length ? `<div class="list" style="margin-top:12px">${(perfL = L, L).map((x, i) => `<button class="item" style="display:block;width:100%;text-align:left" data-act="perfOpen" data-i="${i}" data-l="${l}" data-n="${N}" aria-label="Modifier la perf de ${fmt(x.c)} kg${x.date ? " du " + esc(dJM(x.date)) : ""}"><div class="row"><b>${fmt(x.c)} kg${BW_LIFTS.includes(l) ? " de lest" : ""}${x.n > 1 ? ` <span class="muted small">× ${pl(x.n, "série")}</span>` : ""}</b><span class="pill${i === 0 ? " go" : ""}">${i === 0 ? "record · " : ""}${rpeTxt(x)}</span></div><p class="small" style="margin-top:4px">${x.date ? cap(dlong(x.date)) + " " + x.date.slice(0, 4) : "Date inconnue"}${x.ex ? " · " + esc(exName(x.ex)) : ""}</p><p class="muted tiny" style="margin-top:2px">${line(x)}</p></button>`).join("")}</div>` : `<p class="muted small" style="margin-top:12px">Aucune série à ${pl(N, "rep")} trouvée.</p>`}
       <p class="muted tiny" style="margin-top:10px">Une valeur fausse ? Corrige la ligne indiquée dans ta prog (charge réelle dans « Commentaire athlète », ou RPE « échec » si la série est ratée), puis synchronise. Une perf manquante ? Ajoute-la en bas de la fiche, « Ajouter un record ».</p>
       <button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`; }
   if (sheet === "rest") return `<div id="restbox" class="timer"><svg viewBox="0 0 220 220"><circle cx="110" cy="110" r="100" fill="none" stroke="var(--deck2)" stroke-width="10"/><circle id="restring" cx="110" cy="110" r="100" fill="none" stroke="var(--chalk)" stroke-width="10" stroke-linecap="round" stroke-dasharray="628" stroke-dashoffset="0" style="transition:stroke-dashoffset .25s linear"/></svg>
@@ -4014,7 +4041,9 @@ const ICH = {}, tickTxt = (t, u) => fmt(t, Math.abs(t % 1) > 1e-6 ? 1 : 0) + u;
     try { svg.setPointerCapture(ev.pointerId); } catch(e){} show(cur, near(cur.d, sx(cur, ev))); });
   document.addEventListener("pointermove", ev => { if (!cur || ev.pointerId !== cur.pid) return; if (Math.hypot(ev.clientX - cur.x0, ev.clientY - cur.y0) > 8) cur.moved = true; show(cur, near(cur.d, sx(cur, ev))); });
   const end = ev => { if (!cur || ev.pointerId !== cur.pid) return; const c = cur, tap = !c.moved && Date.now() - c.t0 < 500 && ev.type === "pointerup"; cur = null;
-    if (tap && c.d.tap) { hide(c); c.d.tap(c.i); } else setTimeout(() => hide(c), ev.type === "pointerup" ? 1600 : 0); };
+    /* v73 : sur la courbe de poids, un premier toucher montre la boule et la bulle (jour + poids) ; un second toucher sur le même jour ouvre le détail */
+    if (tap && c.d.tap && c.d.tap2 && !(c.d.sel === c.i && Date.now() - (c.d.selT || 0) < 4000)) { c.d.sel = c.i; c.d.selT = Date.now(); setTimeout(() => { if (c.d.sel === c.i && Date.now() - c.d.selT >= 3900) hide(c); }, 4000); }
+    else if (tap && c.d.tap) { c.d.sel = null; hide(c); c.d.tap(c.i); } else { if (c.d.tap2) { c.d.sel = c.i; c.d.selT = Date.now(); } setTimeout(() => hide(c), ev.type === "pointerup" ? (c.d.tap2 ? 4000 : 1600) : 0); } };
   document.addEventListener("pointerup", end); document.addEventListener("pointercancel", end);
 })();
 const fmtK = v => Math.abs(v) >= 1000 ? Math.round(v).toLocaleString("fr-FR") : fmt(v, 1);
@@ -4166,6 +4195,18 @@ const ACT = {
   closePage:() => { page = null; renderLayer(); },
   liftMetric:d => { liftMetric = d.k; renderLayer(); },
   exMetric:d => { exMetric = d.k; renderLayer(); },
+  perfOpen:d => { const x = perfL[+d.i]; if (!x) return; perfSel = {x, l:d.l, n:+d.n, del:false}; openSheet("perf"); },
+  perfBack:() => { const P = perfSel; perfSel = null; openSheet("rm|" + P.l + "|" + P.n); },
+  perfSeance:d => { perfSel = null; sheet = null; renderLayer(); ACT.openSeance(d); },
+  perfSave:async () => { const pr = perfSel && perfSel.x.pr; if (!pr) return;
+    const c = num($("#pfc").value), r = num($("#pfr").value), rpeV = $("#pfrpe").value.trim(), rpe = rpeV ? num(rpeV) : null, dt = $("#pfd").value;
+    if (c === null || c < 0) return toast("Indique une charge (un nombre, ex. 82,5)", true);
+    if (r === null || !Number.isInteger(r) || r < 1) return toast("Les reps doivent être un nombre entier (1 ou plus)", true);
+    if (rpeV && (rpe === null || rpe < 1 || rpe > 10)) return toast("Le RPE va de 1 à 10 (laisse vide s'il n'est pas noté)", true);
+    if (!dt) return toast("Indique une date", true);
+    await perfWrite(async () => { await Store.prs.update(pr.id, [dt, pr.lift, c, r, pr.note || "", rpe || "", pr.eq ? "EQ" : ""]); Object.assign(pr, {charge:c, reps:r, rpe:rpe || null, date:dt}); }, "Perf corrigée"); },
+  perfDel:async () => { const P = perfSel, pr = P && P.x.pr; if (!pr) return; if (!P.del) { P.del = true; return renderLayer(); }
+    await perfWrite(async () => { await Store.prs.del(pr.id); D.prs = D.prs.filter(p => p !== pr); }, "Perf supprimée"); },
   addPR:async d => { const c = num($("#prc").value), r = num($("#prr").value) || 1; if (c === null) return toast("Indique une charge (un nombre, ex. 82,5)", true); if (c < 0 || r < 0) return toast("Charge et reps ne peuvent pas être négatives", true); await addPR(d.l, c, r, $("#prd").value || D.today, $("#prn").value.trim(), num($("#prpe").value)); },
   share:d => openSheet("share|" + d.l),
   saveShare:async () => { const cv = document.getElementById("sharecv"), dl = await window.claude?.use("downloads").catch(() => null); if (!dl) return toast("L'enregistrement d'image n'est pas disponible ici.", true);
@@ -4502,8 +4543,8 @@ async function saveWeight(v, dt, toRecap){
 async function addPR(l, c, r, d, n, rpe){
   const before = best(l);
   const eq = powerOn() && equipped() && POWER_LIFTS.includes(l);   /* perf faite en equipped : notée « EQ » en colonne G */
-  try { await Store.prs.add([d, l, c, r, n || "", rpe || "", eq ? "EQ" : ""]);
-    D.prs.push({date:d, lift:l, charge:c, reps:r, note:n || "", rpe:rpe || null, eq}); D.prs.sort((a, b) => a.date < b.date ? -1 : 1); saveCache();
+  try { const id = await Store.prs.add([d, l, c, r, n || "", rpe || "", eq ? "EQ" : ""]);
+    D.prs.push({id, date:d, lift:l, charge:c, reps:r, note:n || "", rpe:rpe || null, eq}); D.prs.sort((a, b) => a.date < b.date ? -1 : 1); saveCache();
     if (clOn()) clSync().catch(() => {});
     const nb = best(l), isPr = r === 1 && nb !== null && (before === null || nb > before);
     firstPaint = true; render();
@@ -5172,6 +5213,21 @@ function impNextBlock(){
   const last = S.filter(z => z.bloc === ab).map(dateOf).filter(Boolean).sort().at(-1), base = blocLabel(ab).replace(/\s*[–-]?\s*bloc\s*\d+\s*$/i, "").replace(/^bloc\s*\d+$/i, "Mon programme").trim() || "Mon programme";
   return {res, title:base + " – bloc " + (progOrder.length + 1), start:mondayFrom(last ? addDays(last, 1) : D.today)};
 }
+/* v73 : bloc suivant, choix des jours (cochés une fois, les séances s'y placent dans l'ordre) et du nombre de semaines */
+const JOURS_T = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+function impDaysInit(){ const ds = imp.res.weeks[0].days, j = ds.map(d => JOUR_IDX[norm(d.label)]);
+  imp.days = j.every(x => x !== undefined) && new Set(j).size === j.length ? [...j].sort((a, b) => a - b) : []; imp.nw = imp.res.weeks.length; }
+function impDaysApply(){ const tpl = imp.res.weeks[0].days, ch = [...imp.days].sort((a, b) => a - b), n = imp.nw;
+  tpl.forEach((d, i) => { d.label = ch[i] !== undefined ? JOURS_T[ch[i]] : "Séance " + (i + 1); });
+  imp.res.weeks = Array.from({length:n}, (_, i) => ({label:"Semaine " + (i + 1), notes:[], days:i ? JSON.parse(JSON.stringify(tpl)) : tpl}));
+  imp.res.stats.weeks = n; if (imp.week >= n) imp.week = 0; imp.edit = null; }
+function impDaysHtml(){ if (!Array.isArray(imp.days)) impDaysInit(); const nS = imp.res.weeks[0].days.filter(d => d.exos.length).length, ch = [...imp.days].sort((a, b) => a - b), opts = [1, 2, 3, 4].concat(imp.nw > 4 ? [imp.nw] : []);
+  const map = imp.res.weeks[0].days.filter(d => d.exos.length).map((d, i) => "Séance " + (i + 1) + " → " + (ch[i] !== undefined ? JOURS_T[ch[i]].toLowerCase() : "jour libre")).join(" · ");
+  return `<div class="panel" style="margin-top:12px"><p style="font-weight:700">Tes jours d'entraînement</p><p class="muted small" style="margin-top:4px">Coche tes jours : les séances s'y placent dans l'ordre.</p>
+    <div class="impdw" role="group" aria-label="Jours d'entraînement">${JOURS_T.map((j, i) => `<button class="${ch.includes(i) ? "on" : ""}" data-act="impDay" data-j="${i}" aria-pressed="${ch.includes(i)}" aria-label="${j}">${j[0]}</button>`).join("")}</div>
+    <p class="small" style="margin-top:10px">${ch.length ? esc(map) : "Aucun jour coché : les séances restent sans jour fixe."}</p>${ch.length && ch.length < nS ? `<p class="muted small" style="margin-top:4px">Coche ${nS} jours pour donner un jour à chaque séance.</p>` : ""}
+    <p class="muted small" style="margin-top:12px;font-weight:600">Combien de semaines ?</p><div class="chips" style="margin-top:8px">${opts.map(k => `<button class="chip" aria-pressed="${k === imp.nw}" data-act="impNw" data-n="${k}">${k}</button>`).join("")}</div>
+    <p class="muted tiny" style="margin-top:8px">Les charges sont les mêmes chaque semaine ; à la fin, l'app prépare la suite d'après tes séances.</p></div>`; }
 const impReload = async () => { for (let i = 0; i < 30 && syncing; i++) await new Promise(r => setTimeout(r, 300)); await syncAll(true); };
 const impExos = () => imp.res.weeks.flatMap(w => w.days.flatMap(d => d.exos));
 const impStepper = n => { const dots = [1, 2, 3].map(i => `<i class="${i < n ? "done" : i === n ? "on" : ""}">${i < n ? "✓" : i}</i>${i < 3 ? "<u></u>" : ""}`).join("");
@@ -5201,7 +5257,7 @@ function rImpPage(){
       <input id="imptitle" class="imptitle" value="${esc(imp.title)}" maxlength="40" aria-label="Nom du programme" data-chg="impTitle">
       <div class="chips" style="margin-top:8px;flex-wrap:wrap"><span class="chip impchip">${r.weeks.length} semaine${r.weeks.length > 1 ? "s" : ""}</span><span class="chip impchip">${pl(w.days.filter(d => d.exos.length).length, "jour")}</span><span class="chip impchip">${pl(ex.length, "exercice")}</span>
       <span class="chip impchip ${unk ? "warn" : "ok"}">${ex.length - unk}/${ex.length} reconnus</span></div></div>
-      <label for="impstart" style="margin-top:12px">Début du programme (un lundi)</label><input id="impstart" type="date" value="${esc(imp.start || "")}" data-chg="impStart">
+      <label for="impstart" style="margin-top:12px">Début du programme (un lundi)</label><input id="impstart" type="date" value="${esc(imp.start || "")}" data-chg="impStart">${imp.mode === "next" ? impDaysHtml() : ""}
       ${imp.mode === "next" ? (() => { const ex = impExos().filter(x => x.why), c = k => ex.filter(x => x.whyCls === k).length; return `<div class="imptip" style="border-color:var(--brand)"><b>Règle par défaut</b> : ${c("up")} charge${c("up") > 1 ? "s" : ""} augmentée${c("up") > 1 ? "s" : ""}, ${c("same")} inchangée${c("same") > 1 ? "s" : ""}, ${c("down")} réduite${c("down") > 1 ? "s" : ""}. Charge +2,5 % (+5 % pour les gros groupes musculaires du bas du corps : squat, soulevé, presse, fentes, hip thrust…) si ton dernier RPE est ≤ 8 ; inchangée entre 8,5 et 9,5 ; −5 % si RPE 10 ou échec. <b>Sans RPE noté</b> : si toutes tes séries ont atteint le haut de la fourchette de reps (par exemple 3×12 pour 8–12), la charge monte du même pourcentage ; sinon elle reste. <a href="#" data-act="rpeInfo">C'est quoi le RPE ?</a> La fourchette de 2 à 10 % vient de l'<a href="https://doi.org/10.1249/MSS.0b013e3181915670" target="_blank" rel="noopener">ACSM (Ratamess et al., 2009)</a>, le RPE de <a href="https://doi.org/10.1519/JSC.0000000000001049" target="_blank" rel="noopener">Zourdos et al. (2016)</a>. Les seuils et les pas sont un choix prudent de l'app, pas une règle publiée : corrige avec ✎.</div>`; })() : `<div class="imptip">Rien n'est enregistré pour l'instant. Touche <b>✎</b> pour corriger un exercice, une série ou une charge.</div>`}
       ${r.weeks.length > 1 ? `<div class="chips" style="margin-bottom:10px;overflow-x:auto">${r.weeks.map((x, i) => `<button class="chip" aria-pressed="${i === imp.week}" data-act="impWeek" data-w="${i}">${esc(x.label)}</button>`).join("")}</div>` : ""}
       ${w.days.map((d, di) => !d.exos.length ? "" : `<div class="panel impday"><div class="row"><b>${esc(d.label)}</b><span class="muted small">${d.sub ? esc(d.sub) + " · " : ""}${d.exos.length} exos</span></div>
@@ -5246,7 +5302,9 @@ Object.assign(ACT, {
     } catch(e){ imp.busy = false; renderLayer(); toast("Sheet inaccessible : " + errMsg(e), true); }
   },
   impNext:() => { const b = impNextBlock(); if (!b) return toast("Pas encore de séance à reprendre dans ton bloc", true);
-    imp = Object.assign(impNew(), {mode:"next", res:b.res, title:b.title, start:b.start, step:2}); sheet = null; page = {type:"imp"}; renderLayer(); },
+    imp = Object.assign(impNew(), {mode:"next", res:b.res, title:b.title, start:b.start, step:2}); impDaysInit(); sheet = null; page = {type:"imp"}; renderLayer(); },
+  impDay:d => { const j = +d.j; imp.days = imp.days.includes(j) ? imp.days.filter(x => x !== j) : imp.days.concat(j); impDaysApply(); renderLayer(); },
+  impNw:d => { imp.nw = Math.max(1, Math.min(8, +d.n)); impDaysApply(); renderLayer(); },
   rpeInfo:() => openSheet("rpeinfo"),
   impWeek:d => { imp.week = +d.w; imp.edit = null; renderLayer(); },
   impEdit:d => { imp.edit = imp.edit === d.k ? null : d.k; renderLayer(); },
