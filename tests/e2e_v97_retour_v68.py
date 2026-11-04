@@ -23,7 +23,7 @@ with sync_playwright() as p:
     pg.add_init_script("window.__down = localStorage.getItem('__down') === '1'")
     pg.goto("http://app.local/sl/"); pg.wait_for_timeout(1000); pg.click("[data-act=obLogin]"); pg.wait_for_timeout(1500)
     pg.fill("#oblink", f"https://docs.google.com/spreadsheets/d/{APP}/edit#gid=0"); pg.click("[data-act=obLink]"); pg.wait_for_function("typeof D !== 'undefined' && D && S.length > 0 && lastSync > 0", timeout=25000); pg.wait_for_timeout(2000)
-    ver = ev("APP_VER"); check("la version qui a écrit est la 71", ver.startswith("71"), ver)
+    ver = ev("APP_VER"); check("la version qui a écrit est la 72", ver.startswith("72"), ver)
     # options coupées + Nouveautés vue
     ev("() => { optToggle && 0; }") if False else None
     ev("() => { localStorage.setItem('sl4-opts', JSON.stringify({gear:0, sil:0})); }")

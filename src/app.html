@@ -698,11 +698,11 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 .lsh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:4px 10px 8px}.lsh b{font:700 15px var(--f-text);color:var(--chalk)}.lsh span{font:500 13px var(--f-text);color:var(--dust)}
 .lsr{display:grid;grid-template-columns:30px minmax(0,1fr) auto 44px;align-items:center;gap:6px;width:100%;min-height:52px;padding:0 10px;border-radius:var(--r-sm);text-align:left;font:600 17px var(--f-text);color:var(--chalk)}
 .lsr .n{font:600 12px var(--f-mono);color:var(--dust)}.lsr .lt{display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:0;min-height:52px;text-align:left;background:none;color:inherit;font:inherit}.lsr .w{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lsr.done .w{color:var(--dust)}
-.lsr.cur,.lsr.ed{grid-template-columns:30px minmax(0,1fr) 44px;background:var(--deck3)}.lsr.cur .n,.lsr.ed .n{grid-row:1 / 3}.lsr.cur .ins,.lsr.ed .ins{grid-column:2;grid-row:1}.lsr.cur .lights,.lsr.ed .lights{grid-column:2;grid-row:2;justify-self:start;margin:-4px 0 8px 4px}.lsr.cur .ck,.lsr.ed .ck{grid-column:3;grid-row:1 / 3}
-.lsr.cur{min-height:80px;box-shadow:inset 0 0 0 2px var(--acc);margin:4px 0}.lsr.ed{min-height:64px;margin:4px 0}
+.lsr.cur,.lsr.ed{grid-template-columns:30px minmax(0,1fr) 48px;background:var(--deck3)}.lsr.cur .n,.lsr.ed .n{grid-row:1 / 3}.lsr.cur .ins,.lsr.ed .ins{grid-column:2;grid-row:1}.lsr.cur .lights,.lsr.ed .lights{grid-column:2;grid-row:2;justify-self:start;margin:-4px 0 8px 4px}.lsr.cur .ck,.lsr.ed .ck{grid-column:3;grid-row:1 / 3}
+.lsr.cur{min-height:70px;box-shadow:inset 0 0 0 2px var(--acc);margin:4px 0}.lsr.ed{min-height:64px;margin:4px 0}
 .lsr .ins{display:flex;align-items:center;gap:5px;min-width:0}.lsr .ins b{color:var(--dust);font:600 14px var(--f-text)}.lsr .ins b.x{color:var(--faint);font-size:17px}
-.lsr .ins input{height:48px;width:72px;min-width:0;text-align:center;font:700 26px var(--f-show);background:var(--deck);border:0;border-radius:var(--r-sm);color:var(--chalk);padding:0 2px}.lsr.cur .ins input{height:56px;width:78px;font-size:32px}
-.lsr .ck{width:44px;height:44px;border-radius:var(--r-sm);border:2px solid var(--faint);background:none;color:var(--faint);display:grid;place-items:center;transition:background var(--t2),border-color var(--t2)}.lsr .ck.on{border-color:var(--chalk);background:var(--chalk);color:var(--floor);animation:pop var(--t3) var(--ease)}.lsr.cur .ck{width:52px;height:52px;border-color:var(--acc)}.lsr.cur .ck.on{border-color:var(--chalk)}.lsr .ck.on{color:var(--floor)}
+.lsr .ins input{height:44px;width:64px;min-width:0;text-align:center;font:700 24px var(--f-show);background:var(--deck);border:0;border-radius:var(--r-sm);color:var(--chalk);padding:0 2px}.lsr.cur .ins input{height:48px;width:70px;font-size:28px}   /* v72 : cases un peu plus petites (retour iPhone) */
+.lsr .ck{width:44px;height:44px;border-radius:var(--r-sm);border:2px solid var(--faint);background:none;color:var(--faint);display:grid;place-items:center;transition:background var(--t2),border-color var(--t2)}.lsr .ck.on{border-color:var(--chalk);background:var(--chalk);color:var(--floor);animation:pop var(--t3) var(--ease)}.lsr.cur .ck{width:48px;height:48px;border-color:var(--acc)}.lsr.cur .ck.on{border-color:var(--chalk)}.lsr .ck.on{color:var(--floor)}
 .lset-act{padding:2px 10px 0}.lset-act .link{min-height:44px}
 .pl{display:flex;align-items:flex-end;gap:2px;height:20px}.pl i{display:block;border-radius:2px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.45);flex:none}.pl em{font:500 11px var(--f-text);font-style:normal;color:var(--faint);margin-right:4px;align-self:center}.lsr.done .pl{opacity:.55}
 .lg-lest{max-height:120px}
@@ -1088,7 +1088,7 @@ body.scrolled .syncline{opacity:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "71 · 4 nov. 2026";
+const APP_VER = "72 · 4 nov. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -2766,6 +2766,10 @@ function rLive(){
   if (bo0 && !live.rows[k0].dirty && !live.rows[k0].sets.some(x => x.done)) live.rows[k0].sets.forEach(x => x.c = bo0.mid);
   { const r0 = live.rows[k0]; if (r0 && !r0.bo && !r0.dirty && !liftOf(s.exercices[k0].mouvement) && !r0.sets.some(x => x.done)) { const f = initSets(s, s.exercices[k0], k0);
       if (f.length === r0.sets.length && f.every(x => !x.done) && f.some((x, i) => x.c !== r0.sets[i].c || x.r !== r0.sets[i].r)) { r0.sets = f; const fl0 = chargeFromLast(s, s.exercices[k0], k0); r0.flp = fl0 ? fl0.presc : undefined; } } }
+  /* v72 : le nombre de séries suit la prescription (séance restée ouverte, ouverte avant la mise à jour du Sheet, ou prescription modifiée en cours de route), tant que le sportif n'a pas lui-même ajouté ou retiré une série. On ajoute des séries, ou on en retire seulement si aucune n'est faite et que rien n'a été saisi. */
+  { const r1 = live.rows[k0], e1 = s.exercices[k0]; if (r1 && e1 && !r1.cnt) { const pn = initSets(s, e1, k0).length;
+      if (pn && pn > r1.sets.length) { while (r1.sets.length < pn) { const l1 = r1.sets.at(-1) || {c:null, r:null}; r1.sets.push({c:l1.c, r:l1.r, done:false}); } persistLive(); }
+      else if (pn && pn < r1.sets.length && !r1.dirty && !r1.sets.some(x => x.done)) { r1.sets.length = pn; persistLive(); } } }
   const k = live.i, e = s.exercices[k], st = live.rows[k], l = liftOf(e.mouvement), renfo = norm(e.mouvement) === "RENFO", col = l ? LCOL[l] : "var(--chalk)", cardio = isCardioEx(e);
   const prev = prevRowSets(s, k), nx = s.exercices[k + 1], nl = nx ? liftOf(nx.mouvement) : null;
   const el = Math.floor((Date.now() - live.start) / 60000), doneN = st.sets.filter(x => x.done).length, curJ = st.sets.findIndex(x => !x.done);
@@ -2810,7 +2814,7 @@ function rLive(){
       <div class="row lset-act"><button class="link small" data-act="addSet">+ Ajouter ${cardio ? "un intervalle" : "une série"}</button>${st.sets.length > 1 ? `<button class="link small muted" data-act="delSet">Retirer le dernier</button>` : ""}</div>
       ${!l && !cardio ? `<div class="row" style="padding:2px 10px 8px;gap:8px;align-items:center"><span class="muted tiny">Cet exercice se note en</span><button class="chip" style="min-height:44px;padding:4px 12px;font-size:13px" data-act="exMode" data-v="R" aria-pressed="${!isTimedEx(e)}">Reps</button><button class="chip" style="min-height:44px;padding:4px 12px;font-size:13px" data-act="exMode" data-v="T" aria-pressed="${isTimedEx(e)}">Temps</button></div>` : ""}
     </section>
-    ${(() => { const cur = st.sets[curJ < 0 ? st.sets.length - 1 : curJ] || {}, rx = cardio ? null : st.sets.filter(z => z.rec).at(-1);
+    ${(() => { const cur = st.sets[curJ < 0 ? st.sets.length - 1 : curJ] || {}, rx = cardio ? null : st.sets.filter(z => z.rec && z.done).at(-1);
       return cardio ? "" : (rx ? recCard(rx.r, num(rx.c), rx.recD || 0, rx.recPR ? `<button class="rc-b" data-act="livePR" data-l="${l}" data-c="${num(rx.c)}">Enregistrer comme PR · ${LNAME[l]}</button>` : "") : ""); })()}
     ${showR1 ? rpeRow("rpe1", "RPE de la 1re série") : ""}
     ${showRL ? rpeRow("rpeLast", "RPE de la dernière série") : ""}
@@ -2877,7 +2881,8 @@ function onSetDone(j){
   }
   if (tr) { const [ci, ri] = tr.querySelectorAll("input"); if (ci && ci.value !== "") x.c = num(ci.value); if (ri && ri.value !== "") x.r = isTimedEx(e) ? parseDur(ri.value) : Math.round(num(ri.value)); }
   if (isTimedEx(e) && !x.done && !x.r) return toast("Indique d'abord la durée (ex. 1:30 ou 90)", true);
-  x.done = !x.done; st.dirty = true; if (x.done) { st.lastDone = j; st.ed = undefined; } persistLive();
+  x.done = !x.done; st.dirty = true; if (x.done) { st.lastDone = j; st.ed = undefined; } else { delete x.rec; delete x.recD; delete x.recPR; }   /* v72 : une série dévalidée n'est plus un record (la carte « Nouveau record » ne reste pas affichée) */
+  persistLive();
   if (!x.done) return renderLayer();
   if (x.c === null || x.c === undefined || x.c === "") x.c = l && BW_LIFTS.includes(l) ? 0 : x.c;
   renderLayer();
@@ -4124,7 +4129,7 @@ const ACT = {
   useReach:d => { if (!live) return; const st = live.rows[live.i], cj = st.sets.findIndex(x => !x.done); if (cj < 0) return;
     const inp = document.querySelector('[data-chg="setC"][data-j="' + cj + '"]'); if (!inp) return; inp.value = String(d.v).replace(".", ","); CHG.setC({j:String(cj)}, inp); toast("Charge mise à " + fmt(num(d.v), 2) + " kg"); },
   doneSet:d => onSetDone(+d.j),
-  addSet:() => { const st = live.rows[live.i], l = st.sets.at(-1) || {c:null, r:null}; st.sets.push({c:liveCardio() ? null : l.c, r:l.r, done:false}); st.dirty = true; persistLive(); renderLayer(); },
+  addSet:() => { const st = live.rows[live.i], l = st.sets.at(-1) || {c:null, r:null}; st.sets.push({c:liveCardio() ? null : l.c, r:l.r, done:false}); st.dirty = true; st.cnt = true; persistLive(); renderLayer(); },
   exMode:async (d) => { const s = seanceByKey(live.key), k = live.i, e = s.exercices[k], v = d.v === "T" ? "T" : "R", st = live.rows[k];
     if (liftOf(e.mouvement) || (v === "T") === isTimedEx(e)) return;
     const prevStr = String(D.profil.ex_modes || ""), nextStr = exModeStr(e, v);
@@ -4135,7 +4140,7 @@ const ACT = {
     try { await Store.profil.set("ex_modes", nextStr); toast(v === "T" ? "Cet exercice se note maintenant en temps" : "Cet exercice se note maintenant en reps"); }
     catch (err) { toast("Choix gardé sur ce téléphone, pas encore dans ton Google Sheet. " + errMsg(err), true); } },
   comOpen:() => { const st = live.rows[live.i]; st.comOpen = true; renderLayer(); setTimeout(() => { const t = $("#lcom"); if (t) t.focus(); }, 50); },
-  delSet:() => { const st = live.rows[live.i]; if (st.sets.length > 1) { st.sets.pop(); st.dirty = true; persistLive(); renderLayer(); } },
+  delSet:() => { const st = live.rows[live.i]; if (st.sets.length > 1) { st.sets.pop(); st.dirty = true; st.cnt = true; persistLive(); renderLayer(); } },
   editSet:d => { const st = live.rows[live.i]; st.ed = st.ed === +d.j ? undefined : +d.j; renderLayer(); },
   restEnd:() => { rest = null; renderLayer(); },
   rpe:d => { const st = live.rows[live.i]; st[d.f] = st[d.f] === +d.v ? null : +d.v; st.dirty = true; persistLive(); renderLayer(); },
