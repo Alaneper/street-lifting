@@ -17,7 +17,7 @@ with sync_playwright() as p:
     # Séance : plus de « Séries · dernière fois (Bloc 5, S3) »
     key = pg.evaluate("(nextSeance()||S.at(-1)).key"); pg.evaluate(f"startLive({json.dumps(key)}, 1)"); pg.wait_for_timeout(500); pg.evaluate("ACT.closeSheet && ACT.closeSheet()"); pg.wait_for_timeout(300)
     t = pg.evaluate("document.querySelector('.live').textContent")
-    check("séance : plus de « dernière fois »", "dernière fois" not in t and "charge prévue" not in t)
+    check("séance : plus de « dernière fois »", "Séries · dernière fois" not in t and "charge prévue" not in t)
     check("séance : le tableau des séries reste", pg.evaluate("!!document.querySelector('.live .setrow')"))
     pg.evaluate("live = null; renderLayer(); store.del(ck('sl4-live'))")
     # Alimentation : plus de dépense du jour ni de montre

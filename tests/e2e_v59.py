@@ -21,7 +21,7 @@ INJ = "<script>(()=>{const a=window.__sheets['%s']; a.SERIES=[a.SERIES[0]].conca
 def route2(r, *_):
     u = r.request.url
     if u.endswith("/sl/") or u.endswith("index.html"):
-        return r.fulfill(body=(P / "test-build.html").read_text().replace("<head>", "<head><script src='/mock.js'></script>" + INJ + "<script src='/shim.js'></script>", 1), content_type="text/html")
+        return r.fulfill(body=(P / "test-build.html").read_text().replace("<head>", "<head><script>window.__noNews=true</script><script src='/mock.js'></script>" + INJ + "<script src='/shim.js'></script>", 1), content_type="text/html")
     return route(r)
 with sync_playwright() as p:
     br = p.chromium.launch()
@@ -53,7 +53,7 @@ with sync_playwright() as p:
     # fiche exercice : charges de chaque série
     pg.evaluate("ACT.openEx({k:'ROWING · HALTERE'})"); pg.wait_for_timeout(600)
     txt = pg.evaluate("(document.querySelector('.page') || {innerText:''}).innerText")
-    check("fiche : « 30 × 12 · 32 × 10 · 32 × 9 »", "30 × 12 · 32 × 10 · 32 × 9" in txt, txt[:300])
+    check("fiche : « 30 kg × 12 rép. · 32 kg × 10-9 rép. » (format du lot B)", "30 kg × 12 rép. · 32 kg × 10-9 rép." in txt, txt[:300])
     # bout en bout : séance en direct, charges différentes, écriture dans le carnet, relecture
     ok = pg.evaluate("""(() => { for (const s of S) { const i = s.exercices.findIndex(e => !liftOf(e.mouvement) && !isCardioEx(e) && !isTimedEx(e)); if (i >= 0) { window.__ts = [s.key, i]; return true; } } return false; })()""")
     if ok:

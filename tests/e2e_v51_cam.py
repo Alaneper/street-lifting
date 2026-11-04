@@ -33,7 +33,7 @@ def route2(r):
     mm = re.match(r"http://localhost/sl/([^?#]+)", u)
     if mm and not u.endswith('index.html') and (P / mm.group(1)).exists(): return r.fulfill(path=str(P / mm.group(1)))
     if u.endswith("/sl/") or u.endswith("index.html"):
-        return r.fulfill(body=(P / "test-build.html").read_text().replace("<head>", "<head><script src='/mock.js'></script>" + INJ + "<script src='/shim.js'></script>", 1), content_type="text/html")
+        return r.fulfill(body=(P / "test-build.html").read_text().replace("<head>", "<head><script>window.__noNews=true</script><script src='/mock.js'></script>" + INJ + "<script src='/shim.js'></script>", 1), content_type="text/html")
     return route(r)
 
 with sync_playwright() as p:

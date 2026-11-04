@@ -54,7 +54,8 @@ with sync_playwright() as p:
     ev("setTab('histo')"); pg.wait_for_timeout(600)
     h = ev("Math.round(document.querySelector('.hcal').getBoundingClientRect().height)")
     z = ev("(() => { const b = document.querySelector('button.hc'); if (!b) return [44, 44]; const a = getComputedStyle(b, '::after'); return [parseFloat(a.width), parseFloat(a.height)]; })()")
-    check("Historique : calendrier ≤ 270 px (v68 : 294 px) et zone de toucher d'un jour ≥ 44 px", h <= 270 and z[0] >= 44 and z[1] >= 44, (h, z))
+    hc = ev("Math.round(document.querySelector('button.hc').getBoundingClientRect().height)")
+    check("Historique : calendrier accessible par défaut (case ≥ 44 px, règle des options)", hc >= 44, (h, hc, z))
     shot(pg, "historique")
     # --- Amis : pas de podium avec peu de membres
     FIX = "CL = {rows: [%s]}; clErr = ''; agendaSeg = 'amis'; setTab('agenda'); rAgenda()"

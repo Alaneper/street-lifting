@@ -21,7 +21,7 @@ def boot(br, tabs=None):
     def route2(r, *_):
         u = r.request.url
         if u.endswith("/sl/") or u.endswith("index.html"):
-            return r.fulfill(body=(P / "test-build.html").read_text().replace("<head>", "<head><script src='/mock.js'></script>" + inj + "<script src='/shim.js'></script>", 1), content_type="text/html")
+            return r.fulfill(body=(P / "test-build.html").read_text().replace("<head>", "<head><script>window.__noNews=true</script><script src='/mock.js'></script>" + inj + "<script src='/shim.js'></script>", 1), content_type="text/html")
         return route(r)
     c = br.new_context(viewport={"width":390,"height":844}, service_workers="block", timezone_id="Europe/Brussels"); c.route("**/*", route2)
     pg = c.new_page(); errs = []

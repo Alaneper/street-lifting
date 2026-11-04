@@ -9,7 +9,7 @@ INJ = """<script>(()=>{const s=window.__sheets['%s'];for(const k of Object.keys(
 def route2(r):
     u = r.request.url
     if u.endswith("/sl/") or u.endswith("index.html"):
-        html = (P / "test-build.html").read_text().replace("<head>", "<head><script src='/mock.js'></script>" + INJ + "<script src='/shim.js'></script>", 1)
+        html = (P / "test-build.html").read_text().replace("<head>", "<head><script>window.__noNews=true</script><script src='/mock.js'></script>" + INJ + "<script src='/shim.js'></script>", 1)
         return r.fulfill(body=html, content_type="text/html")
     return route(r)
 with sync_playwright() as p:

@@ -120,7 +120,7 @@ with sync_playwright() as p:
     pg.evaluate("setTab('home'); updShown = false; touched = true; newVersion()"); pg.wait_for_timeout(300)
     check("mise à jour : bandeau affiché hors séance", pg.evaluate("!!document.querySelector('.upd') && getComputedStyle(document.querySelector('.upd')).display !== 'none'"))
     key = pg.evaluate("(nextSeance()||S.at(-1)).key"); pg.evaluate(f"startLive({json.dumps(key)}, 0)"); pg.wait_for_timeout(700); pg.evaluate("ACT.closeSheet && ACT.closeSheet()"); pg.wait_for_timeout(300)
-    r = pg.evaluate("""(() => { const u = document.querySelector('.upd'), b = document.querySelector('[data-act=finishLive]').getBoundingClientRect();
+    r = pg.evaluate("""(() => { const u = document.querySelector('.upd'), fb = document.querySelector('[data-act=finishLive]'); fb.scrollIntoView({block:'center'}); const b = fb.getBoundingClientRect();
       const t = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); return [getComputedStyle(u).display, t && t.dataset.act]; })()""")
     check("mise à jour : bandeau caché pendant une séance, « Terminer » touchable", r == ["none", "finishLive"], r)
     pg.evaluate("live = null; renderLayer(); store.del(ck('sl4-live')); document.querySelector('.upd').remove(); updShown = false")

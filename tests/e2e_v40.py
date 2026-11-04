@@ -19,7 +19,7 @@ def route2(r):
     u = r.request.url
     if u.endswith("/sl/") or u.endswith("index.html"):
         extra = "<script>window.__pre=%s</script>" % json.dumps(MODE["v"])
-        return r.fulfill(body=(P / "test-build.html").read_text().replace("<head>", "<head><script src='/mock.js'></script>" + INJ + "<script src='/shim.js'></script>", 1), content_type="text/html")
+        return r.fulfill(body=(P / "test-build.html").read_text().replace("<head>", "<head><script>window.__noNews=true</script><script src='/mock.js'></script>" + INJ + "<script src='/shim.js'></script>", 1), content_type="text/html")
     return route(r)
 
 def boot(br, disc=None):

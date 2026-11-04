@@ -26,7 +26,7 @@ posted = []
 def route2(r):
     u = r.request.url
     if u.endswith("/sl/") or u.endswith("index.html"):
-        return r.fulfill(body=(P / "test-build.html").read_text().replace("<head>", "<head><script src='/mock.js'></script>" + INJ + "<script src='/shim.js'></script>", 1), content_type="text/html")
+        return r.fulfill(body=(P / "test-build.html").read_text().replace("<head>", "<head><script>window.__noNews=true</script><script src='/mock.js'></script>" + INJ + "<script src='/shim.js'></script>", 1), content_type="text/html")
     if "script.google.com/macros" in u:
         if r.request.method == "POST": posted.append(r.request.post_data or "")
         return r.fulfill(body=json.dumps({"rows":CLROWS}), content_type="application/json", headers={"Access-Control-Allow-Origin":"*"})

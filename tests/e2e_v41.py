@@ -31,7 +31,7 @@ INJ = "<script>(()=>{const b=window.__sheets['%s']; for (const k of Object.keys(
 def route2(r):
     u = r.request.url
     if u.endswith("/sl/") or u.endswith("index.html"):
-        return r.fulfill(body=(P / "test-build.html").read_text().replace("<head>", "<head><script src='/mock.js'></script>" + INJ + "<script src='/shim.js'></script>", 1), content_type="text/html")
+        return r.fulfill(body=(P / "test-build.html").read_text().replace("<head>", "<head><script>window.__noNews=true</script><script src='/mock.js'></script>" + INJ + "<script src='/shim.js'></script>", 1), content_type="text/html")
     return route(r)
 
 with sync_playwright() as p:
@@ -86,7 +86,7 @@ with sync_playwright() as p:
     def route3(r):
         u = r.request.url
         if u.endswith("/sl/") or u.endswith("index.html"):
-            return r.fulfill(body=(P / "test-build.html").read_text().replace("<head>", "<head><script src='/mock.js'></script>" + INJ2 + "<script src='/shim.js'></script>", 1), content_type="text/html")
+            return r.fulfill(body=(P / "test-build.html").read_text().replace("<head>", "<head><script>window.__noNews=true</script><script src='/mock.js'></script>" + INJ2 + "<script src='/shim.js'></script>", 1), content_type="text/html")
         return route(r)
     c = br.new_context(viewport={"width":390,"height":844}, service_workers="block", timezone_id="Europe/Brussels"); c.route("**/*", route3)
     pg = c.new_page(); pg.goto("http://app.local/sl/"); pg.wait_for_timeout(1000); pg.click("[data-act=obLogin]"); pg.wait_for_timeout(1500)

@@ -16,7 +16,7 @@ RENAME = """<script>(()=>{const s=window.__sheets['%s'],o={};
  window.__sheets['%s']=o;})()</script>""" % (COACH, COACH)
 def route2(r):
     if r.request.url.rstrip("/").endswith("/sl") or r.request.url.endswith("/sl/") or r.request.url.endswith("index.html"):
-        html = (P / "test-build.html").read_text().replace("<head>", "<head><script src='/mock.js'></script>" + RENAME + "<script src='/shim.js'></script>", 1)
+        html = (P / "test-build.html").read_text().replace("<head>", "<head><script>window.__noNews=true</script><script src='/mock.js'></script>" + RENAME + "<script src='/shim.js'></script>", 1)
         return r.fulfill(body=html, content_type="text/html")
     return route(r)
 with sync_playwright() as p:
