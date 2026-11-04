@@ -10,8 +10,43 @@ const MUSCLE_MAP = {
   DIP:{pectoral:1, triceps:1, deltoide:2, abdos:2},
   MU:{dorsaux:1, pectoral:1, triceps:1, biceps:1, abdos:2, deltoide:2}
 };
+/* v69 · silhouettes pour les exercices de musculation : correspondance nom → muscles par familles NON AMBIGUËS seulement (première qui correspond).
+   Tout ce qui ne correspond pas clairement (face pull, scapular pull-up, farmer's walk, upright row, reverse curl, développé haltères seul…) renvoie null : l'affichage reste celui d'avant (initiale).
+   1 = principal, 2 = secondaire. Dictionnaire écrit d'après l'action articulaire du mouvement ; non confronté à une source externe (à dire). */
+const MUSCLE_EX = [
+  ["X_NULL",   /\bREVERSE CURLS?\b|\bCURLS? INVERSES?\b|\bUPRIGHT ROW\b|\bROWING MENTON\b|\bFACE PULL\b|\bSCAPULAR\b|\bFARMER|\bPULLOVER\b|\bGOOD MORNING\b|\bSWING\b|\bTURKISH\b|\bSNATCH\b|\bCLEAN\b|\bTHRUSTER\b|\bLANDMINE\b/, null, null],
+  ["X_LEGCURL",/\bLEG CURLS?\b|\bCURLS? (JAMBES?|ISCHIOS?)\b|\bNORDIC\b|\bISCHIO-?JAMBIERS? (MACHINE|ALLONGE|ASSIS)\b/, {ischios:1}, "back"],
+  ["X_LEGEXT", /\bLEG EXTENSIONS?\b|\bEXTENSIONS? (DE )?(JAMBES?|QUADRICEPS|GENOUX?)\b|\bQUADRICEPS (MACHINE|EXTENSION)\b/, {quadriceps:1}, "front"],
+  ["X_LEGPRESS", /\bLEG PRESS\b|\bPRESSE (A |À )?(CUISSES?|JAMBES?|INCLINEE)\b|\bPRESSE A CUISSES\b/, {quadriceps:1, fessiers:1, ischios:2}, "front"],
+  ["X_LUNGE",  /\bFENTES?\b|\bLUNGES?\b|\bSTEP[- ]?UPS?\b|\bSPLIT SQUATS?\b/, {quadriceps:1, fessiers:1, ischios:2}, "front"],
+  ["X_HIP",    /\bHIP THRUSTS?\b|\bPONT FESSIER\b|\bGLUTE BRIDGE\b|\bTHRUSTS? DE HANCHES?\b/, {fessiers:1, ischios:2}, "back"],
+  ["X_RDL",    /\bROMANIAN\b|\bROUMAIN\b|\bRDL\b|\bSTIFF[- ]LEG/, {ischios:1, fessiers:1, lombaires:2}, "back"],
+  ["X_CALF",   /\bMOLLETS?\b|\bCALF\b|\bCALVES\b/, {mollets:1, mollets_d:1}, "back"],
+  ["X_BACKEXT",/\bHYPER ?EXTENSIONS?\b|\bBACK EXTENSIONS?\b|\bEXTENSIONS? LOMBAIRES?\b|\bLOMBAIRES?\b/, {lombaires:1, fessiers:2, ischios:2}, "back"],
+  ["X_SHRUG",  /\bSHRUGS?\b|\bHAUSSEMENTS? D.?EPAULES?\b/, {trapeze:1, trapeze_d:1}, "back"],
+  ["X_REAR",   /\bREVERSE FLY\b|\bREVERSE FLYE?S?\b|\bOISEAUX?\b|\bREAR DELTS?\b|\bECARTES? (INVERSES?|ARRIERES?)\b/, {deltoide_d:1, trapeze_d:2}, "back"],
+  ["X_LATERAL",/\bELEVATIONS? LATERALES?\b|\bLATERAL RAISES?\b|\bECARTES? LATERAL/, {deltoide:1}, "front"],
+  ["X_WRIST",  /\bWRIST CURLS?\b|\bCURLS? (DE )?POIGNETS?\b/, {avant_bras:1}, "front"],
+  ["X_CURL",   /\bCURLS?\b|\bBICEPS\b/, {biceps:1, avant_bras:2}, "front"],
+  ["X_TRI",    /\bTRICEPS\b|\bSKULL ?CRUSHERS?\b|\bBARRE (AU|A LE) FRONT\b|\bFRENCH PRESS\b|\bPUSH ?DOWNS?\b|\bKICK ?BACKS?\b/, {triceps:1}, "back"],
+  ["X_OHP",    /\bDEVELOPPE (MILITAIRE|EPAULES?|NUQUE)\b|\bMILITARY PRESS\b|\bOVERHEAD PRESS\b|\bSHOULDER PRESS\b|\bOHP\b|\bARNOLD PRESS\b/, {deltoide:1, triceps:2}, "front"],
+  ["X_CHEST",  /\bDEVELOPPE (COUCHE|INCLINE|DECLINE)\b|\b(INCLINE|DECLINE|FLAT) (BENCH|PRESS)\b|\bCHEST PRESS\b|\bPOMPES?\b|\bPUSH[- ]?UPS?\b|\bPECTORAUX? (MACHINE|BARRE)\b/, {pectoral:1, deltoide:2, triceps:2}, "front"],
+  ["X_FLY",    /\bECARTES?\b|\bFLYES?\b|\bFLY\b|\bPEC DECK\b|\bPAPILLON\b|\bCROISES? (A LA )?POULIE\b/, {pectoral:1, deltoide:2}, "front"],
+  ["X_PULLDN", /\bPULL ?DOWNS?\b|\bTIRAGE VERTICAL\b|\bTIRAGE (A LA POITRINE|POITRINE|NUQUE)\b/, {dorsaux:1, biceps:2}, "back"],
+  ["X_ROW",    /\bTIRAGE HORIZONTAL\b|\bTIRAGE BUSTE PENCHE\b|\b(BARBELL|DUMBBELL|BENT[- ]OVER|SEATED|CABLE|PENDLAY|CHEST[- ]SUPPORTED|T[- ]?BAR|HALTERES?|BARRE) ROW\b|\bROWING (BARRE|HALTERES?|PENCHE|UNILATERAL)\b|\bT[- ]?BAR\b/, {dorsaux:1, trapeze_d:2, deltoide_d:2, biceps:2}, "back"],
+  ["X_ABS",    /\bGAINAGE\b|\bPLANCHE\b|\bPLANK\b|\bCRUNCH(ES)?\b|\bABDOS?\b|\bABDOMINAUX\b|\bRELEVES? DE JAMBES?\b|\bLEG RAISES?\b|\bHOLLOW\b|\bL[- ]?SIT\b|\bAB WHEEL\b|\bROUE ABDOMINALE\b/, {abdos:1, obliques:2}, "front"]
+];
+MUSCLE_EX.forEach(([k, re, m]) => { if (m) MUSCLE_MAP[k] = m; });
+/* texte d'un exercice (sans accents, majuscules) → clé de MUSCLE_MAP, ou null si la correspondance n'est pas sûre */
+function exMuscleKey(txt){
+  const t = String(txt || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/[’']/g, "'").replace(/\s+/g, " ").trim();
+  if (!t) return null;
+  for (const [k, re, m] of MUSCLE_EX) if (re.test(t)) return m ? k : null;
+  return null;
+}
 /* vue la plus parlante d'un mouvement seul (vignettes) */
 const MUSCLE_VIEW = {SQUAT:"front", BENCH:"front", DIP:"front", DEADLIFT:"back", PULL:"back", MU:"back"};
+MUSCLE_EX.forEach(([k, re, m, v]) => { if (m) MUSCLE_VIEW[k] = v; });
 let _muscleN = 0;
 const MUSCLE_NAMES = {quadriceps:"Quadriceps", fessiers:"Fessiers", ischios:"Ischio-jambiers", lombaires:"Lombaires", abdos:"Abdominaux", adducteurs:"Adducteurs", mollets:"Mollets", mollets_d:"Mollets", pectoral:"Pectoraux", deltoide:"Épaules", deltoide_d:"Épaules", triceps:"Triceps", biceps:"Biceps", serratus:"Dentelé", dorsaux:"Dorsaux", trapeze_d:"Trapèzes", trapeze:"Trapèzes", avant_bras:"Avant-bras", obliques:"Obliques"};
 function muscleMap(lift){   /* un mouvement, ou une liste (séance) : principal l'emporte sur secondaire */
@@ -21,6 +56,7 @@ function muscleMap(lift){   /* un mouvement, ou une liste (séance) : principal 
 }
 function muscleFig(lift, o){
   o = o || {};
+  if (!o.blk && typeof optOn === "function" && !optOn("sil")) return "";   /* option « Silhouettes de muscles » éteinte (les blocs « Muscles travaillés » passent blk:true) */
   const map = muscleMap(lift); if (!map) return "";
   const has = (v, k) => MUSCLE_SVG[v].includes('class="m ' + k + '"') || MUSCLE_SVG[v].includes('class="m ' + k + ' dk"');
   const score = v => Object.keys(map).reduce((n, k) => n + (map[k] === 1 && has(v, k) ? 2 : map[k] === 2 && has(v, k) ? 1 : 0), 0);
