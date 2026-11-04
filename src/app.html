@@ -449,7 +449,7 @@ html,body{overflow-x:clip}body{margin-top:0}
 .pw-big small{font:700 .38em var(--f-show);margin-left:5px;color:var(--dust)}
 .pw-leg{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin-top:10px;font:500 13px var(--f-text);color:var(--dust)}
 .pw-leg i{display:inline-block;margin-right:6px;vertical-align:middle}
-.pw-av{margin-top:8px;font:500 13px var(--f-text);color:var(--dust)}.pw-av b{color:var(--chalk);font-weight:700}.pw-ex{margin-top:8px;font:500 12px/1.4 var(--f-text);color:var(--faint)}
+.pw-av span{white-space:nowrap}.fin .fts .ft b{font-size:26px;white-space:nowrap}.pw-av{margin-top:8px;font:500 13px var(--f-text);color:var(--dust)}.pw-av b{color:var(--chalk);font-weight:700}.pw-ex{margin-top:8px;font:500 12px/1.4 var(--f-text);color:var(--faint)}
 .kbar{display:block;height:8px;border-radius:var(--r-xs);background:var(--deck3);margin-top:16px;overflow:hidden;position:relative}
 .kbar i{display:block;height:100%;border-radius:var(--r-xs);background:var(--acc)}
 .kbar.over i{background:var(--warn)}
@@ -3504,7 +3504,7 @@ function rPoids(){
       <span class="pw-r">${perWeek !== null && Math.abs(perWeek) >= .05 ? `<span class="fchip data">${perWeek > 0 ? "▲" : "▼"} ${fmt(Math.abs(perWeek), 1)} kg / sem.</span>` : ""}<span class="lg-lab">${tw ? TXT.peseeJour + " " + fmt1(tw.poids) : last ? "Dernière pesée " + fmt1(last.poids) : "Aucune pesée"}</span></span></div>
       <div style="margin-top:6px">${V.length > 1 ? pwSvg(V, mmV, lim) : `<div class="emptycard flat"><b>${V.length ? "Une seule pesée sur cette période" : "Aucune pesée sur cette période"}</b><p>Pèse-toi chaque matin, à jeun. La courbe apparaît dès la 2e pesée.</p></div>`}</div>
       <p class="pw-leg"><span><i style="background:var(--dust);width:16px;height:2px;border-radius:var(--r-xs)"></i>Pesées du jour</span><span><i style="background:var(--data);width:16px;height:3px;border-radius:var(--r-xs)"></i>Tendance (moy. 7 j)</span>${lim ? `<span><i style="border-top:2px dashed var(--bad);width:16px;height:0"></i>Limite −${lim} kg</span>` : ""}</p>
-      ${V.length > 1 ? `<p class="pw-av">Tendance <b>${cur !== null ? fmt1(cur) : "–"}</b> kg · Moyenne <b>${fmt1(av)}</b> kg · Min <b>${fmt1(Math.min(...V.map(p => p.poids)))}</b> · Max <b>${fmt1(Math.max(...V.map(p => p.poids)))}</b> kg</p>` : ""}
+      ${V.length > 1 ? `<p class="pw-av"><span>Tendance <b>${cur !== null ? fmt1(cur) : "–"}</b> kg</span> · <span>Moyenne <b>${fmt1(av)}</b> kg</span> · <span>Min <b>${fmt1(Math.min(...V.map(p => p.poids)))}</b> · Max <b>${fmt1(Math.max(...V.map(p => p.poids)))}</b> kg</span></p>` : ""}
       ${V.length > 1 ? `<p class="pw-ex">La ligne grise suit chaque pesée du jour : elle monte et descend avec l'eau, le sel et les repas. La ligne de couleur est la moyenne des 7 derniers jours : c'est elle qui montre ta vraie tendance.</p>` : ""}</div>
     <div class="rng pwr" role="group" aria-label="Période">${PW_RANGES.map(([k, t]) => `<button aria-pressed="${k === pwRange}" data-act="pwRange" data-k="${k}">${t}</button>`).join("")}</div>
     ${lim && last ? `<div class="catcard"><svg width="52" height="52" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="21" fill="none" stroke="var(--warn)" stroke-width="5"/><circle cx="26" cy="26" r="4" fill="var(--warn)"/></svg><div><p><span class="nw">Catégorie −${lim}\u00a0kg</span> · <span class="nw">${marge >= 0 ? "marge " + fmt(marge, 1) + "\u00a0kg" : fmt(-marge, 1) + "\u00a0kg au-dessus"}</span></p>

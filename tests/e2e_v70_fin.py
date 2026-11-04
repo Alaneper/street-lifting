@@ -32,6 +32,7 @@ with sync_playwright() as p:
     t = ev("(document.querySelector('.fin-t')||{}).textContent")
     check("titre honnête : « Mieux qu'hier » ou « Bien joué »", t.startswith("Mieux qu'hier") or t.startswith("Bien joué"), t)
     check("4 tuiles (séries, reps, tonnage, record) ; le total de reps est celui des séries faites", ev("[...document.querySelectorAll('.fin .ft')].map(x => x.querySelector('span').textContent.trim()).join('|')").startswith("Séries|Reps|Tonnage|Record") and ev("+document.querySelectorAll('.fin .ft b')[1].textContent") == ev("live.summary.reps") >= 1, ev("[...document.querySelectorAll('.fin .ft b')].map(x => x.textContent).join('|') + ' / ' + live.summary.reps"))
+    check("les 4 tuiles tiennent chacune sur une ligne (un tonnage de 930 kg ne se coupe pas)", ev("[...document.querySelectorAll('.fin .ft b')].every(b => b.getBoundingClientRect().height < 34)"), ev("[...document.querySelectorAll('.fin .ft b')].map(b => Math.round(b.getBoundingClientRect().height))"))
     check("carte musculaire « Ce que tu as travaillé »", ev("document.querySelectorAll('.fin .lgc svg').length") == 2)
     check("une ligne par exercice fait (avec vignette)", ev("document.querySelectorAll('.fin .fin-r .tdr').length") >= 1)
     check("pas de « undefined / NaN »", ev("!/undefined|NaN/.test(document.querySelector('.fin').innerText)"))
