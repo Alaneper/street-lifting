@@ -15,7 +15,7 @@ with sync_playwright() as p:
     cases = {
       "force": {"find": ["MUSCLE UP", "COMP"], "mod": {"series": "4", "reps": "1", "charge": "5"}, "prev": [[5, 1], [5, 1], [5, 1], [5, 1]]},
       "renfo": {"find": ["RENFO", "CURL BICEPS"], "mod": {"series": "3", "reps": "11", "charge": "42"}, "prev": [[42, 11], [42, 11], [42, 12]]},
-      "compet": {"find": ["SQUAT", "COMP"], "mod": {}, "prev": [[85, 3]]},
+      "compet": {"find": ["SQUAT", "COMP"], "mod": {"series": "3", "reps": "3", "charge": "140"}, "prev": [[140, 3], [140, 3], [140, 3]]},
     }
     for name, cs in cases.items():
         key = ev("""(f) => { const z = S.find(s => !s.archived && s.exercices.some(e => String(e.mouvement).toUpperCase().trim() === f[0] && String(e.variation).toUpperCase().trim() === f[1])); return z && z.key; }""", cs["find"])
