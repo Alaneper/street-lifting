@@ -77,7 +77,7 @@ button.link{display:inline-flex;align-items:center;min-height:44px;margin-block:
 a.btn{text-decoration:none}
 .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:4px 3px;margin:-4px -3px}
 .chips::-webkit-scrollbar{display:none}
-.chip{position:relative;min-height:36px;min-width:44px;justify-content:center;flex:none;padding:8px 13px;border-radius:var(--r-pill);background:var(--deck2);color:var(--dust);font:600 14px var(--f-text);white-space:nowrap;display:inline-flex;gap:7px;align-items:center}
+.chip{position:relative;min-height:44px;min-width:44px;justify-content:center;flex:none;padding:8px 13px;border-radius:var(--r-pill);background:var(--deck2);color:var(--dust);font:600 14px var(--f-text);white-space:nowrap;display:inline-flex;gap:7px;align-items:center}
 .chip[aria-pressed="true"]{background:var(--white);color:var(--floor)}
 .chip::after{content:"";position:absolute;inset:-4px -3px}
 .bar{height:6px;border-radius:var(--r-s);background:var(--deck2);overflow:hidden}
@@ -472,10 +472,10 @@ html,body{overflow-x:clip}body{margin-top:0}
 .blk-n{display:block;font:800 28px/1 var(--f-show);margin-top:5px}
 .blk-s{display:block;font:500 13px var(--f-text);color:var(--dust);margin-top:5px}.blk .lg-lab,.hst .lg-lab{font:500 12px var(--f-text);text-transform:none;letter-spacing:0;color:var(--faint)}
 .blk-w{display:flex;flex-direction:column;align-items:flex-end}.blk-w b{font:800 34px/1 var(--f-show)}.blk-w span{font:500 12px var(--f-text);color:var(--faint)}
-.wkbar{display:flex;gap:3px;margin-top:14px}
-.wkbar button{flex:1;height:7px;border-radius:var(--r-xs);background:var(--deck3);position:relative;padding:0}
-.wkbar button::after{content:"";position:absolute;inset:-18px 0}
-.wkbar button.ok{background:var(--acc)}.wkbar button.cur{background:var(--warn)}
+.wkbar{display:flex;gap:3px;margin-top:6px}
+.wkbar button{flex:1;height:44px;background:none;position:relative;padding:0;display:flex;align-items:center}   /* vraie zone de toucher de 44 px ; la barre visible reste fine */
+.wkbar button::before{content:"";flex:1;height:7px;border-radius:var(--r-xs);background:var(--deck3)}
+.wkbar button.ok::before{background:var(--acc)}.wkbar button.cur::before{background:var(--warn)}
 .wkl{display:flex;flex-direction:column}
 .wkr{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--seam);text-align:left;width:100%;border-radius:0}
 .hleg i.l0{background:var(--deck3)}.fchip.now{background:color-mix(in srgb,var(--acc) 16%,transparent);color:var(--acc-ink);border-radius:var(--r-s);padding:5px 9px;font-size:12px}.fchip.done{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok);border-radius:var(--r-s);padding:5px 9px;font-size:12px}
@@ -545,7 +545,7 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 .mcard .mph{height:116px;border-radius:var(--r-sm);background:var(--deck2);display:flex;align-items:center;justify-content:center;font:800 56px var(--f-show);color:var(--dust)}
 .mempty{margin-top:24px;text-align:center}
 .segc{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--deck);border-radius:var(--r-sm);padding:3px;margin-top:6px}
-.segc button{position:relative;min-height:38px;padding:8px 0;border-radius:var(--r-s);font:600 13px var(--f-text);color:var(--dust)}
+.segc button{position:relative;min-height:44px;padding:8px 0;border-radius:var(--r-s);font:600 13px var(--f-text);color:var(--dust)}
 .segc button[aria-pressed="true"]{background:var(--deck2);color:var(--white)}
 .segc button::after{content:"";position:absolute;inset:-3px 0}
 .rmgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -641,6 +641,8 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 .rc-b{position:relative;margin-top:10px;width:100%;min-height:48px;border-radius:var(--r-sm);background:var(--floor);color:var(--chalk);font:700 15px var(--f-text)}
 @keyframes stamp{from{transform:scale(1.12);opacity:0}}
 /* CORPS (planche Corps) : poids en tendance, alimentation jour / semaine */
+.src a{display:inline-flex;align-items:center;min-height:44px;padding:0 2px}   /* liens de sources : vraie zone de 44 px (pas de recouvrement entre deux lignes) */
+details>summary.small{display:flex;align-items:center;min-height:44px}
 .segc.big{background:var(--deck);border-radius:var(--r);padding:5px;margin-top:2px;box-shadow:var(--sh1)}
 .segc.big button{min-height:44px;font:600 16px var(--f-text);border-radius:var(--r-sm)}
 .segc.big button[aria-pressed="true"]{background:var(--deck2);color:var(--chalk);box-shadow:var(--sh2)}

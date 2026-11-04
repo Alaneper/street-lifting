@@ -20,6 +20,7 @@ def route(r):
             html = (P / "test-build.html").read_text().replace("<head>", "<head><script src='/mock.js'></script><script src='/shim.js'></script>", 1)
             import os as _os
             if _os.environ.get("SAFE_TOP"): html = html.replace("env(safe-area-inset-top,0px)", _os.environ["SAFE_TOP"])  # simule l'encoche : SAFE_TOP=47px
+            if _os.environ.get("SAFE_BOTTOM"): html = html.replace("env(safe-area-inset-bottom,0px)", _os.environ["SAFE_BOTTOM"])  # simule la barre d'accueil : SAFE_BOTTOM=34px
             return r.fulfill(body=html, content_type="text/html")
         return r.fulfill(path=str(P / f))
     if "script.google.com/macros" in u: return r.fulfill(body='{"rows":[]}', content_type="application/json", headers={"Access-Control-Allow-Origin":"*"})   # service du classement (simulé)
