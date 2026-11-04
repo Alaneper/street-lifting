@@ -14,6 +14,8 @@ with sync_playwright() as p:
       "force": {"find": ["MUSCLE UP", "COMP"], "mod": {"series": "4", "reps": "1", "charge": "5"}, "prev": [[5, 1], [5, 1], [5, 1], [5, 1]], "w2": True},
       "renfo": {"find": ["RENFO", "CURL BICEPS"], "mod": {"series": "3", "reps": "11", "charge": "42"}, "prev": [[42, 11], [42, 11], [42, 12]], "w2": True},
       "compet": {"find": ["SQUAT", "COMP"], "mod": {}, "prev": [[85, 3]], "w2": True},
+      "lest50": {"find": ["MUSCLE UP", "COMP"], "mod": {"series": "3", "reps": "1", "charge": "50"}, "prev": [[50, 1], [50, 1], [47.5, 1]], "w2": True},
+      "squat140": {"find": ["SQUAT", "COMP"], "mod": {"series": "3", "reps": "3", "charge": "140"}, "prev": [[140, 3], [140, 3], [140, 3]], "w2": True},
       "curl22": {"find": ["RENFO", "CURL BICEPS"], "mod": {"series": "2", "reps": "10", "charge": "20"}, "prev": [[22, 10], [22, 10]], "prevPresc": "20", "w2": True},
     }
     for name, cs in cases.items():

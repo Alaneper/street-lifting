@@ -449,7 +449,7 @@ html,body{overflow-x:clip}body{margin-top:0}
 .pw-big small{font:700 .38em var(--f-show);margin-left:5px;color:var(--dust)}
 .pw-leg{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin-top:10px;font:500 13px var(--f-text);color:var(--dust)}
 .pw-leg i{display:inline-block;margin-right:6px;vertical-align:middle}
-.pw-leg .pw-av{margin-left:auto}
+.pw-av{margin-top:8px;font:500 13px var(--f-text);color:var(--dust)}.pw-av b{color:var(--chalk);font-weight:700}.pw-ex{margin-top:8px;font:500 12px/1.4 var(--f-text);color:var(--faint)}
 .kbar{display:block;height:8px;border-radius:var(--r-xs);background:var(--deck3);margin-top:16px;overflow:hidden;position:relative}
 .kbar i{display:block;height:100%;border-radius:var(--r-xs);background:var(--acc)}
 .kbar.over i{background:var(--warn)}
@@ -608,13 +608,15 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 .lt-s{font:700 19px/1.25 var(--f-text);color:var(--chalk);margin-top:6px}
 .lsh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:4px 10px 8px}.lsh b{font:700 15px var(--f-text);color:var(--chalk)}.lsh span{font:500 13px var(--f-text);color:var(--dust)}
 .lsr{display:grid;grid-template-columns:30px minmax(0,1fr) auto 44px;align-items:center;gap:6px;width:100%;min-height:52px;padding:0 10px;border-radius:var(--r-sm);text-align:left;font:600 17px var(--f-text);color:var(--chalk)}
-.lsr .n{font:600 12px var(--f-mono);color:var(--dust)}.lsr .lt{display:block;min-width:0;min-height:52px;text-align:left;background:none;color:inherit;font:inherit}.lsr .w{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lsr.done .w{color:var(--dust)}
+.lsr .n{font:600 12px var(--f-mono);color:var(--dust)}.lsr .lt{display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:0;min-height:52px;text-align:left;background:none;color:inherit;font:inherit}.lsr .w{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lsr.done .w{color:var(--dust)}
 .lsr.cur,.lsr.ed{grid-template-columns:30px minmax(0,1fr) 44px;background:var(--deck3)}.lsr.cur .n,.lsr.ed .n{grid-row:1 / 3}.lsr.cur .ins,.lsr.ed .ins{grid-column:2;grid-row:1}.lsr.cur .lights,.lsr.ed .lights{grid-column:2;grid-row:2;justify-self:start;margin:-4px 0 8px 4px}.lsr.cur .ck,.lsr.ed .ck{grid-column:3;grid-row:1 / 3}
 .lsr.cur{min-height:80px;box-shadow:inset 0 0 0 2px var(--acc);margin:4px 0}.lsr.ed{min-height:64px;margin:4px 0}
 .lsr .ins{display:flex;align-items:center;gap:5px;min-width:0}.lsr .ins b{color:var(--dust);font:600 14px var(--f-text)}.lsr .ins b.x{color:var(--faint);font-size:17px}
 .lsr .ins input{height:48px;width:72px;min-width:0;text-align:center;font:700 26px var(--f-show);background:var(--deck);border:0;border-radius:var(--r-sm);color:var(--chalk);padding:0 2px}.lsr.cur .ins input{height:56px;width:78px;font-size:32px}
 .lsr .ck{width:44px;height:44px;border-radius:var(--r-sm);border:2px solid var(--faint);background:none;color:var(--faint);display:grid;place-items:center;transition:background var(--t2),border-color var(--t2)}.lsr .ck.on{border-color:var(--chalk);background:var(--chalk);color:var(--floor);animation:pop var(--t3) var(--ease)}.lsr.cur .ck{width:52px;height:52px;border-color:var(--acc)}.lsr.cur .ck.on{border-color:var(--chalk)}.lsr .ck.on{color:var(--floor)}
 .lset-act{padding:2px 10px 0}.lset-act .link{min-height:44px}
+.pl{display:flex;align-items:flex-end;gap:2px;height:20px}.pl i{display:block;border-radius:2px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.45);flex:none}.pl em{font:500 11px var(--f-text);font-style:normal;color:var(--faint);margin-right:4px;align-self:center}.lsr.done .pl{opacity:.55}
+.lg-lest{max-height:120px}
 .lights{display:inline-flex;gap:6px;justify-content:flex-end}.lights i{width:11px;height:11px;border-radius:50%;box-sizing:border-box;border:1.5px solid var(--faint)}
 .lights.on i{background:var(--chalk);border-color:var(--chalk);animation:lamp var(--t3) var(--ease) both}.lights.on i:nth-child(2){animation-delay:.1s}.lights.on i:nth-child(3){animation-delay:.2s}
 .lights.rec i{background:var(--acc);border-color:var(--acc);animation:lamp var(--t3) var(--ease) both}.lights.rec i:nth-child(2){animation-delay:.1s}.lights.rec i:nth-child(3){animation-delay:.2s}
@@ -650,7 +652,7 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 .emptycard.flat{background:transparent;padding:18px 4px}
 .rng{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;margin:12px 0 0}
 .rng button{min-height:44px;border-radius:var(--r);font:700 16px var(--f-text);color:var(--faint);transition:background-color var(--t2) var(--ease),color var(--t2)}
-.rng button[aria-pressed="true"]{background:var(--deck2);color:var(--chalk);box-shadow:var(--sh1)}
+.rng.pwr button{font-size:13px;white-space:nowrap;padding:0 1px}.rng button[aria-pressed="true"]{background:var(--deck2);color:var(--chalk);box-shadow:var(--sh1)}
 .catcard{display:flex;gap:16px;align-items:center;background:var(--deck);border-radius:var(--r-lg);padding:18px;margin-top:12px;box-shadow:var(--sh1)}
 .catcard svg{flex:none}.catcard p{font:700 18px/1.25 var(--f-text);color:var(--chalk)}.catcard span{display:block;font:500 15px/1.4 var(--f-text);color:var(--dust);margin-top:3px}.catcard p span.nw{display:inline;font:inherit;color:inherit;margin:0}
 #v-corps .vrow .val{font:800 30px var(--f-show);letter-spacing:.005em}
@@ -2571,6 +2573,31 @@ function plateCalc(total){
   for (const p of PLATE_SET) while (r >= p - 1e-9) { out.push(p); r = Math.round((r - p) * 100) / 100; }
   return {out, left:r, reached:BASE_KG + 2 * out.reduce((a, b) => a + b, 0)};
 }
+/* Lest (tractions, dips, muscle-up) : les disques s'empilent sur la ceinture, pas de barre ni de côté. Seule la charge ajoutée est décomposée (ceinture et chaîne non comptées). */
+function lestCalc(total){
+  const t = num(total); if (t === null || !(t > 0)) return null;
+  let r = Math.round(t * 100) / 100; const out = [];
+  for (const p of PLATE_SET) while (r >= p - 1e-9) { out.push(p); r = Math.round((r - p) * 100) / 100; }
+  return {out, left:r, reached:Math.round((t - r) * 100) / 100};
+}
+const plateSvgDims = p => ({h:PLATE_STYLE[p][1], w:PLATE_STYLE[p][2]});
+/* Disques en petit à côté d'une série : barre = par côté, lest = tous les disques. Rectangles arrondis aux couleurs des disques. */
+function platesMini(l, c){
+  const bar = l && BARBELL_LIFTS.includes(l), les = l && BW_LIFTS.includes(l); if (!bar && !les) return "";
+  const k = bar ? plateCalc(c) : lestCalc(c); if (!k || !k.out.length) return "";
+  const lab = (bar ? "Par côté : " : "Lest : ") + k.out.map(p => fmt(p)).join(" + ") + " kg" + (k.left > 0 ? " (reste " + fmt(k.left, 2) + " kg non chargeable)" : "");
+  return `<span class="pl" role="img" aria-label="${esc(lab)}">${bar ? `<em>par côté</em>` : ""}${k.out.map(p => `<i style="background:${PLATE_STYLE[p][0]};height:${Math.round(PLATE_STYLE[p][1] / 4.6)}px;width:${p >= 10 ? 8 : p >= 5 ? 6 : 5}px"></i>`).join("")}</span>`;
+}
+function lestHtml(total){
+  const c = lestCalc(total); if (!c) return `<span class="lg-t">${num(total) === null ? "Saisis le lest pour voir les disques" : "Sans lest : pas de disque"}</span>`;
+  const gap = 5, ws = c.out.map(p => Math.max(16, PLATE_STYLE[p][2] * 1.5)), tw = ws.reduce((a, b) => a + b + gap, 0) - gap, W = Math.max(tw + 20, 200); let x = (W - tw) / 2, g = "";
+  c.out.forEach((p, i) => { const h = PLATE_STYLE[p][1] * .9, y = 6 + (80 - h) / 2, w = ws[i];
+    g += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="${PLATE_STYLE[p][0]}" stroke="#0C0B0A" stroke-width="1"/><text x="${x + w / 2}" y="104" text-anchor="middle" font-size="11" fill="#B4AFA7" font-family="sans-serif">${fmt(p)}</text>`; x += w + gap; });
+  const side = c.out.map(p => fmt(p)).join(" + ");
+  return `<svg viewBox="0 0 ${W} 112" role="img" aria-label="Disques du lest : ${esc(side)} kg" class="lg-svg lg-lest"><line x1="${W / 2}" y1="0" x2="${W / 2}" y2="6" stroke="#8A857D" stroke-width="3"/>${g}</svg>
+    <span class="lg-t">Lest : ${esc(side)} kg${c.left > 0 ? ` · <span class="lg-warn">${fmt(c.reached, 2)} kg avec ces disques (reste ${fmt(c.left, 2)} kg)</span>` : ""}</span>`;
+}
+const gearHtml = (l, c) => BARBELL_LIFTS.includes(l) ? barbellHtml(c) : BW_LIFTS.includes(l) ? lestHtml(c) : "";
 /* Barre vue de face en entier : les plus gros disques au centre, collier à l'extérieur, de chaque côté. */
 function barbellHtml(total){
   const c = plateCalc(total);
@@ -2588,7 +2615,7 @@ function barbellHtml(total){
 /* Séance en direct : la barre de disques se place juste sous la série en cours ; les muscles sont repliés (la prescription est déjà en titre).
    « Voir l'exécution » est retiré : il ouvrait la fiche du mouvement (record, 1RM), qui ne contient aucune consigne d'exécution. */
 function liveBar(l, c){
-  return l && BARBELL_LIFTS.includes(l) ? `<div id="lgear"><div class="lgb"><div class="lg-bar">${barbellHtml(c)}</div></div></div>` : "";
+  return l && (BARBELL_LIFTS.includes(l) || BW_LIFTS.includes(l)) ? `<div id="lgear"><div class="lgb"><div class="lg-bar">${gearHtml(l, c)}</div></div></div>` : "";
 }
 function liveMuscles(l){
   if (!l) return "";
@@ -2656,7 +2683,7 @@ function rLive(){
         const rows = st.sets.map((x, j) => { const edit = j === curJ || st.ed === j, cur = j === curJ;
           const lights = `<span class="lights${x.done ? (x.rec ? " rec" : " on") : ""}" aria-hidden="true"><i></i><i></i><i></i></span>`;
           const ck = `<button class="ck${x.done ? " on" : ""}" data-act="doneSet" data-j="${j}" aria-label="${x.done ? "Annuler la validation de la " + unit + " " + (j + 1) : "Valider la " + unit + " " + (j + 1)}" aria-pressed="${x.done}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></button>`;
-          if (!edit) return `<div class="lsr${x.done ? " done" : ""}" data-j="${j}"><span class="n">S${j + 1}</span><button class="lt" data-act="editSet" data-j="${j}" aria-label="${unit[0].toUpperCase() + unit.slice(1)} ${j + 1} : ${esc(setLine(x, e, isBW))}. Modifier"><span class="w">${esc(setLine(x, e, isBW))}</span></button>${lights}${ck}</div>`;
+          if (!edit) return `<div class="lsr${x.done ? " done" : ""}" data-j="${j}"><span class="n">S${j + 1}</span><button class="lt" data-act="editSet" data-j="${j}" aria-label="${unit[0].toUpperCase() + unit.slice(1)} ${j + 1} : ${esc(setLine(x, e, isBW))}. Modifier"><span class="w">${esc(setLine(x, e, isBW))}</span>${platesMini(l, x.c)}</button>${lights}${ck}</div>`;
           const iC = `<input inputmode="decimal" value="${x.c === null || x.c === undefined || x.c === "" ? "" : String(x.c).replace(".", ",")}" placeholder="${cardio ? "km" : isBW ? "0" : "kg"}" data-chg="setC" data-j="${j}" aria-label="${cardio ? "Kilomètres bloc " + (j + 1) : (isBW ? "Lest" : "Charge") + " série " + (j + 1)}">`;
           const ins = cardio ? `<input inputmode="decimal" value="${x.r === null || x.r === undefined ? "" : String(x.r).replace(".", ",")}" placeholder="min" data-chg="setR" data-j="${j}" aria-label="Minutes bloc ${j + 1}"><b>min</b>${iC}<b>km</b>`
             : `${iC}<b>kg</b><b class="x">×</b>${isTimedEx(e) ? `<input inputmode="text" value="${esc(fmtDur(x.r))}" placeholder="1:30" data-chg="setR" data-j="${j}" aria-label="Durée série ${j + 1} (ex. 1:30 ou 90)">` : `<input inputmode="numeric" value="${x.r ?? ""}" placeholder="–" data-chg="setR" data-j="${j}" aria-label="Reps série ${j + 1}"><b>rép.</b>`}`;
@@ -3391,7 +3418,7 @@ function avg7(P){ return P.map(p => { const w = P.filter(x => x.date <= p.date &
 function weightTrend(){ const P = D.poids.filter(p => p.date >= addDays(D.today, -21)); if (P.length < 4) return null;
   const x = P.map(p => days(P[0].date, p.date)), y = P.map(p => p.poids), n = x.length, mx = sum(x) / n, my = sum(y) / n;
   let a = 0, c = 0; x.forEach((xi, i) => { a += (xi - mx) * (y[i] - my); c += (xi - mx) ** 2; }); return c ? {perDay:a / c, at:d => my + a / c * (days(P[0].date, d) - mx)} : null; }
-const PW_RANGES = [["7j","7 J"],["1m","1 M"],["3m","3 M"],["1a","1 A"],["all","Tout"]], MOIS_C = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+const PW_RANGES = RANGES.map(([k, t]) => [k, t]), MOIS_C = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
 const dJM = iso => !iso ? "" : (+iso.slice(8)) + " " + MOIS_C[+iso.slice(5, 7) - 1] + (iso.slice(0, 4) !== (D ? D.today : isoOf(new Date())).slice(0, 4) ? " " + iso.slice(0, 4) : "");
 /* « 2–8 nov. » ou « 28 sept.–4 oct. » : tient dans le sélecteur de semaine */
 const weekRange = mon => { const e = addDays(mon, 6); return mon.slice(5, 7) === e.slice(5, 7) ? (+mon.slice(8)) + "–" + dJM(e) : dJM(mon).replace(/ \d{4}$/, "") + "–" + dJM(e); };
@@ -3404,18 +3431,19 @@ function pwSvg(V, mmV, lim){
   const span = Math.max(1, days(V[0].date, V.at(-1).date)), X = d => x0 + days(V[0].date, d) / span * (x1 - x0), Y = v => y1 - (v - lo) / (hi - lo) * (y1 - y0);
   const tr = V.map((p, i) => [X(p.date), Y(mmV[i])]), line = tr.map((q, i) => (i ? "L" : "M") + q[0].toFixed(1) + " " + q[1].toFixed(1)).join(" ");
   const area = line + ` L${tr.at(-1)[0].toFixed(1)} ${y1} L${tr[0][0].toFixed(1)} ${y1} Z`, last = tr.at(-1);
-  const dots = V.length <= 60 ? V.map(p => `<circle cx="${X(p.date).toFixed(1)}" cy="${Y(p.poids).toFixed(1)}" r="3" fill="var(--dust)" opacity=".75"/>`).join("") : "";
+  const dots = V.length <= 15 ? V.map(p => `<circle cx="${X(p.date).toFixed(1)}" cy="${Y(p.poids).toFixed(1)}" r="3.2" fill="var(--dust)"/>`).join("") : "";
+  const daily = V.map((p, i) => (i ? "L" : "M") + X(p.date).toFixed(1) + " " + Y(p.poids).toFixed(1)).join(" ");
   /* graduations rondes avec l'unité, et quatre dates sur l'axe */
   const grid = niceTicks(lo, hi).map(t => `<line x1="${x0}" x2="${x1}" y1="${Y(t).toFixed(1)}" y2="${Y(t).toFixed(1)}" stroke="var(--seam)" stroke-width="1"/><text x="${x0 - 7}" y="${(Y(t) + 4).toFixed(1)}" text-anchor="end" fill="var(--faint)" style="font:500 11px var(--f-text)">${tickTxt(t, " kg")}</text>`).join("");
-  const xd = span < 3 ? [V[0].date, V.at(-1).date] : [0, 1 / 3, 2 / 3, 1].map(f => addDays(V[0].date, Math.round(span * f))), xl = axisLab(xd);
+  const xd = span < 4 ? [V[0].date, V.at(-1).date] : [0, .25, .5, .75, 1].map(f => addDays(V[0].date, Math.round(span * f))), xl = axisLab(xd);
   const xt = xd.map((d, i) => `<text x="${X(d).toFixed(1)}" y="${H - 8}" text-anchor="${i === 0 ? "start" : i === xd.length - 1 ? "end" : "middle"}" fill="var(--faint)" style="font:500 11px var(--f-text)">${xl[i]}</text>`).join("");
   const prev = new Map(D.poids.map((p, i) => [p.date, D.poids[i - 1]]));
   ICH.pw = {W, pts:V.map((p, i) => { const q = prev.get(p.date);
     return {x:X(p.date), y:Y(p.poids), date:p.date, tip:`<b>${esc(dFull(p.date))}</b><span>${fmt1(p.poids)} kg</span><small>${q ? sgn(p.poids - q.poids) + " kg vs " + dMois(q.date) : "Première pesée"}</small><small>Tendance 7 j : ${fmt(mmV[i], 1)} kg</small>`}; }), tap:i => ACT.pwDay({d:V[i].date})};
   const anim = pwAnim; pwAnim = false;
   return `<div class="ichart${anim ? " pw-anim" : ""}"><svg class="pw-svg" data-ich="pw" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Courbe de poids : tendance sur 7 jours et pesées. Touche un point pour ouvrir la pesée du jour.">
-    ${grid}${showLim ? `<line x1="${x0}" x2="${x1}" y1="${Y(lim).toFixed(1)}" y2="${Y(lim).toFixed(1)}" stroke="var(--warn)" stroke-width="1.6" stroke-dasharray="5 4"/><text x="${x1}" y="${(Y(lim) - 7).toFixed(1)}" text-anchor="end" fill="var(--warn)" style="font:700 11px var(--f-text)">Limite −${lim} kg</text>` : ""}
-    <path class="pw-area" d="${area}" fill="var(--data)" opacity=".13"/>${dots}<path class="pw-line" pathLength="1" d="${line}" fill="none" stroke="var(--data)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+    ${grid}${showLim ? `<line x1="${x0}" x2="${x1}" y1="${Y(lim).toFixed(1)}" y2="${Y(lim).toFixed(1)}" stroke="var(--bad)" stroke-width="1.6" stroke-dasharray="5 4"/><text x="${x1}" y="${(Y(lim) - 7).toFixed(1)}" text-anchor="end" fill="var(--bad)" style="font:700 11px var(--f-text);paint-order:stroke;stroke:var(--deck);stroke-width:4px;stroke-linejoin:round">Limite −${lim} kg</text>` : ""}
+    <path class="pw-area" d="${area}" fill="var(--data)" opacity=".13"/><path class="pw-daily" d="${daily}" fill="none" stroke="var(--dust)" stroke-width="1" stroke-linejoin="round" opacity=".8"/>${dots}<path class="pw-line" pathLength="1" d="${line}" fill="none" stroke="var(--data)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
     <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="6" fill="var(--data)" stroke="var(--floor)" stroke-width="2.5"/>${xt}
     <g class="ich-g"><line x1="0" x2="0" y1="${y0 - 6}" y2="${y1}"/><circle cx="0" cy="0" r="5.5"/></g></svg><div class="ich-tip" hidden></div></div>`;
 }
@@ -3458,8 +3486,10 @@ function rPoids(){
     <div class="panel pw-card"><div class="pw-top"><span class="pw-l"><span class="lg-lab">Ton poids · tendance</span><b class="pw-big">${cur !== null ? fmt1(cur) + "<small>kg</small>" : `<span class="pw-none">Pas de pesée</span>`}</b></span>
       <span class="pw-r">${perWeek !== null && Math.abs(perWeek) >= .05 ? `<span class="fchip data">${perWeek > 0 ? "▲" : "▼"} ${fmt(Math.abs(perWeek), 1)} kg / sem.</span>` : ""}<span class="lg-lab">${tw ? TXT.peseeJour + " " + fmt1(tw.poids) : last ? "Dernière pesée " + fmt1(last.poids) : "Aucune pesée"}</span></span></div>
       <div style="margin-top:6px">${V.length > 1 ? pwSvg(V, mmV, lim) : `<div class="emptycard flat"><b>${V.length ? "Une seule pesée sur cette période" : "Aucune pesée sur cette période"}</b><p>Pèse-toi chaque matin, à jeun. La courbe apparaît dès la 2e pesée.</p></div>`}</div>
-      <p class="pw-leg"><span><i style="background:var(--data);width:16px;height:3px;border-radius:var(--r-xs)"></i>Tendance (moy. 7 j)</span><span><i style="background:var(--dust);width:7px;height:7px;border-radius:50%"></i>Pesées</span>${av && V.length > 1 ? `<span class="pw-av">Moy. ${fmt1(av)} · min ${fmt1(Math.min(...V.map(p => p.poids)))} · max ${fmt1(Math.max(...V.map(p => p.poids)))}</span>` : ""}</p></div>
-    <div class="rng" role="group" aria-label="Période">${PW_RANGES.map(([k, t]) => `<button aria-pressed="${k === pwRange}" data-act="pwRange" data-k="${k}">${t}</button>`).join("")}</div>
+      <p class="pw-leg"><span><i style="background:var(--dust);width:16px;height:2px;border-radius:var(--r-xs)"></i>Pesées du jour</span><span><i style="background:var(--data);width:16px;height:3px;border-radius:var(--r-xs)"></i>Tendance (moy. 7 j)</span>${lim ? `<span><i style="border-top:2px dashed var(--bad);width:16px;height:0"></i>Limite</span>` : ""}</p>
+      ${V.length > 1 ? `<p class="pw-av">Tendance <b>${cur !== null ? fmt1(cur) : "–"}</b> kg · Moyenne <b>${fmt1(av)}</b> kg · Min, max <b>${fmt1(Math.min(...V.map(p => p.poids)))}</b>, <b>${fmt1(Math.max(...V.map(p => p.poids)))}</b> kg</p>` : ""}
+      ${V.length > 1 ? `<p class="pw-ex">La ligne grise suit chaque pesée du jour : elle monte et descend avec l'eau, le sel et les repas. La ligne de couleur est la moyenne des 7 derniers jours : c'est elle qui montre ta vraie tendance.</p>` : ""}</div>
+    <div class="rng pwr" role="group" aria-label="Période">${PW_RANGES.map(([k, t]) => `<button aria-pressed="${k === pwRange}" data-act="pwRange" data-k="${k}">${t}</button>`).join("")}</div>
     ${lim && last ? `<div class="catcard"><svg width="52" height="52" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="21" fill="none" stroke="var(--warn)" stroke-width="5"/><circle cx="26" cy="26" r="4" fill="var(--warn)"/></svg><div><p><span class="nw">Catégorie −${lim}\u00a0kg</span> · <span class="nw">${marge >= 0 ? "marge " + fmt(marge, 1) + "\u00a0kg" : fmt(-marge, 1) + "\u00a0kg au-dessus"}</span></p>
       ${nc && dd >= 0 ? `<span>${esc(nc.nom)} dans ${dd} jour${dd > 1 ? "s" : ""}${proj !== null ? ` · au rythme actuel : ${fmt(proj, 1)} kg le jour J (${proj <= lim ? "sous la limite" : fmt(proj - lim, 1) + " kg au-dessus"})` : ""}</span>` : ""}</div></div>` : ""}
     <h2 class="h2">Dernières pesées${P.length > 7 ? ` <span class="muted">${P.length} au total</span>` : ""}</h2><div>${P.slice().reverse().slice(0, 7).map(p => `<div class="vrow"><span class="grow"><b>${esc(cap(dlong(p.date)))}</b></span><span class="val">${fmt1(p.poids)}</span></div>`).join("") || `<p class="muted small">Aucune pesée pour l'instant.</p>`}</div>
@@ -3983,8 +4013,8 @@ const CHG = {
     if (nv !== null && old !== nv && !liveCardio()) { const ex = seanceByKey(live.key).exercices[live.i], lf = liftOf(ex.mouvement), bw = !!(lf && BW_LIFTS.includes(lf));
       for (let i = j + 1; i < st.sets.length; i++) if (!st.sets[i].done && st.sets[i].c === old) { st.sets[i].c = nv;
         const inp = document.querySelector('[data-chg="setC"][data-j="' + i + '"]'); if (inp && inp !== el) inp.value = String(nv).replace(".", ",");
-        const w = document.querySelector('.lsr[data-j="' + i + '"] .w'); if (w) w.textContent = setLine(st.sets[i], ex, bw); } }
-    { const cj = st.sets.findIndex(x => !x.done), gb = document.querySelector("#lgear .lg-bar"); if (gb && (cj === j || cj < 0)) gb.innerHTML = barbellHtml(nv); }
+        const w = document.querySelector('.lsr[data-j="' + i + '"] .w'); if (w) { w.textContent = setLine(st.sets[i], ex, bw); const pl = w.parentNode.querySelector(".pl"); if (pl) pl.remove(); w.insertAdjacentHTML("afterend", platesMini(lf, st.sets[i].c)); } } }
+    { const cj = st.sets.findIndex(x => !x.done), gb = document.querySelector("#lgear .lg-bar"); if (gb && (cj === j || cj < 0)) gb.innerHTML = gearHtml(liftOf(seanceByKey(live.key).exercices[live.i].mouvement), nv); }
     persistLive(); },
   setR:(d, el) => { const st = live.rows[live.i]; st.sets[+d.j].r = el.value === "" ? null : liveCardio() ? Math.round(num(el.value) * 10) / 10 : isTimedEx(seanceByKey(live.key).exercices[live.i]) ? parseDur(el.value) : Math.round(num(el.value)); st.dirty = true; persistLive(); },
   blocDate:async (d, el) => { const b = +d.b, v = toIso(el.value); if (!v) return;
