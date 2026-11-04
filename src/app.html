@@ -2626,7 +2626,13 @@ function rLive(){
     <div class="livehead"><button class="iconbtn" data-act="closeLive" aria-label="Réduire la séance"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
       <div class="lh-c"><p class="lh-n">Exercice ${k + 1} sur ${s.exercices.length}</p><p class="lh-s">${el} min · ${esc(s.seance)}</p></div>
       <button class="endbtn" data-act="closeLive">Pause</button></div>
-    <section class="lx"><h1 class="lx-n">${esc(name)}</h1>${(() => { const pr = prescLine(e, l, isBW, cardio); return pr ? `<p class="lx-p">${esc(pr)}</p>` : ""; })()}${(() => { const det = [e.repos ? "Repos " + e.repos : "", e.tempo ? "Tempo " + e.tempo : "", l ? muscleList(l).p.join(", ") : ""].filter(Boolean); return det.length ? `<p class="lx-d">${det.map(esc).join(" · ")}</p>` : ""; })()}</section>
+    <div class="live-progress" role="img" aria-label="Exercice ${k + 1} sur ${s.exercices.length}">${s.exercices.map((x, j) => { const lj = liftOf(x.mouvement), dn = live.rows[j] && live.rows[j].sets.some(z => z.done);
+      return `<i class="${j === k ? "cur" : dn ? "on" : ""}" style="--c:${lj ? LCOL[lj] : isCardioEx(x) ? LCOL.CARDIO : "var(--dust)"}"></i>`; }).join("")}</div>
+    <section class="lx"><h1 class="lx-n">${esc(name)}</h1>${(() => { const pr = prescLine(e, l, isBW, cardio); return pr ? `<p class="lx-p">${esc(pr)}</p>` : ""; })()}${(() => { const det = [e.repos ? "Repos " + e.repos : "", e.tempo ? "Tempo " + e.tempo : "", l ? muscleList(l).p.join(", ") : ""].filter(Boolean); return det.length ? `<p class="lx-d">${det.map(esc).join(" · ")}</p>` : ""; })()}${(() => {
+      /* comme en v65 : la consigne de charge telle qu'écrite (« -12,5%/-5% de 107,5 kg = 94 à 102 kg », « prévu : 27+2,3 »), pour comprendre d'où vient la charge proposée */
+      const b = backoffOf(s, e, k, live.rows), ch = String(e.charge ?? "").trim(); if (cardio) return "";
+      const txt = b ? `${ch} de ${fmt(b.base)} kg = ${fmt(Math.ceil(b.lo * 4) / 4)} à ${fmt(Math.floor(b.hi * 4) / 4)} kg` : chargeGuess(e) !== null && !isNumTxt(e.charge) && ch && !ASSIST_RE.test(ch) ? "Prévu : " + ch : "";
+      return txt ? `<p class="lx-d">${esc(txt)}</p>` : ""; })()}</section>
     ${(() => { if (!prev || !prev.sets || !prev.sets.length) return `<p class="lastt none">Dernière fois : aucune série notée pour cet exercice.</p>`;
       const j = curJ < 0 ? st.sets.length - 1 : curJ, cur = st.sets[j] || {}, c0 = cur.c ?? chargeGuess(e), pp = prev.sets[Math.min(j, prev.sets.length - 1)];
       const lbl = prev.src === "prévu" ? "Prévu la dernière fois (non noté)" : "Dernière fois", when = [prev.date ? dJM(prev.date) : "", prev.where && prev.where !== "dernière fois" ? prev.where : ""].filter(Boolean).join(" · ");
