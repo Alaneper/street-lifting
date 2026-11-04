@@ -596,25 +596,27 @@ body:has(.vbar) .restpill{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
 .live .lh-c{flex:1}.live .lh-n{font:700 17px var(--f-text)}.live .lh-s{font:500 12px var(--f-text);letter-spacing:0;text-transform:none;color:var(--dust);margin-top:2px}
 .live .endbtn{background:var(--deck);color:var(--chalk);border-radius:var(--r-sm);height:44px;padding:0 18px;font:700 15px var(--f-text)}
 .live .lgc{margin-top:6px;padding:12px 14px;gap:14px;align-items:center;box-shadow:var(--sh1)}
-.live .lgc .mplate.lg-plate{--mh:88px}
+.live .lgc .mplate.lg-plate{--mh:72px}.live .lgc-t>b{display:none}
 .lgc-t b{font:700 16px var(--f-text);color:#2A2622}.lgc-t .lgc-c{font:500 13px var(--f-text);color:#4A453F}
 .vx{align-self:flex-start;min-height:44px;margin:-6px 0 -8px -2px;display:flex;align-items:center;padding:0;background:none}.vx span{font:700 13px var(--f-text);color:#2A2622;background:color-mix(in srgb,var(--deck2) 10%,transparent);border-radius:var(--r-s);padding:6px 11px}
-.lhr{display:grid;grid-template-columns:1fr auto;align-items:end;gap:10px;margin-top:14px}
-.live .lhr .hero{margin-top:0}.live .hero .hs{font:500 15px var(--f-text);text-transform:none;letter-spacing:0;color:var(--dust)}
-.live .hero .hb small{font-size:.42em;color:var(--chalk);margin-left:6px}.live .hero .hu{font-size:12px;margin-top:6px;color:var(--faint)}
-.ld{display:flex;flex-direction:column;align-items:flex-end;gap:6px;padding-bottom:4px;text-align:right}.ld b{font:700 13px var(--f-text);background:var(--deck3);color:var(--chalk);border-radius:var(--r-s);padding:6px 10px;white-space:nowrap}.ld b.up{background:color-mix(in srgb,var(--acc) 16%,transparent);color:var(--acc-ink)}.ld span{font:500 13px var(--f-text);color:var(--dust)}
-.lgb{margin-top:10px;padding:6px 12px 10px;border-radius:var(--r-lg);background:var(--deck);box-shadow:var(--sh1)}.lg-t{font:500 13px var(--f-text);align-self:center;text-align:center}.lg-svg{max-height:110px}
-.lsets{margin-top:10px;background:var(--deck);border-radius:var(--r-lg);padding:8px;box-shadow:var(--sh1)}
-.lsr{display:grid;grid-template-columns:30px 1fr 42px 58px;align-items:center;gap:6px;width:100%;min-height:48px;padding:0 10px;border-radius:var(--r-sm);text-align:left;font:600 17px var(--f-text);color:var(--chalk)}
-.lsr .n{font:600 12px var(--f-mono);color:var(--dust)}.lsr .rp{text-align:right;font:600 16px var(--f-text);color:var(--dust)}
-.lsr.cur{background:var(--deck3)}.lsr.cur.setrow{grid-template-columns:30px 1fr auto 58px}.lsr .ins{display:flex;align-items:center;gap:6px;min-width:0}
-.lsr .ins input{height:44px;width:76px;min-width:0;text-align:center;font:700 22px var(--f-show);background:var(--deck);border:0;border-radius:var(--r-sm);color:var(--chalk);padding:0 4px}.lsr .ins b{color:var(--faint);font-weight:600}
-.lsr .ck{width:44px;height:44px;border-radius:var(--r-sm);border:2px solid var(--chalk);background:var(--chalk);color:var(--floor);display:grid;place-items:center;margin-right:-4px}
-.lmore{display:block;width:100%;min-height:44px;padding:0 10px;text-align:left;font:500 14px var(--f-text);color:var(--dust)}
+.lx{margin-top:12px}.lx-n{font:700 34px/1.05 var(--f-show);letter-spacing:.005em;color:var(--chalk);overflow-wrap:anywhere}.lx-p{font:700 26px/1.15 var(--f-show);color:var(--chalk);margin-top:6px}.lx-d{font:500 13px/1.35 var(--f-text);color:var(--dust);margin-top:6px}
+.lastt{margin-top:14px;padding:12px 14px;border-radius:var(--r);background:var(--deck);box-shadow:var(--sh1)}.lt-n{margin-top:6px;font:500 13px var(--f-text);color:var(--dust)}.lastt.none{font:500 13px var(--f-text);color:var(--dust);background:none;box-shadow:none;padding:0}
+.lt-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.lt-h span{font:600 12px var(--f-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--dust)}.lt-h em{font:500 13px var(--f-text);font-style:normal;color:var(--faint)}
+.ld-b{margin-left:auto;font:700 13px var(--f-text);background:var(--deck3);color:var(--chalk);border-radius:var(--r-s);padding:5px 10px;white-space:nowrap}.ld-b.up{background:color-mix(in srgb,var(--acc) 16%,transparent);color:var(--acc-ink)}
+.lt-s{font:700 19px/1.25 var(--f-text);color:var(--chalk);margin-top:6px}
+.lsh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:4px 10px 8px}.lsh b{font:700 15px var(--f-text);color:var(--chalk)}.lsh span{font:500 13px var(--f-text);color:var(--dust)}
+.lsr{display:grid;grid-template-columns:30px minmax(0,1fr) auto 44px;align-items:center;gap:6px;width:100%;min-height:52px;padding:0 10px;border-radius:var(--r-sm);text-align:left;font:600 17px var(--f-text);color:var(--chalk)}
+.lsr .n{font:600 12px var(--f-mono);color:var(--dust)}.lsr .lt{display:block;min-width:0;min-height:52px;text-align:left;background:none;color:inherit;font:inherit}.lsr .w{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lsr.done .w{color:var(--dust)}
+.lsr.cur,.lsr.ed{grid-template-columns:30px minmax(0,1fr) 44px;background:var(--deck3)}.lsr.cur{min-height:80px;box-shadow:inset 0 0 0 2px var(--acc);margin:4px 0}.lsr.ed{min-height:64px;margin:4px 0}
+.lsr .ins{display:flex;align-items:center;gap:5px;min-width:0}.lsr .ins b{color:var(--dust);font:600 14px var(--f-text)}.lsr .ins b.x{color:var(--faint);font-size:17px}
+.lsr .ins input{height:48px;width:72px;min-width:0;text-align:center;font:700 26px var(--f-show);background:var(--deck);border:0;border-radius:var(--r-sm);color:var(--chalk);padding:0 2px}.lsr.cur .ins input{height:56px;width:78px;font-size:32px}
+.lsr .ck{width:44px;height:44px;border-radius:var(--r-sm);border:2px solid var(--faint);background:none;color:var(--faint);display:grid;place-items:center;transition:background var(--t2),border-color var(--t2)}.lsr .ck.on{border-color:var(--chalk);background:var(--chalk);color:var(--floor);animation:pop var(--t3) var(--ease)}.lsr.cur .ck{width:52px;height:52px;border-color:var(--acc)}.lsr.cur .ck.on{border-color:var(--chalk)}.lsr .ck.on{color:var(--floor)}
 .lset-act{padding:2px 10px 0}.lset-act .link{min-height:44px}
 .lights{display:inline-flex;gap:6px;justify-content:flex-end}.lights i{width:11px;height:11px;border-radius:50%;box-sizing:border-box;border:1.5px solid var(--faint)}
 .lights.on i{background:var(--chalk);border-color:var(--chalk);animation:lamp var(--t3) var(--ease) both}.lights.on i:nth-child(2){animation-delay:.1s}.lights.on i:nth-child(3){animation-delay:.2s}
 .lights.rec i{background:var(--acc);border-color:var(--acc);animation:lamp var(--t3) var(--ease) both}.lights.rec i:nth-child(2){animation-delay:.1s}.lights.rec i:nth-child(3){animation-delay:.2s}
+.lgb{margin-top:10px;padding:6px 12px 10px;border-radius:var(--r-lg);background:var(--deck);box-shadow:var(--sh1)}.lg-t{font:500 13px var(--f-text);align-self:center;text-align:center}.lg-svg{max-height:110px}
+.lsets{margin-top:10px;background:var(--deck);border-radius:var(--r-lg);padding:8px;box-shadow:var(--sh1)}
 @keyframes lamp{from{transform:scale(.3);opacity:0}}
 .lrpe{margin-top:14px}.lrh{display:flex;align-items:center;justify-content:space-between;font:500 14px var(--f-text);color:var(--dust)}.lrh .chip{min-height:44px;min-width:44px;padding:0;border-radius:var(--r-lg);background:none;color:var(--dust)}
 .lrpe .rpe{margin-top:2px;gap:8px}.lrpe .rpe button{min-width:44px;height:44px;background:var(--deck2);font:700 17px var(--f-text);color:var(--chalk);padding:0 6px}
@@ -908,6 +910,7 @@ body.scrolled .syncline{opacity:0}
 .obkg input{background:none;border:0;box-shadow:none;padding:0;min-height:0;height:48px;line-height:1;text-align:right;font:800 34px/1 var(--f-show);width:100%}
 .obkg input::placeholder{color:var(--faint)}
 .obkg small{font:700 15px var(--f-show);color:var(--dust)}
+.obcs{display:flex;align-items:flex-start;gap:12px;margin-top:16px;min-height:44px;font:500 15px/1.35 var(--f-text);color:var(--chalk);cursor:pointer}.obcs input{width:22px;height:22px;flex:none;margin:1px 0 0;accent-color:var(--acc)}
 .obtot{display:flex;align-items:center;gap:16px;margin-top:14px;padding:16px 18px;border-radius:var(--r-lg);background:color-mix(in srgb,var(--data) 12%,var(--deck))}
 .obtot b{font:800 40px/1 var(--f-show);color:var(--data)}.obtot span{font-size:15px;color:var(--chalk)}
 .reveal{margin-top:12px;padding:14px;border-radius:var(--r-lg);background:var(--deck)}
@@ -1254,7 +1257,7 @@ async function gs(tool, input, isRead){
     throw e;
   }
 }
-const getVals = async (id, range) => ((await gs("get_values", {spreadsheetId:id, range}, true)).values) || [];
+const getVals = async (id, range, raw) => ((await gs("get_values", raw ? {spreadsheetId:id, range, valueRenderOption:"FORMULA"} : {spreadsheetId:id, range}, true)).values) || [];
 const putVals = (id, range, values) => gs("update_values", {spreadsheetId:id, range, values});
 const appendVals = (id, range, values) => gs("append_values", {spreadsheetId:id, range, values});
 const getTitles = async id => ((await gs("get_spreadsheet", {spreadsheetId:id, fields:["sheets.properties.title"]}, true)).sheets || []).map(s => s.properties && s.properties.title).filter(Boolean);
@@ -1310,6 +1313,14 @@ const Store = (() => {
       if (rows.every((r, j) => r.every((c, k) => eqCell(v[i + j] && v[i + j][k], c)))) return i + 1;
     return 0;
   }
+  /* Écriture « seulement si la case n'a pas changé » (réglage Charge) : relit la case (formule comprise) juste avant d'écrire.
+     Écrit seulement si elle contient encore ce que l'app avait lu (ou ce qu'elle y a elle-même mis) ; sinon ne touche à rien et le dit. */
+  async function condWrite(cid, sheet, col, row, val, expect){
+    const a1 = q(sheet) + "!" + colL(col) + row, cur = (await getVals(cid, a1, true))[0], c0 = cur && cur[0] !== undefined && cur[0] !== null ? cur[0] : "";
+    if (eqCell(c0, val)) return {same:true, old:c0};
+    if (!(expect || []).some(x => eqCell(x, c0))) return {conflict:true, now:c0, formula:/^\s*=/.test(String(c0))};
+    await putVals(cid, a1, [[val]]); return {written:true, old:c0};
+  }
   async function runOp(op){
     if (op.t === "add") {
       let r0 = op.maybe ? await findRows(op.tab, op.rows) : 0;
@@ -1320,6 +1331,7 @@ const Store = (() => {
       if (op.t === "set") await rset(op.tab, id, op.values, op.from); else await rset(op.tab, id, Array(LAST[op.tab].charCodeAt(0) - 64).fill(""));
     } else if (op.t === "upsert") await rupsert(...op.a);
     else if (op.t === "cell") await putVals(op.cid, q(op.sheet) + "!" + colL(op.col) + op.row, [[op.val]]);
+    else if (op.t === "cellif") { const r = await condWrite(op.cid, op.sheet, op.col, op.row, op.val, op.expect); try { chargeResult(op.meta, r, true); } catch(e){} }
   }
   function flush(){
     if (cur) return cur;
@@ -1452,7 +1464,11 @@ const Store = (() => {
       readRange:(sheet, a1) => getVals(coachId(), q(sheet) + "!" + a1),
       setCell:async (sheet, col, row, val) => { const cid = coachId();
         if (!ob.length) { try { return await putVals(cid, q(sheet) + "!" + colL(col) + row, [[val]]); } catch(e){ if (!isOffline(e)) throw e; } }
-        enqueue({t:"cell", k:"cell|" + cid + "|" + sheet + "|" + col + "|" + row, cid, sheet, col, row, val}); }
+        enqueue({t:"cell", k:"cell|" + cid + "|" + sheet + "|" + col + "|" + row, cid, sheet, col, row, val}); },
+      /* réglage « Mon Sheet est ma prog personnelle » : met la charge faite dans la case, sans rien écraser de ce qui a changé entre-temps ; hors connexion, part dans la file (une seule fois) */
+      setCellIf:async (sheet, col, row, val, expect, meta) => { const cid = coachId();
+        if (!ob.length) { try { return await condWrite(cid, sheet, col, row, val, expect); } catch(e){ if (!isOffline(e)) throw e; } }
+        enqueue({t:"cellif", k:"cell|" + cid + "|" + sheet + "|" + col + "|" + row, cid, sheet, col, row, val, expect, meta}); return {queued:true}; }
     },
     flush, pending:() => ob.length, clearIds:() => { idmap = {}; store.del(IKEY); }
   };
@@ -1480,6 +1496,7 @@ async function loadApp(){
     _mrTab:mrTab, _nutTabs:nutTabs});
   if (!Store.pending() && !live) Store.clearIds();   /* les numéros de ligne sont à nouveau les vrais */
   try { syncDone(); applyAllMods(); } catch(e){}
+  try { if (store.get("sl4-csync-pend")) { setChargeSync(coachId() || APP_ID, true); store.del("sl4-csync-pend"); } } catch(e){}   /* case cochée à la liaison d'un carnet existant */
 }
 /* cache d'une version ≤ 30 : « _row » / « row » deviennent « id » */
 function migrateIds(){
@@ -1999,7 +2016,7 @@ function e1rmLine(l){
   if (!allLoaded) return ""; const sets = compSets(l), e = sets.length ? e1rmBest(l, sets) : null; if (!e) return "";
   return `<button class="e1l" data-act="e1Info" data-l="${l}" aria-label="Comment le 1RM estimé est calculé"><span>1RM estimé <b>${fmt(Math.floor(e.v * 4) / 4)} kg</b></span><i aria-hidden="true">!</i></button>`;
 }
-const fmtSets = sets => { const c0 = sets[0].c; return sets.every(x => x.c === c0) ? fmt(c0) + " kg × " + sets.map(x => x.r).join(" · ") : sets.map(x => x.r + "@" + fmt(x.c)).join(" · "); };
+const fmtSets = sets => groupSets(sets, false);   /* « 42 kg × 11-11-12 rép. » : toujours charge, puis reps */
 
 /* =====================================================================
    CACHE LOCAL (affichage immédiat à l'ouverture, puis synchro)
@@ -2230,7 +2247,7 @@ function todayCard(s, lv, bar, nc){
       <span class="tdr-t"><b>${esc(norm(e.mouvement) === "RENFO" ? title(e.variation) : title(e.mouvement) + (e.variation && !isCompVar(e.variation, e.tempo) ? " " + title(e.variation).toLowerCase() : ""))}</b><span>${[e.series && repsOk(e.reps) ? esc(e.series) + " × " + esc(e.reps) : "", rpeCible(e) ? esc(rpeCible(e).lab.replace("RPE visé ", "RPE ")) : "", e.repos ? esc(e.repos) : ""].filter(Boolean).join(" · ")}</span></span>${kgTxt ? `<span class="tdr-k${isNumTxt(e.charge) ? "" : " txt"}">${kgTxt}</span>` : ""}</button>`; };
   const shown = exs.slice(0, 4), more = exs.length - shown.length;
   return `<div class="tdc"><div class="tdc-top"><div class="tdc-main"><span class="tdc-eye">${esc(eye)}</span><span class="tdc-ttl">${esc(sessLabel(s))}</span>
-      <span class="tdc-chips">${mainEx ? `<span class="obj">Objectif ${fmt(num(mainEx.charge))} × ${esc(mainEx.reps)}</span>` : ""}${sets ? `<span>${pl(sets, "série")}</span>` : ""}${nc ? `<span class="comp">${days(D.today, nc.date) === 0 ? "Jour J" : "J−" + days(D.today, nc.date)} · ${esc(nc.nom)}</span>` : ""}</span></div>
+      <span class="tdc-chips">${mainEx ? `<span class="obj">Objectif ${fmt(num(mainEx.charge))} kg × ${esc(mainEx.reps)} rép.</span>` : ""}${sets ? `<span>${pl(sets, "série")}</span>` : ""}${nc ? `<span class="comp">${days(D.today, nc.date) === 0 ? "Jour J" : "J−" + days(D.today, nc.date)} · ${esc(nc.nom)}</span>` : ""}</span></div>
       ${lifts.length ? muscleFig(lifts, {view:"both", cls:"tdc-plate"}) : ""}</div>
     ${coach ? `<p class="tdc-coach"><b>CO</b><span>« ${esc(coach)} »</span></p>` : ""}
     ${bar ? "" : `<button class="btn" data-act="startLive" data-k="${esc(s.key)}">${resume ? "Reprendre la séance" : "Commencer la séance"}</button>`}</div>
@@ -2322,7 +2339,7 @@ function rSeance(){
       const l = liftOf(e.mouvement), key = exKey(e), o = pts.find(z => z.key === key), p = o && o.pts.find(z => z.label === blocShort(s.bloc) + " S" + s.semaine || (z.date && z.date === d));
       const done = D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
       const cdx = isCardioEx(e), cdl = cdx ? cardioLog(s, e) : null;
-      const logged = cdx ? (cdl ? fmtCardio(cdl.sets) : "") : done ? fmtSets(done.sets) : (repsOnly(e.commentaire) ? fmt(num(e.charge)) + " kg × " + repsOnly(e.commentaire).join(" · ") : "");
+      const logged = cdx ? (cdl ? fmtCardio(cdl.sets) : "") : done ? fmtSets(done.sets) : (repsOnly(e.commentaire) ? fmt(num(e.charge)) + " kg × " + repsOnly(e.commentaire).join("-") + " rép." : "");
       return `<button class="exo" style="--c:${l ? LCOL[l] : cdx ? LCOL.CARDIO : "var(--seam)"}" data-act="startLive" data-k="${esc(s.key)}" data-i="${k}"><span class="bar-v"></span><span class="grow">
         <span class="row"><b class="ttl">${esc(norm(e.mouvement) === "RENFO" ? title(e.variation) : title(e.mouvement) + " " + title(e.variation).toLowerCase())}</b>${e.rpe1 || e.rpeLast ? `<span class="pill">RPE ${esc(e.rpeLast || e.rpe1)}</span>` : ""}</span>
         <span class="muted small" style="display:block;margin-top:2px">${presc(e)}</span>
@@ -2421,6 +2438,76 @@ const cardioLog = (s, e) => (D.cardio || []).find(x => x.bloc === s.bloc && x.se
 const failTxt = v => /chec|fail|rat[ée]/i.test(String(v ?? ""));
 /* Exercice en durée : « 15" », « 30'' », « 45 s » → secondes */
 const timedOf = e => { const m = String(e.reps || "").trim().match(/^(\d+)\s*(?:"|''|’’|s|sec)$/i); return m ? +m[1] : null; };
+/* =====================================================================
+   RETOURS TESTEUR · C — charges : la dernière charge faite, et le réglage « Mon Sheet est ma prog personnelle »
+   ===================================================================== */
+const CSYNC_K = "sl4-chargesync", CLOG_K = "sl4-chargelog";
+const chargeSyncOn = id => !!(id && ((store.get(CSYNC_K) || {})[id] === true));
+function setChargeSync(id, on){ if (!id) return; const m = Object.assign({}, store.get(CSYNC_K) || {}); if (on) m[id] = true; else delete m[id]; store.set(CSYNC_K, m); }
+const chargeLog = () => store.get(CLOG_K) || [];
+function chargeLogSet(t0, patch){ const l = chargeLog(), i = l.findIndex(x => x.t === t0); if (i >= 0) { Object.assign(l[i], patch); store.set(CLOG_K, l); } }
+function chargeLogAdd(o){ const l = chargeLog(); l.unshift(o); store.set(CLOG_K, l.slice(0, 30)); }
+/* La prescription d'une séance passée telle qu'elle était écrite AVANT que l'app y mette la charge faite
+   (mention « Charge du Sheet 20 → 22 » dans le carnet, sinon journal local, sinon la case telle quelle). */
+function presOrig(z, ez, lg){
+  const m = lg && /Charge du Sheet ([\d.,]+) → ([\d.,]+)/.exec(lg.src || ""); if (m) return m[1];
+  const cid = coachId(), hit = chargeLog().find(x => x.cid === cid && x.sheet === z.sheet && x.row === ez.row && (x.st === "ok" || x.st === "queued"));
+  return hit ? hit.orig : ez.charge;
+}
+/* Charge proposée = celle de la dernière fois, tant que la prescription n'a pas changé depuis (le coach qui change la consigne garde la main).
+   Jamais pour un % du top set, une assistance, une durée, un cardio. Renvoie les charges série par série. */
+function chargeFromLast(s, e, k){
+  if (isCardioEx(e) || isTimedEx(e) || ASSIST_RE.test(String(e.charge ?? ""))) return null;
+  const cg = chargeGuess(e); if (cg === null) return null;
+  const pv = prevRowSets(s, k); if (!pv || !pv.z || !pv.sets || !pv.sets.length || (pv.src !== "noté" && pv.src !== "noté dans la prog")) return null;
+  if (pv.sets.some(x => x.c === null || x.c === undefined || isNaN(+x.c))) return null;
+  const was = chargeGuess({charge:presOrig(pv.z, pv.ez, pv.lg)});
+  if (was === null || Math.abs(was - cg) > 1e-9) return null;
+  const cs = pv.sets.map(x => +x.c); return cs.every(c => Math.abs(c - cg) < 1e-9) ? null : {cs, presc:cg};
+}
+/* Réglage actif : que faut-il mettre dans la case « Charge » de cette ligne ? (jamais dans un Sheet de coach, jamais dans une formule ou un texte) */
+function chargePlan(s, e, done){
+  const cid = coachId();
+  if (!cid || !chargeSyncOn(cid) || s.week || s.archived || e._mod || !s.sheet || !s.cols || !s.cols.charge || !e.row || isCardioEx(e) || isTimedEx(e) || !done.length) return null;
+  if (!isNumTxt(e.charge)) return null;
+  const val = Math.max(...done.map(x => num(x.c) ?? 0)); if (!isFinite(val) || val < 0) return null;
+  if (num(e.charge) === val) return null;
+  const orig = e._chg0 !== undefined ? e._chg0 : e.charge;
+  return {sheet:s.sheet, col:s.cols.charge, row:e.row, val, from:e.charge, orig, expect:[orig, e._chgW, e.charge].filter(x => x !== undefined)};
+}
+/* Résultat d'une écriture de charge (tout de suite, ou plus tard quand la file d'attente part). Renvoie la mention à garder dans le carnet. */
+function chargeResult(meta, r, late, e){
+  const nm = meta.ex || "cet exercice", mk = patch => late ? chargeLogSet(meta.t, patch) : null;
+  if (meta.undoOf) {
+    if (r.written) { chargeLogSet(meta.undoOf, {st:"undone"}); toast("Charge remise à " + fmt(num(meta.new)) + " kg dans ton Sheet"); }
+    else if (r.conflict) toast("La case a changé depuis : je ne l'ai pas modifiée.", true);
+    return "";
+  }
+  if (r.written) {
+    if (late) chargeLogSet(meta.t, {st:"ok", old:String(r.old)}); else chargeLogAdd(Object.assign({}, meta, {st:"ok", old:String(r.old)}));
+    if (e) { e._chg0 = meta.orig; e._chgW = String(meta.new); e.charge = String(meta.new); }
+    return " · Charge du Sheet " + fmt(num(r.old)) + " → " + fmt(meta.new);
+  }
+  if (r.same) { if (e) { e._chg0 = meta.orig; e._chgW = String(meta.new); e.charge = String(meta.new); } return ""; }
+  if (r.conflict) {
+    if (late) chargeLogSet(meta.t, {st:"conflict", now:String(r.now)}); else chargeLogAdd(Object.assign({}, meta, {st:"conflict", now:String(r.now)}));
+    if (e && isNumTxt(r.now)) e.charge = String(r.now);
+    toast(r.formula ? "La case Charge de « " + nm + " » contient une formule : je n'y ai rien écrit (tu as fait " + fmt(meta.new) + " kg)." : "La case Charge de « " + nm + " » a changé dans ton Sheet depuis la lecture (" + String(r.now) + ") : je n'ai rien écrasé. Tu as fait " + fmt(meta.new) + " kg.", true);
+    return "";
+  }
+  if (r.queued) {
+    chargeLogAdd(Object.assign({}, meta, {st:"queued"}));
+    if (e) { e._chg0 = meta.orig; e._chgW = String(meta.new); e.charge = String(meta.new); }
+  }
+  return "";
+}
+async function chargeUndo(t0){
+  const x = chargeLog().find(z => z.t === t0 && z.st === "ok"); if (!x) return;
+  const meta = Object.assign({}, x, {undoOf:x.t, t:Date.now(), ex:x.ex}), oldN = num(x.old); if (oldN === null) return toast("Valeur d'avant introuvable", true);
+  try { const r = await Store.coach.setCellIf(x.sheet, x.col, x.row, oldN, [String(x.new)], Object.assign(meta, {new:oldN})); chargeResult(meta, r, false);
+    if (r.queued) toast("Sans réseau : l'annulation partira dès que le réseau revient."); } catch(err){ toast(errMsg(err), true); }
+  renderLayer();
+}
 function initSets(s, e, k){
   const key = exKey(e), lift = liftOf(e.mouvement);
   if (isCardioEx(e)) {   /* cardio : une ligne = un bloc (minutes, km facultatif) */
@@ -2437,12 +2524,13 @@ function initSets(s, e, k){
   const rg = String(e.reps).match(/^\s*(\d+)\s*[-–]\s*(\d+)\s*$/);
   let seq = null; if (/^\d+(\/\d+)+$/.test(String(e.reps).trim())) seq = String(e.reps).split("/").map(Number);
   const target = isNumTxt(e.reps) ? num(e.reps) : (String(e.reps).match(/^(\d+)\s*-\s*\d+$/) || [])[1];
-  if (seq) { const out = []; for (let i = 0; i < nS; i++) seq.forEach(r => out.push({c:cg ?? (lift && BW_LIFTS.includes(lift) ? 0 : null), r, done:false})); return out; }
+  const fl = chargeFromLast(s, e, k), cAt = i => fl.cs[Math.min(i, fl.cs.length - 1)];   /* retours testeur C : la dernière charge faite, tant que la prescription n'a pas changé */
+  if (seq) { const out = []; for (let i = 0; i < nS; i++) seq.forEach(r => out.push({c:fl ? cAt(out.length) : cg ?? (lift && BW_LIFTS.includes(lift) ? 0 : null), r, done:false})); return out; }
   return Array.from({length:nS}, (_, i) => {
     const ls = last ? last.sets[Math.min(i, last.sets.length - 1)] : null;
     /* reps : celles d'avant si elles tiennent dans la fourchette de la prog, sinon le bas de la fourchette */
     const r = ls && ls.r ? (rg && (ls.r < +rg[1] || ls.r > +rg[2]) ? +rg[1] : ls.r) : (target ? +target : null);
-    return {c: cg ?? (ls ? ls.c : (lift && BW_LIFTS.includes(lift) ? 0 : null)), r, done:false};
+    return {c: fl ? cAt(i) : cg ?? (ls ? ls.c : (lift && BW_LIFTS.includes(lift) ? 0 : null)), r, done:false};
   });
 }
 async function startLive(key, i){
@@ -2501,56 +2589,73 @@ function liveGear(l, c, e, noCoach){
   return `<div id="lgear">${noCoach ? "" : `<div class="lgc">${muscleFig(l, {view:"both", cls:"lg-plate"})}<div class="lgc-t"><b>${esc(ml.p.join(", "))}</b>${line ? `<span class="lgc-c">${who} · ${line}</span>` : ""}<button class="vx" data-act="openLift" data-l="${l}"><span>Voir l'exécution</span></button></div></div>`}
     ${bb ? `<div class="lgb"><div class="lg-bar">${barbellHtml(c)}</div></div>` : ""}</div>`;
 }
+/* Séance en direct : formats sans ambiguïté (« 5 kg × 1 rép. », jamais « 5 × 1 »), prescription et « Dernière fois » série par série */
+const kgTxt = (c, bw) => c === null || c === undefined || c === "" || num(c) === null ? "—" : bw ? (num(c) > 0 ? "+" + fmt(num(c)) + " kg" : "Poids du corps") : fmt(num(c)) + " kg";
+const setLine = (x, e, bw) => isCardioEx(e) ? (x.r ? fmt(x.r, 1) + " min" : "—") + (x.c ? " · " + fmt(x.c, 2) + " km" : "")
+  : isTimedEx(e) ? (num(x.c) ? kgTxt(x.c, false) + " · " : "") + (x.r ? fmtDur(x.r) : "—")
+  : kgTxt(x.c, bw) + " × " + (x.r === null || x.r === undefined || x.r === "" ? "–" : x.r) + " rép.";
+const groupSets = (sets, bw) => { const grp = []; sets.forEach(x => { const g = grp.at(-1); if (g && g.c === x.c) g.r.push(x.r); else grp.push({c:x.c, r:[x.r]}); });
+  return grp.map(g => kgTxt(g.c, bw) + " × " + g.r.map(r => r === null || r === undefined || r === "" ? "–" : r).join("-") + " rép.").join(" · "); };
+function lastSetsTxt(sets, e, bw){
+  if (isCardioEx(e)) return sets.map(x => setLine(x, e, bw)).join(" + ");
+  if (isTimedEx(e)) return sets.map(x => setLine(x, e, bw)).join(" · ");
+  return groupSets(sets, bw);
+}
+function prescLine(e, l, bw, cardio){
+  if (cardio) return String(e.reps || "").trim();
+  const sr = String(e.series ?? "").trim(), rp = String(e.reps ?? "").trim(), base = sr && repsOk(rp) ? sr + " × " + rp : sr ? sr + " séries" : repsOk(rp) ? rp : "";
+  const asTxt = ASSIST_RE.test(String(e.charge ?? "")) ? String(e.charge).trim() : "", c = chargeGuess(e);
+  if (asTxt) return base ? base + " · " + asTxt : asTxt;
+  const ch = c !== null && c !== undefined && !isNaN(c) ? (bw ? (c > 0 ? "+" + fmt(c) + " kg" : "") : fmt(c) + " kg") : "";
+  return base && ch ? base + " à " + ch : base || ch;
+}
 function rLive(){
   const s = seanceByKey(live.key); if (!s) { live = null; return ""; }
   const k0 = live.i, bo0 = live.rows[k0] && live.rows[k0].bo ? backoffOf(s, s.exercices[k0], k0, live.rows) : null;
   if (bo0 && !live.rows[k0].dirty && !live.rows[k0].sets.some(x => x.done)) live.rows[k0].sets.forEach(x => x.c = bo0.mid);
   { const r0 = live.rows[k0]; if (r0 && !r0.bo && !r0.dirty && !liftOf(s.exercices[k0].mouvement) && !r0.sets.some(x => x.done)) { const f = initSets(s, s.exercices[k0], k0);
-      if (f.length === r0.sets.length && f.every(x => !x.done) && f.some((x, i) => x.c !== r0.sets[i].c || x.r !== r0.sets[i].r)) r0.sets = f; } }
+      if (f.length === r0.sets.length && f.every(x => !x.done) && f.some((x, i) => x.c !== r0.sets[i].c || x.r !== r0.sets[i].r)) { r0.sets = f; const fl0 = chargeFromLast(s, s.exercices[k0], k0); r0.flp = fl0 ? fl0.presc : undefined; } } }
   const k = live.i, e = s.exercices[k], st = live.rows[k], l = liftOf(e.mouvement), renfo = norm(e.mouvement) === "RENFO", col = l ? LCOL[l] : "var(--chalk)", cardio = isCardioEx(e);
   const prev = prevRowSets(s, k), nx = s.exercices[k + 1], nl = nx ? liftOf(nx.mouvement) : null;
   const el = Math.floor((Date.now() - live.start) / 60000), doneN = st.sets.filter(x => x.done).length, curJ = st.sets.findIndex(x => !x.done);
   const showR1 = !renfo && !cardio && s.cols.rpe1 && st.sets[0] && st.sets[0].done, showRL = !renfo && !cardio && (s.cols.rpeLast || (s.week && (l || rpeCible(e)))) && (st.sets.length > 1 || s.week) && st.sets.at(-1).done;
   const isBW = l && BW_LIFTS.includes(l), name = renfo ? title(e.variation) : l ? LNAME[l] + " " + title(e.variation).toLowerCase() : title(e.mouvement);
-  const pv = j => { if (!prev) return "–"; const p = prev.sets[Math.min(j, prev.sets.length - 1)]; return p ? (cardio ? fmt(p.r, 1) + " min" + (p.c ? " · " + fmt(p.c, 2) + " km" : "") : (isTimedEx(e) ? (p.c ? fmt(p.c) + " kg · " : "") + fmtDur(p.r) : fmt(p.c) + " × " + p.r)) : "–"; };
   const rc0 = rpeCible(e), inT = v => rc0 && rc0.hi !== null && v <= rc0.hi && (rc0.lo === null || v >= rc0.lo);
-  const rpeRow = (f, lab) => `<div><h2 class="h2">${lab} <span class="muted">pour ton coach</span> <button class="chip" style="min-height:44px;min-width:44px;padding:4px 10px;font-size:12px" data-act="rpeInfo" aria-label="C'est quoi le RPE ?">?</button></h2><div class="rpe">${RPE_OPTS.map(v => `<button class="${inT(v) ? "tgt" : ""}" aria-pressed="${st[f] === v}" data-act="rpe" data-f="${f}" data-v="${v}">${fmt(v)}</button>`).join("")}</div></div>`;
+  const coachTxt0 = s.own || !s.sheet ? "" : " · pour ton coach", rpeRow = (f, lab) => `<div class="lrpe"><div class="lrh"><span>${lab}${coachTxt0}</span><button class="chip" data-act="rpeInfo" aria-label="C'est quoi le RPE ?">?</button></div><div class="rpe">${RPE_OPTS.map(v => `<button class="${inT(v) ? "tgt" : ""}" aria-pressed="${st[f] === v}" data-act="rpe" data-f="${f}" data-v="${v}">${fmt(v)}</button>`).join("")}</div></div>`;
   return `<div class="live ${rest ? "resting" : ""}" role="dialog" aria-label="Séance en cours"><div class="wrap">
     <div class="livehead"><button class="iconbtn" data-act="closeLive" aria-label="Réduire la séance"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
-      <div class="lh-c"><p class="lh-n">${esc(name)}</p><p class="lh-s">Exercice ${k + 1} sur ${s.exercices.length} · ${el} min</p></div>
+      <div class="lh-c"><p class="lh-n">Exercice ${k + 1} sur ${s.exercices.length}</p><p class="lh-s">${el} min · ${esc(s.seance)}</p></div>
       <button class="endbtn" data-act="closeLive">Pause</button></div>
-    <div class="lhr">${(() => { const cur = st.sets[curJ < 0 ? st.sets.length - 1 : curJ] || {}, c0 = cur.c ?? chargeGuess(e);
-      if (cardio) { const mn = cur.r ?? durMin(e.reps);
-        return heroCard({color:LCOL.CARDIO, deco:true, small:`Cardio · ${esc(name)}`, big:mn ? `${fmt(mn, 1)}<small>min</small>` : `<small style="font-size:.5em">Durée libre</small>`, sub:durMin(e.reps) !== null ? `Prévu : ${esc(e.reps)}${e.coach ? "" : ""}` : "Note ta durée, et la distance si tu veux"}); }
-      const asTxt = ASSIST_RE.test(String(e.charge ?? "")) ? String(e.charge).trim() : "";   /* élastique : affiché tel qu'écrit, jamais converti en kg */
-      return heroCard({color:l ? col : "var(--deck2)", deco:false, small:`Série ${curJ < 0 ? st.sets.length : curJ + 1} sur ${st.sets.length}`, big:asTxt && (c0 === null || c0 === undefined || c0 === "" || !num(c0)) ? `<small style="font-size:.42em;line-height:1.1;display:block">${esc(asTxt)}</small>` : c0 !== null && c0 !== undefined && c0 !== "" ? `${fmt(num(c0))}<small>kg${isNumTxt(e.reps) && !cardio ? " × " + esc(e.reps) : ""}</small>` : timedOf(e) ? `${timedOf(e)}<small>s</small>` : (isBW ? "0<small>kg de lest</small>" : e.charge ? esc(e.charge) : "<small style=\"font-size:.5em\">Poids du corps</small>"), sub:`${esc(e.series)} série${num(e.series) > 1 ? "s" : ""} de ${esc(e.reps)}${e.tempo ? " · tempo " + esc(e.tempo) : ""}${e.repos ? " · repos " + esc(e.repos) : ""}${(() => { const b = backoffOf(s, e, k, live.rows); return b ? ` · ${esc(String(e.charge).trim())} de ${fmt(b.base)} kg = ${fmt(Math.ceil(b.lo * 4) / 4)} à ${fmt(Math.floor(b.hi * 4) / 4)} kg` : chargeGuess(e) !== null && !isNumTxt(e.charge) && String(e.charge).trim() ? " · prévu : " + esc(String(e.charge).trim()) : ""; })()}`}); })()}
-    ${(() => { const j = curJ < 0 ? st.sets.length - 1 : curJ, cur = st.sets[j] || {}, c0 = cur.c ?? chargeGuess(e), pp = prev && prev.sets[Math.min(j, prev.sets.length - 1)];
-      if (cardio || !pp || isTimedEx(e) || num(c0) === null || pp.c === null || pp.c === undefined || isNaN(+pp.c)) return "";
-      const d = Math.round((num(c0) - +pp.c) * 100) / 100;
-      return `<div class="ld"><b class="${d > 0 ? "up" : d < 0 ? "dn" : ""}">${d > 0 ? "▲ " + fmt(d, 2) + " kg" : d < 0 ? "▼ " + fmt(-d, 2) + " kg" : "= identique"} vs ${esc(prev.where)}</b><span>${esc(prev.where)} : ${fmt(pp.c)} × ${pp.r}</span></div>`; })()}</div>
-    ${(() => { const cur = st.sets[curJ < 0 ? st.sets.length - 1 : curJ] || {}, rx = cardio ? null : st.sets.filter(z => z.rec).at(-1);
-      return cardio ? "" : (rx ? recCard(rx.r, num(rx.c), rx.recD || 0, rx.recPR ? `<button class="rc-b" data-act="livePR" data-l="${l}" data-c="${num(rx.c)}">Enregistrer comme PR · ${LNAME[l]}</button>` : "") : "") + liveGear(l, cur.c ?? chargeGuess(e), e, !!rx); })()}
+    <section class="lx"><h1 class="lx-n">${esc(name)}</h1>${(() => { const pr = prescLine(e, l, isBW, cardio); return pr ? `<p class="lx-p">${esc(pr)}</p>` : ""; })()}${(() => { const det = [e.repos ? "Repos " + e.repos : "", e.tempo ? "Tempo " + e.tempo : "", l ? muscleList(l).p.join(", ") : ""].filter(Boolean); return det.length ? `<p class="lx-d">${det.map(esc).join(" · ")}</p>` : ""; })()}</section>
+    ${(() => { if (!prev || !prev.sets || !prev.sets.length) return `<p class="lastt none">Dernière fois : aucune série notée pour cet exercice.</p>`;
+      const j = curJ < 0 ? st.sets.length - 1 : curJ, cur = st.sets[j] || {}, c0 = cur.c ?? chargeGuess(e), pp = prev.sets[Math.min(j, prev.sets.length - 1)];
+      const lbl = prev.src === "prévu" ? "Prévu la dernière fois (non noté)" : "Dernière fois", when = [prev.date ? dJM(prev.date) : "", prev.where && prev.where !== "dernière fois" ? prev.where : ""].filter(Boolean).join(" · ");
+      let chip = ""; if (!cardio && !isTimedEx(e) && num(c0) !== null && pp && pp.c !== null && pp.c !== undefined && !isNaN(+pp.c)) { const d = Math.round((num(c0) - +pp.c) * 100) / 100; chip = `<b class="ld-b ${d > 0 ? "up" : d < 0 ? "dn" : ""}">${d > 0 ? "▲ " + fmt(d, 2) + " kg" : d < 0 ? "▼ " + fmt(-d, 2) + " kg" : "= identique"}</b>`; }
+      return `<section class="lastt"><div class="lt-h"><span>${lbl}</span>${when ? `<em>${esc(when)}</em>` : ""}${chip}</div><p class="lt-s">${esc(lastSetsTxt(prev.sets, e, isBW))}</p>${st.flp !== undefined && !cardio ? `<p class="lt-n">Charge reprise de la dernière fois · prescrit dans ton Sheet : ${isBW ? (st.flp > 0 ? "+" : "") + fmt(st.flp) : fmt(st.flp)} kg</p>` : ""}</section>`; })()}
     ${(() => { const rc = rpeCible(e); if (!rc) return ""; const got = [st.rpe1, st.rpeLast].filter(v => v !== null && v !== undefined), over = rc.hi !== null && got.some(v => v > rc.hi);
       return `<div class="rpecible ${over ? "over" : ""}" role="note"><b>${esc(rc.lab)}</b><span>${over ? "Au-dessus de la consigne : baisse la charge sur les séries suivantes." : rc.max ? "À ne pas dépasser, sur toutes les séries." : "Consigne de ton coach, à respecter."}</span></div>`; })()}
     ${ASSIST_RE.test(String(e.charge ?? "")) ? `<div class="coachnote"><b>Assistance.</b> ${esc(String(e.charge).trim())}</div>` : ""}
     ${e.coach ? `<div class="coachnote"><b>Consigne du coach.</b> ${esc(e.coach)}</div>` : ""}
     ${e.angle ? `<p class="prev">À filmer : ${esc(e.angle)}</p>` : ""}
     <section class="lsets" aria-label="${cardio ? "Blocs de cardio" : "Séries"}">
-      ${(() => { const open = curJ < 0 ? st.sets.length : curJ + (st.exp ? st.sets.length : 1), vis = st.sets.slice(0, open), hid = st.sets.length - open;
-        const txt = x => cardio ? (x.r ? fmt(x.r, 1) + " min" : "—") + (x.c ? " · " + fmt(x.c, 2) + " km" : "") : isTimedEx(e) ? (x.c ? fmt(x.c) + " kg · " : "") + (x.r ? fmtDur(x.r) : "—") : (x.c === null || x.c === undefined || x.c === "" ? "—" : (isBW ? "+" : "") + fmt(num(x.c))) + " × " + (x.r ?? "–");
-        const rows = vis.map((x, j) => { const edit = j === curJ || st.ed === j;
-          const lights = `<span class="lights${x.done ? (x.rec ? " rec" : " on") : ""}" aria-hidden="true"><i></i><i></i><i></i></span>`, rp = `<span class="rp">${x.rpe ? fmt(x.rpe) : "—"}</span>`;
-          if (!edit) return `<button class="lsr${x.done ? " done" : ""}" data-act="editSet" data-j="${j}" aria-label="Série ${j + 1} : ${esc(txt(x))}${x.done ? ", validée. Modifier" : ""}"><span class="n">S${j + 1}</span><span class="w">${esc(txt(x))}</span>${rp}${lights}</button>`;
-          const ins = cardio ? `<input inputmode="decimal" value="${x.r === null || x.r === undefined ? "" : String(x.r).replace(".", ",")}" placeholder="min" data-chg="setR" data-j="${j}" aria-label="Minutes bloc ${j + 1}"><b>·</b><input inputmode="decimal" value="${x.c === null || x.c === undefined || x.c === "" ? "" : String(x.c).replace(".", ",")}" placeholder="km" data-chg="setC" data-j="${j}" aria-label="Kilomètres bloc ${j + 1}">`
-            : `<input inputmode="decimal" value="${x.c === null || x.c === undefined ? "" : String(x.c).replace(".", ",")}" placeholder="${isBW ? "0" : "kg"}" data-chg="setC" data-j="${j}" aria-label="${isBW ? "Lest" : "Charge"} série ${j + 1}"><b>×</b>${isTimedEx(e) ? `<input inputmode="text" value="${esc(fmtDur(x.r))}" placeholder="1:30" data-chg="setR" data-j="${j}" aria-label="Durée série ${j + 1} (ex. 1:30 ou 90)">` : `<input inputmode="numeric" value="${x.r ?? ""}" placeholder="–" data-chg="setR" data-j="${j}" aria-label="Reps série ${j + 1}">`}`;
-          return `<div class="lsr cur setrow${x.done ? " done" : ""}" data-j="${j}"><span class="n">S${j + 1}</span><span class="ins">${ins}</span>${x.done ? `<button class="ck" data-act="doneSet" data-j="${j}" aria-label="Annuler la validation de la série ${j + 1}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></button>` : rp}${lights}</div>`; }).join("");
-        const nx0 = st.sets[open];
-        return rows + (hid > 0 ? `<button class="lmore" data-act="expSets">+ ${hid} série${hid > 1 ? "s" : ""} : S${open + 1}${hid > 1 ? " à S" + st.sets.length : ""} · ${esc(txt(nx0))}</button>` : ""); })()}
+      ${(() => { const n = st.sets.length, rest0 = n - doneN, unit = cardio ? "bloc" : "série";
+        const head = `<div class="lsh"><b>${cardio ? "Blocs" : "Séries"}</b><span>${curJ < 0 ? (n > 1 ? "toutes faites" : "faite") + " · " + n + " sur " + n : doneN + " faite" + (doneN > 1 ? "s" : "") + " sur " + n + " · il en reste " + rest0}</span></div>`;
+        const rows = st.sets.map((x, j) => { const edit = j === curJ || st.ed === j, cur = j === curJ;
+          const lights = `<span class="lights${x.done ? (x.rec ? " rec" : " on") : ""}" aria-hidden="true"><i></i><i></i><i></i></span>`;
+          const ck = `<button class="ck${x.done ? " on" : ""}" data-act="doneSet" data-j="${j}" aria-label="${x.done ? "Annuler la validation de la " + unit + " " + (j + 1) : "Valider la " + unit + " " + (j + 1)}" aria-pressed="${x.done}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></button>`;
+          if (!edit) return `<div class="lsr${x.done ? " done" : ""}" data-j="${j}"><span class="n">S${j + 1}</span><button class="lt" data-act="editSet" data-j="${j}" aria-label="${unit[0].toUpperCase() + unit.slice(1)} ${j + 1} : ${esc(setLine(x, e, isBW))}. Modifier"><span class="w">${esc(setLine(x, e, isBW))}</span></button>${lights}${ck}</div>`;
+          const iC = `<input inputmode="decimal" value="${x.c === null || x.c === undefined || x.c === "" ? "" : String(x.c).replace(".", ",")}" placeholder="${cardio ? "km" : isBW ? "0" : "kg"}" data-chg="setC" data-j="${j}" aria-label="${cardio ? "Kilomètres bloc " + (j + 1) : (isBW ? "Lest" : "Charge") + " série " + (j + 1)}">`;
+          const ins = cardio ? `<input inputmode="decimal" value="${x.r === null || x.r === undefined ? "" : String(x.r).replace(".", ",")}" placeholder="min" data-chg="setR" data-j="${j}" aria-label="Minutes bloc ${j + 1}"><b>min</b>${iC}<b>km</b>`
+            : `${iC}<b>kg</b><b class="x">×</b>${isTimedEx(e) ? `<input inputmode="text" value="${esc(fmtDur(x.r))}" placeholder="1:30" data-chg="setR" data-j="${j}" aria-label="Durée série ${j + 1} (ex. 1:30 ou 90)">` : `<input inputmode="numeric" value="${x.r ?? ""}" placeholder="–" data-chg="setR" data-j="${j}" aria-label="Reps série ${j + 1}"><b>rép.</b>`}`;
+          return `<div class="lsr ${cur ? "cur " : "ed "}setrow${x.done ? " done" : ""}" data-j="${j}"><span class="n">S${j + 1}</span><span class="ins">${ins}</span>${ck}</div>`; }).join("");
+        return head + rows; })()}
       <div class="row lset-act"><button class="link small" data-act="addSet">+ Ajouter ${cardio ? "un intervalle" : "une série"}</button>${st.sets.length > 1 ? `<button class="link small muted" data-act="delSet">Retirer le dernier</button>` : ""}</div>
       ${!l && !cardio ? `<div class="row" style="padding:2px 10px 8px;gap:8px;align-items:center"><span class="muted tiny">Cet exercice se note en</span><button class="chip" style="min-height:44px;padding:4px 12px;font-size:13px" data-act="exMode" data-v="R" aria-pressed="${!isTimedEx(e)}">Reps</button><button class="chip" style="min-height:44px;padding:4px 12px;font-size:13px" data-act="exMode" data-v="T" aria-pressed="${isTimedEx(e)}">Temps</button></div>` : ""}
     </section>
-    ${(() => { if (renfo || cardio) return ""; const ld = st.lastDone, tj = ld !== undefined && st.sets[ld] && st.sets[ld].done && st.sets[ld].rpe == null ? ld : (curJ < 0 ? st.sets.length - 1 : curJ), cv = st.sets[tj] ? st.sets[tj].rpe : null;
-      return `<div class="lrpe"><div class="lrh"><span>Effort ressenti (RPE) · S${tj + 1}</span><button class="chip" data-act="rpeInfo" aria-label="C'est quoi le RPE ?">?</button></div><div class="rpe">${RPE_OPTS.map(v => `<button class="${inT(v) ? "tgt" : ""}" aria-pressed="${cv === v}" data-act="rpeSet" data-j="${tj}" data-v="${v}">${fmt(v)}</button>`).join("")}</div></div>`; })()}
+    ${(() => { const cur = st.sets[curJ < 0 ? st.sets.length - 1 : curJ] || {}, rx = cardio ? null : st.sets.filter(z => z.rec).at(-1);
+      return cardio ? "" : (rx ? recCard(rx.r, num(rx.c), rx.recD || 0, rx.recPR ? `<button class="rc-b" data-act="livePR" data-l="${l}" data-c="${num(rx.c)}">Enregistrer comme PR · ${LNAME[l]}</button>` : "") : "") + liveGear(l, cur.c ?? chargeGuess(e), e, !!rx); })()}
+    ${showR1 ? rpeRow("rpe1", "RPE de la 1re série") : ""}
+    ${showRL ? rpeRow("rpeLast", "RPE de la dernière série") : ""}
     ${rest ? restCard() : ""}
     ${(() => { const c0 = liveCom(s, k), coachTxt = s.own || !s.sheet ? "" : " pour ton coach";
       return st.comOpen || c0 ? `<div style="margin-top:14px"><label for="lcom" class="small" style="font-weight:700">Commentaire${coachTxt}</label><textarea id="lcom" class="comtxt" rows="2" maxlength="300" data-inp="setCom" placeholder="Ressenti, douleur, technique…">${esc(c0)}</textarea><p class="muted tiny" style="margin-top:4px">${coachTxt ? "Gardé dans ton Google Sheet et envoyé dans ton Sheet quand l'exercice est enregistré (au moins une série validée)." : "Gardé dans ton Google Sheet avec l'exercice (au moins une série validée)."}</p></div>`
@@ -2585,10 +2690,10 @@ function prevRowSets(s, k){
     const same = z.exercices.filter(x => exKey(x) === key); if (!same.length || pos >= same.length) continue;
     const ez = same[pos], where = (z.bloc === s.bloc ? "" : blocLabel(z.bloc) + ", ") + "S" + z.semaine;
     const lg = D.series.find(x => x.bloc === z.bloc && x.semaine === z.semaine && x.seance === z.seance && x.ex === key && (!x.note || x.note === "L" + ez.row));
-    if (lg) return {date:lg.date || dateOf(z), sets:lg.sets, where, src:"noté"};
+    if (lg) return {date:lg.date || dateOf(z), sets:lg.sets, where, src:"noté", z, ez, lg};
     if (failTxt(ez.rpe1) && failTxt(ez.rpeLast)) continue;
     const c = chargeGuess(ez), st = setsFromComment(ez, c);
-    if (st && st.every(x => x.c !== null && x.c !== undefined)) return {date:dateOf(z), sets:st, where, src:"noté dans la prog"};
+    if (st && st.every(x => x.c !== null && x.c !== undefined)) return {date:dateOf(z), sets:st, where, src:"noté dans la prog", z, ez};
     if (c !== null && num(ez.series) && isNumTxt(ez.reps) && (num(ez.rpe1) !== null || num(ez.rpeLast) !== null)) return {date:dateOf(z), sets:Array(num(ez.series)).fill(0).map(() => ({r:num(ez.reps), c})), where, src:"prévu"};
   }
   /* v48 : exercice changé ou nouveau dans la séance : sa dernière fois, où qu'elle ait eu lieu */
@@ -2633,7 +2738,7 @@ function onSetDone(j){
   if (j < st.sets.length - 1) startRest(restSec(e.repos, l));
 }
 const recCard = (r, c, d, extra) => `<section class="recc" role="status"><svg class="rc-d" width="150" height="150" viewBox="0 0 150 150" aria-hidden="true"><circle cx="90" cy="60" r="62" fill="rgba(12,11,10,.14)"/><circle cx="90" cy="60" r="12" fill="rgba(12,11,10,.22)"/></svg>
-  <p class="rc-e">Nouveau record · série de ${r}</p><p class="rc-t">RECORD</p><p class="rc-v"><b>${fmt(c)}</b><small>kg × ${r}</small>${d > 0 ? `<span>+${fmt(d)} kg vs ton record</span>` : ""}</p>${extra || ""}</section>`;
+  <p class="rc-e">Nouveau record · série de ${r}</p><p class="rc-t">RECORD</p><p class="rc-v"><b>${fmt(c)}</b><small>kg × ${r} rép.</small>${d > 0 ? `<span>+${fmt(d)} kg vs ton record</span>` : ""}</p>${extra || ""}</section>`;
 function startRest(sec){ rest = {end:Date.now() + sec * 1000, total:sec, beeped:false}; renderLayer(); }
 function restCard(){
   return `<section id="restbox" class="lrest" role="timer" aria-label="Repos"><div class="lrt"><span id="resttitle">Repos</span><b id="restval">0:00</b><span class="lrtot">/ ${Math.floor(rest.total / 60)}:${String(rest.total % 60).padStart(2, "0")}</span></div>
@@ -2711,7 +2816,7 @@ async function saveMod(s, m){
   try { await Store.profil.set("modifs", txt); } catch(err){ toast("Changement gardé sur ce téléphone, pas encore dans ton Google Sheet. " + errMsg(err), true); }
 }
 const edSession = () => seanceByKey(edSess || (live && live.key) || sel);
-function newRow(s, e, k){ return {sets:initSets(s, e, k), bo:!!backoffOf(s, e, k), rpe1:num(e.rpe1), rpeLast:num(e.rpeLast) ?? (s.week ? rpeSaved(s, e) : null), dirty:false}; }
+function newRow(s, e, k){ const fl = chargeFromLast(s, e, k); return {sets:initSets(s, e, k), flp:fl ? fl.presc : undefined, bo:!!backoffOf(s, e, k), rpe1:num(e.rpe1), rpeLast:num(e.rpeLast) ?? (s.week ? rpeSaved(s, e) : null), dirty:false}; }
 /* La séance garde les lignes saisies (en direct ou mise de côté) : on les remet face aux bons exercices après un changement. */
 function remapState(st, s, oldIds, oldRows, keepId){
   const rows = {}; s.exercices.forEach((e, k) => { const oi = oldIds.indexOf(e._id); rows[k] = oi >= 0 && oldRows[oi] ? oldRows[oi] : newRow(s, e, k); });
@@ -2739,7 +2844,7 @@ function rmInMod(m, e){
 function lastLog(key){ let b = null; for (const x of D.series) if (x.ex === key && x.date && (!b || x.date >= b.date)) b = x; return b; }
 function lastTxt(key){ const lg = lastLog(key); if (!lg || !lg.sets || !lg.sets.length) return null;
   const top = lg.sets.reduce((a, x) => (num(x.c) || 0) > (num(a.c) || 0) ? x : a, lg.sets[0]), d = days(lg.date, D.today);
-  return `Dernière fois : ${top.c ? fmt(top.c) + " kg × " : ""}${isTimedEx({mouvement:key.split(" · ")[0], variation:key.split(" · ")[1] || "", reps:""}) ? fmtDur(top.r) : top.r}${d >= 0 ? " · " + (d === 0 ? "aujourd'hui" : d === 1 ? "hier" : "il y a " + d + " j") : ""}`; }
+  return `Dernière fois : ${top.c ? fmt(top.c) + " kg × " : ""}${isTimedEx({mouvement:key.split(" · ")[0], variation:key.split(" · ")[1] || "", reps:""}) ? fmtDur(top.r) : top.r + " rép."}${d >= 0 ? " · " + (d === 0 ? "aujourd'hui" : d === 1 ? "hier" : "il y a " + d + " j") : ""}`; }
 function candidates(q, cur){
   const seen = new Map(), add = (m, v) => { const key = exKey({mouvement:m, variation:v || ""}); if (key && !seen.has(key)) seen.set(key, {key, m:String(m).trim(), v:String(v || "").trim()}); };
   S.forEach(z => (z.base || z.exercices).forEach(e => { if (String(e.mouvement).trim()) add(e.mouvement, e.variation); }));
@@ -2848,7 +2953,12 @@ async function saveRow(k){
       if (!back || back.length !== done.length || back.some((y, i) => y.r !== done[i].r || Math.abs(y.c - done[i].c) > 1e-9)) {
         toast("Ces séries n'ont pas pu être enregistrées telles quelles (valeur inattendue). Vérifie les chiffres puis revalide.", true); return false; }
       const rpW = s.week && st.rpeLast !== null && st.rpeLast !== undefined ? st.rpeLast : null;
-      const row = [wDay(), s.bloc, s.semaine, s.seance, key, Math.max(...done.map(x => x.c)), setsTxt, "app" + (rpW !== null ? " · RPE " + String(rpW).replace(".", ",") : ""), "L" + e.row];
+      /* réglage « Mon Sheet est ma prog personnelle » : la charge faite va dans la case « Charge » de CETTE semaine seulement ; la valeur remplacée reste notée dans le carnet */
+      let chNote = ""; const plan = chargePlan(s, e, done);
+      if (plan) { const meta = {t:Date.now(), cid:coachId(), sheet:plan.sheet, col:plan.col, row:plan.row, ex:norm(e.mouvement) === "RENFO" ? title(e.variation) : title(e.mouvement) + (e.variation ? " " + title(e.variation).toLowerCase() : ""), wk:blocShort(s.bloc) + " S" + s.semaine, orig:plan.orig, old:plan.from, new:plan.val};
+        try { chNote = chargeResult(meta, await Store.coach.setCellIf(plan.sheet, plan.col, plan.row, plan.val, plan.expect, meta), false, e); }
+        catch(err){ toast("La charge n'a pas pu être mise dans ton Sheet : " + errMsg(err), true); } }
+      const row = [wDay(), s.bloc, s.semaine, s.seance, key, Math.max(...done.map(x => x.c)), setsTxt, "app" + (rpW !== null ? " · RPE " + String(rpW).replace(".", ",") : "") + chNote, "L" + e.row];
       const ex = D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
       if (ex && !ex.id) await loadApp();
       const ex2 = ex && D.series.find(x => x.bloc === s.bloc && x.semaine === s.semaine && x.seance === s.seance && x.ex === key && (!x.note || x.note === "L" + e.row));
@@ -2944,7 +3054,7 @@ function weekHtml(){
   const comp = shownLifts().map(l => { const L = items.filter(x => x.o.lift === l && x.comp); if (!L.length) return null; const t = L.reduce((a, x) => x.top.e1rmBest > a.top.e1rmBest ? x : a, L[0]); return {l, t}; }).filter(Boolean);
   const others = items.filter(x => !x.comp).sort((a, b) => (b.o.lift ? 1 : 0) - (a.o.lift ? 1 : 0));
   const delta = (d, u) => d === null ? `<span class="muted small">1re fois</span>` : `<span class="small" style="color:${d > .05 ? "var(--chalk)" : "var(--dust)"}">${sgn(d, 1)}${u}</span>`;
-  const setTxt = (x, l) => `${fmt(x.c)} kg × ${x.r}${x.rpe ? " @" + fmt(x.rpe) : ""}`;
+  const setTxt = (x, l) => `${fmt(x.c)} kg × ${x.r} rép.${x.rpe ? " @" + fmt(x.rpe) : ""}`;
   return `<div class="chips" style="margin-top:2px">${blocs.map(b => `<button class="chip" aria-pressed="${b === sel.b}" data-act="pickWeek" data-b="${b}">${esc(blocLabel(b))}</button>`).join("")}</div>
     <div class="chips" style="margin-top:8px">${ws.map(w => `<button class="chip" aria-pressed="${w === sel.w}" data-act="pickWeek" data-b="${sel.b}" data-w="${esc(w)}">S${esc(w)}</button>`).join("")}</div>
     ${heroCard({small:`${esc(blocLabel(sel.b))} · semaine ${esc(sel.w)}${st ? " · " + dJM(st) + "–" + dJM(addDays(st, 6)) : ""}`, big:`${done}<small>/${ss.length}</small>`, sub:`${done > 1 ? "séances faites" : "séance faite"}${recs.length ? " · " + recs.length + " record" + (recs.length > 1 ? "s" : "") + " de reps" : ""}`, deco:false})}
@@ -3008,7 +3118,7 @@ function rMovePage(l){
     <div class="pagebar"><button class="iconbtn" data-act="closePage" aria-label="Retour"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg></button>
       <span class="ptitle"><b>${LNAME[l]}</b><small>${lbl}</small></span><span style="width:44px" aria-hidden="true"></span></div>
     ${muscleCard(l)}
-    <div class="mstats"><div><p>Ton record</p><b>${top ? fmt(top.b.c) + " × " + top.n : b !== null ? fmt(b) + " kg" : "—"}</b></div>
+    <div class="mstats"><div><p>Ton record</p><b>${top ? fmt(top.b.c) + " kg × " + top.n + " rép." : b !== null ? fmt(b) + " kg" : "—"}</b></div>
       <div><p>1RM estimé</p><b>${e ? fmt(Math.floor(e.v * 4) / 4) + " kg" : !allLoaded && b !== null ? "…" : "—"}</b></div>
       <div><p>Dernière fois</p><b>${d === null ? "—" : d === 0 ? "aujourd'hui" : d === 1 ? "hier" : "il y a " + d + " j"}</b></div></div>
     <button class="btn" data-act="openLift" data-l="${l}" style="margin-top:12px">${b !== null ? "Voir mon record" : "Ajouter un record"}</button>
@@ -3216,7 +3326,7 @@ function rLiftPage(l){
       <label for="prn">Note</label><input id="prn" placeholder="Compétition, entraînement…">
       <button class="btn" style="margin-top:14px" data-act="addPR" data-l="${l}">Ajouter le record</button>
     </div>
-    ${hist.length ? `<div class="panel"><table>${hist.map(p => `<tr><td>${cap(dlong(p.date))}<div class="muted tiny">${esc(p.note)}</div></td><td><b>${fmt(p.charge)} kg</b>${p.reps > 1 ? " × " + p.reps : ""}</td></tr>`).join("")}</table></div>` : ""}`}
+    ${hist.length ? `<div class="panel"><table>${hist.map(p => `<tr><td>${cap(dlong(p.date))}<div class="muted tiny">${esc(p.note)}</div></td><td><b>${fmt(p.charge)} kg</b>${p.reps > 1 ? " × " + p.reps + " rép." : ""}</td></tr>`).join("")}</table></div>` : ""}`}
   </div></div>`;
 }
 function drawLiftCharts(l){
@@ -3241,7 +3351,7 @@ function rExPage(key){
       <span class="ptitle"><b>${esc(exName(key))}</b><small>${o.lift ? LNAME[o.lift] : TXT.renfo}</small></span><span style="width:44px" aria-hidden="true"></span></div>
     ${o.lift ? muscleCard(o.lift) : ""}
     <div class="grid3" style="margin-top:18px">
-      <div><p class="muted small">Dernière fois</p><p class="show t-s" style="margin-top:4px">${fmt(la.charge)} kg</p><p class="muted tiny">${la.sets.every(x => x.c === la.sets[0].c) ? la.sets.map(x => x.r).join(" · ") : la.sets.map(x => fmt(x.c) + " × " + x.r).join(" · ")}</p></div>
+      <div><p class="muted small">Dernière fois</p><p class="show t-s" style="margin-top:4px">${fmt(la.charge)} kg</p><p class="muted tiny">${la.sets.every(x => x.c === la.sets[0].c) ? la.sets.map(x => x.r).join("-") + " rép." : groupSets(la.sets, false)}</p></div>
       <div><p class="muted small">1RM estimé</p><p class="show t-s" style="margin-top:4px">${fmt(la.e1rm, 1)}</p><p class="muted tiny">record ${fmt(bp.e1rmBest, 1)}</p></div>
       <div><p class="muted small">Depuis le début</p><p class="show t-s" style="margin-top:4px;color:${g < 0 ? "var(--dust)" : "var(--chalk)"}">${g === null ? "–" : sgn(g, 1) + " %"}</p><p class="muted tiny">${pl(P.length, "séance")}</p></div>
     </div>
@@ -3442,7 +3552,7 @@ function renderLayer(){
   if (page) h += page.type === "imp" ? rImpPage() : page.type === "lift" ? rLiftPage(page.l) : page.type === "move" ? rMovePage(page.l) : rExPage(page.k);
   if (sheet === "scan") h += scanHtml();
   else if (sheet) h += `<div class="scrim" data-act="closeSheet" aria-hidden="true"></div><div class="sheet${sheet === "summary" || sheet === "settings" ? " full" : ""}" role="dialog" aria-modal="true"><div class="wrap"><div class="grab"></div>${rSheet()}</div></div>`;
-  setTimeout(() => { const rp = document.querySelector(".lrpe .rpe"); if (rp) { const b = rp.querySelector('[aria-pressed="true"]') || rp.querySelector('[data-v="7"]'); if (b) rp.scrollLeft = Math.max(0, b.offsetLeft - 16); } }, 0);
+  setTimeout(() => { document.querySelectorAll(".lrpe .rpe").forEach(rp => { const b = rp.querySelector('[aria-pressed="true"]') || rp.querySelector('[data-v="7"]'); if (b) rp.scrollLeft = Math.max(0, b.offsetLeft - 16); }); }, 0);
   const keepScroll = document.querySelector(".page, .live, .sheet"), ksel = keepScroll ? "." + keepScroll.classList[0] : "", st = keepScroll ? keepScroll.scrollTop : 0;
   $("#layer").innerHTML = h;
   const nw = ksel && document.querySelector(ksel); if (nw && keepScroll) { nw.style.animation = "none"; nw.scrollTop = st; const sc = nw.previousElementSibling; if (ksel === ".sheet" && sc && sc.classList.contains("scrim")) sc.style.animation = "none"; }
@@ -3484,7 +3594,7 @@ function rSheet(){
   if (sheet.startsWith("e1|")) { const l = sheet.slice(3), sets = compSets(l), e = sets.length ? e1rmBest(l, sets) : null, b = best(l), u = BW_LIFTS.includes(l) ? " de lest" : "";
     if (!e) return `<p class="show t-m">1RM estimé</p><p class="muted small" style="margin-top:8px">Pas encore assez de séries pour l'estimer.</p><button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`;
     return `<p class="muted small">${LNAME[l]}</p><p class="show t-l" style="margin-top:4px;color:${LCOL[l]}">${fmt(Math.floor(e.v * 4) / 4)}<small> kg${u}</small></p>
-      <p class="muted small" style="margin-top:10px">D'après ${fmt(e.c)} kg × ${e.r}${e.rpe ? " à RPE " + fmt(e.rpe) : ""} (${esc(srcTxt(e))}).${b !== null ? (e.v > b + .2 ? ` C'est ${fmt(e.v - b, 1)} kg au-dessus de ton PR (${fmt(b)}) : un potentiel, pas un acquis.` : ` Ton PR (${fmt(b)}) est déjà à ce niveau.`) : ""}</p>
+      <p class="muted small" style="margin-top:10px">D'après ${fmt(e.c)} kg × ${e.r} rép.${e.rpe ? " à RPE " + fmt(e.rpe) : ""} (${esc(srcTxt(e))}).${b !== null ? (e.v > b + .2 ? ` C'est ${fmt(e.v - b, 1)} kg au-dessus de ton PR (${fmt(b)}) : un potentiel, pas un acquis.` : ` Ton PR (${fmt(b)}) est déjà à ce niveau.`) : ""}</p>
       <p class="rwarn" style="margin-top:14px"><i aria-hidden="true">!</i>Le 1RM estimé vient d'une formule (table RPE de RTS), pas d'un essai réel. À confirmer en salle.</p>
       <button class="btn" style="margin-top:16px" data-act="closeSheet">Fermer</button>`; }
   if (sheet.startsWith("rm|")) { const [, l, n] = sheet.split("|"), N = +n;
@@ -3525,7 +3635,7 @@ function rSheet(){
       ${m.sets && d !== null ? `<p class="fin-c">${sgn(d, 0)} % de tonnage sur ${m.nSame} exercice${m.nSame > 1 ? "s" : ""} fait${m.nSame > 1 ? "s" : ""} aussi la semaine passée</p>` : ""}
       ${m.sets && m.cardioMin ? `<p class="fin-c">Cardio : ${fmt(m.cardioMin, 1)} min${m.cardioKm ? " · " + fmt(m.cardioKm, 2) + " km" : ""}</p>` : ""}
       ${ml ? `<div class="lgc" style="margin-top:12px">${muscleFig(m.lifts, {view:"both", cls:"lg-plate"})}<div class="lgc-t"><span class="lgc-c">Ce que tu as travaillé</span><b>${esc(ml.p.join(", "))}</b>${ml.s.length ? `<span>${esc(ml.s.join(", "))}</span>` : ""}</div></div>` : ""}
-      ${m.exs.length ? `<div class="fin-r">${m.exs.map(x => `<div class="tdr">${x.l ? muscleFig(x.l, {cls:"thumb"}) : `<span class="tdr-ph" aria-hidden="true">${esc(String(x.name).trim().charAt(0).toUpperCase())}</span>`}<span class="tdr-t"><b>${esc(x.name)}</b><span>Meilleure série ${x.timed ? (x.c ? fmt(x.c) + " kg · " : "") + fmtDur(x.r) : (x.c !== null ? fmt(x.c) + " × " : "") + x.r}</span></span>${x.d === null ? "" : `<span class="fchip ${x.d > 0 ? "up" : ""}">${x.d > 0 ? "▲ " + fmt(x.d, 2) + " kg" : x.d < 0 ? "▼ " + fmt(-x.d, 2) + " kg" : "="}</span>`}</div>`).join("")}</div>` : ""}
+      ${m.exs.length ? `<div class="fin-r">${m.exs.map(x => `<div class="tdr">${x.l ? muscleFig(x.l, {cls:"thumb"}) : `<span class="tdr-ph" aria-hidden="true">${esc(String(x.name).trim().charAt(0).toUpperCase())}</span>`}<span class="tdr-t"><b>${esc(x.name)}</b><span>Meilleure série ${x.timed ? (x.c ? fmt(x.c) + " kg · " : "") + fmtDur(x.r) : (x.c !== null ? fmt(x.c) + " kg × " : "") + x.r + " rép."}</span></span>${x.d === null ? "" : `<span class="fchip ${x.d > 0 ? "up" : ""}">${x.d > 0 ? "▲ " + fmt(x.d, 2) + " kg" : x.d < 0 ? "▼ " + fmt(-x.d, 2) + " kg" : "="}</span>`}</div>`).join("")}</div>` : ""}
       ${m.repRecs && m.repRecs.length ? `<div class="fin-rec"><p>Records de reps</p>${m.repRecs.map(r => `<p class="small"><span class="d10" style="--c:${LCOL[r.l]};display:inline-block;margin-right:6px"></span>${LNAME[r.l]} · ${r.r} rep${r.r > 1 ? "s" : ""} : <b>${fmt(r.c)} kg</b> <span class="muted">(+${fmt(r.d)})</span></p>`).join("")}</div>` : ""}
       ${m.recs.length ? `<div class="fin-rec"><p>Meilleur 1RM estimé</p>${m.recs.map(r => `<p class="small">${esc(r)}</p>`).join("")}</div>` : ""}
       <div class="fin-act"><button class="btn ghost" data-act="shareSession">Partager</button>${wk ? `<button class="btn" data-act="bilan" data-w="${esc(wk.sheet + "|" + wk.semaine)}">${BILAN_CRIT.every(k => wk.vals[k]) ? "Bilan envoyé · modifier" : "Envoyer au coach"}</button>` : `<button class="btn" data-act="closeSummary">Terminé</button>`}</div></div>`; }
@@ -3560,6 +3670,13 @@ const sic = k => SICO[k] ? `<span class="ic" aria-hidden="true"><svg width="24" 
 const swRow = (title, sub, on, act, ico) => `<button class="prefrow" role="switch" aria-checked="${on}" ${act}>${sic(ico)}<span class="grow"><b>${title}</b>${sub ? `<span>${sub}</span>` : ""}</span><span class="sw" aria-hidden="true"></span></button>`;
 const ageTxt = () => { const a = myAges(); return a.length ? a.map(x => AGE_NAME[x]).join(" et ") : ""; };
 /* Réglages (maquette A, choix d'Alane du 22/10) : disciplines, catégories, classements, puis le reste. */
+const CSYNC_TXT = "Mon Sheet est ma prog personnelle : mettre à jour la charge avec ce que j'ai fait";
+function csyncHtml(){
+  const id = coachId(), on = chargeSyncOn(id), logs = chargeLog().filter(x => x.cid === id && (x.st === "ok" || x.st === "conflict" || x.st === "queued")).slice(0, 4);
+  return `<h2 class="h2 slab">Charges dans ma prog</h2>
+    <div class="group">${swRow(esc(CSYNC_TXT), on ? "Activé : après chaque exercice, la charge faite est mise dans la colonne « Charge » de la semaine en cours, jamais dans les semaines suivantes. Si la case a changé entre-temps, elle n'est pas écrasée." : "Désactivé : l'app n'écrit jamais dans la colonne « Charge ». À activer seulement si ce Sheet est ta prog à toi, pas celle d'un coach.", on, `data-act="csyncToggle" id="csync"`)}</div>
+    ${logs.length ? `<div class="group" style="margin-top:8px">${logs.map(x => `<div class="prefrow" style="display:flex;align-items:center;gap:10px"><span class="grow"><b>${esc(x.ex || "Exercice")} · ${esc(x.wk || "")}</b><span>${x.st === "ok" ? "Charge " + fmt(num(x.old)) + " → " + fmt(num(x.new)) + " kg" : x.st === "queued" ? "En attente d'envoi : " + fmt(num(x.new)) + " kg" : "Case changée dans le Sheet : rien écrasé"}</span></span>${x.st === "ok" ? `<button class="chip" data-act="chargeUndo" data-t="${x.t}" aria-label="Annuler ce changement de charge">Annuler</button>` : ""}</div>`).join("")}</div>` : ""}`;
+}
 function settingsHtml(){
   const t = lastSync ? new Date(lastSync) : null, st = streetOn(), pw = powerOn(), mu = muscuOn(), mo = muscuOnly(), b = birth();
   const clv = k => norm(D.profil["classement_" + k]) !== "NON";
@@ -3596,6 +3713,7 @@ function settingsHtml(){
     <p class="muted small" style="margin-top:8px">Leurs records et leur 1RM estimé sont gardés, sans compter dans un total.</p>` : ""}
 
     ${impCan() ? `<h2 class="h2 slab">Ma prog</h2><button class="btn ghost" data-act="impOpen">${coachId() ? "Ajouter un autre programme" : "Ajouter mon programme"}</button>${coachId() && S.some(z => !z.archived) ? `<button class="btn ghost" style="margin-top:8px" data-act="impNext">Préparer le bloc suivant</button>` : ""}<p class="muted small" style="margin-top:8px">Colle tes notes ou un tableau : l'app lit les séances et tu vérifies avant d'enregistrer.</p>${progTabsHtml()}` : ""}
+    ${coachId() ? csyncHtml() : ""}
     <h2 class="h2 slab">Le reste</h2>
     ${Object.keys(blocNames).length ? `<label for="sbl" style="margin-top:0">Bloc en cours</label><select id="sbl" data-chg="blocActif"><option value="">Le dernier onglet de la prog</option>${progOrder.map(n => `<option value="${n}" ${n === chosenBloc() ? "selected" : ""}>${esc(blocLabel(n))}</option>`).join("")}</select>` : ""}
     <div class="grid2"><div><label for="sdc">Début de la prog</label><input id="sdc" type="date" value="${D.profil.debut_coaching || ""}" data-chg="prof" data-k="debut_coaching"></div>
@@ -3795,11 +3913,7 @@ const ACT = {
   comOpen:() => { const st = live.rows[live.i]; st.comOpen = true; renderLayer(); setTimeout(() => { const t = $("#lcom"); if (t) t.focus(); }, 50); },
   delSet:() => { const st = live.rows[live.i]; if (st.sets.length > 1) { st.sets.pop(); st.dirty = true; persistLive(); renderLayer(); } },
   editSet:d => { const st = live.rows[live.i]; st.ed = st.ed === +d.j ? undefined : +d.j; renderLayer(); },
-  expSets:() => { live.rows[live.i].exp = true; renderLayer(); },
   restEnd:() => { rest = null; renderLayer(); },
-  rpeSet:d => { const st = live.rows[live.i], x = st.sets[+d.j]; if (!x) return; x.rpe = x.rpe === +d.v ? null : +d.v;
-    const f = st.sets.find(z => z.rpe), l0 = st.sets.at(-1); st.rpe1 = st.sets[0].rpe ?? st.rpe1 ?? null; st.rpeLast = l0.rpe ?? st.rpeLast ?? null; if (+d.j === 0) st.rpe1 = x.rpe; if (+d.j === st.sets.length - 1) st.rpeLast = x.rpe;
-    st.dirty = true; persistLive(); renderLayer(); },
   rpe:d => { const st = live.rows[live.i]; st[d.f] = st[d.f] === +d.v ? null : +d.v; st.dirty = true; persistLive(); renderLayer(); },
   finishLive:() => finishLive(),
   closeSummary:() => { const gs = ghostMake(); sheet = null; live = null; renderLayer(); ghostShow(gs); syncAll(true); },
@@ -3853,8 +3967,10 @@ const ACT = {
 const CHG = {
   setC:(d, el) => { const st = live.rows[live.i], j = +d.j, old = st.sets[j].c, nv = el.value === "" ? null : num(el.value); st.sets[j].c = nv; st.dirty = true;
     /* les séries suivantes (pas encore faites) qui avaient la même charge suivent ; une charge modifiée à la main reste telle quelle */
-    if (nv !== null && old !== nv && !liveCardio()) for (let i = j + 1; i < st.sets.length; i++) if (!st.sets[i].done && st.sets[i].c === old) { st.sets[i].c = nv;
-      const inp = document.querySelector('[data-chg="setC"][data-j="' + i + '"]'); if (inp && inp !== el) inp.value = String(nv).replace(".", ","); }
+    if (nv !== null && old !== nv && !liveCardio()) { const ex = seanceByKey(live.key).exercices[live.i], lf = liftOf(ex.mouvement), bw = !!(lf && BW_LIFTS.includes(lf));
+      for (let i = j + 1; i < st.sets.length; i++) if (!st.sets[i].done && st.sets[i].c === old) { st.sets[i].c = nv;
+        const inp = document.querySelector('[data-chg="setC"][data-j="' + i + '"]'); if (inp && inp !== el) inp.value = String(nv).replace(".", ",");
+        const w = document.querySelector('.lsr[data-j="' + i + '"] .w'); if (w) w.textContent = setLine(st.sets[i], ex, bw); } }
     { const cj = st.sets.findIndex(x => !x.done), gb = document.querySelector("#lgear .lg-bar"); if (gb && (cj === j || cj < 0)) gb.innerHTML = barbellHtml(nv); }
     persistLive(); },
   setR:(d, el) => { const st = live.rows[live.i]; st.sets[+d.j].r = el.value === "" ? null : liveCardio() ? Math.round(num(el.value) * 10) / 10 : isTimedEx(seanceByKey(live.key).exercices[live.i]) ? parseDur(el.value) : Math.round(num(el.value)); st.dirty = true; persistLive(); },
@@ -4324,6 +4440,9 @@ Object.assign(ACT, {
   catAuto:d => { const key = d.k === "power" ? "categorie_ipf" : "categorie", on = catAutoOn(key);
     profSet(on ? [[key + "_auto", "NON"], [key, String(d.k === "power" ? catIpf() : cat())]] : [[key + "_auto", "OUI"]], on ? "Catégorie à la main" : "Catégorie automatique"); },
   catSet:d => { const key = d.k === "power" ? "categorie_ipf" : "categorie"; profSet([[key, String(d.c)], [key + "_auto", "NON"]], "Catégorie " + catTxt(+d.c)); },
+  csyncToggle:() => { const id = coachId(); if (!id) return; const on = !chargeSyncOn(id); setChargeSync(id, on);
+    toast(on ? "C'est noté : l'app mettra la charge que tu as faite dans la colonne « Charge » de la semaine en cours" : "L'app n'écrit plus dans la colonne « Charge »"); renderLayer(); },
+  chargeUndo:d => chargeUndo(+d.t),
   clVis:d => { const k = "classement_" + d.k, on = norm(D.profil[k]) !== "NON"; profSet([[k, on ? "NON" : "OUI"]], on ? "Retiré du classement " + (d.k === "power" ? "powerlifting" : "street") : "Visible dans le classement"); },
   suiviToggle:d => { const cur = suivis(), n = cur.includes(d.l) ? cur.filter(x => x !== d.l) : cur.concat(d.l); profSet([["suivis", n.join(",")]], cur.includes(d.l) ? LNAME[d.l] + " n'est plus suivi" : LNAME[d.l] + " suivi"); }
 });

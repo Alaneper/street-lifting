@@ -56,7 +56,7 @@ async function gapi(url, opt, isRead){
     return j;
   }
 }
-const getVals = async (id, range) => (await gapi(API + id + "/values/" + enc(range), {}, true)).values || [];
+const getVals = async (id, range, raw) => (await gapi(API + id + "/values/" + enc(range) + (raw ? "?valueRenderOption=FORMULA" : ""), {}, true)).values || [];   /* raw : la formule telle qu'écrite, pas son résultat */
 const getMany = async (id, ranges) => ((await gapi(API + id + "/values:batchGet?" + ranges.map(r => "ranges=" + enc(r)).join("&"), {}, true)).valueRanges || []).map(v => v.values || []);
 const putVals = (id, range, values) => gapi(API + id + "/values/" + enc(range) + "?valueInputOption=RAW", {method:"PUT", body:JSON.stringify({values})});
 const appendVals = (id, range, values) => gapi(API + id + "/values/" + enc(range) + ":append?valueInputOption=RAW&insertDataOption=INSERT_ROWS", {method:"POST", body:JSON.stringify({values})});
@@ -167,7 +167,7 @@ function onboard(step, why){
       <button class="btn" style="margin-top:12px" data-act="obFromCoach" id="obfc">Tout remplir depuis ma prog</button>
       <button class="link small" style="margin-top:12px" data-act="obStep" data-s="create">Je n'ai pas de prog, je remplis moi-même</button></div>
     <div class="panel"><p style="font-weight:700;font-size:17px">J'ai déjà un Google Sheet</p><label for="oblink">Lien du Google Sheet</label><input id="oblink" type="url" placeholder="https://docs.google.com/spreadsheets/d/…">
-      <button class="btn ghost" style="margin-top:12px" data-act="obLink">Utiliser ce Google Sheet</button></div>${err}</div>`;
+      <label class="obcs"><input type="checkbox" id="obcs2"><span>Mon Sheet est ma prog personnelle : mettre à jour la charge avec ce que j'ai fait</span></label><p class="muted tiny" style="margin-top:4px">Facultatif, désactivé par défaut. À cocher seulement si cette prog est la tienne, pas celle d'un coach : l'app mettra la charge faite dans la colonne « Charge » de la semaine en cours, jamais dans les suivantes. Modifiable dans les réglages.</p><button class="btn ghost" style="margin-top:12px" data-act="obLink">Utiliser ce Google Sheet</button></div>${err}</div>`;
   else if (step === "create") { if (!obA) obInit(); const A = obA, P = obPre || {}, STEPS = obSteps(), key = STEPS[obI], n = obI + 1, tot = STEPS.length, v = x => esc(x === undefined || x === null ? "" : String(x));
     const CK = `<span class="ck" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A0B0D" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>`;
     const dots = L => L.map(l => `<i style="--c:${LCOL[l]}"></i>`).join("");
@@ -196,6 +196,7 @@ function onboard(step, why){
       ${P.blocs && P.blocs.length ? `<label for="obbl">Ton bloc en cours</label><select id="obbl">${P.blocs.map(m => `<option value="${m}" ${m === A.bloc ? "selected" : ""}>${esc(/^\s*BLOC\s*\d+\s*$/i.test(P.blocTitles[m]) ? "Bloc " + m : P.blocTitles[m].trim())}</option>`).join("")}</select>` : ""}
       ${P.bloc ? `<label for="obb">Lundi de la semaine 1 de ce bloc</label><input id="obb" type="date" value="${v(A.blocDate)}"><p class="muted tiny" style="margin-top:6px">Pour dater tes séances. Tu pourras le changer plus tard.</p>` : ""}
       <p class="muted tiny" style="margin-top:6px">La prog doit être partagée avec le compte Google avec lequel tu es connecté.</p>
+      <label class="obcs"><input type="checkbox" id="obcs"><span>Mon Sheet est ma prog personnelle : mettre à jour la charge avec ce que j'ai fait</span></label><p class="muted tiny" style="margin-top:4px">Facultatif, désactivé par défaut. À cocher seulement si cette prog est la tienne, pas celle d'un coach : l'app mettra la charge faite dans la colonne « Charge » de la semaine en cours, jamais dans les suivantes. Modifiable dans les réglages.</p>
       <label for="obd">Début de la pratique <span class="muted">facultatif</span></label><div class="grid2"><div><input id="obd" type="date" value="${v(A.debut)}"></div><div></div></div>${err}${foot(next("Créer mon Google Sheet", "obCreate"))}</div>`; }
   $("#v-home").innerHTML = `<div class="ob">${h}</div>`;
   if (step === "create") obRefresh();
@@ -242,6 +243,7 @@ Object.assign(ACT, {
     try { const t = await getTitles(id);
       if (!t.includes("PROFIL") && (t.some(x => /^\s*BLOC\s*\d+/i.test(x)) || (await progTabs(id)).order.length)) return onboard("carnet", "Ce lien est celui d'une prog de coach, pas d'un Google Sheet B². Colle-le plus haut, dans « Nouveau ici, avec une prog de coach ».");
       await ensureTabs(id); } catch(e){ return onboard("carnet", errMsg(e)); }
+    if ($("#obcs2") && $("#obcs2").checked) store.set("sl4-csync-pend", true);
     setCfg({appId:id}); APP_ID = id; startApp(); },
   obFromCoach:async () => {
     const id = idOf($("#obcoach").value); if (!id) return toast("Ce lien de Google Sheet n'est pas reconnu", true);
@@ -256,7 +258,7 @@ Object.assign(ACT, {
     } catch(e){ b.disabled = false; b.textContent = "Tout remplir depuis ma prog"; toast("Prog inaccessible : " + errMsg(e), true); }
   },
   obCreate:async () => {
-    obSave(); const A = obA, st = A.disc.street, pw = A.disc.power, mu = A.disc.muscu, sx = A.sexe, w = num(A.poids), nai = A.naissance || "";
+    obSave(); const cs = !!($("#obcs") && $("#obcs").checked), A = obA, st = A.disc.street, pw = A.disc.power, mu = A.disc.muscu, sx = A.sexe, w = num(A.poids), nai = A.naissance || "";
     const p = {prenom:A.prenom.trim(), sexe:sx, naissance:nai, disciplines:[st ? "street" : "", pw ? "power" : "", mu ? "muscu" : ""].filter(Boolean).join(","), power_mode:A.mode || "classic",
       categorie:w && (st || pw) ? catAuto(w, catsFor(sx)) : "", debut:A.debut, poids:A.poids, coach:idOf(A.coach),
       taille:obPre && obPre.taille, pays:A.pays || "BE", bloc:A.bloc !== undefined && A.bloc !== "" ? Number(A.bloc) : obPre && obPre.bloc, blocDate:A.blocDate || ""};
@@ -266,7 +268,7 @@ Object.assign(ACT, {
     const b = $("#obgo"); b.disabled = true; b.textContent = "Création…";
     try {
       if (p.coach) { try { await getTitles(p.coach); } catch(e){ b.disabled = false; b.textContent = "Créer mon Google Sheet"; return toast("Prog du coach inaccessible : " + errMsg(e), true); } }
-      const id = await createBook(p); setCfg({appId:id}); APP_ID = id; toast("Google Sheet créé"); startApp();
+      const id = await createBook(p); if (cs) setChargeSync(p.coach || id, true); setCfg({appId:id}); APP_ID = id; toast("Google Sheet créé"); startApp();
     } catch(e){ b.disabled = false; b.textContent = "Créer mon Google Sheet"; toast(errMsg(e), true); }
   },
   switchBook:() => { setCfg({appId:""}); APP_ID = ""; D = null; S = []; sheet = null; renderLayer(); onboard("carnet"); },
