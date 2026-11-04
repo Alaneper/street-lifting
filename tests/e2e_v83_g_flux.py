@@ -30,11 +30,12 @@ with sync_playwright() as p:
     ev = pg.evaluate
     # ---------- séance en direct : les trois feux
     ev("setTab('home')"); pg.wait_for_timeout(300)
-    pg.click("[data-act=startLive]"); pg.wait_for_timeout(500)
+    key = ev("(() => { const s = S.find(x => !x.archived && x.exercices.some(e => liftOf(e.mouvement) === 'SQUAT')); return s && s.key; })()")   # la séance du jour change avec le jour : on ouvre une séance avec du squat
+    ev(f"startLive({key!r})"); pg.wait_for_timeout(700)
     if pg.locator("[data-act=pdcSave]").count(): pg.click("[data-act=pdcSave]"); pg.wait_for_timeout(500)
     # aller au premier exercice de force (liftOf) : « Squat »
     for _ in range(6):
-        if ev("(() => { const s = seanceByKey(live.key), e = s.exercices[live.i]; return !!liftOf(e.mouvement) && !isCardioEx(e); })()"): break
+        if ev("(() => { const s = seanceByKey(live.key), e = s.exercices[live.i]; return liftOf(e.mouvement) === 'SQUAT' && !isCardioEx(e); })()"): break
         pg.click("[data-act=liveNav][data-d='1']"); pg.wait_for_timeout(500)
     ev("document.querySelector('.live').scrollTop = 0"); pg.wait_for_timeout(200)
     avant = ev("({lights: document.querySelectorAll('.live .lights').length, on: document.querySelectorAll('.live .lights.on').length, rec: document.querySelectorAll('.live .lights.rec').length, spans: [...document.querySelectorAll('.live .lights')].map(l => l.querySelectorAll('i').length)})")
