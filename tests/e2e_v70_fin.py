@@ -22,8 +22,8 @@ with sync_playwright() as p:
             pg.click(".live .vbar [data-act=doneSet]"); pg.wait_for_timeout(700); done += 1
             if ev("!!document.querySelector('.restpill')"): pg.click(".restpill [data-act=closeSheet]"); pg.wait_for_timeout(300)
         if done >= 4: break
-        if ev("!!document.querySelector('.live .vbar [data-act=liveNav]')"):
-            pg.click(".live .vbar [data-act=liveNav]"); pg.wait_for_timeout(500)
+        if ev("!!document.querySelector('.live .vbar [data-act=liveNav][data-d=\"1\"]:not([disabled])')"):
+            pg.click(".live .vbar [data-act=liveNav][data-d='1']"); pg.wait_for_timeout(500)
         elif ev("!!document.querySelector('.live [data-act=liveNav][data-d=\"1\"]:not([disabled])')"):
             pg.click(".live [data-act=liveNav][data-d='1']"); pg.wait_for_timeout(500)
     check("au moins une série validée", done >= 1, done)
