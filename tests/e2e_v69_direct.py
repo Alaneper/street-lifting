@@ -35,14 +35,14 @@ with sync_playwright() as p:
         if ev("!!document.querySelector('#lgear .lg-svg')"): found = True; break
         pg.click("[data-act=liveNav][data-d='1']"); pg.wait_for_timeout(500)
     check("barre chargée affichée sur un mouvement à barre", found)
-    check("carte musculaire dans l'écran de séance", ev("document.querySelectorAll('#lgear .mplate.lg-plate svg').length") == 2)
+    check("carte musculaire repliée dans l'écran de séance (plus la carte beige)", ev("document.querySelectorAll('.live details.lgm .mplate.lg-plate svg').length") == 2 and ev("!document.querySelector('.live details.lgm').open") and not ev("!!document.querySelector('.live .lgc')"))
     if found:
         sel = "[data-chg=setC][data-j='0']"
         pg.fill(sel, "140"); pg.locator(sel).blur(); pg.wait_for_timeout(300)
         check("la barre suit la charge saisie (140 → 4 disques par côté, colliers en plus)", ev("document.querySelectorAll('#lgear .lg-svg rect').length") >= 8 and "25 + 25 + 5 + 2,5" in ev("document.querySelector('#lgear .lg-t').textContent"), ev("document.querySelector('#lgear .lg-t').textContent"))
         check("bouton fixe « Valider la série 1 »", ev("(document.querySelector('.live .vbar [data-act=doneSet]')||{}).textContent") == "Valider la série 1")
         check("en-tête : nom de l'exercice", ev("document.querySelector('.live .lh-n').textContent.trim().length") > 0)
-        check("bande craie : consigne séries × reps", "×" in ev("(document.querySelector('#lgear .lgc-c')||{textContent:''}).textContent"))
+        check("prescription en grand : séries × reps", "×" in ev("(document.querySelector('.live .lx-p')||{textContent:''}).textContent"))
         pg.evaluate("window.scrollTo(0,0)"); pg.screenshot(path="/tmp/live-v69.png")
         pg.click(".live .vbar [data-act=doneSet]"); pg.wait_for_timeout(900)
         check("valider la dernière série → bouton « Exercice suivant »", ev("!!document.querySelector('.live .lsr.done')") and ev("(document.querySelector('.live .vbar .btn')||{}).textContent") == "Exercice suivant")
