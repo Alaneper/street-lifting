@@ -117,7 +117,7 @@ with sync_playwright() as p:
     sure = {"Curl biceps haltères":"X_CURL", "Curl marteau":"X_CURL", "Leg curl":"X_LEGCURL", "Curl jambes":"X_LEGCURL", "Leg extension":"X_LEGEXT", "Presse à cuisses":"X_LEGPRESS", "Fentes marchées":"X_LUNGE",
         "Hip thrust":"X_HIP", "Soulevé de terre roumain":"X_RDL", "Mollets debout":"X_CALF", "Hyperextension":"X_BACKEXT", "Shrugs haltères":"X_SHRUG", "Oiseau haltères":"X_REAR", "Élévations latérales":"X_LATERAL",
         "Extension triceps poulie":"X_TRI", "Skull crushers":"X_TRI", "Développé militaire":"X_OHP", "Développé incliné haltères":"X_CHEST", "Pompes":"X_CHEST", "Écarté poulie":"X_FLY", "Lat pulldown":"X_PULLDN",
-        "Tirage vertical":"X_PULLDN", "Tirage horizontal machine":"X_ROW", "Rowing barre":"X_ROW", "Gainage":"X_ABS", "Relevé de jambes":"X_ABS", "Wrist curl":"X_WRIST",
+        "Tirage vertical":"X_PULLDN", "Tirage horizontal machine":"X_ROW", "Rowing barre":"X_ROW", "Gainage":"X_PLANK", "Relevé de jambes":"X_LEGRAISE", "Gainage latéral":"X_SIDEPL", "Rotation russe":"X_OBL", "Crunch":"X_ABS", "Soulevé de terre":"X_DEADLIFT", "Soulevé de terre sumo":"X_SUMO", "Pull-over poulie":"X_PULLOVER", "Tirage vertical prise serrée":"X_PULLDN", "Développé convergent":"X_CHEST", "Wrist curl":"X_WRIST",
         "Face pull":"X_FACEPULL", "Upright row":"X_UPRIGHT", "Reverse curl":"X_CURL", "Pullover":"X_PULLOVER", "Good morning":"X_GOODM", "Kettlebell swing":"X_SWING", "Rowing":"X_ROW", "Adducteurs machine":"X_ADDUCT", "Hip abduction":"X_ABDUCT"}
     bad = {n: ev("(n) => exMuscleKey(n)", n) for n in sure if ev("(n) => exMuscleKey(n)", n) != sure[n]}
     check("dictionnaire : %d correspondances sûres reconnues" % len(sure), not bad, bad)
