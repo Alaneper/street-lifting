@@ -1130,6 +1130,12 @@ const fmt1 = n => (n === null || n === undefined || !isFinite(n)) ? "–" : (Mat
 /* Textes partagés (un seul endroit pour les libellés réutilisés ; le reste de l'interface est écrit en français dans les gabarits) */
 const TXT = {reduire:"Réduire", voirTout:n => "Voir tout (" + n + ")", noRecord:"Pas encore de record", peseeJour:"Pesée du jour", aFaire:"à faire", renfo:"Renforcement"};
 const repsOk = r => { const t = String(r === null || r === undefined ? "" : r).trim(); return !!t && !/^[\/\\\-–—.·_\s]+$/.test(t); };
+/* Saisie d'un nombre dans un champ : vide = effacer ; texte, « 1e3 » ou valeur négative = refusé, message, et l'ancienne valeur revient dans le champ. */
+function inputOk(el, v, what, shown, ex){
+  if (el.value === "" || (v !== null && v >= 0 && isFinite(v))) return true;
+  toast(what + (v !== null && v < 0 ? " : pas de valeur négative." : " invalide : écris un nombre" + (ex ? " (" + ex + ")" : " (ex. 82,5)") + "."), true);
+  el.value = shown; return false;
+}
 const fmt = (n, d = 2) => (n === null || n === undefined || !isFinite(n)) ? "–" : (Math.round(n * 10 ** d) / 10 ** d).toString().replace(".", ",");
 const pct = (a, b) => (a && b) ? Math.max(0, Math.min(100, a / b * 100)) : 0;
 const MOIS = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
@@ -1152,7 +1158,8 @@ const days = (a, b) => Math.round((dObj(b) - dObj(a)) / 864e5);
 const addDays = (iso, n) => { const t = dObj(iso); t.setDate(t.getDate() + n); return isoOf(t); };
 const addMonths = (iso, m) => addDays(iso, Math.round(m * 30.44));
 const norm = s => String(s ?? "").trim().toUpperCase().replace(/\s+/g, " ");
-const num = v => { if (typeof v === "number") return v; const n = parseFloat(String(v ?? "").replace(",", ".").replace(/[^\d.\-]/g, "")); return isNaN(n) ? null : n; };
+const num = v => { if (typeof v === "number") return v; if (/^\s*[-+]?[\d.,]+\s*e\s*[-+]?\d+\s*$/i.test(String(v ?? ""))) return null;   /* « 1e3 » n'est pas un nombre saisi : jamais lu comme 13 */
+  const n = parseFloat(String(v ?? "").replace(",", ".").replace(/[^\d.\-]/g, "")); return isNaN(n) ? null : n; };
 const isNumTxt = s => /^\s*\d+([.,]\d+)?\s*$/.test(String(s ?? ""));
 const SIGLES = new Set(["RDL","DB","OHP","HPU","ISO","MU","2W","BSS","SLDL","RPE","EZ","TRX","RM","PR","IPF","TUT"]);
 const FIX = [[/\bSTEATED\b/g,"SEATED"],[/\bHIP TRUST\b/g,"HIP THRUST"],[/\bPIRAMIDE\b/g,"PYRAMIDE"]];
@@ -1856,7 +1863,7 @@ function liftOf(m){ const x = norm(m); if (x.includes("MUSCLE")) return "MU"; if
 /* sans variation : « EXERCICE » seul (avant : « EXERCICE · », dont l'espace final se perdait à la relecture du carnet et empêchait de retrouver la série) */
 const exKey = e => norm(e.mouvement) === "RENFO" ? norm(e.variation) : norm(norm(e.mouvement) + " · " + norm(e.variation)).replace(/ ·$/, "");
 /* Retrouver la « dernière fois » malgré un nom un peu différent : casse, accents, espaces multiples, tirets et apostrophes sont ignorés (comparaison seulement : les clés écrites dans le carnet ne changent pas). */
-const kfold = k => unacc(k).replace(/[-_’'‘]/g, " ").replace(/\s+/g, " ").trim();
+const kfold = k => unacc(k).replace(/[-_·’'‘]/g, " ").replace(/\s+/g, " ").trim();
 const sameEx = (a, b) => a === b || kfold(a) === kfold(b);
 const exName = k => { const [a, b] = String(k).split(" · "); return b ? title(a) + " " + b.toLowerCase() : title(a); };
 const liftsOf = s => [...new Set(s.exercices.map(e => liftOf(e.mouvement)).filter(Boolean))];
@@ -2825,7 +2832,7 @@ function syncDone(){ if (!D || !D.series) return; const lg = new Set(D.series.ma
 /* =====================================================================
    v48 · MODIFIER SES SÉANCES (changer / retirer / ajouter / réordonner) et séances libres (sans jour de la semaine)
    Les changements restent dans le carnet (PROFIL › « modifs », un petit JSON) : jamais dans le Sheet du coach.
-   Format d'un changement : {sc:"d"|"s", b:bloc, n:séance, w:semaine, sw:[[origine,mouvement,variation]], rm:[origine], ad:[[mouvement,variation,séries,reps]], or:[ids]}
+   Format d'un changement : {sc:"d"|"s", b:bloc, n:séance, w:semaine, sw:[[origine,mouvement,variation,séries,reps,repos]], rm:[origine], ad:[[mouvement,variation,séries,reps]], or:[ids]}
    « d » = cette séance seulement ; « s » = cette semaine et les suivantes.
    ===================================================================== */
 /* Catalogue d'exercices courants (noms seulement, liste de l'app) : pour changer vers une machine ou un exercice jamais fait. */
@@ -2845,8 +2852,9 @@ function applyMods(s){
   const m = modFor(s); let list = s.base.slice();
   if (m) {
     const used = new Set();
-    (m.sw || []).forEach(([o, mv, va]) => { const i = list.findIndex((e, j) => !used.has(e) && !e._mod && exKey(e) === o); if (i < 0) return;
+    (m.sw || []).forEach(([o, mv, va, se, re, rp]) => { const i = list.findIndex((e, j) => !used.has(e) && !e._mod && exKey(e) === o); if (i < 0) return;
       const e0 = list[i], ne = {...e0, mouvement:mv, variation:va || "", charge:"", intensite:"", tempo:"", coach:"", e1rm:"", rpe1:"", rpeLast:"", commentaire:"", repsDone:"", chargesDone:"", angle:"", _mod:1, _o:o};
+      if (re !== undefined) { ne.series = se; ne.reps = re; ne.repos = rp || ""; }   /* prescription du NOUVEL exercice (anciens changements sans ces champs : inchangés) */
       used.add(ne); list[i] = ne; });
     (m.rm || []).forEach(o => { const i = list.findIndex(e => !e._mod && exKey(e) === o); if (i >= 0) list.splice(i, 1); });
     (m.ad || []).forEach(([mv, va, se, re], i) => { list.push({...blankEx({m:mv, v:va, s:se, r:re}, 9000 + i), _mod:1, _o:""}); });
@@ -2887,11 +2895,20 @@ async function edOp(s, scope, fn){
   await saveMod(s, m);
   if (st) { remapState(st, s, oldIds, oldRows, keepId); if (lv) persistLive(); else store.set("sl4-live", st); }
 }
+/* Prescription d'un exercice qui en remplace un autre : celle qu'il a dans la prog (autre séance), sinon sa dernière fois, sinon une valeur par défaut de son type — jamais celle de l'ancien exercice. */
+function swapPresc(c){
+  const nk = exKey({mouvement:c.m, variation:c.v}), ex = {mouvement:c.m, variation:c.v, reps:""};
+  for (const z of S) for (const x of (z.base || z.exercices || [])) if (!x._mod && sameEx(exKey(x), nk) && String(x.reps ?? "").trim()) return [String(x.series || "3"), String(x.reps), String(x.repos || "")];
+  const lg = lastLog(nk);
+  if (lg && lg.sets && lg.sets.length && !isCardioEx(ex)) { const top = lg.sets[0], r = num(top.r);
+    if (r !== null && r > 0) return [String(Math.max(1, Math.min(12, lg.sets.length))), isTimedEx(ex) ? Math.round(r) + "s" : String(Math.round(r)), ""]; }
+  return isTimedEx(ex) ? ["3", "30s", ""] : isCardioEx(ex) ? ["1", "20 min", ""] : ["3", "10", ""];
+}
 function swapInMod(m, e, c){
-  const nk = exKey({mouvement:c.m, variation:c.v});
-  if (e._mod && e._o) { const i = m.sw.findIndex(x => x[0] === e._o); if (nk === e._o) { if (i >= 0) m.sw.splice(i, 1); } else if (i >= 0) m.sw[i] = [e._o, c.m, c.v]; else m.sw.push([e._o, c.m, c.v]); }
-  else if (e._mod) { const i = m.ad.findIndex(x => exKey({mouvement:x[0], variation:x[1]}) === exKey(e)); if (i >= 0) m.ad[i] = [c.m, c.v, e.series, e.reps]; }
-  else m.sw.push([exKey(e), c.m, c.v]);
+  const nk = exKey({mouvement:c.m, variation:c.v}), p = swapPresc(c);
+  if (e._mod && e._o) { const i = m.sw.findIndex(x => x[0] === e._o); if (nk === e._o) { if (i >= 0) m.sw.splice(i, 1); } else if (i >= 0) m.sw[i] = [e._o, c.m, c.v, ...p]; else m.sw.push([e._o, c.m, c.v, ...p]); }
+  else if (e._mod) { const i = m.ad.findIndex(x => exKey({mouvement:x[0], variation:x[1]}) === exKey(e)); if (i >= 0) m.ad[i] = [c.m, c.v, p[0], p[1]]; }
+  else m.sw.push([exKey(e), c.m, c.v, ...p]);
 }
 function rmInMod(m, e){
   if (e._mod && !e._o) { const i = m.ad.findIndex(x => exKey({mouvement:x[0], variation:x[1]}) === exKey(e)); if (i >= 0) m.ad.splice(i, 1); }
@@ -3216,7 +3233,10 @@ function areaSvg(pts){
   const span = Math.max(1, days(pts[0].date, pts.at(-1).date)), X = d => x0 + days(pts[0].date, d) / span * (x1 - x0), Y = v => y1 - (v - lo) / (hi - lo) * (y1 - y0);
   const q = pts.map(p => [X(p.date), Y(p.v)]), line = q.map((c, i) => (i ? "L" : "M") + c[0].toFixed(1) + " " + c[1].toFixed(1)).join(" "), last = q.at(-1);
   const grid = niceTicks(lo, hi).map(t => `<line x1="${x0}" x2="${x1}" y1="${Y(t).toFixed(1)}" y2="${Y(t).toFixed(1)}" stroke="var(--seam)" stroke-width="1"/><text x="${x0 - 7}" y="${(Y(t) + 4).toFixed(1)}" text-anchor="end" fill="var(--faint)" style="font:500 11px var(--f-text)">${tickTxt(t, " kg")}</text>`).join("");
-  const xd = span < 3 ? [pts[0].date, pts.at(-1).date] : [0, 1 / 3, 2 / 3, 1].map(f => addDays(pts[0].date, Math.round(span * f))), xl = axisLab(xd);
+  /* Axe des dates : jusqu'à 4 points, chaque point porte sa date (on lit « quand » sans deviner) ; au-delà, 4 repères répartis dans le temps. Deux dates trop proches ne s'écrasent jamais. */
+  let xd = pts.length <= 4 ? [] : [0, 1 / 3, 2 / 3, 1].map(f => addDays(pts[0].date, Math.round(span * f)));
+  if (pts.length <= 4) pts.forEach((p, i) => { if (!xd.length || X(p.date) - X(xd.at(-1)) >= 58) xd.push(p.date); else if (i === pts.length - 1 && xd.length > 1) { xd.pop(); xd.push(p.date); } else if (i === pts.length - 1) xd.push(p.date); });
+  const xl = axisLab(xd);
   const xt = xd.map((d, i) => `<text x="${X(d).toFixed(1)}" y="${H - 8}" text-anchor="${i === 0 ? "start" : i === xd.length - 1 ? "end" : "middle"}" fill="var(--faint)" style="font:500 11px var(--f-text)">${xl[i]}</text>`).join("");
   ICH.area = {W, pts:pts.map((p, i) => ({x:q[i][0], y:q[i][1], tip:`<b>${esc(dFull(p.date))}</b><span>${fmt(p.v)} kg</span><small>${i ? sgn(p.v - pts[i - 1].v, 2) + " kg vs " + esc(dJM(pts[i - 1].date)) : "Premier record daté"}</small>`}))};
   return `<div class="ichart"><svg class="pw-svg" data-ich="area" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Courbe : de ${fmt(pts[0].v)} à ${fmt(pts.at(-1).v)} kg">
@@ -3982,7 +4002,7 @@ const ACT = {
   livePR:async d => { await addPR(d.l, +d.c, 1, wDay(), "Séance " + (seanceByKey(live.key) || {}).seance); $("#prbox").innerHTML = ""; },
   restPause:() => { if (!rest) return; if (rest.pauseAt) { rest.end += Date.now() - rest.pauseAt; rest.pauseAt = 0; } else rest.pauseAt = Date.now(); },
   restAdd:d => { if (rest) { rest.end += +d.s * 1000; rest.total = Math.max(rest.total, Math.round((rest.end - Date.now()) / 1000)); rest.beeped = false; } },
-  pdcSave:async () => { const v = num($("#pw").value); if (!v) return toast("Indique ton poids", true); await saveWeight(v, D.today, true); live.pdc = true; persistLive(); closeSheet(); },
+  pdcSave:async () => { const v = num($("#pw").value); if (!v || v < 30 || v > 250) return toast("Indique un poids valide", true); await saveWeight(v, D.today, true); live.pdc = true; persistLive(); closeSheet(); },
   pdcSkip:() => { live.pdc = true; persistLive(); closeSheet(); },
   stepW:(d, el) => { const i = el.parentNode.querySelector("input"); const v = num(i.value) || bw() || 70; i.value = fmt(v + +d.d, 1); if (i.id === "hw" || i.id === "cw") hwRefresh(); },
   saveW:async d => { const el = d.src === "cw" ? $("#cwd") : null, dv = el ? el.value : "", v = num($("#" + d.src).value), dt = dv && !(el.dataset.d0 && dv === el.dataset.d0) ? dv : D.today;   /* date laissée par défaut = jour actuel, même si la feuille est restée ouverte pendant minuit */
@@ -3999,7 +4019,7 @@ const ACT = {
   closePage:() => { page = null; renderLayer(); },
   liftMetric:d => { liftMetric = d.k; renderLayer(); },
   exMetric:d => { exMetric = d.k; renderLayer(); },
-  addPR:async d => { const c = num($("#prc").value), r = num($("#prr").value) || 1; if (c === null) return toast("Indique une charge", true); await addPR(d.l, c, r, $("#prd").value || D.today, $("#prn").value.trim(), num($("#prpe").value)); },
+  addPR:async d => { const c = num($("#prc").value), r = num($("#prr").value) || 1; if (c === null) return toast("Indique une charge (un nombre, ex. 82,5)", true); if (c < 0 || r < 0) return toast("Charge et reps ne peuvent pas être négatives", true); await addPR(d.l, c, r, $("#prd").value || D.today, $("#prn").value.trim(), num($("#prpe").value)); },
   share:d => openSheet("share|" + d.l),
   saveShare:async () => { const cv = document.getElementById("sharecv"), dl = await window.claude?.use("downloads").catch(() => null); if (!dl) return toast("L'enregistrement d'image n'est pas disponible ici.", true);
     cv.toBlob(async b => { try { await dl.save({filename:"record-b2strong.png", data:b}); toast("Image enregistrée"); } catch(e){ toast("Enregistrement annulé", true); } }, "image/png"); },
@@ -4027,7 +4047,9 @@ const ACT = {
       wk.vals = v; wk.draft = null; closeSheet(); toast(queued ? "Bilan enregistré : il partira chez ton coach dès que le réseau revient" : "Bilan envoyé à ton coach"); render(); saveCache(); } catch(e){ toast(errMsg(e) + ambig(e), true); } }
 };
 const CHG = {
-  setC:(d, el) => { const st = live.rows[live.i], j = +d.j, old = st.sets[j].c, nv = el.value === "" ? null : num(el.value); st.sets[j].c = nv; st.dirty = true;
+  setC:(d, el) => { const st = live.rows[live.i], j = +d.j, old = st.sets[j].c, nv = el.value === "" ? null : num(el.value);
+    if (!inputOk(el, nv, liveCardio() ? "Distance" : "Charge", old === null || old === undefined || old === "" ? "" : String(old).replace(".", ","))) return;
+    st.sets[j].c = nv; st.dirty = true;
     /* les séries suivantes (pas encore faites) qui avaient la même charge suivent ; une charge modifiée à la main reste telle quelle */
     if (nv !== null && old !== nv && !liveCardio()) { const ex = seanceByKey(live.key).exercices[live.i], lf = liftOf(ex.mouvement), bw = !!(lf && BW_LIFTS.includes(lf));
       for (let i = j + 1; i < st.sets.length; i++) if (!st.sets[i].done && st.sets[i].c === old) { st.sets[i].c = nv;
@@ -4035,10 +4057,13 @@ const CHG = {
         const w = document.querySelector('.lsr[data-j="' + i + '"] .w'); if (w) { w.textContent = setLine(st.sets[i], ex, bw); const pl = w.parentNode.querySelector(".pl"); if (pl) pl.remove(); w.insertAdjacentHTML("afterend", platesMini(lf, st.sets[i].c)); } } }
     { const cj = st.sets.findIndex(x => !x.done), gb = document.querySelector("#lgear .lg-bar"); if (gb && (cj === j || cj < 0)) gb.innerHTML = gearHtml(liftOf(seanceByKey(live.key).exercices[live.i].mouvement), nv); }
     persistLive(); },
-  setR:(d, el) => { const st = live.rows[live.i]; st.sets[+d.j].r = el.value === "" ? null : liveCardio() ? Math.round(num(el.value) * 10) / 10 : isTimedEx(seanceByKey(live.key).exercices[live.i]) ? parseDur(el.value) : Math.round(num(el.value)); st.dirty = true; persistLive(); },
+  setR:(d, el) => { const st = live.rows[live.i], j = +d.j, cardio = liveCardio(), timed = !cardio && isTimedEx(seanceByKey(live.key).exercices[live.i]);
+    const v = el.value === "" ? null : cardio ? num(el.value) : timed ? parseDur(el.value) : num(el.value);
+    { const pr = st.sets[j].r; if (!inputOk(el, v, cardio || timed ? "Durée" : "Nombre de reps", pr === null || pr === undefined || pr === "" ? "" : timed ? fmtDur(pr) : String(pr).replace(".", ","), timed ? "ex. 1:30 ou 45s" : "")) return; }
+    st.sets[j].r = v === null ? null : cardio ? Math.round(v * 10) / 10 : timed ? v : Math.round(v); st.dirty = true; persistLive(); },
   blocDate:async (d, el) => { const b = +d.b, v = toIso(el.value); if (!v) return;
     try { await Store.blocs.setDate(b, v); D.blocs[b] = v; toast("Dates enregistrées : " + blocLabel(b)); saveCache(); render(); } catch(e){ toast(errMsg(e), true); } },
-  setObj:async (d, el) => { const l = d.l, v = num(el.value);
+  setObj:async (d, el) => { const l = d.l, v = num(el.value); if (el.value !== "" && (v === null || v < 0)) { toast("Objectif invalide : écris un nombre positif", true); el.value = D.objectifs[l] ?? ""; return; }
     try { await Store.objectifs.set(l, v, "Défini dans l'app le " + dfr(D.today));
       D.objectifs[l] = v; toast("Objectif enregistré"); saveCache(); renderLayer(); } catch(e){ toast(errMsg(e), true); } },
   prof:async (d, el) => { const k = d.k, val = k === "categorie" ? Number(el.value) : el.value;
