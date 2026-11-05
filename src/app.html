@@ -1089,7 +1089,7 @@ body.scrolled .syncline{opacity:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "73 · 4 nov. 2026";
+const APP_VER = "74 · 5 nov. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -2068,11 +2068,20 @@ function exercisePoints(){
   }).filter(o => o.pts.length);
 }
 /* ---------- Records par répétitions et 1RM estimé (mouvement de compétition, variation « COMP ») ---------- */
+const _pc = {s:null, m:{}};
+function perfCorr(){ const v = String((typeof D !== "undefined" && D && D.profil && D.profil.perf_corr) || ""); if (_pc.s !== v) { _pc.s = v; try { _pc.m = v ? JSON.parse(v) || {} : {}; } catch(e){ _pc.m = {}; } } return _pc.m; }
+const perfKey = (l, x) => { const w = x.wh || {}; return [l, x.src || "", x.bloc ?? "", x.sem ?? "", w.sheet || "", w.seance || "", w.row || "", x.ex || "", x.c, x.r].join("|"); };
+async function perfCorrSet(ck, v){ const m = Object.assign({}, perfCorr()); if (v === null) delete m[ck]; else m[ck] = v; const str = Object.keys(m).length ? JSON.stringify(m) : "";
+  D.profil.perf_corr = str; await Store.profil.set("perf_corr", str); }
 function compSets(l){
   const ok = x => x.c !== null && x.c !== undefined && x.c >= 0 && Number.isInteger(x.r) && x.r >= 1 && x.r <= 12;
   const out = D.prs.filter(p => p.lift === l).map(p => ({c:p.charge, r:p.reps, rpe:p.rpe || null, date:p.date, src:"PR", coach:/prog du coach/i.test(p.note), pr:p})).filter(ok);
   for (const o of exercisePoints()) { if (o.lift !== l) continue;
-    for (const p of o.pts) { if (!p.comp) continue; p.rows.forEach((st, k) => st.forEach(x => { if (ok(x)) out.push({c:x.c, r:x.r, rng:x.rng, rpe:x.rpe, date:p.date, bloc:p.bloc, sem:p.sem, src:p.src, wh:p.wh[k], ex:o.key}); })); } }
+    for (const p of o.pts) { if (!p.comp) continue; p.rows.forEach((st, k) => st.forEach(x => {
+      /* v74 : correction manuelle d'une perf lue dans une prog (Sheet, Excel, séance) : gardée dans le profil, la prog n'est pas modifiée */
+      const y = {c:x.c, r:x.r, rng:x.rng, rpe:x.rpe, date:p.date, bloc:p.bloc, sem:p.sem, src:p.src, wh:p.wh[k], ex:o.key}, ck = perfKey(l, y), f = perfCorr()[ck];
+      y.ck = ck; if (f) { if (f.del) return; Object.assign(y, {c:f.c, r:f.r, rpe:f.rpe || null, date:f.d || y.date, rng:null, corr:true}); }
+      if (ok(y)) out.push(y); })); } }
   return out;
 }
 /* nRM = charge la plus lourde faite pour exactement n reps, sur tout l'historique. Rien n'est extrapolé. */
@@ -3603,8 +3612,13 @@ function perfHtml(){
   const P = perfSel; if (!P) return ""; const x = P.x, pr = x.pr, u = BW_LIFTS.includes(P.l) ? " de lest" : "", back = `<button class="btn ghost" style="margin-top:8px" data-act="perfBack">Retour</button>`;
   const head = `<p class="show t-m">Modifier cette perf</p><p class="muted small" style="margin-top:4px">${LNAME[P.l]} · ${fmt(x.c)} kg${u} × ${pl(x.r, "rep")}${x.date ? " · " + esc(dJM(x.date)) : ""}</p>`;
   if (!pr) { const z = perfSeance(x), w = x.wh || {};
-    return head + `<p class="small" style="margin-top:14px">${z ? "Cette perf vient de ta séance. Ouvre-la pour corriger la charge, les reps ou le RPE : tout se met à jour ici." : `Cette perf vient de ta prog${w.row ? " (ligne " + esc(w.row) + ")" : ""}. Corrige-la dans ta prog, puis synchronise.`}</p>
-      ${z ? `<button class="btn" style="margin-top:16px" data-act="perfSeance" data-k="${esc(z.key)}">Ouvrir la séance</button>` : ""}${back}`; }
+    return head + `<p class="small" style="margin-top:10px">${w.app ? "Notée dans l'app pendant une séance." : `Lue dans ta prog${w.sheet ? " « " + esc(String(w.sheet).trim()) + " »" : ""}${w.row ? ", ligne " + esc(w.row) : ""}.`} Si l'app l'a mal lue, corrige-la ici : la correction compte pour tes records et ton 1RM estimé, ta prog n'est pas modifiée.${x.corr ? " <b>Déjà corrigée à la main.</b>" : ""}</p>
+      <div class="impgrid" style="margin-top:12px"><div><label for="pfc">Charge (kg)</label><input id="pfc" inputmode="decimal" value="${esc(fmt(x.c))}"></div><div><label for="pfr">Reps</label><input id="pfr" inputmode="numeric" value="${esc(x.r)}"></div><div><label for="pfrpe">RPE</label><input id="pfrpe" inputmode="decimal" placeholder="non noté" value="${x.r1 ? esc(fmt(x.r1)) : ""}"></div></div>
+      <label for="pfd" style="margin-top:10px">Date</label><input id="pfd" type="date" value="${esc(x.date || "")}">
+      <button class="btn" style="margin-top:16px" data-act="perfSave">Enregistrer la correction</button>
+      ${x.corr ? `<button class="btn ghost" style="margin-top:8px" data-act="perfReset">Revenir à la valeur lue</button>` : ""}
+      <button class="btn ghost" style="margin-top:8px;color:var(--bad)" data-act="perfDel">${P.del ? "Confirmer : retirer cette perf de mes records" : "Retirer cette perf de mes records"}</button>
+      ${z ? `<button class="btn ghost" style="margin-top:8px" data-act="perfSeance" data-k="${esc(z.key)}">Ouvrir la séance</button>` : ""}${back}`; }
   if (!pr.id) return head + `<p class="small" style="margin-top:14px">Cette perf n'est pas encore synchronisée. Synchronise puis réessaie.</p>${back}`;
   return head + `<div class="impgrid" style="margin-top:12px"><div><label for="pfc">Charge (kg)</label><input id="pfc" inputmode="decimal" value="${esc(fmt(pr.charge))}"></div><div><label for="pfr">Reps</label><input id="pfr" inputmode="numeric" value="${esc(pr.reps)}"></div><div><label for="pfrpe">RPE</label><input id="pfrpe" inputmode="decimal" placeholder="non noté" value="${pr.rpe ? esc(fmt(pr.rpe)) : ""}"></div></div>
     <label for="pfd" style="margin-top:10px">Date</label><input id="pfd" type="date" value="${esc(pr.date || "")}">
@@ -3819,7 +3833,7 @@ function rSheet(){
       .sort((a, b) => b.c - a.c || (a.r1 || 10) - (b.r1 || 10) || ((a.date || "") < (b.date || "") ? -1 : 1)).slice(0, 25);
     /* RPE retenu pour un record : celui de la 1re série (choix d'Alane) ; la dernière est indiquée à côté */
     const rpeTxt = g => g.r1 === null ? "RPE non noté" : "RPE " + fmt(g.r1) + (g.rl !== null && g.rl !== g.r1 ? " (dernière " + fmt(g.rl) + ")" : "");
-    const line = x => { const w = x.wh || {};
+    const line = x => (x.corr ? "Corrigée à la main · " : "") + lineB(x), lineB = x => { const w = x.wh || {};
       if (x.src === "PR") return x.coach ? "Max actuel écrit dans ta prog (case MAX ACTUELS)" : "PR enregistré le " + dJM(x.date);
       if (w.app) return "Noté dans l'app" + (x.date ? " le " + dJM(x.date) : "") + " · " + esc(blocLabel(x.bloc)) + ", semaine " + esc(x.sem);
       return `${esc(String(w.sheet || blocLabel(x.bloc)).trim())}${w.archived ? " (historique)" : ""} · semaine ${esc(x.sem)} · ${esc(w.seance || "")} · ligne ${w.row || "?"}<br>Prog : « ${esc(String(w.charge || "").trim() || "–")} »${x.rng ? `, reps « ${esc(x.rng)} » (compté ${x.r})` : ""}${String(w.com || "").trim() ? ", ton commentaire : « " + esc(String(w.com).trim()) + " »" : ""}${String(w.rpe1 || "").trim() || String(w.rpeLast || "").trim() ? ", RPE " + esc([w.rpe1, w.rpeLast].filter(v => String(v || "").trim()).join(" / ")) : ""}`; };
@@ -4198,14 +4212,17 @@ const ACT = {
   perfOpen:d => { const x = perfL[+d.i]; if (!x) return; perfSel = {x, l:d.l, n:+d.n, del:false}; openSheet("perf"); },
   perfBack:() => { const P = perfSel; perfSel = null; openSheet("rm|" + P.l + "|" + P.n); },
   perfSeance:d => { perfSel = null; sheet = null; renderLayer(); ACT.openSeance(d); },
-  perfSave:async () => { const pr = perfSel && perfSel.x.pr; if (!pr) return;
+  perfReset:async () => { const x = perfSel && perfSel.x; if (!x || !x.ck) return; await perfWrite(() => perfCorrSet(x.ck, null), "Valeur lue rétablie"); },
+  perfSave:async () => { const x = perfSel && perfSel.x, pr = x && x.pr; if (!x || (!pr && !x.ck)) return;
     const c = num($("#pfc").value), r = num($("#pfr").value), rpeV = $("#pfrpe").value.trim(), rpe = rpeV ? num(rpeV) : null, dt = $("#pfd").value;
     if (c === null || c < 0) return toast("Indique une charge (un nombre, ex. 82,5)", true);
     if (r === null || !Number.isInteger(r) || r < 1) return toast("Les reps doivent être un nombre entier (1 ou plus)", true);
     if (rpeV && (rpe === null || rpe < 1 || rpe > 10)) return toast("Le RPE va de 1 à 10 (laisse vide s'il n'est pas noté)", true);
     if (!dt) return toast("Indique une date", true);
+    if (!pr) return perfWrite(() => perfCorrSet(x.ck, {c, r, rpe:rpe || null, d:dt}), "Perf corrigée (ta prog n'est pas modifiée)");
     await perfWrite(async () => { await Store.prs.update(pr.id, [dt, pr.lift, c, r, pr.note || "", rpe || "", pr.eq ? "EQ" : ""]); Object.assign(pr, {charge:c, reps:r, rpe:rpe || null, date:dt}); }, "Perf corrigée"); },
-  perfDel:async () => { const P = perfSel, pr = P && P.x.pr; if (!pr) return; if (!P.del) { P.del = true; return renderLayer(); }
+  perfDel:async () => { const P = perfSel, pr = P && P.x.pr; if (!P || (!pr && !P.x.ck)) return; if (!P.del) { P.del = true; return renderLayer(); }
+    if (!pr) return perfWrite(() => perfCorrSet(P.x.ck, {del:true}), "Perf retirée de tes records (ta prog n'est pas modifiée)");
     await perfWrite(async () => { await Store.prs.del(pr.id); D.prs = D.prs.filter(p => p !== pr); }, "Perf supprimée"); },
   addPR:async d => { const c = num($("#prc").value), r = num($("#prr").value) || 1; if (c === null) return toast("Indique une charge (un nombre, ex. 82,5)", true); if (c < 0 || r < 0) return toast("Charge et reps ne peuvent pas être négatives", true); await addPR(d.l, c, r, $("#prd").value || D.today, $("#prn").value.trim(), num($("#prpe").value)); },
   share:d => openSheet("share|" + d.l),

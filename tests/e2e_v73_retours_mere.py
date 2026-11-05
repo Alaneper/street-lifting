@@ -33,6 +33,26 @@ with sync_playwright() as p:
     pg.click("[data-act=perfDel]"); pg.wait_for_timeout(600)
     check("supprimer : la perf disparaît", pg.evaluate(f"D.prs.length === {n0 - 1}"))
     pg.evaluate("closeSheet()")
+    # v74 · perf lue dans une prog (Sheet, Excel) : corrigeable à la main sans toucher à la prog
+    ln = pg.evaluate("(() => { for (const l of ALL_LIFTS) { const x = compSets(l).find(y => !y.pr && y.ck); if (x) return [l, x.r]; } return null; })()")
+    check("il existe une perf lue dans une prog", ln is not None)
+    if ln:
+        pg.evaluate(f"openSheet('rm|{ln[0]}|{ln[1]}')"); pg.wait_for_timeout(300)
+        i = pg.evaluate("perfL.findIndex(x => !x.pr && x.ck)"); pg.click(f".sheet [data-act=perfOpen][data-i='{i}']"); pg.wait_for_timeout(300)
+        check("perf de prog : champs modifiables (plus seulement un renvoi vers la prog)", pg.evaluate("['#pfc', '#pfr', '#pfrpe', '#pfd'].every(s => document.querySelector(s)) && document.body.textContent.includes('pas modifiée')"))
+        ck = pg.evaluate("perfSel.x.ck"); c0 = pg.evaluate("perfSel.x.c")
+        pg.fill("#pfc", "333"); pg.fill("#pfrpe", "8"); pg.click("[data-act=perfSave]"); pg.wait_for_timeout(600)
+        r = pg.evaluate(f"(() => {{ const x = compSets('{ln[0]}').find(y => y.ck === {ck!r}); return x && [x.c, x.rpe, x.corr]; }})()")
+        check("correction appliquée aux records (333 kg, RPE 8, marquée corrigée)", r == [333, 8, True], r)
+        check("correction gardée dans le profil (synchronisée)", pg.evaluate("D.profil.perf_corr.includes('333')"))
+        check("liste : « Corrigée à la main »", pg.evaluate("document.querySelector('.sheet').textContent.includes('Corrigée à la main')"))
+        i = pg.evaluate(f"perfL.findIndex(x => x.ck === {ck!r})"); pg.click(f".sheet [data-act=perfOpen][data-i='{i}']"); pg.wait_for_timeout(300)
+        pg.click("[data-act=perfReset]"); pg.wait_for_timeout(600)
+        check("revenir à la valeur lue", pg.evaluate(f"(() => {{ const x = compSets('{ln[0]}').find(y => y.ck === {ck!r}); return !!x && x.c === {c0} && !x.corr; }})()"))
+        i = pg.evaluate(f"perfL.findIndex(x => x.ck === {ck!r})"); pg.click(f".sheet [data-act=perfOpen][data-i='{i}']"); pg.wait_for_timeout(300)
+        pg.click("[data-act=perfDel]"); pg.wait_for_timeout(150); pg.click("[data-act=perfDel]"); pg.wait_for_timeout(600)
+        check("retirer une perf de prog de ses records", pg.evaluate(f"!compSets('{ln[0]}').some(y => y.ck === {ck!r})"))
+        pg.evaluate("closeSheet()")
 
     # 3 · axe du poids (maquette 3A) et toucher
     r = pg.evaluate("""(() => { const V = [75, 74.4, 75.6, 76.1].map((v, i) => ({date:addDays(D.today, i - 3), poids:v})); const h = pwSvg(V, V.map(p => p.poids), null);
