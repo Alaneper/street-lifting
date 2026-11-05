@@ -55,9 +55,9 @@ with sync_playwright() as p:
         pg.evaluate("closeSheet()")
 
     # 3 · axe du poids (maquette 3A) et toucher
-    r = pg.evaluate("""(() => { const V = [75, 74.4, 75.6, 76.1].map((v, i) => ({date:addDays(D.today, i - 3), poids:v})); const h = pwSvg(V, V.map(p => p.poids), null);
+    r = pg.evaluate("""(() => { D.profil.pw_zoom = 'large'; const V = [75, 74.4, 75.6, 76.1].map((v, i) => ({date:addDays(D.today, i - 3), poids:v})); const h = pwSvg(V, V.map(p => p.poids), null);
       const labs = [...h.matchAll(/>([\\d,]+) kg</g)].map(m => +m[1].replace(',', '.')); return {labs, lines:(h.match(/<line /g) || []).length, tap2:ICH.pw.tap2}; })()""")
-    check("axe : de 3 kg sous la plus basse (74,4) à 3 kg au-dessus de la plus haute (76,1)", r["labs"] and min(r["labs"]) <= 72 and max(r["labs"]) >= 79, r)
+    check("axe (mode Large, v75) : de 3 kg sous la plus basse (74,4) à 3 kg au-dessus de la plus haute (76,1)", r["labs"] and min(r["labs"]) <= 72 and max(r["labs"]) >= 79, r)
     check("axe : chiffres tous les 1 kg, au plus 9 (pas de chevauchement)", len(r["labs"]) <= 9 and all(b - a == 1 for a, b in zip(r["labs"], r["labs"][1:])), r)
     check("axe : lignes tous les 0,5 kg", r["lines"] >= 15, r)
     check("grand écart (70 → 90 kg) : repères espacés", pg.evaluate("pwTicks(67, 93).filter(t => t[1]).length <= 9"))

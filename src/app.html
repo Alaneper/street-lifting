@@ -743,6 +743,7 @@ details>summary.small{display:flex;align-items:center;min-height:44px}
 .emptycard.flat{background:transparent;padding:18px 4px}
 .rng{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;margin:12px 0 0}
 .rng button{min-height:44px;border-radius:var(--r);font:700 16px var(--f-text);color:var(--faint);transition:background-color var(--t2) var(--ease),color var(--t2)}
+.pwz{display:flex;align-items:center;gap:12px;margin-top:10px}.pwz .rng{flex:1;margin:0}
 .rng.pwr button{font-size:13px;white-space:nowrap;padding:0 1px}.rng button[aria-pressed="true"]{background:var(--deck2);color:var(--chalk);box-shadow:var(--sh1)}
 .catcard{display:flex;gap:16px;align-items:center;background:var(--deck);border-radius:var(--r-lg);padding:18px;margin-top:12px;box-shadow:var(--sh1)}
 .catcard svg{flex:none}.catcard p{font:700 18px/1.25 var(--f-text);color:var(--chalk)}.catcard span{display:block;font:500 15px/1.4 var(--f-text);color:var(--dust);margin-top:3px}.catcard p span.nw{display:inline;font:inherit;color:inherit;margin:0}
@@ -1089,7 +1090,7 @@ body.scrolled .syncline{opacity:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "74 · 5 nov. 2026";
+const APP_VER = "75 · 5 nov. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -3580,18 +3581,30 @@ let pwAnim = false;
 /* Repères de l'axe du poids : une ligne tous les 0,5 kg (1 ou 2 kg si l'écart est grand), un chiffre au plus tous les ~16 px (9 au maximum) pour qu'ils ne se chevauchent pas. */
 function pwTicks(lo, hi){ const R = hi - lo, gs = R <= 10 ? .5 : R <= 20 ? 1 : 2, ls = [.5, 1, 2, 5, 10, 20].find(k => k >= gs && R / k <= 9) || 20, out = [];
   for (let t = Math.ceil(lo / gs - 1e-9) * gs; t <= hi + 1e-9; t += gs) { const v = Math.round(t * 100) / 100; out.push([v, Math.abs(v / ls - Math.round(v / ls)) < 1e-6]); } return out; }
+/* v75 : échelle de la courbe de poids, 3 modes gardés dans le profil (pw_zoom) : auto (marge 10 %, hauteur mini 1,5 kg), serré (marge 3 %, mini 1 kg), large (±3 kg, comme la v73).
+   Pas des lignes choisi pour 9 lignes au plus ; un chiffre tous les n pas pour rester à ≥ 22 px les uns des autres (zone de 146 px). Choix d'Alane : maquette 4A, plancher 1,5 kg. */
+const pwZoom = () => { const z = D && D.profil && D.profil.pw_zoom; return z === "serre" || z === "large" ? z : "auto"; };
+function pwAxis(all, lim, mode){
+  const showLim = lim && Math.max(...all) > lim - 2.5, lo0 = Math.min(...all), hi0 = Math.max(...all);
+  if (mode === "large") { const lo = Math.floor((lo0 - 3) * 2) / 2, hi = Math.ceil(Math.max(hi0 + 3, showLim ? lim + .5 : -1e9) * 2) / 2; return {lo, hi, t:pwTicks(lo, hi)}; }
+  const top = showLim ? Math.max(hi0, lim) : hi0, pad = mode === "serre" ? Math.max(.1, (top - lo0) * .03) : Math.max(.25, (top - lo0) * .10), fl = mode === "serre" ? 1 : 1.5;
+  let lo = lo0 - pad, hi = top + pad; if (hi - lo < fl) { const m = (hi + lo) / 2; lo = m - fl / 2; hi = m + fl / 2; }
+  const gs = [.5, 1, 2, 5, 10, 20].find(k => (hi - lo) / k <= 9) || 20; lo = Math.floor(lo / gs + 1e-9) * gs; hi = Math.ceil(hi / gs - 1e-9) * gs;
+  const R = hi - lo, ls = gs * ([1, 2, 4, 5, 10, 20].find(m => 146 / (R / (gs * m)) >= 22) || 20), t = [];
+  for (let k = 0; k <= Math.round(R / gs); k++) { const v = Math.round((lo + k * gs) * 100) / 100; t.push([v, Math.abs(v / ls - Math.round(v / ls)) < 1e-6]); }
+  if (!t.some(x => x[1])) { t[0][1] = true; t.at(-1)[1] = true; }
+  return {lo, hi, t};
+}
 function pwSvg(V, mmV, lim){
   const W = 340, H = 208, x0 = 46, x1 = 334, y0 = 20, y1 = 166, all = V.map(p => p.poids).concat(mmV);
-  const showLim = lim && Math.max(...all) > lim - 2.5, lo0 = Math.min(...all), wMax = Math.max(...all);
-  /* v73 (choix d'Alane, maquette 3A) : l'axe va de 3 kg sous la pesée la plus basse à 3 kg au-dessus de la plus haute (et au moins jusqu'à la limite si elle est affichée) */
-  const lo = Math.floor((lo0 - 3) * 2) / 2, hi = Math.ceil(Math.max(wMax + 3, showLim ? lim + .5 : -1e9) * 2) / 2;
+  const showLim = lim && Math.max(...all) > lim - 2.5, AX = pwAxis(all, lim, pwZoom()), lo = AX.lo, hi = AX.hi;
   const span = Math.max(1, days(V[0].date, V.at(-1).date)), X = d => x0 + days(V[0].date, d) / span * (x1 - x0), Y = v => y1 - (v - lo) / (hi - lo) * (y1 - y0);
   const tr = V.map((p, i) => [X(p.date), Y(mmV[i])]), line = tr.map((q, i) => (i ? "L" : "M") + q[0].toFixed(1) + " " + q[1].toFixed(1)).join(" ");
   const area = line + ` L${tr.at(-1)[0].toFixed(1)} ${y1} L${tr[0][0].toFixed(1)} ${y1} Z`, last = tr.at(-1);
   const dots = V.length <= 15 ? V.map(p => `<circle cx="${X(p.date).toFixed(1)}" cy="${Y(p.poids).toFixed(1)}" r="3.2" fill="var(--dust)"/>`).join("") : "";
   const daily = V.map((p, i) => (i ? "L" : "M") + X(p.date).toFixed(1) + " " + Y(p.poids).toFixed(1)).join(" ");
   /* graduations rondes avec l'unité, et quatre dates sur l'axe */
-  const grid = pwTicks(lo, hi).map(([t, lab]) => `<line x1="${x0}" x2="${x1}" y1="${Y(t).toFixed(1)}" y2="${Y(t).toFixed(1)}" stroke="var(--seam)" stroke-width="1"${lab ? "" : ` opacity=".5"`}/>${lab ? `<text x="${x0 - 7}" y="${(Y(t) + 4).toFixed(1)}" text-anchor="end" fill="var(--faint)" style="font:500 11px var(--f-text)">${tickTxt(t, " kg")}</text>` : ""}`).join("");
+  const grid = AX.t.map(([t, lab]) => `<line x1="${x0}" x2="${x1}" y1="${Y(t).toFixed(1)}" y2="${Y(t).toFixed(1)}" stroke="var(--seam)" stroke-width="1"${lab ? "" : ` opacity=".5"`}/>${lab ? `<text x="${x0 - 7}" y="${(Y(t) + 4).toFixed(1)}" text-anchor="end" fill="var(--faint)" style="font:500 11px var(--f-text)">${tickTxt(t, " kg")}</text>` : ""}`).join("");
   const xd = span < 4 ? [V[0].date, V.at(-1).date] : [0, .25, .5, .75, 1].map(f => addDays(V[0].date, Math.round(span * f))), xl = axisLab(xd);
   const xt = xd.map((d, i) => `<text x="${X(d).toFixed(1)}" y="${H - 8}" text-anchor="${i === 0 ? "start" : i === xd.length - 1 ? "end" : "middle"}" fill="var(--faint)" style="font:500 11px var(--f-text)">${xl[i]}</text>`).join("");
   const prev = new Map(D.poids.map((p, i) => [p.date, D.poids[i - 1]]));
@@ -3668,6 +3681,7 @@ function rPoids(){
     <div class="panel pw-card"><div class="pw-top"><span class="pw-l"><span class="lg-lab">Ton poids · tendance</span><b class="pw-big">${cur !== null ? fmt1(cur) + "<small>kg</small>" : `<span class="pw-none">Pas de pesée</span>`}</b></span>
       <span class="pw-r">${perWeek !== null && Math.abs(perWeek) >= .05 ? `<span class="fchip data">${perWeek > 0 ? "▲" : "▼"} ${fmt(Math.abs(perWeek), 1)} kg / sem.</span>` : ""}<span class="lg-lab">${tw ? TXT.peseeJour + " " + fmt1(tw.poids) : last ? "Dernière pesée " + fmt1(last.poids) : "Aucune pesée"}</span></span></div>
       <div style="margin-top:6px">${V.length > 1 ? pwSvg(V, mmV, lim) : `<div class="emptycard flat"><b>${V.length ? "Une seule pesée sur cette période" : "Aucune pesée sur cette période"}</b><p>Pèse-toi chaque matin, à jeun. La courbe apparaît dès la 2e pesée.</p></div>`}</div>
+      ${V.length > 1 ? `<div class="pwz"><span class="muted small" style="font-weight:600">Zoom</span><div class="rng" role="group" aria-label="Zoom du graphique">${[["auto", "Auto"], ["serre", "Serré"], ["large", "Large"]].map(([k, t]) => `<button aria-pressed="${k === pwZoom()}" data-act="pwZoom" data-k="${k}">${t}</button>`).join("")}</div></div>` : ""}
       <p class="pw-leg"><span><i style="background:var(--dust);width:16px;height:2px;border-radius:var(--r-xs)"></i>Pesées du jour</span><span><i style="background:var(--data);width:16px;height:3px;border-radius:var(--r-xs)"></i>Tendance (moy. 7 j)</span>${lim ? `<span><i style="border-top:2px dashed var(--bad);width:16px;height:0"></i>Limite −${lim} kg</span>` : ""}</p>
       ${V.length > 1 ? `<p class="pw-av"><span>Tendance <b>${cur !== null ? fmt1(cur) : "–"}</b> kg</span> · <span>Moyenne <b>${fmt1(av)}</b> kg</span> · <span>Min <b>${fmt1(Math.min(...V.map(p => p.poids)))}</b> · Max <b>${fmt1(Math.max(...V.map(p => p.poids)))}</b> kg</span></p>` : ""}
       ${V.length > 1 ? `<p class="pw-ex">La ligne grise suit chaque pesée du jour : elle monte et descend avec l'eau, le sel et les repas. La ligne de couleur est la moyenne des 7 derniers jours : c'est elle qui montre ta vraie tendance.</p>` : ""}</div>
@@ -4200,6 +4214,8 @@ const ACT = {
   wOpen:() => openSheet("weigh"),
   wAll:() => openSheet("pesees"),
   pwRange:d => { pwRange = d.k; pwAnim = true; rCorps(); },
+  pwZoom:async d => { const v = d.k === "serre" || d.k === "large" ? d.k : "auto"; if (v === pwZoom()) return; D.profil.pw_zoom = v; pwAnim = false; saveCache(); rCorps();
+    try { await Store.profil.set("pw_zoom", v); } catch(e){ toast("Choix gardé sur ce téléphone, pas encore dans ton carnet. " + errMsg(e), true); } },
   openWeek:d => { progSel = {b:+d.b, w:d.w}; progSeg = "courbes"; foldOpen.vol = true; if (tab !== "prog") setTab("prog"); else rProg(); setTimeout(() => { const e = document.getElementById("wkv"); if (e) e.scrollIntoView({behavior:reduceMotion() ? "auto" : "smooth", block:"start"}); }, 60); },
   pwDay:d => { pdDay = d.d; openSheet("pday"); },
   doImport:() => doImport(),
