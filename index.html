@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="B2Strong">
-<meta name="sl-build" content="20261106200617">
+<meta name="sl-build" content="20261106203253">
 <meta name="description" content="B2Strong : le suivi des athlètes de force. Records, total, points IPF GL et RIS, prog du coach, poids de corps et compétitions.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=b2"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=b2">
@@ -1127,7 +1127,7 @@ body:has(.live) .upd,body:has(.sheet) .upd,body.ob .upd{display:none}
    CONFIG ET SOURCES
    ===================================================================== */
 let APP_ID = "";
-const APP_VER = "76 · 6 nov. 2026";
+const APP_VER = "77 · 6 nov. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -2763,11 +2763,12 @@ function chargeFromLast(s, e, k){
 function chargePlan(s, e, done){
   const cid = coachId();
   if (!cid || !chargeSyncOn(cid) || s.week || s.archived || e._mod || !s.sheet || !s.cols || !s.cols.charge || !e.row || isCardioEx(e) || isTimedEx(e) || !done.length) return null;
-  if (!isNumTxt(e.charge)) return null;
-  const val = Math.max(...done.map(x => num(x.c) ?? 0)); if (!isFinite(val) || val < 0) return null;
-  if (num(e.charge) === val) return null;
-  const orig = e._chg0 !== undefined ? e._chg0 : e.charge;
-  return {sheet:s.sheet, col:s.cols.charge, row:e.row, val, from:e.charge, orig, expect:[orig, e._chgW, e.charge].filter(x => x !== undefined)};
+  const blank = String(e.charge ?? "").trim() === "";   /* case vide (ex. fourchette de reps sans charge prescrite) : on y écrit la charge faite */
+  if (!blank && !isNumTxt(e.charge)) return null;
+  const val = Math.max(...done.map(x => num(x.c) ?? 0)); if (!isFinite(val) || val < 0 || (blank && val === 0)) return null;
+  if (!blank && num(e.charge) === val) return null;
+  const orig = e._chg0 !== undefined ? e._chg0 : (e.charge ?? "");
+  return {sheet:s.sheet, col:s.cols.charge, row:e.row, val, from:e.charge ?? "", orig, expect:[orig, e._chgW, e.charge ?? ""].filter(x => x !== undefined)};
 }
 /* Résultat d'une écriture de charge (tout de suite, ou plus tard quand la file d'attente part). Renvoie la mention à garder dans le carnet. */
 function chargeResult(meta, r, late, e){
@@ -2780,7 +2781,7 @@ function chargeResult(meta, r, late, e){
   if (r.written) {
     if (late) chargeLogSet(meta.t, {st:"ok", old:String(r.old)}); else chargeLogAdd(Object.assign({}, meta, {st:"ok", old:String(r.old)}));
     if (e) { e._chg0 = meta.orig; e._chgW = String(meta.new); e.charge = String(meta.new); }
-    return " · Charge du Sheet " + fmt(num(r.old)) + " → " + fmt(meta.new);
+    return String(r.old ?? "").trim() === "" ? " · Charge ajoutée dans le Sheet : " + fmt(meta.new) : " · Charge du Sheet " + fmt(num(r.old)) + " → " + fmt(meta.new);
   }
   if (r.same) { if (e) { e._chg0 = meta.orig; e._chgW = String(meta.new); e.charge = String(meta.new); } return ""; }
   if (r.conflict) {
