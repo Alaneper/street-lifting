@@ -57,11 +57,16 @@ with sync_playwright() as p:
     hc = ev("Math.round(document.querySelector('button.hc').getBoundingClientRect().height)")
     check("Historique : calendrier accessible par défaut (case ≥ 44 px, règle des options)", hc >= 44, (h, hc, z))
     shot(pg, "historique")
-    # --- Amis : pas de podium avec peu de membres
+    # --- Amis : podium dès 3 membres (v76, demande d'Alane)
     FIX = "CL = {rows: [%s]}; clErr = ''; agendaSeg = 'amis'; setTab('agenda'); rAgenda()"
     mem = lambda n: ",".join("{nom:'%s',ris:%s,total:%s,disc:'street',pays:'BE'%s}" % (x, 80 - i * 3, 190 - i * 10, ",me:true" if i == 1 else "") for i, x in enumerate(["Tom", "Alane", "Inès", "Sam", "Yanis", "Léa"][:n]))
     ev(FIX % mem(3)); pg.wait_for_timeout(600)
-    check("Amis (3 membres) : pas de podium, ma position et la liste", not ev("!!document.querySelector('.podium')") and ev("!!document.querySelector('.mepos')") and ev("document.querySelectorAll('.clrow').length") == 3, ev("document.querySelector('#v-agenda').innerText.slice(0, 300)"))
+    check("Amis (3 membres, v76) : podium, ma position, pas de liste en dessous", ev("!!document.querySelector('.podium')") and ev("!!document.querySelector('.mepos')") and ev("document.querySelectorAll('.clrow').length") == 0, ev("document.querySelector('#v-agenda').innerText.slice(0, 300)"))
+    ev(FIX % mem(2)); pg.wait_for_timeout(400)
+    check("Amis (2 membres) : pas de podium, ma position et la liste", not ev("!!document.querySelector('.podium')") and ev("document.querySelectorAll('.clrow').length") == 2)
+    ev(FIX % mem(4)); pg.wait_for_timeout(400)
+    check("Amis (4 membres, v76) : podium puis la liste dès le 4e", ev("!!document.querySelector('.podium')") and ev("document.querySelectorAll('.clrow').length") == 1)
+    ev(FIX % mem(3)); pg.wait_for_timeout(400)
     shot(pg, "amis-3")
     ev(FIX % mem(6)); pg.wait_for_timeout(600)
     check("Amis (6 membres) : podium conservé", ev("!!document.querySelector('.podium')"))

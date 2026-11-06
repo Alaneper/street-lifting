@@ -933,6 +933,8 @@ body.scrolled .syncline{opacity:0}
 .rchips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .rchip{display:inline-flex;align-items:center;min-height:32px;padding:0 12px;border-radius:var(--r-sm);background:var(--deck2);font:700 14px var(--f-text);color:var(--chalk)}
 .rchip.up{background:color-mix(in srgb,var(--acc) 16%,transparent);color:var(--acc)}
+.rheavy{display:flex;flex-direction:column;align-items:flex-start;gap:2px;margin-top:12px;padding:10px 12px;border-radius:var(--r);background:linear-gradient(100deg,color-mix(in srgb,var(--data) 22%,var(--deck2)),var(--deck2) 70%);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--data) 30%,transparent)}
+.rheavy span{font:600 13px var(--f-text);color:var(--dust)}.rheavy b{font:800 22px var(--f-show);color:var(--chalk);white-space:nowrap}.rheavy b small{font:600 13px var(--f-text);color:var(--dust)}
 .rhero .mplate.rhm{--mh:112px;width:92px;flex:none;border-radius:var(--r);padding:6px 0}
 .rprog{margin-top:12px;padding:16px;border-radius:var(--r-xl);background:var(--deck);box-shadow:var(--sh1)}
 .rprog .chip{min-height:44px}
@@ -1090,7 +1092,7 @@ body.scrolled .syncline{opacity:0}
    ===================================================================== */
 const SHEETS = "Google Sheets";
 const APP_ID = "10OP7QRneqxxU1ad4BbVaYulLQUBDmaj7Hcu3n3IQBtA";
-const APP_VER = "75 · 5 nov. 2026";
+const APP_VER = "76 · 6 nov. 2026";
 const LIFTS = ["MU","PULL","DIP","SQUAT"];                 /* street lifting : total et RIS */
 const POWER_LIFTS = ["SQUAT","BENCH","DEADLIFT"];          /* powerlifting : total et IPF GL (v28) */
 const ALL_LIFTS = ["MU","PULL","DIP","SQUAT","BENCH","DEADLIFT"];
@@ -1992,7 +1994,20 @@ const bwAt = iso => { let v = null; for (const p of D.poids) { if (p.date <= iso
 const risOf = (total, w) => { const c = RIS[sexe()]; if (!total || !w) return null; return total * 100 / (c.a + (c.k - c.a) / (1 + c.q * Math.exp(-c.b * (w - c.v)))); };
 /* Record 1 rep. Le squat equipped (combinaison, bandes) n'entre jamais dans le street lifting ni dans un total classic. */
 const classicOnly = p => !p.eq;
-function best(l, f){ const x = D.prs.filter(p => p.lift === l && p.reps === 1 && (!f || f(p))); return x.length ? Math.max(...x.map(p => p.charge)) : null; }
+/* v76 (demande d'Alane, 6/11) : le record de 1 répétition se met à jour tout seul dès qu'une série de 1 rép. plus lourde est faite,
+   dans la prog ou en séance (mouvement de compétition, mêmes séries que « Records par répétitions », corrections manuelles v74 comprises).
+   Le total, le classement entre amis, Progrès et les objectifs suivent, pour tous les mouvements. L'onglet PR n'est pas modifié. */
+let _recVer = 0, _bestCut = null; const _auto1 = {k:null, m:{}};
+function auto1(){
+  const k = [_recVer, D.series.length, S.length, D.prs.length, String((D.profil && D.profil.perf_corr) || ""), D.today].join("|");
+  if (_auto1.k === k && _auto1.D === D) return _auto1.m;
+  const m = {}; _auto1.k = k; _auto1.D = D; _auto1.m = m;
+  for (const l of ALL_LIFTS) m[l] = compSets(l).filter(x => !x.pr && x.r === 1 && x.date && x.date <= D.today)
+    .map(x => ({lift:l, reps:1, charge:x.c, date:x.date, rpe:x.rpe || null, eq:false, auto:true, from:x}));
+  return m;
+}
+const prs1 = (l, f) => D.prs.filter(p => p.lift === l && p.reps === 1).concat(auto1()[l] || []).filter(p => (!f || f(p)) && (!_bestCut || !p.date || p.date <= _bestCut));
+function best(l, f){ const x = prs1(l, f); return x.length ? Math.max(...x.map(p => p.charge)) : null; }
 const total = () => LIFTS.reduce((s, l) => s + (best(l, classicOnly) || 0), 0);
 const totalPower = () => POWER_LIFTS.reduce((s, l) => s + (best(l, equipped() ? null : classicOnly) || 0), 0);
 const glOf = (t, w) => glPoints(t, w, sexe(), equipped() ? "equipped" : "classic");
@@ -2006,7 +2021,7 @@ const curDisc = () => streetOn() && powerOn() ? (discSel === "power" ? "power" :
 const discSegHtml = mt => streetOn() && powerOn() ? `<div class="segc" role="group" aria-label="Discipline affichée" style="margin-top:${mt ?? 6}px">${[["street", "Street lifting"], ["power", "Powerlifting"]].map(([k, t]) => `<button aria-pressed="${curDisc() === k}" data-act="discSel" data-k="${k}">${t}</button>`).join("")}</div>` : "";
 const goalOf = d => liftsOfDisc(d).reduce((a, l) => a + (D.objectifs[l] || best(l, d === "power" && equipped() ? null : classicOnly) || 0), 0);
 const totalSub = (d, t, w, g) => `${scoreName(d)} ${fmt(scoreOf(d, t, w), d === "power" ? 2 : 1)} · objectif ${fmt(g)} kg`;
-function bestSeries(l){ let m = -Infinity; const out = []; D.prs.filter(p => p.lift === l && p.reps === 1).forEach(p => { if (p.charge > m) { m = p.charge; out.push({date:p.date, v:m}); } }); return out; }
+function bestSeries(l){ let m = -Infinity; const out = []; prs1(l).sort((a, b) => (a.date || "") < (b.date || "") ? -1 : 1).forEach(p => { if (p.charge > m) { m = p.charge; out.push({date:p.date, v:m, auto:!!p.auto, from:p.from}); } }); return out; }
 const record = (type, l) => {
   const row = REC_OSL.find(r => r[0] === (sexe() === "F" ? "F" : "H") && +r[1] === cat() && r[2] === l); if (!row) return null;
   if (type === "WR") return {valeur:+row[3], detenteur:row[4] + " (" + row[5] + ")", source:WR_SRC};
@@ -2017,7 +2032,7 @@ const firstComp = () => D.comps.length ? D.comps[0].date : null;
 function e1rm(c, r, lift, w){ if (!r) return null; const W = BW_LIFTS.includes(lift) && w ? w : 0, pc = r <= 10 ? rtsPct(r) : null;
   return pc ? (c + W) / pc - W : (c + W) * (1 + r / 30) - W; }
 function liftHistory(l){
-  const pts = D.prs.filter(p => p.lift === l && p.reps === 1).map(p => ({date:p.date, v:p.charge, src:"PR"}));
+  const pts = prs1(l).map(p => ({date:p.date, v:p.charge, src:"PR"}));
   for (const s of S) { const d = dateOf(s); if (!d || !s.faite) continue;
     for (const e of s.exercices) { if (liftOf(e.mouvement) !== l || !isCompEx(e) || ASSIST_RE.test(String(e.charge ?? ""))) continue; const v = num(e.e1rm); if (v) pts.push({date:d, v, src:"prog"}); } }
   return pts.sort((a, b) => a.date < b.date ? -1 : 1);
@@ -2141,7 +2156,7 @@ const fmtSets = sets => groupSets(sets, false);   /* « 42 kg × 11-11-12 rép. 
 /* =====================================================================
    CACHE LOCAL (affichage immédiat à l'ouverture, puis synchro)
    ===================================================================== */
-function saveCache(){ if (D) store.set("sl4-cache", {D, S, blocNames, progOrder, liveIds:[...liveIds], archMeta, ARCH:ARCH.slice(-6000), weekMeta, at:Date.now(), all:allLoaded}); }
+function saveCache(){ _recVer++; if (D) store.set("sl4-cache", {D, S, blocNames, progOrder, liveIds:[...liveIds], archMeta, ARCH:ARCH.slice(-6000), weekMeta, at:Date.now(), all:allLoaded}); }
 function loadCache(){
   const c = store.get("sl4-cache"); if (!c || !c.D) return false;
   D = bindToday(c.D); S = c.S || []; blocNames = c.blocNames || {}; progOrder = c.progOrder || Object.keys(blocNames).map(Number).sort((x, y) => x - y); liveIds = new Set(c.liveIds || progOrder); archMeta = c.archMeta || {}; ARCH = c.ARCH || []; weekMeta = c.weekMeta || {};
@@ -2667,7 +2682,9 @@ async function startLive(key, i){
   let st = store.get("sl4-live");
   if (!st || st.key !== key) st = {key, start:Date.now(), i:0, rows:{}, pdc:false};
   if (i !== undefined) st.i = +i;
-  s.exercices.forEach((e, k) => { if (!st.rows[k]) st.rows[k] = newRow(s, e, k); });
+  /* v76 : une ligne gardée d'une ouverture précédente ne sert que si c'est bien le même exercice (exercices ajoutés, retirés ou déplacés entre-temps :
+     sinon l'exercice reprenait les séries d'un autre, par ex. 2 séries au lieu des 3 prévues) */
+  s.exercices.forEach((e, k) => { if (!st.rows[k] || (st.rows[k].ex && st.rows[k].ex !== exKey(e))) st.rows[k] = newRow(s, e, k); });
   live = st; live.at = Date.now(); delete live.paused; store.set("sl4-live", live);
   try { if (wakeLock) wakeLock.release(); } catch(e){}
   try { wakeLock = await navigator.wakeLock?.request("screen"); } catch(e){ wakeLock = null; }
@@ -2773,6 +2790,7 @@ function prescLine(e, l, bw, cardio){
 }
 function rLive(){
   const s = seanceByKey(live.key); if (!s) { live = null; return ""; }
+  s.exercices.forEach((e, k) => { const r = live.rows[k]; if (!r || (r.ex && r.ex !== exKey(e))) { live.rows[k] = newRow(s, e, k); persistLive(); } });   /* v76 : même règle si la prog change pendant la séance */
   const k0 = live.i, bo0 = live.rows[k0] && live.rows[k0].bo ? backoffOf(s, s.exercices[k0], k0, live.rows) : null;
   if (bo0 && !live.rows[k0].dirty && !live.rows[k0].sets.some(x => x.done)) live.rows[k0].sets.forEach(x => x.c = bo0.mid);
   { const r0 = live.rows[k0]; if (r0 && !r0.bo && !r0.dirty && !liftOf(s.exercices[k0].mouvement) && !r0.sets.some(x => x.done)) { const f = initSets(s, s.exercices[k0], k0);
@@ -2997,10 +3015,10 @@ async function saveMod(s, m){
   try { await Store.profil.set("modifs", txt); } catch(err){ toast("Changement gardé sur ce téléphone, pas encore dans ton Google Sheet. " + errMsg(err), true); }
 }
 const edSession = () => seanceByKey(edSess || (live && live.key) || sel);
-function newRow(s, e, k){ const fl = chargeFromLast(s, e, k); return {sets:initSets(s, e, k), flp:fl ? fl.presc : undefined, bo:!!backoffOf(s, e, k), rpe1:num(e.rpe1), rpeLast:num(e.rpeLast) ?? (s.week ? rpeSaved(s, e) : null), dirty:false}; }
+function newRow(s, e, k){ const fl = chargeFromLast(s, e, k); return {ex:exKey(e), sets:initSets(s, e, k), flp:fl ? fl.presc : undefined, bo:!!backoffOf(s, e, k), rpe1:num(e.rpe1), rpeLast:num(e.rpeLast) ?? (s.week ? rpeSaved(s, e) : null), dirty:false}; }
 /* La séance garde les lignes saisies (en direct ou mise de côté) : on les remet face aux bons exercices après un changement. */
 function remapState(st, s, oldIds, oldRows, keepId){
-  const rows = {}; s.exercices.forEach((e, k) => { const oi = oldIds.indexOf(e._id); rows[k] = oi >= 0 && oldRows[oi] ? oldRows[oi] : newRow(s, e, k); });
+  const rows = {}; s.exercices.forEach((e, k) => { const oi = oldIds.indexOf(e._id); rows[k] = oi >= 0 && oldRows[oi] ? oldRows[oi] : newRow(s, e, k); rows[k].ex = exKey(e); });   /* v76 : la ligne suit l'exercice remis en face d'elle */
   st.rows = rows; const ni = s.exercices.findIndex(e => e._id === keepId); st.i = ni >= 0 ? ni : Math.max(0, Math.min(st.i || 0, s.exercices.length - 1));
 }
 async function edOp(s, scope, fn){
@@ -3273,8 +3291,8 @@ function cardioHtml(){
 /* v67 étape F : Progrès v3 (Records | Courbes). Le total passe en courbe ; les écarts viennent de tes records datés, rien n'est inventé. */
 let progSeg = "records";
 function totalSeries(cd){
-  const L = liftsOfDisc(cd), dates = [...new Set(D.prs.filter(p => p.reps === 1 && L.includes(p.lift) && p.date).map(p => p.date))].sort(), keep = D.prs, out = [];
-  try { dates.forEach(d => { D.prs = keep.filter(p => p.date <= d); out.push({date:d, v:totalOf(cd)}); }); } finally { D.prs = keep; }
+  const L = liftsOfDisc(cd), dates = [...new Set(L.flatMap(l => prs1(l)).filter(p => p.date).map(p => p.date))].sort(), out = [];
+  try { dates.forEach(d => { _bestCut = d; out.push({date:d, v:totalOf(cd)}); }); } finally { _bestCut = null; }
   return out.filter(x => x.v > 0);
 }
 const refPoint = (pts, days) => pts.length < 2 ? null : (pts.filter(p => p.date <= addDays(D.today, -days)).at(-1) || pts[0]);
@@ -3481,6 +3499,12 @@ function drawVolume(){
   barChart("c-vol", W.map(w => w.label), ls.map(l => ({label:LNAME[l], data:W.map(w => Math.round(w.t[l])), color:getCss(LCOL[l])})), " kg", {tap:i => ACT.openWeek({b:W[i].b, w:W[i].w})});
 }
 
+/* v76 (maquette A choisie par Alane) : charge la plus lourde faite en plusieurs reps, seulement si elle dépasse le record de 1 rép. Ce n'est pas un record. */
+function heavyLine(l, b){
+  const h = compSets(l).filter(x => x.r > 1 && (!x.date || x.date <= D.today)).sort((a, c) => c.c - a.c || a.r - c.r)[0];
+  if (!h || (b !== null && h.c <= b)) return "";
+  return `<div class="rheavy"><span>${BW_LIFTS.includes(l) ? "Lest le plus lourd" : "Charge la plus lourde"}</span><b>${fmt(h.c)} kg <small>× ${h.r} rép.${h.date ? " · " + esc(dShort(h.date)) : ""}</small></b></div>`;
+}
 /* ---------- Fiche mouvement ---------- */
 function rLiftPage(l){
   const b = best(l), o = D.objectifs[l];
@@ -3491,7 +3515,7 @@ function rLiftPage(l){
     ${(() => { const bs = bestSeries(l), pk = bs.at(-1), pv = bs.length > 1 ? bs.at(-2).v : null, wb = BW_LIFTS.includes(l) && bw() && b !== null ? fmt(b + bw(), 1) + " kg avec ton poids de corps" : "";
       return `<section class="rhero"><div class="rtx"><p class="rsm">${BW_LIFTS.includes(l) ? "Lest · " : ""}1 répétition maximale</p>
         <p class="rbig">${b === null ? "—" : fmt(b)}${b === null ? "" : "<small>kg</small>"}</p>
-        ${b === null ? `<p class="muted small">${LIFTS.includes(l) && streetOn() ? TXT.noRecord + " : 0 kg dans ton total" : TXT.noRecord}</p>` : `<div class="rchips">${pv !== null && b > pv ? `<span class="rchip up">▲ ${fmt(b - pv, 2)} kg</span>` : ""}${pk ? `<span class="rchip">${esc(dShort(pk.date))}</span>` : ""}</div>${wb ? `<p class="muted small" style="margin-top:8px">${wb}</p>` : ""}${e1rmLine(l)}`}</div>
+        ${b === null ? `<p class="muted small">${LIFTS.includes(l) && streetOn() ? TXT.noRecord + " : 0 kg dans ton total" : TXT.noRecord}</p>` : `<div class="rchips">${pv !== null && b > pv ? `<span class="rchip up">▲ ${fmt(b - pv, 2)} kg</span>` : ""}${pk ? `<span class="rchip">${esc(dShort(pk.date))}${pk.auto ? (pk.from && pk.from.wh && pk.from.wh.app ? " · en séance" : " · dans ta prog") : ""}</span>` : ""}</div>${heavyLine(l, b)}${wb ? `<p class="muted small" style="margin-top:8px">${wb}</p>` : ""}${e1rmLine(l)}`}</div>
         ${muscleFig(l, {cls:"rhm"})}</section>`; })()}
     <section class="rprog"><div class="rph"><b>${liftMetric === "1rm" ? "Progression sur 1 an" : "e1RM de la prog"}</b><span id="rgain"></span></div>
       <div class="chips">${[["1rm","Tes PR"],["e1rm","e1RM de la prog"]].map(([k, tt]) => `<button class="chip" aria-pressed="${liftMetric === k}" data-act="liftMetric" data-k="${k}" data-l="${l}">${tt}</button>`).join("")}</div>
@@ -4025,7 +4049,7 @@ function settingsHtml(){
 async function drawShare(l){
   const cv = document.getElementById("sharecv"); if (!cv) return;
   try { await Promise.all(["900 200px 'B2 Display'", "600 40px 'B2 Text'", "800 60px 'B2 Display'"].map(f => document.fonts.load(f))); } catch(e){}
-  const x = cv.getContext("2d"), W = 1080, H = 1350, col = getCss(LCOL[l]), b = best(l), pr = D.prs.filter(p => p.lift === l && p.reps === 1).sort((a, c) => c.charge - a.charge)[0];
+  const x = cv.getContext("2d"), W = 1080, H = 1350, col = getCss(LCOL[l]), b = best(l), pr = prs1(l).sort((a, c) => c.charge - a.charge)[0];
   x.fillStyle = "#17181B"; x.fillRect(0, 0, W, H);
   x.fillStyle = col; x.globalAlpha = .12; x.beginPath(); x.arc(W * .85, H * .2, 420, 0, 7); x.fill(); x.globalAlpha = 1;
   x.fillStyle = "#8E9198"; x.fillRect(0, 980, 520, 26); x.fillRect(500, 940, 40, 106); x.fillRect(540, 965, W - 540, 56);
@@ -4682,7 +4706,7 @@ function rAmis(){
     if (!x) return `<div class="${cls} empty"><span class="pav">·</span><b class="pname muted">—</b><span class="ptot muted">&nbsp;</span><div class="pblock"><span>${k + 1}</span></div></div>`;
     return `<button class="${cls}${x.me ? " me" : ""}" data-act="clInfo" data-k="${x.k}" aria-label="${ordinal(k + 1)} : ${esc(x.nom)}, ${lab(x)}"><span class="pav">${esc(x.nom.slice(0, 2).toUpperCase())}<i class="pflag">${flagOf(x.pays)}</i></span>
       <b class="pname">${esc(x.nom)}</b><span class="ptot">${big(x)}</span><div class="pblock"><span>${k + 1}</span></div></button>`; };
-  const showPod = R.length >= 5, r0 = showPod ? 3 : 0;   /* le podium n'a de sens qu'à partir de 5 membres ; en dessous : ta position puis la liste */
+  const showPod = R.length >= 3, r0 = showPod ? 3 : 0;   /* v76 (Alane) : podium dès 3 membres, puis ta position et la liste dès le 4e ; en dessous de 3 : ta position puis la liste */
   const rest = R.slice(r0).map((x, i) => `<button class="vrow clrow${x.me ? " me" : ""}" data-act="clInfo" data-k="${x.k}"><span class="rk">${i + r0 + 1}</span><span class="clav" aria-hidden="true">${esc(x.nom.slice(0, 2).toUpperCase())}</span><span class="grow"><b>${esc(x.nom)}</b></span><span class="val">${clSort === "total" ? fmt(x.total) + " kg" : x.score ? fmt(x.score, sd) : "—"}</span></button>`).join("");
   const chips = `<div class="chips" style="margin-top:10px">${[["score", "Au " + sn], ["total", "Au total"]].map(([k, t]) => `<button class="chip" aria-pressed="${clSort === k}" data-act="clSort" data-k="${k}">${t}</button>`).join("")}
     ${agesHere.length ? `<span aria-hidden="true" style="width:1px;background:var(--seam);margin:6px 2px"></span>` + [["", "Tous les âges"]].concat(agesHere.map(a => [a, AGE_NAME[a]])).map(([k, t]) => `<button class="chip" aria-pressed="${clAge === k}" data-act="clAge" data-k="${k}">${t}</button>`).join("") : ""}</div>`;
